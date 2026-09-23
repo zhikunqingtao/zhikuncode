@@ -1,0 +1,70 @@
+
+> ai-code-assistant-frontend@1.0.0 test:run
+> vitest run src/store/sessionMergeReviewRepro.test.ts --maxWorkers=1 --minWorkers=1
+
+
+ RUN  v2.1.9 <ISOLATED_ROOT>/frontend
+
+ ❯ src/store/sessionMergeReviewRepro.test.ts (1 test | 1 failed) 61ms
+   × discovers the authoritative active operation after restoring an older completed result 60ms
+     → expected "spy" to be called with arguments: [ '/api/session-merges/active', …(1) ]
+
+Received: 
+
+  1st spy call:
+
+  Array [
+-   "/api/session-merges/active",
+-   Anything,
++   "/api/session-merges/old",
++   Object {
++     "headers": Object {
++       "Accept": "application/json",
++     },
++     "signal": AbortSignal {},
++   },
+  ]
+
+
+Number of calls: 1
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/store/sessionMergeReviewRepro.test.ts > discovers the authoritative active operation after restoring an older completed result
+AssertionError: expected "spy" to be called with arguments: [ '/api/session-merges/active', …(1) ]
+
+Received: 
+
+  1st spy call:
+
+  Array [
+-   "/api/session-merges/active",
+-   Anything,
++   "/api/session-merges/old",
++   Object {
++     "headers": Object {
++       "Accept": "application/json",
++     },
++     "signal": AbortSignal {},
++   },
+  ]
+
+
+Number of calls: 1
+
+ ❯ src/store/sessionMergeReviewRepro.test.ts:14:20
+     12|  await store.getState().refresh();
+     13|  await store.getState().refresh();
+     14|  expect(fetchMock).toHaveBeenCalledWith('/api/session-merges/active',e…
+       |                    ^
+     15|  expect(store.getState().pending?.operation?.operationId).toBe('new');
+     16| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  07:55:53
+   Duration  1.84s (transform 77ms, setup 125ms, collect 10ms, tests 61ms, environment 968ms, prepare 60ms)
+

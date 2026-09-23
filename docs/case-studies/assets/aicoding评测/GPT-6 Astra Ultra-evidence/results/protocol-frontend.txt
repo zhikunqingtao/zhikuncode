@@ -1,0 +1,14 @@
+
+> ai-code-assistant-frontend@1.0.0 test:run
+> vitest run src/store/rankingProtocolRepro.test.ts --maxWorkers=1 --minWorkers=1
+
+
+ RUN  v2.1.9 <ISOLATED_ROOT>/frontend
+
+ ✓ src/store/rankingProtocolRepro.test.ts (2 tests) 50ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  08:01:02
+   Duration  1.55s (transform 64ms, setup 94ms, collect 11ms, tests 50ms, environment 850ms, prepare 54ms)
+

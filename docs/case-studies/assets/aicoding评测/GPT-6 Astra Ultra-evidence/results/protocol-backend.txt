@@ -1,0 +1,135 @@
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-09-23 08:03:27.098 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.engine.QueryEngine - QueryEngine 开始执行: model=mock-model, maxTokens=8192, maxTurns=10
+2026-09-23 08:03:27.111 DEBUG [main] [sid=test-session rid=- prid=- agent=query turn=- tool=- llm=-] com.aicodeassistant.engine.QueryEngine - queryLoop 进入: model=mock-model, messageCount=1, maxTurns=10, aborted=false
+2026-09-23 08:03:27.112 DEBUG [main] [sid=test-session rid=- prid=- agent=query turn=1 tool=- llm=-] com.aicodeassistant.engine.QueryEngine - Turn 1 开始: messageCount=1, model=mock-model
+2026-09-23 08:03:27.123 DEBUG [main] [sid=test-session rid=- prid=- agent=query turn=1 tool=- llm=-] com.aicodeassistant.engine.QueryEngine - Turn 1 Step3: provider=LlmProvider$MockitoMock$NwBAsaMo, effectiveModel=mock-model, effectiveMaxTokens=8192
+2026-09-23 08:03:27.137 DEBUG [main] [sid=test-session rid=- prid=- agent=query turn=1 tool=- llm=-] com.aicodeassistant.engine.QueryEngine - Turn 1 Step3: apiMessages.size=1, typedMessages.size=1
+2026-09-23 08:03:27.138 DEBUG [main] [sid=test-session rid=- prid=- agent=query turn=1 tool=- llm=-] com.aicodeassistant.engine.QueryEngine - Turn 1 Step3: 开始 API 调用 streamChat...
+2026-09-23 08:03:27.142 DEBUG [main] [sid=test-session rid=- prid=- agent=query turn=1 tool=- llm=-] com.aicodeassistant.engine.QueryEngine - Turn 1 Step4: streamChat returned, building AssistantMessage...
+2026-09-23 08:03:27.144 INFO  [main] [sid=test-session rid=- prid=- agent=query turn=1 tool=- llm=-] com.aicodeassistant.engine.QueryEngine - Turn 1 完成: model=mock-model, stopReason=end_turn, contentBlocks=1, usage=15
+2026-09-23 08:03:27.147 DEBUG [main] [sid=test-session rid=- prid=- agent=query turn=1 tool=- llm=-] com.aicodeassistant.engine.QueryEngine - TerminationStrategy decision: TERMINATE_SUCCESS (turn=1, errors=0, stopReason=end_turn)
+2026-09-23 08:03:27.147 INFO  [main] [sid=test-session rid=- prid=- agent=query turn=1 tool=- llm=-] com.aicodeassistant.engine.QueryEngine - QueryEngine 完成: turns=1, stopReason=end_turn, totalTokens=15
+2026-09-23 08:03:27.234 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.engine.QueryEngine - QueryEngine 开始执行: model=mock-model, maxTokens=8192, maxTurns=10
+2026-09-23 08:03:27.235 DEBUG [main] [sid=test-session rid=- prid=- agent=query turn=- tool=- llm=-] com.aicodeassistant.engine.QueryEngine - queryLoop 进入: model=mock-model, messageCount=1, maxTurns=10, aborted=false
+2026-09-23 08:03:27.235 DEBUG [main] [sid=test-session rid=- prid=- agent=query turn=1 tool=- llm=-] com.aicodeassistant.engine.QueryEngine - Turn 1 开始: messageCount=1, model=mock-model
+2026-09-23 08:03:27.236 DEBUG [main] [sid=test-session rid=- prid=- agent=query turn=1 tool=- llm=-] com.aicodeassistant.engine.QueryEngine - Turn 1 Step3: provider=LlmProvider$MockitoMock$NwBAsaMo, effectiveModel=mock-model, effectiveMaxTokens=8192
+2026-09-23 08:03:27.239 WARN  [main] [sid=test-session rid=- prid=- agent=query turn=1 tool=- llm=-] com.aicodeassistant.engine.QueryEngine - ImageRefInjector returned null; continuing without transient images
+2026-09-23 08:03:27.240 DEBUG [main] [sid=test-session rid=- prid=- agent=query turn=1 tool=- llm=-] com.aicodeassistant.engine.QueryEngine - Turn 1 Step3: apiMessages.size=1, typedMessages.size=1
+2026-09-23 08:03:27.240 DEBUG [main] [sid=test-session rid=- prid=- agent=query turn=1 tool=- llm=-] com.aicodeassistant.engine.QueryEngine - Turn 1 Step3: 开始 API 调用 streamChat...
+2026-09-23 08:03:27.240 DEBUG [main] [sid=test-session rid=- prid=- agent=query turn=1 tool=- llm=-] com.aicodeassistant.engine.QueryEngine - Turn 1 Step4: streamChat returned, building AssistantMessage...
+2026-09-23 08:03:27.241 INFO  [main] [sid=test-session rid=- prid=- agent=query turn=1 tool=- llm=-] com.aicodeassistant.engine.QueryEngine - Turn 1 完成: model=mock-model, stopReason=end_turn, contentBlocks=1, usage=15
+2026-09-23 08:03:27.241 DEBUG [main] [sid=test-session rid=- prid=- agent=query turn=1 tool=- llm=-] com.aicodeassistant.engine.QueryEngine - TerminationStrategy decision: TERMINATE_SUCCESS (turn=1, errors=0, stopReason=end_turn)
+2026-09-23 08:03:27.241 INFO  [main] [sid=test-session rid=- prid=- agent=query turn=1 tool=- llm=-] com.aicodeassistant.engine.QueryEngine - QueryEngine 完成: turns=1, stopReason=end_turn, totalTokens=15
+2026-09-23 08:03:27.279 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.engine.QueryEngine - QueryEngine 开始执行: model=mock-model, maxTokens=8192, maxTurns=10
+2026-09-23 08:03:27.280 DEBUG [main] [sid=test-session rid=- prid=- agent=query turn=- tool=- llm=-] com.aicodeassistant.engine.QueryEngine - queryLoop 进入: model=mock-model, messageCount=1, maxTurns=10, aborted=false
+2026-09-23 08:03:27.280 DEBUG [main] [sid=test-session rid=- prid=- agent=query turn=1 tool=- llm=-] com.aicodeassistant.engine.QueryEngine - Turn 1 开始: messageCount=1, model=mock-model
+2026-09-23 08:03:27.282 ERROR [main] [sid=test-session rid=- prid=- agent=query turn=1 tool=- llm=-] com.aicodeassistant.engine.QueryEngine - QueryEngine 执行异常
+java.lang.IllegalStateException: HANDOFF_CONTEXT_BUDGET_TOO_SMALL
+	at com.aicodeassistant.engine.HandoffContextService.project(HandoffContextService.java:63) ~[classes/:?]
+	at com.aicodeassistant.engine.QueryEngine.handoffProjection(QueryEngine.java:1817) ~[classes/:?]
+	at com.aicodeassistant.engine.QueryEngine.prepareCompactionContext(QueryEngine.java:1835) ~[classes/:?]
+	at com.aicodeassistant.engine.QueryEngine.queryLoop(QueryEngine.java:779) ~[classes/:?]
+	at com.aicodeassistant.engine.QueryEngine.execute(QueryEngine.java:362) ~[classes/:?]
+	at com.aicodeassistant.engine.RankingQueryReproTest.projectionBudgetExceptionIsCaughtAndReturnedAsQueryError(RankingQueryReproTest.java:27) ~[test-classes/:?]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[?:?]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[?:?]
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:767) ~[junit-platform-commons-1.11.4.jar:1.11.4]
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:156) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:147) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:103) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:93) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:92) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:86) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$8(TestMethodTestDescriptor.java:217) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:213) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:138) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:68) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596) ~[?:?]
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596) ~[?:?]
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:169) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:93) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:58) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:141) [junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:57) [junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103) [junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85) [junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47) [junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithoutCancellationToken(LauncherAdapter.java:60) [surefire-junit-platform-3.5.4.jar:3.5.4]
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:52) [surefire-junit-platform-3.5.4.jar:3.5.4]
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203) [surefire-junit-platform-3.5.4.jar:3.5.4]
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168) [surefire-junit-platform-3.5.4.jar:3.5.4]
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136) [surefire-junit-platform-3.5.4.jar:3.5.4]
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385) [surefire-booter-3.5.4.jar:3.5.4]
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162) [surefire-booter-3.5.4.jar:3.5.4]
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507) [surefire-booter-3.5.4.jar:3.5.4]
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495) [surefire-booter-3.5.4.jar:3.5.4]
+2026-09-23 08:03:28.212 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V002_InitProjectSchema - Creating data.db schema...
+2026-09-23 08:03:28.587 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V012_AddCheckpointSchema - Creating agent_checkpoints table...
+2026-09-23 08:03:28.590 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V012_AddCheckpointSchema - V012: agent_checkpoints table created.
+2026-09-23 08:03:28.799 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V002_InitProjectSchema - Creating data.db schema...
+2026-09-23 08:03:28.807 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V012_AddCheckpointSchema - Creating agent_checkpoints table...
+2026-09-23 08:03:28.809 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V012_AddCheckpointSchema - V012: agent_checkpoints table created.
+2026-09-23 08:03:28.857 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V002_InitProjectSchema - Creating data.db schema...
+2026-09-23 08:03:28.865 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V012_AddCheckpointSchema - Creating agent_checkpoints table...
+2026-09-23 08:03:28.868 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V012_AddCheckpointSchema - V012: agent_checkpoints table created.
+2026-09-23 08:03:28.926 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V002_InitProjectSchema - Creating data.db schema...
+2026-09-23 08:03:28.934 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V012_AddCheckpointSchema - Creating agent_checkpoints table...
+2026-09-23 08:03:28.936 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V012_AddCheckpointSchema - V012: agent_checkpoints table created.
+2026-09-23 08:03:29.026 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.session.merge.MergeSummaryService - Merge call: request=cce7416d-74ff-440a-ab6d-9d5e9d406c25, model=old-model, inputEstimatedTokens=58, inputBytes=146, generationBudget=34816
+2026-09-23 08:03:29.035 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.session.merge.MergeSummaryService - Merge call result: request=cce7416d-74ff-440a-ab6d-9d5e9d406c25, stop=end_turn, complete=true, visibleBytes=124, usageReported=true, totalOutputTokens=13370
+2026-09-23 08:03:29.047 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.session.merge.MergeSummaryService - Merge call: request=cc65085c-8086-499e-ba96-5a8c2dcddd39, model=old-model, inputEstimatedTokens=61, inputBytes=140, generationBudget=34816
+2026-09-23 08:03:29.049 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.session.merge.MergeSummaryService - Merge call result: request=cc65085c-8086-499e-ba96-5a8c2dcddd39, stop=end_turn, complete=true, visibleBytes=124, usageReported=true, totalOutputTokens=13370
+2026-09-23 08:03:29.057 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.session.merge.MergeSummaryService - Merge call: request=4d47cf5d-2e5e-41f5-929a-0b5c3387752b, model=old-model, inputEstimatedTokens=58, inputBytes=146, generationBudget=34816
+2026-09-23 08:03:29.059 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.session.merge.MergeSummaryService - Merge call result: request=4d47cf5d-2e5e-41f5-929a-0b5c3387752b, stop=end_turn, complete=true, visibleBytes=124, usageReported=true, totalOutputTokens=13370
+2026-09-23 08:03:29.065 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.session.merge.MergeSummaryService - Merge call: request=32b8ff39-2b55-445f-955b-fcecbb5ab3f0, model=old-model, inputEstimatedTokens=85, inputBytes=188, generationBudget=34816
+2026-09-23 08:03:29.067 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.session.merge.MergeSummaryService - Merge call result: request=32b8ff39-2b55-445f-955b-fcecbb5ab3f0, stop=end_turn, complete=true, visibleBytes=124, usageReported=true, totalOutputTokens=13370
+2026-09-23 08:03:29.083 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.session.merge.MergeSummaryService - Merge call: request=19cc2d5b-a50e-4600-afd3-b6a58881c617, model=old-model, inputEstimatedTokens=454, inputBytes=908, generationBudget=34816
+2026-09-23 08:03:29.085 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.session.merge.MergeSummaryService - Merge call result: request=19cc2d5b-a50e-4600-afd3-b6a58881c617, stop=end_turn, complete=true, visibleBytes=3604, usageReported=true, totalOutputTokens=13370
+2026-09-23 08:03:29.095 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.session.merge.MergeSummaryService - Merge call: request=caef9f71-1512-429e-b1b4-d13979f736a2, model=old-model, inputEstimatedTokens=1829, inputBytes=3658, generationBudget=34816
+2026-09-23 08:03:29.097 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.session.merge.MergeSummaryService - Merge call result: request=caef9f71-1512-429e-b1b4-d13979f736a2, stop=null, complete=false, visibleBytes=0, usageReported=false, totalOutputTokens=0
+2026-09-23 08:03:29.136 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.session.merge.MergeSummaryService - Merge call: request=3993da32-057e-46a2-b09a-faf73d83e030, model=old-model, inputEstimatedTokens=1829, inputBytes=3658, generationBudget=34816
+2026-09-23 08:03:29.138 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.session.merge.MergeSummaryService - Merge call result: request=3993da32-057e-46a2-b09a-faf73d83e030, stop=end_turn, complete=true, visibleBytes=124, usageReported=true, totalOutputTokens=13370
+2026-09-23 08:03:29.164 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V002_InitProjectSchema - Creating data.db schema...
+2026-09-23 08:03:29.171 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V012_AddCheckpointSchema - Creating agent_checkpoints table...
+2026-09-23 08:03:29.173 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V012_AddCheckpointSchema - V012: agent_checkpoints table created.
+2026-09-23 08:03:29.226 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V002_InitProjectSchema - Creating data.db schema...
+2026-09-23 08:03:29.232 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V012_AddCheckpointSchema - Creating agent_checkpoints table...
+2026-09-23 08:03:29.235 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V012_AddCheckpointSchema - V012: agent_checkpoints table created.

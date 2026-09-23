@@ -1,0 +1,776 @@
+[
+  {
+    "id": "D01",
+    "key": "recovery-archive-fields",
+    "severity": "serious",
+    "boundary": "恢复投影将thinking/供应商私有字段送入提取；与首次过滤不一致。",
+    "title": "恢复投影绕过归档字段过滤",
+    "claims": [
+      "R01-C01",
+      "R07-C01"
+    ],
+    "code_refs": [
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 264
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 265
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 270
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 514
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java",
+        "line": 72
+      }
+    ],
+    "evidence": [
+      "reproductions/MergeReviewReproTest.java"
+    ],
+    "verification": "reproduced"
+  },
+  {
+    "id": "D02",
+    "key": "legacy-tool-result-omission",
+    "severity": "serious",
+    "boundary": "顶层toolUseResult未入版本哈希/文字索引；原checkpoint容器仍保留，不能称原件彻底丢失。",
+    "title": "旧工具结果版本折叠且未进入投影",
+    "claims": [
+      "R01-C02"
+    ],
+    "code_refs": [
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java",
+        "line": 246
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 337
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 371
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 549
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 560
+      }
+    ],
+    "evidence": [
+      "reproductions/MergeReviewReproTest.java"
+    ],
+    "verification": "reproduced"
+  },
+  {
+    "id": "D03",
+    "key": "snapshot-intermediate-symlink",
+    "severity": "serious",
+    "boundary": "历史文件引用的中间目录symlink穿过允许的来源目录边界，复制合成外部文件。",
+    "title": "引用文件中间symlink穿透复制边界",
+    "claims": [
+      "R02-C01"
+    ],
+    "code_refs": [
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 458
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 935
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 975
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 984
+      }
+    ],
+    "evidence": [
+      "reproductions/RankingProtocolReproTest.java"
+    ],
+    "verification": "reproduced"
+  },
+  {
+    "id": "D04",
+    "key": "blocked-gap-recovery-protocol",
+    "severity": "moderate",
+    "boundary": "已修正解析配置仍被gap/ref关联校验阻止；不等于所有坏原件应可恢复。",
+    "title": "阻断gap引用与恢复协议不一致",
+    "claims": [
+      "R02-C02",
+      "R03-C02",
+      "R05-C01",
+      "R11-C03",
+      "R13-C15",
+      "R14-C04"
+    ],
+    "code_refs": [
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 232
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 235
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 435
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 436
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 531
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 549
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 565
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 598
+      },
+      {
+        "path": "docs/session-merge-architecture-v2.md",
+        "line": 179
+      },
+      {
+        "path": "docs/session-merge-architecture-v2.md",
+        "line": 183
+      }
+    ],
+    "evidence": [
+      "reproductions/RankingProtocolReproTest.java"
+    ],
+    "verification": "reproduced"
+  },
+  {
+    "id": "D05",
+    "key": "noncritical-nonutf8-attachment-blocks-merge",
+    "severity": "moderate",
+    "boundary": "已保存非关键GBK日志原件已复制，仍因不能UTF8解析阻断合并。",
+    "title": "非关键非UTF8文本附件阻断整个合并",
+    "claims": [
+      "R03-C01"
+    ],
+    "code_refs": [
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 235
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 583
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 589
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 598
+      },
+      {
+        "path": "docs/session-merge-architecture-v2.md",
+        "line": 183
+      }
+    ],
+    "evidence": [
+      "reproductions/RankingProtocolReproTest.java"
+    ],
+    "verification": "reproduced"
+  },
+  {
+    "id": "D06",
+    "key": "model-switch-orphaned-aggregate-unit",
+    "severity": "moderate",
+    "boundary": "token估算变化越过1536阈值时遗留既有pending聚合单元；换回条件可恢复。",
+    "title": "换模型后聚合提前退出遗留pending",
+    "claims": [
+      "R07-C02"
+    ],
+    "code_refs": [
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeProgressRepository.java",
+        "line": 115
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java",
+        "line": 89
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java",
+        "line": 120
+      }
+    ],
+    "evidence": [
+      "reproductions/RankingProtocolReproTest.java"
+    ],
+    "verification": "reproduced"
+  },
+  {
+    "id": "D07",
+    "key": "terminal-cache-blocks-active",
+    "severity": "moderate",
+    "boundary": "本地旧终态遮蔽服务端新active；关闭旧结果可绕过。",
+    "title": "旧终态缓存阻止active发现",
+    "claims": [
+      "R01-C04",
+      "R14-C22"
+    ],
+    "code_refs": [
+      {
+        "path": "docs/session-merge-architecture-v2.md",
+        "line": 422
+      },
+      {
+        "path": "frontend/src/store/sessionMergeStore.ts",
+        "line": 139
+      },
+      {
+        "path": "frontend/src/store/sessionMergeStore.ts",
+        "line": 140
+      },
+      {
+        "path": "frontend/src/store/sessionMergeStore.ts",
+        "line": 149
+      },
+      {
+        "path": "frontend/src/store/sessionMergeStore.ts",
+        "line": 189
+      },
+      {
+        "path": "frontend/src/store/sessionMergeStore.ts",
+        "line": 268
+      }
+    ],
+    "evidence": [
+      "reproductions/sessionMergeReviewRepro.test.ts"
+    ],
+    "verification": "reproduced"
+  },
+  {
+    "id": "D08",
+    "key": "polling-blocks-controls",
+    "severity": "moderate",
+    "boundary": "轮询复用submitting禁用恢复/取消，程序cancel也等待GET结束；不表示后端永久不能取消。",
+    "title": "取消等待在飞轮询",
+    "claims": [
+      "R02-C25",
+      "R05-C06",
+      "R13-C23",
+      "R14-C26",
+      "R15-C17"
+    ],
+    "code_refs": [
+      {
+        "path": "docs/session-merge-architecture-v2.md",
+        "line": 447
+      },
+      {
+        "path": "frontend/src/components/session/SessionMergePanel.tsx",
+        "line": 222
+      },
+      {
+        "path": "frontend/src/components/session/SessionMergePanel.tsx",
+        "line": 225
+      },
+      {
+        "path": "frontend/src/store/sessionMergeStore.ts",
+        "line": 144
+      },
+      {
+        "path": "frontend/src/store/sessionMergeStore.ts",
+        "line": 147
+      },
+      {
+        "path": "frontend/src/store/sessionMergeStore.ts",
+        "line": 227
+      }
+    ],
+    "evidence": [
+      "reproductions/rankingProtocolRepro.test.ts"
+    ],
+    "verification": "reproduced"
+  },
+  {
+    "id": "D09",
+    "key": "handoff-small-budget-error",
+    "severity": "moderate",
+    "boundary": "E最小入口超预算走通用QueryResult.error，未走容量错误通道；不是必然HTTP500。",
+    "title": "合并入口预算不足未走容量错误通道",
+    "claims": [
+      "R02-C11",
+      "R04-C03",
+      "R05-C07",
+      "R10-C11",
+      "R11-C04",
+      "R12-C03",
+      "R13-C10",
+      "R14-C14",
+      "R17-C08"
+    ],
+    "code_refs": [
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/controller/QueryController.java",
+        "line": 185
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java",
+        "line": 72
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java",
+        "line": 74
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/engine/QueryEngine.java",
+        "line": 364
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/engine/QueryEngine.java",
+        "line": 407
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/engine/QueryEngine.java",
+        "line": 960
+      }
+    ],
+    "evidence": [
+      "reproductions/RankingQueryReproTest.java"
+    ],
+    "verification": "reproduced"
+  },
+  {
+    "id": "D10",
+    "key": "invalid-external-reference-path",
+    "severity": "moderate",
+    "boundary": "历史外部引用含NUL时Path.of抛错，中止封存而不是记外部缺口。",
+    "title": "非法外部引用路径中止整个封存",
+    "claims": [
+      "R13-C18"
+    ],
+    "code_refs": [
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 460
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 935
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+        "line": 218
+      }
+    ],
+    "evidence": [
+      "reproductions/RankingProtocolReproTest.java"
+    ],
+    "verification": "reproduced"
+  },
+  {
+    "id": "D11",
+    "key": "webp-handoff-asset",
+    "severity": "moderate",
+    "boundary": "有效WebP封存到无扩展副本后，在已测环境失去MIME识别。",
+    "title": "无扩展副本WebP无法读取",
+    "claims": [
+      "R02-C20"
+    ],
+    "code_refs": [
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/tool/impl/FileReadTool.java",
+        "line": 259
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/tool/impl/HandoffReadTool.java",
+        "line": 33
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/tool/impl/HandoffReadTool.java",
+        "line": 36
+      }
+    ],
+    "evidence": [
+      "reproductions/RankingAssetReproTest.java"
+    ],
+    "verification": "reproduced"
+  },
+  {
+    "id": "D12",
+    "key": "handoff-image-size-mismatch",
+    "severity": "moderate",
+    "boundary": "约12MiB合法PNG获成功image_ref但视觉未注入；tool/injector上限不一致。",
+    "title": "图片asset成功阈值高于注入限制",
+    "claims": [
+      "R14-C42"
+    ],
+    "code_refs": [
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/engine/ImageRefInjector.java",
+        "line": 284
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/tool/impl/HandoffReadTool.java",
+        "line": 41
+      }
+    ],
+    "evidence": [
+      "reproductions/RankingAssetReproTest.java"
+    ],
+    "verification": "reproduced"
+  },
+  {
+    "id": "D13",
+    "key": "handoff-error-code-flattening",
+    "severity": "minor",
+    "boundary": "授权/读取支路把预算错误码包成INVALID_RESOURCE等泛码；read入口中断反例正常重抛。",
+    "title": "读预算错误码压平为授权错误",
+    "claims": [
+      "R02-C09",
+      "R03-C06",
+      "R05-C31",
+      "R13-C16",
+      "R14-C16",
+      "R15-C08"
+    ],
+    "code_refs": [
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java",
+        "line": 41
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java",
+        "line": 43
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java",
+        "line": 49
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java",
+        "line": 55
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java",
+        "line": 208
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/tool/impl/HandoffReadTool.java",
+        "line": 45
+      },
+      {
+        "path": "docs/session-merge-architecture-v2.md",
+        "line": 387
+      }
+    ],
+    "evidence": [
+      "reproductions/RankingReadReproTest.java"
+    ],
+    "verification": "reproduced"
+  },
+  {
+    "id": "D14",
+    "key": "copied-file-counted-missing",
+    "severity": "minor",
+    "boundary": "已复制托管文件还被计外部缺口；资料本体存在。",
+    "title": "已复制路径仍计为外部缺口",
+    "claims": [
+      "R01-C05"
+    ],
+    "code_refs": [
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 453
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 575
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 935
+      },
+      {
+        "path": "frontend/src/store/sessionMergeStore.ts",
+        "line": 202
+      }
+    ],
+    "evidence": [
+      "reproductions/MergeReviewReproTest.java"
+    ],
+    "verification": "reproduced"
+  },
+  {
+    "id": "D15",
+    "key": "nonpreparing-source-locks",
+    "severity": "minor",
+    "boundary": "cancelled/paused短窗口真实锁仍在但selector隐藏；后端gate保护仍在。",
+    "title": "非preparing持锁状态UI未显示",
+    "claims": [
+      "R02-C26",
+      "R07-C03",
+      "R11-C06",
+      "R12-C06",
+      "R13-C20",
+      "R14-C21",
+      "R16-C03"
+    ],
+    "code_refs": [
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+        "line": 149
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+        "line": 150
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+        "line": 226
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+        "line": 230
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+        "line": 263
+      },
+      {
+        "path": "frontend/src/store/sessionMergeStore.ts",
+        "line": 28
+      },
+      {
+        "path": "frontend/src/store/sessionMergeStore.ts",
+        "line": 30
+      },
+      {
+        "path": "frontend/src/store/sessionMergeStore.ts",
+        "line": 141
+      }
+    ],
+    "evidence": [
+      "reproductions/rankingProtocolRepro.test.ts"
+    ],
+    "verification": "reproduced"
+  },
+  {
+    "id": "D16",
+    "key": "search-snippet-surrogate-boundary",
+    "severity": "minor",
+    "boundary": "搜索摘录UTF16 substring可能切断合法emoji；原文不变。",
+    "title": "搜索命中摘要可能切断UTF16代理对",
+    "claims": [
+      "R03-C24"
+    ],
+    "code_refs": [
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java",
+        "line": 260
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java",
+        "line": 268
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java",
+        "line": 313
+      }
+    ],
+    "evidence": [
+      "reproductions/RankingReadReproTest.java"
+    ],
+    "verification": "reproduced"
+  },
+  {
+    "id": "D17",
+    "key": "embedded-copy-quota-error-code",
+    "severity": "minor",
+    "boundary": "内嵌图片复制配额报通用准备失败；普通文件相同配额有明确COPY_INCOMPLETE。",
+    "title": "内嵌图片复制配额丢失可操作错误分类",
+    "claims": [
+      "R02-C04"
+    ],
+    "code_refs": [
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 61
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+        "line": 528
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+        "line": 257
+      }
+    ],
+    "evidence": [
+      "reproductions/RankingReadReproTest.java"
+    ],
+    "verification": "reproduced"
+  },
+  {
+    "id": "D18",
+    "key": "merge-model-unavailable-classification",
+    "severity": "minor",
+    "boundary": "操作保存后模型能力配置不可用，worker重新select抛中文异常被压成通用准备失败。",
+    "title": "模型配置失效被归为通用准备失败",
+    "claims": [
+      "R04-C04"
+    ],
+    "code_refs": [
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java",
+        "line": 46
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+        "line": 200
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+        "line": 257
+      }
+    ],
+    "evidence": [
+      "static"
+    ],
+    "verification": "static"
+  },
+  {
+    "id": "D19",
+    "key": "merge-warning-details-unavailable",
+    "severity": "minor",
+    "boundary": "操作warnings仅总数，合并面板无法展示缺口明细；包中原记录仍在。",
+    "title": "v2 warnings不再含缺口明细",
+    "claims": [
+      "R13-C54"
+    ],
+    "code_refs": [
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java",
+        "line": 171
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+        "line": 214
+      },
+      {
+        "path": "frontend/src/components/session/SessionMergePanel.tsx",
+        "line": 210
+      }
+    ],
+    "evidence": [
+      "static"
+    ],
+    "verification": "static"
+  },
+  {
+    "id": "D20",
+    "key": "control-html-error-message",
+    "severity": "minor",
+    "boundary": "控制接口非JSON错误响应显示JSON解析异常，掩盖可操作错误信息。",
+    "title": "控制请求HTML错误页显示JSON解析异常",
+    "claims": [
+      "R12-C10",
+      "R14-C25"
+    ],
+    "code_refs": [
+      {
+        "path": "frontend/src/store/sessionMergeStore.ts",
+        "line": 241
+      },
+      {
+        "path": "frontend/src/store/sessionMergeStore.ts",
+        "line": 252
+      }
+    ],
+    "evidence": [
+      "static"
+    ],
+    "verification": "static"
+  },
+  {
+    "id": "D21",
+    "key": "cancel-publish-conflict-code",
+    "severity": "minor",
+    "boundary": "读取cancel状态后publish抢先完成，CAS失败被映射STALE而非ALREADY_COMPLETED；原子性仍在。",
+    "title": "取消与发布竞态返回stale而非already-completed",
+    "claims": [
+      "R03-C10"
+    ],
+    "code_refs": [
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeProgressRepository.java",
+        "line": 120
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+        "line": 147
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+        "line": 150
+      },
+      {
+        "path": "docs/session-merge-architecture-v2.md",
+        "line": 272
+      }
+    ],
+    "evidence": [
+      "static"
+    ],
+    "verification": "static"
+  },
+  {
+    "id": "D22",
+    "key": "duplicate-merge-toast",
+    "severity": "minor",
+    "boundary": "5秒通知仍在期间，新增paused→resume→paused可推送同key通知两份。",
+    "title": "P2-17通知同key重复",
+    "claims": [
+      "R05-C27",
+      "R12-C12",
+      "R14-C24",
+      "R16-C10"
+    ],
+    "code_refs": [
+      {
+        "path": "frontend/src/store/notificationStore.ts",
+        "line": 32
+      },
+      {
+        "path": "frontend/src/store/sessionMergeStore.ts",
+        "line": 200
+      }
+    ],
+    "evidence": [
+      "reproductions/rankingProtocolRepro.test.ts"
+    ],
+    "verification": "reproduced"
+  }
+]

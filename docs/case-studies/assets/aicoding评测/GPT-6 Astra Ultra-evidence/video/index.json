@@ -1,0 +1,74 @@
+{
+  "programs": [],
+  "stream_groups": [],
+  "streams": [
+    {
+      "index": 0,
+      "codec_name": "h264",
+      "codec_type": "video",
+      "width": 1440,
+      "height": 830,
+      "r_frame_rate": "10/1"
+    }
+  ],
+  "format": {
+    "duration": "2172.300000",
+    "size": "92898904"
+  },
+  "source_path": "../钉钉录屏_2026-09-22_233604.mp4",
+  "source_sha256": "61b30cba1c9afd86cc06a6993e8044bef1dc460cfc4f53564bcf81e968957afa",
+  "frames": [
+    {
+      "time_seconds": 450,
+      "timecode": "07:30",
+      "path": "video/07m30s-zcode.jpg",
+      "bytes": 185097,
+      "sha256": "88ed6b208542d0aed31fa7c02dfb48b7963ad0687970208ac3ff9ea204274d15",
+      "visible_label_only": "ZCode / GLM-5.3",
+      "reviewed_visually": true
+    },
+    {
+      "time_seconds": 990,
+      "timecode": "16:30",
+      "path": "video/16m30s-codex-astra.jpg",
+      "bytes": 268827,
+      "sha256": "655569e1b4375d283a0f5e3134daad450ca45f593da08dc260acfe56aea9cb86",
+      "visible_label_only": "Codex / GPT-6 Astra 极高",
+      "reviewed_visually": true
+    },
+    {
+      "time_seconds": 1530,
+      "timecode": "25:30",
+      "path": "video/25m30s-cursor-grok.jpg",
+      "bytes": 211839,
+      "sha256": "aab5d6d5e3f2f145962e84ef960f049095d29c858624ec1bf1bab9ee5cab5952",
+      "visible_label_only": "Cursor / Grok 4.7 Extra High Fast",
+      "reviewed_visually": true
+    }
+  ],
+  "review_scope": "A 12-frame three-minute-interval segment overview plus three original-resolution timestamped samples were visually reviewed; not a frame-by-frame full-video review.",
+  "overview": {
+    "path": "video/segment-overview.jpg",
+    "bytes": 599267,
+    "sha256": "5ba6a1fea0c6615cc853a62a4df67770a3bdb52a35bd734d40a9e0645958bd1f",
+    "layout": "3 columns × 4 rows",
+    "sample_filter": "fps=1/180,scale=720:-1,tile=3x4",
+    "approximate_sample_midpoints_seconds": [
+      90,
+      270,
+      450,
+      630,
+      810,
+      990,
+      1170,
+      1350,
+      1530,
+      1710,
+      1890,
+      2070
+    ],
+    "precise_timestamp_evidence": false,
+    "reviewed_visually": true,
+    "purpose": "Segment orientation only; approximate sample midpoints are not precise timestamp citations."
+  }
+}

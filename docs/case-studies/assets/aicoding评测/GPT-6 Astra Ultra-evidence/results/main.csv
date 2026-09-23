@@ -1,0 +1,18 @@
+rank,report_id,label,score,defect_score,judgement_score,TP,FP,FN,partial,uncertain,excluded
+1,R02,DeepSeekHarness / deepseekV4.1flashmax-session-merge-v2代码审查报告,60.7,40.7,20,14.0,1.0,26.0,1,7,22
+2,R14,zhikuncode / deepseekV4.1flash-session-merge-v2-code-review-report,58.5,38.5,20,13.0,1.0,27.0,1,7,42
+3,R01,Codex / Astra极高_会话合并v2完整代码审查报告_2026-09-22,54.5,34.5,20,11,0,29,0,2,15
+4,R13,zhikuncode / Qwen3.8max-session-merge-v2-code-review-report,46.7,26.7,20,10.0,10.0,30.0,1,11,53
+5,R07,QoderIDE / Sonus-session-merge-v2-review,43.8,23.8,20,7,0,33,0,1,17
+6,R03,KimiCode / KimiK3-session-merge-v2-review,43.3,23.3,20,7,1,33,0,7,26
+7,R05,Qoder / qwen3.8max极高新版本-会话合并v2代码审查报告,42.9,22.9,20,7.0,2.0,33.0,1,16,40
+8,R11,cursor / Grok4.7-会话合并v2完整代码审查报告,37.0,17.0,20,5,2,35,0,2,9
+9,R12,zhikuncode / GLM5.3-session-merge-v2-code-review,32.8,17.8,15,5,0,35,0,6,21
+10,R04,Qoder / kimik3-session-merge-v2-review,26.2,11.2,15,3,0,37,0,2,11
+10,R15,zhikuncode / kimik3_session-merge-v2-code-review-report,26.2,11.2,15,3,0,37,0,2,25
+12,R10,TraeCode / kimik3-会话合并v2代码审查报告,22.6,7.6,15,2,0,38,0,2,10
+12,R16,小米mimo / session-merge-v2-code-review,22.6,7.6,15,2,0,38,0,2,12
+14,R17,智普ZCode / 会话合并v2代码审查报告,18.8,3.8,15,1.0,1.0,39.0,1,1,10
+15,R09,TraeCode / Qwen3.8Max-会话合并v2代码审查报告,15.0,0.0,15,0,0,40,0,2,10
+16,R06,QoderIDE / Cantus-zhikuncode-session-merge-v2-代码审查报告-2026-09-22,10.0,0.0,10,0,0,40,0,2,14
+17,R08,QoderIDE / 极致模型-会话合并v2代码审查报告,5.0,0.0,5,0,0,40,0,2,8

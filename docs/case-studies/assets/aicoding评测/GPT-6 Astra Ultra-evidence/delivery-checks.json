@@ -1,0 +1,33 @@
+{
+  "checked_at_utc": "2026-09-23T00:20:04.816126+00:00",
+  "branch": "aicoding-eval-0923",
+  "frozen_inputs_unchanged": 54,
+  "all_408_quotes_match_cited_line_spans": true,
+  "code_reference_paths_and_line_numbers_valid": true,
+  "relative_markdown_links_checked": 1793,
+  "broken_links": 0,
+  "tracked_diff": [],
+  "staged_diff": [],
+  "new_files_before_this_record": 50,
+  "only_new_report_and_evidence": true,
+  "not_committed_or_pushed": true,
+  "score_recompute": "17 reports / 27 scenarios; independent Fraction audit matched all 476 rows",
+  "tests": "6 expected assertion failures; 15 backend and 5 frontend observational/control passes; no full regression or real model acceptance",
+  "followup_checks": [
+    {
+      "checked_at_utc": "2026-09-23T00:24:20.676395+00:00",
+      "purpose": "User-requested clarity and adversarial limitations review",
+      "changes": [
+        "Move complete 17-row five-column ranking to top",
+        "Separate tool/model labels and explicitly mark tied ranks",
+        "Separate score decomposition",
+        "State unresolved methodological objections and inference limits"
+      ],
+      "ranking_rows_match_frozen_results": 17,
+      "main_report_links_checked": 290,
+      "frozen_rules_and_adjudications_unchanged": true,
+      "all_54_frozen_materials_unchanged": true,
+      "scores_changed": false
+    }
+  ]
+}

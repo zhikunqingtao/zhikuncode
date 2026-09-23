@@ -1,0 +1,296 @@
+{
+  "captured_at_utc": "2026-09-23T00:16:15.717026+00:00",
+  "result_cutoff": "Completed original, protocol, Read and final frontend batches through 08:14 Asia/Shanghai, 2026-09-23; final frontend 5 supersedes earlier frontend 2 for unique totals.",
+  "head": "207fe6d0d159db1b575af243dbf3c77536377431",
+  "log_artifacts": [
+    {
+      "path": "results/original-backend.txt",
+      "input_log_basename": "gpt6-ranking-original-backend.log",
+      "input_sha256": "cde3597793873b75bbe9fa961e9f55b5ba4f129ba7678468daff0ac5f5247119",
+      "published_sha256": "f4ddb3a7ecc624b2da18c3796b15ce7873e5b34cc7b4c4ae263f6700476723ed",
+      "bytes": 16702,
+      "redaction": "absolute repository/isolation/user/JUnit temporary paths replaced; assertions and stack traces retained"
+    },
+    {
+      "path": "results/original-frontend.txt",
+      "input_log_basename": "gpt6-ranking-original-frontend.log",
+      "input_sha256": "7a019cd40fb69ef56145f292b6180e4af76ecf0ccfa85202f7398c6ab6596f43",
+      "published_sha256": "346c289a18572e68adfb832c3a54cbc340d88460accbf35f4d50500a7d92ec43",
+      "bytes": 1888,
+      "redaction": "absolute repository/isolation/user/JUnit temporary paths replaced; assertions and stack traces retained"
+    },
+    {
+      "path": "results/protocol-backend.txt",
+      "input_log_basename": "gpt6-ranking-protocol-backend.log",
+      "input_sha256": "a7d4e92d6dd9db6abc0d62711028f590c6b8c8f40336f66831b04b7689647390",
+      "published_sha256": "a7d4e92d6dd9db6abc0d62711028f590c6b8c8f40336f66831b04b7689647390",
+      "bytes": 23679,
+      "redaction": "absolute repository/isolation/user/JUnit temporary paths replaced; assertions and stack traces retained"
+    },
+    {
+      "path": "results/protocol-frontend.txt",
+      "input_log_basename": "gpt6-ranking-protocol-frontend.log",
+      "input_sha256": "5f3acb605547a21849c75e58881d48705450648d2e11762617f3a08a99433c2f",
+      "published_sha256": "7f527801e074b959e07693895992b88d4335b3c99e8f0a290b27b0b502587cec",
+      "bytes": 410,
+      "redaction": "absolute repository/isolation/user/JUnit temporary paths replaced; assertions and stack traces retained"
+    },
+    {
+      "path": "results/read-backend.txt",
+      "input_log_basename": "gpt6-ranking-read-backend.log",
+      "input_sha256": "12694336aa0f6e4a82276e6d8f7ff7b2f9acc56f1461c5d4db956f54031750c5",
+      "published_sha256": "12694336aa0f6e4a82276e6d8f7ff7b2f9acc56f1461c5d4db956f54031750c5",
+      "bytes": 12602,
+      "redaction": "absolute repository/isolation/user/JUnit temporary paths replaced; assertions and stack traces retained"
+    },
+    {
+      "path": "results/final-frontend.txt",
+      "input_log_basename": "gpt6-ranking-final-frontend.log",
+      "input_sha256": "e4f9e0c9e46831aaf658785f215833c87a2b714014d42c9b5f63744ba3fd10f2",
+      "published_sha256": "2dab9ada9ff8e9dc9f26058eb0db4bf0f06f1c446d466a11017a00ce04f6711c",
+      "bytes": 284,
+      "redaction": "absolute repository/isolation/user/JUnit temporary paths replaced; assertions and stack traces retained"
+    }
+  ],
+  "backend_suites": [
+    {
+      "class": "com.aicodeassistant.session.merge.MergeReviewReproTest",
+      "tests": 5,
+      "failures": 5,
+      "errors": 0,
+      "skipped": 0,
+      "time_seconds": "3.055",
+      "source_xml_sha256": "83523918c75925933a4812f03e8ae97d594b09fa561e53ed3c7f4c6d27525061",
+      "testcases": [
+        {
+          "name": "sameCheckpointUuidWithChangedLegacyToolResultMustRetainVersions",
+          "time_seconds": "2.174",
+          "result": "failure",
+          "message": "\nExpected size: 2 but was: 1 in:\n[RecordEntry[recordRef=r_7ef2042b6117352757f6816c37abca02e420dbaa8e563615d59c3e6c72efb758, origin=Origin[sessionId=child, recordId=same-tool-result, version=f5a9a8b7b238e12695eef6d27d414b2f43b1f0e4ad82b6a5ac17e4a469bbeb42, kind=message], role=user, createdAt=, rawRef=r_7ef2042b6117352757f6816c37abca02e420dbaa8e563615d59c3e6c72efb758:raw, processingPolicy=extract]]",
+          "detail": "java.lang.AssertionError: \n\nExpected size: 2 but was: 1 in:\n[RecordEntry[recordRef=r_7ef2042b6117352757f6816c37abca02e420dbaa8e563615d59c3e6c72efb758, origin=Origin[sessionId=child, recordId=same-tool-result, version=f5a9a8b7b238e12695eef6d27d414b2f43b1f0e4ad82b6a5ac17e4a469bbeb42, kind=message], role=user, createdAt=, rawRef=r_7ef2042b6117352757f6816c37abca02e420dbaa8e563615d59c3e6c72efb758:raw, processingPolicy=extract]]\n\tat com.aicodeassistant.session.merge.MergeReviewReproTest.sameCheckpointUuidWithChangedLegacyToolResultMustRetainVersions(MergeReviewReproTest.java:48)\n\tat java.base/java.lang.reflect.Method.invoke(Method.java:580)\n\tat java.base/java.util.ArrayList.forEach(ArrayList.java:1596)\n\tat java.base/java.util.ArrayList.forEach(ArrayList.java:1596)\n"
+        },
+        {
+          "name": "copiedManagedFileMustNotAlsoBeReportedAsAnExternalGap",
+          "time_seconds": "0.098",
+          "result": "failure",
+          "message": "\nexpected: 0L\n but was: 1L",
+          "detail": "org.opentest4j.AssertionFailedError: \n\nexpected: 0L\n but was: 1L\n\tat com.aicodeassistant.session.merge.MergeReviewReproTest.copiedManagedFileMustNotAlsoBeReportedAsAnExternalGap(MergeReviewReproTest.java:81)\n\tat java.base/java.lang.reflect.Method.invoke(Method.java:580)\n\tat java.base/java.util.ArrayList.forEach(ArrayList.java:1596)\n\tat java.base/java.util.ArrayList.forEach(ArrayList.java:1596)\n"
+        },
+        {
+          "name": "recoveredProjectionMustNotSendArchiveOnlyBlocksToExtractor",
+          "time_seconds": "0.083",
+          "result": "failure",
+          "message": "\nExpecting actual:\n  \"Recovered immutable raw ref=r_3c2d3fb39fb1a3bec5bc319fc320a96633c3ada1681d64c7abb002f6564c7ad8:raw; source=A\n[{\"text\":\"visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement \",\"type\":\"text\"},{\"thinking\":\"ARCHIVE_ONLY_REASONING\",\"type\":\"thinking\"},{\"state\":\"PRIVATE_CONTINUATION_STATE\",\"type\":\"provider_response_state\"}]\"\nnot to contain:\n  [\"ARCHIVE_ONLY_REASONING\", \"PRIVATE_CONTINUATION_STATE\"]\nbut found:\n  [\"ARCHIVE_ONLY_REASONING\", \"PRIVATE_CONTINUATION_STATE\"]\n",
+          "detail": "java.lang.AssertionError: \n\nExpecting actual:\n  \"Recovered immutable raw ref=r_3c2d3fb39fb1a3bec5bc319fc320a96633c3ada1681d64c7abb002f6564c7ad8:raw; source=A\n[{\"text\":\"visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement \",\"type\":\"text\"},{\"thinking\":\"ARCHIVE_ONLY_REASONING\",\"type\":\"thinking\"},{\"state\":\"PRIVATE_CONTINUATION_STATE\",\"type\":\"provider_response_state\"}]\"\nnot to contain:\n  [\"ARCHIVE_ONLY_REASONING\", \"PRIVATE_CONTINUATION_STATE\"]\nbut found:\n  [\"ARCHIVE_ONLY_REASONING\", \"PRIVATE_CONTINUATION_STATE\"]\n\n\tat com.aicodeassistant.session.merge.MergeReviewReproTest.recoveredProjectionMustNotSendArchiveOnlyBlocksToExtractor(MergeReviewReproTest.java:32)\n\tat java.base/java.lang.reflect.Method.invoke(Method.java:580)\n\tat java.base/java.util.ArrayList.forEach(ArrayList.java:1596)\n\tat java.base/java.util.ArrayList.forEach(ArrayList.java:1596)\n"
+        },
+        {
+          "name": "imageOnlyUserRequirementMustNotPublishWithoutAnyVisualExtraction",
+          "time_seconds": "0.615",
+          "result": "failure",
+          "message": "\nexpected: \"paused\"\n but was: \"completed\"",
+          "detail": "org.opentest4j.AssertionFailedError: \n\nexpected: \"paused\"\n but was: \"completed\"\n\tat com.aicodeassistant.session.merge.MergeReviewReproTest.imageOnlyUserRequirementMustNotPublishWithoutAnyVisualExtraction(MergeReviewReproTest.java:71)\n\tat java.base/java.lang.reflect.Method.invoke(Method.java:580)\n\tat java.base/java.util.ArrayList.forEach(ArrayList.java:1596)\n\tat java.base/java.util.ArrayList.forEach(ArrayList.java:1596)\n"
+        },
+        {
+          "name": "ordinarySavedCheckpointToolResultMustBeSearchableForExtraction",
+          "time_seconds": "0.065",
+          "result": "failure",
+          "message": "\nExpecting actual:\n  \"来源 A; 工程目录为共享外部引用: <TEST_TEMP>; 标题: A来源 B; 工程目录为共享外部引用: <TEST_TEMP>; 标题: B来源 child; 工程目录为共享外部引用: <TEST_TEMP>; 标题: null来源 child; 消息 legacy-result; user; ; stop=\n\n消息元数据: \"\nto contain:\n  \"ONLY_EVIDENCE_TEST_FAILED\" ",
+          "detail": "java.lang.AssertionError: \n\nExpecting actual:\n  \"来源 A; 工程目录为共享外部引用: <TEST_TEMP>; 标题: A来源 B; 工程目录为共享外部引用: <TEST_TEMP>; 标题: B来源 child; 工程目录为共享外部引用: <TEST_TEMP>; 标题: null来源 child; 消息 legacy-result; user; ; stop=\n\n消息元数据: \"\nto contain:\n  \"ONLY_EVIDENCE_TEST_FAILED\" \n\tat com.aicodeassistant.session.merge.MergeReviewReproTest.ordinarySavedCheckpointToolResultMustBeSearchableForExtraction(MergeReviewReproTest.java:60)\n\tat java.base/java.lang.reflect.Method.invoke(Method.java:580)\n\tat java.base/java.util.ArrayList.forEach(ArrayList.java:1596)\n\tat java.base/java.util.ArrayList.forEach(ArrayList.java:1596)\n"
+        }
+      ]
+    },
+    {
+      "class": "com.aicodeassistant.engine.QueryEngineUnitTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "time_seconds": "1.32",
+      "source_xml_sha256": "99709d1f785ba59d1ade2b2aa7d2d47f1df60a88ffb2930a77543c350d4140e2",
+      "testcases": [
+        {
+          "name": "handoffProjectionOnlyRunsForExplicitlyMergedSessions(boolean)[1]",
+          "time_seconds": "1.27",
+          "result": "passed"
+        },
+        {
+          "name": "handoffProjectionOnlyRunsForExplicitlyMergedSessions(boolean)[2]",
+          "time_seconds": "0.019",
+          "result": "passed"
+        }
+      ]
+    },
+    {
+      "class": "com.aicodeassistant.engine.RankingQueryReproTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "time_seconds": "0.038",
+      "source_xml_sha256": "914151d224c99fea92e1d727794575df6aeb6c333c9aeabe4e415809681cf279",
+      "testcases": [
+        {
+          "name": "projectionBudgetExceptionIsCaughtAndReturnedAsQueryError",
+          "time_seconds": "0.037",
+          "result": "passed"
+        }
+      ]
+    },
+    {
+      "class": "com.aicodeassistant.session.merge.RankingAssetReproTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "time_seconds": "0.829",
+      "source_xml_sha256": "2a7de40e9273e78b982fe5b1fa81deaa16783a41ec9a5534c0fc3b92a25facd8",
+      "testcases": [
+        {
+          "name": "validTenToTwentyMiBPngGetsSuccessfulRefButNeverBecomesAnImageBlock",
+          "time_seconds": "0.815",
+          "result": "passed"
+        },
+        {
+          "name": "validSyntheticWebpAcceptedBySuffixButRejectedAfterExtensionlessCopy",
+          "time_seconds": "0.011",
+          "result": "passed"
+        }
+      ]
+    },
+    {
+      "class": "com.aicodeassistant.session.merge.RankingProtocolReproTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "time_seconds": "1.172",
+      "source_xml_sha256": "c7f87c80496b7b37220a75e90626285222bee18f8a512fd712cfbadb24c56158",
+      "testcases": [
+        {
+          "name": "correctedParserConfigurationStillCannotPassUnboundGapProtocol",
+          "time_seconds": "0.676",
+          "result": "passed"
+        },
+        {
+          "name": "malformedExternalReferenceAbortsSealInsteadOfBeingAnExternalGap",
+          "time_seconds": "0.058",
+          "result": "passed"
+        },
+        {
+          "name": "explicitHistoricalReferenceCanCopyThroughIntermediateSymlink",
+          "time_seconds": "0.068",
+          "result": "passed"
+        },
+        {
+          "name": "changingModelThresholdLeavesPendingAggregateAndChangingBackCanRecover",
+          "time_seconds": "0.238",
+          "result": "passed"
+        },
+        {
+          "name": "ordinaryMaterializationLimitCanResumeAfterIncreasingLimit",
+          "time_seconds": "0.061",
+          "result": "passed"
+        },
+        {
+          "name": "nonUtf8AttachmentIsPreservedButMarkedBlocking",
+          "time_seconds": "0.069",
+          "result": "passed"
+        }
+      ]
+    },
+    {
+      "class": "com.aicodeassistant.session.merge.RankingReadReproTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "time_seconds": "2.552",
+      "source_xml_sha256": "4ff189da1e3293e4381e51153c607106076ad1e58e15b4aac69a3fd2ba8a97e5",
+      "testcases": [
+        {
+          "name": "actualHandoffSearchExcerptCanSplitSurrogatePair",
+          "time_seconds": "1.9",
+          "result": "passed"
+        },
+        {
+          "name": "embeddedImageCopyQuotaLosesClassificationWhileManagedFileRetainsIt",
+          "time_seconds": "0.218",
+          "result": "passed"
+        },
+        {
+          "name": "readInitialInterruptionIsRethrownRatherThanWrapped",
+          "time_seconds": "0.208",
+          "result": "passed"
+        },
+        {
+          "name": "authorizeTimeoutIsWrappedWithInvalidResourceCode",
+          "time_seconds": "0.211",
+          "result": "passed"
+        }
+      ]
+    }
+  ],
+  "frontend_runs": [
+    {
+      "file": "sessionMergeReviewRepro.test.ts",
+      "tests": 1,
+      "failed": 1,
+      "passed": 0,
+      "interpretation": "red expected-behavior assertion reproduces current failure"
+    },
+    {
+      "file": "rankingProtocolRepro.test.ts",
+      "tests": 5,
+      "failed": 0,
+      "passed": 5,
+      "log": "results/final-frontend.txt",
+      "interpretation": "green observational assertions confirm current behavior, not a fix; final 5 includes earlier 2, not 7 unique tests",
+      "testcases": [
+        {
+          "name": "drops still-authoritative server locks when status is cancelled",
+          "result": "passed"
+        },
+        {
+          "name": "polling raises submitting and a cancel call waits for the GET to finish",
+          "result": "passed"
+        },
+        {
+          "name": "adds two same-key notifications through the supported pause resume pause cycle",
+          "result": "passed"
+        },
+        {
+          "name": "also repeats a paused notification when only worker cleanup makes resume available",
+          "result": "passed"
+        },
+        {
+          "name": "retains terminal target availability until reopening the dialog invalidates the cache",
+          "result": "passed"
+        }
+      ]
+    }
+  ],
+  "security": "No environment/property XML dump; paths redacted; synthetic test data only.",
+  "frontend_historical_runs": [
+    {
+      "file": "rankingProtocolRepro.test.ts",
+      "tests": 2,
+      "failed": 0,
+      "passed": 2,
+      "interpretation": "green observational assertions confirm current behavior, not a fix",
+      "log": "results/protocol-frontend.txt",
+      "superseded_by": "results/final-frontend.txt",
+      "count_in_final_totals": false
+    }
+  ],
+  "unique_final_totals": {
+    "backend_observational_new_passed": 13,
+    "backend_existing_control_passed": 2,
+    "backend_passed": 15,
+    "backend_original_expected_assertion_failures": 5,
+    "frontend_observational_passed": 5,
+    "frontend_original_expected_assertion_failures": 1,
+    "original_expected_assertion_failures_total": 6,
+    "all_test_cases": 26,
+    "excludes_superseded_frontend_run": true
+  }
+}

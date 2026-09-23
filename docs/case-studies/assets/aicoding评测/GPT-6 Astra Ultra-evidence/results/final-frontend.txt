@@ -1,0 +1,10 @@
+
+ RUN  v2.1.9 <ISOLATED_ROOT>/frontend
+
+ ✓ src/store/rankingProtocolRepro.test.ts (5 tests) 108ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  08:13:58
+   Duration  1.71s (transform 85ms, setup 92ms, collect 21ms, tests 108ms, environment 803ms, prepare 70ms)
+

@@ -1,0 +1,121 @@
+[
+  {
+    "id": "R01",
+    "path": "docs/case-studies/assets/aicoding评测/Codex/Astra极高_会话合并v2完整代码审查报告_2026-09-22.md",
+    "label": "Codex / Astra极高_会话合并v2完整代码审查报告_2026-09-22",
+    "sha256": "da3f3f4b07a740b7a81029880b55dcc77019f9b57abd36ec58d2cf8910d08123",
+    "lines": 160
+  },
+  {
+    "id": "R02",
+    "path": "docs/case-studies/assets/aicoding评测/DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2代码审查报告.md",
+    "label": "DeepSeekHarness / deepseekV4.1flashmax-session-merge-v2代码审查报告",
+    "sha256": "a0372bb6fc5951c7c4539a98cb19051881f45dc205a5e8d6f527fea75e30c281",
+    "lines": 218
+  },
+  {
+    "id": "R03",
+    "path": "docs/case-studies/assets/aicoding评测/KimiCode/KimiK3-session-merge-v2-review.md",
+    "label": "KimiCode / KimiK3-session-merge-v2-review",
+    "sha256": "585b3e23e1aaf2590202d8332abb2bb151ca12c6cd84cff20970b175058237a4",
+    "lines": 124
+  },
+  {
+    "id": "R04",
+    "path": "docs/case-studies/assets/aicoding评测/Qoder/kimik3-session-merge-v2-review.md",
+    "label": "Qoder / kimik3-session-merge-v2-review",
+    "sha256": "f767de7a794857168ec2b79d6012cfa9e9d560e436396da7eb90671355d176f5",
+    "lines": 77
+  },
+  {
+    "id": "R05",
+    "path": "docs/case-studies/assets/aicoding评测/Qoder/qwen3.8max极高新版本-会话合并v2代码审查报告.md",
+    "label": "Qoder / qwen3.8max极高新版本-会话合并v2代码审查报告",
+    "sha256": "250303732c1353f9661bd5e171d9446eb0c09f4a0e76ba85749c054e10878699",
+    "lines": 297
+  },
+  {
+    "id": "R06",
+    "path": "docs/case-studies/assets/aicoding评测/QoderIDE/Cantus-zhikuncode-session-merge-v2-代码审查报告-2026-09-22.md",
+    "label": "QoderIDE / Cantus-zhikuncode-session-merge-v2-代码审查报告-2026-09-22",
+    "sha256": "e7de7dfa002b076df84aa57e83778109bfea22e6df0ed17acd6bbde57124aa15",
+    "lines": 250
+  },
+  {
+    "id": "R07",
+    "path": "docs/case-studies/assets/aicoding评测/QoderIDE/Sonus-session-merge-v2-review.md",
+    "label": "QoderIDE / Sonus-session-merge-v2-review",
+    "sha256": "b1447fe74ca2db8dc2fcee8288ce5ade4f36355df1d09cf6c0fa20d3e8931160",
+    "lines": 438
+  },
+  {
+    "id": "R08",
+    "path": "docs/case-studies/assets/aicoding评测/QoderIDE/极致模型-会话合并v2代码审查报告.md",
+    "label": "QoderIDE / 极致模型-会话合并v2代码审查报告",
+    "sha256": "ca237f8395644f08227bc9a1862a85faaca5e8cec62592b828e485a46a1d6b4d",
+    "lines": 197
+  },
+  {
+    "id": "R09",
+    "path": "docs/case-studies/assets/aicoding评测/TraeCode/Qwen3.8Max-会话合并v2代码审查报告.md",
+    "label": "TraeCode / Qwen3.8Max-会话合并v2代码审查报告",
+    "sha256": "97319de114582ea625bdb44aa1f071707ebd0610ddde7c87d30a8b26db2cdad4",
+    "lines": 137
+  },
+  {
+    "id": "R10",
+    "path": "docs/case-studies/assets/aicoding评测/TraeCode/kimik3-会话合并v2代码审查报告.md",
+    "label": "TraeCode / kimik3-会话合并v2代码审查报告",
+    "sha256": "80b2385e95077d3dba320b0f465b3992cc0ff116eb707ebca63f5d12069b92d9",
+    "lines": 96
+  },
+  {
+    "id": "R11",
+    "path": "docs/case-studies/assets/aicoding评测/cursor/Grok4.7-会话合并v2完整代码审查报告.md",
+    "label": "cursor / Grok4.7-会话合并v2完整代码审查报告",
+    "sha256": "b9c4f84bf6b49de954b4a6623738eb19d0c4c81be942d4a5842a1215e2c1ef46",
+    "lines": 198
+  },
+  {
+    "id": "R12",
+    "path": "docs/case-studies/assets/aicoding评测/zhikuncode/GLM5.3-session-merge-v2-code-review.md",
+    "label": "zhikuncode / GLM5.3-session-merge-v2-code-review",
+    "sha256": "4bede0a829bed115a205f8200a8e0a27d9bcdafa11c223c2885064b8b3b207ca",
+    "lines": 265
+  },
+  {
+    "id": "R13",
+    "path": "docs/case-studies/assets/aicoding评测/zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md",
+    "label": "zhikuncode / Qwen3.8max-session-merge-v2-code-review-report",
+    "sha256": "35d16f03a382c06db0fd2ef8e90eb482fe23e43fffe96973e0fb7ee9eed9d111",
+    "lines": 616
+  },
+  {
+    "id": "R14",
+    "path": "docs/case-studies/assets/aicoding评测/zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md",
+    "label": "zhikuncode / deepseekV4.1flash-session-merge-v2-code-review-report",
+    "sha256": "831475e790246748d8c79b8f1a5dd8980dd82c2f64cce02dba2aff6df6c197ed",
+    "lines": 292
+  },
+  {
+    "id": "R15",
+    "path": "docs/case-studies/assets/aicoding评测/zhikuncode/kimik3_session-merge-v2-code-review-report.md",
+    "label": "zhikuncode / kimik3_session-merge-v2-code-review-report",
+    "sha256": "f1d163db6693c8f294307ad05901e15ba81bcf31383e4b5b8bcbdad79fc1bbea",
+    "lines": 236
+  },
+  {
+    "id": "R16",
+    "path": "docs/case-studies/assets/aicoding评测/小米mimo/session-merge-v2-code-review.md",
+    "label": "小米mimo / session-merge-v2-code-review",
+    "sha256": "6af33f49e42cd089c74b9eb72cd3c20a8b3eab87e52d7dbbbb169e32f3aca6ff",
+    "lines": 344
+  },
+  {
+    "id": "R17",
+    "path": "docs/case-studies/assets/aicoding评测/智普ZCode/会话合并v2代码审查报告.md",
+    "label": "智普ZCode / 会话合并v2代码审查报告",
+    "sha256": "8efaf680b65190f81079e30e4cc2f8b6961cec22473417153f52bbc9e04ea156",
+    "lines": 105
+  }
+]

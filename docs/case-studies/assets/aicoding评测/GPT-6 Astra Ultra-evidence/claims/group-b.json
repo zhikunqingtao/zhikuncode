@@ -1,0 +1,3309 @@
+[
+  {
+    "report_id": "R03",
+    "read_complete": true,
+    "claims": [
+      {
+        "claim_id": "R03-C01",
+        "lines": [
+          75,
+          75
+        ],
+        "quote": "**H1. 三类阻断性 gap 形成永久死暂停，含此类来源的合并永远无法完成** —— `MergePackageService.java:598`（非 UTF-8 文本附件如 GBK 日志）、`:531`（base64 非法的内嵌图片）、`:436`（消息级 content_json 解析失败写了无 ref 后缀的裸 `RECORD_REQUIRES_HANDLING`）。三者的共同后果：记录未按 blocked 登记或 gap 缺 ref，`recoverBlockedProjections`（`:232-236`）校验必然抛错 → resume 永远重现同一失败 → 只能取消，而来源内容不变，取消重建后依旧失败。且非关键附件阻断本身违反 §4.4\"非关键附件未解析可明确标记并保留原件\"。**建议**：非关键附件解析失败降级为非阻断 gap（保留原件+标记）；确需阻断的一律携带 blocked 记录 ref，使配置修复后可恢复。",
+        "title": "非关键非UTF8文本附件阻断整个合并",
+        "category": "functional",
+        "verdict": "成立",
+        "reason": "资产已独立复制并登记extract，文本按UTF8读取失败却记blocking；恢复只接受blocked记录，无法降级为保留原件的非关键缺口。与规格183允许非关键未解析附件保留并说明不符。",
+        "trigger": "来源包含非关键GBK日志/文本附件，其他对话足以整理",
+        "expected": "保留原件并明确未解析，不因此阻断基本合并",
+        "actual": "转paused且同一快照resume无法前进",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+            "line": 583
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+            "line": 589
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+            "line": 598
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+            "line": 235
+          },
+          {
+            "path": "docs/session-merge-architecture-v2.md",
+            "line": 183
+          }
+        ],
+        "scope": "new",
+        "issue_key": "noncritical-nonutf8-attachment-blocks-merge",
+        "severity": "moderate",
+        "credit": 1,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R03-C02",
+        "lines": [
+          75,
+          75
+        ],
+        "quote": "**H1. 三类阻断性 gap 形成永久死暂停，含此类来源的合并永远无法完成** —— `MergePackageService.java:598`（非 UTF-8 文本附件如 GBK 日志）、`:531`（base64 非法的内嵌图片）、`:436`（消息级 content_json 解析失败写了无 ref 后缀的裸 `RECORD_REQUIRES_HANDLING`）。三者的共同后果：记录未按 blocked 登记或 gap 缺 ref，`recoverBlockedProjections`（`:232-236`）校验必然抛错 → resume 永远重现同一失败 → 只能取消，而来源内容不变，取消重建后依旧失败。且非关键附件阻断本身违反 §4.4\"非关键附件未解析可明确标记并保留原件\"。**建议**：非关键附件解析失败降级为非阻断 gap（保留原件+标记）；确需阻断的一律携带 blocked 记录 ref，使配置修复后可恢复。",
+        "title": "消息解析和非法图片gap缺少可恢复记录ref",
+        "category": "conditional",
+        "verdict": "证据不足",
+        "reason": "裸gap与invalid_image确实不能通过blockedRecords匹配，但已损坏JSON/base64属于规范允许暂停且可取消重建的输入；报告未证明这些具体原件在支持内只改配置即可变为可解析，不能由字符串不一致直接认定核心恢复承诺失效。",
+        "trigger": "content_json损坏或内嵌图片base64非法",
+        "expected": "需要区分可支持的配置恢复与不可变损坏原件",
+        "actual": "这些gap在resume持续拒绝；支持内可恢复前提尚未证实",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+            "line": 435
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+            "line": 531
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+            "line": 235
+          },
+          {
+            "path": "docs/session-merge-architecture-v2.md",
+            "line": 179
+          },
+          {
+            "path": "docs/session-merge-architecture-v2.md",
+            "line": 183
+          }
+        ],
+        "scope": "new",
+        "issue_key": "blocked-gap-ref-protocol",
+        "severity": "serious",
+        "credit": null,
+        "verification": "needs_repro"
+      },
+      {
+        "claim_id": "R03-C03",
+        "lines": [
+          79,
+          79
+        ],
+        "quote": "- **M1. v2 代码不存在任何到 failed 的转移路径**（`SessionMergeService.java:218-228`）：哈希不符等\"确认无法恢复\"的损坏也一律转 paused，用户提示\"请排查后恢复\"对此类情况永远无效。§5.1/§6.3 要求区分。建议至少在错误提示上引导取消，或提供确认转 failed 路径。",
+        "title": "v2无failed终态且损坏快照一律paused",
+        "category": "functional",
+        "verdict": "规范歧义",
+        "reason": "代码确实只有pause；规格211有failed，但352也规定先暂停诊断，代码没有可信的“已确认不可恢复”判定器，且说明允许cancel。不能仅由一次哈希不符认定必须自动failed。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 218
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 246
+          },
+          {
+            "path": "docs/session-merge-architecture-v2.md",
+            "line": 211
+          },
+          {
+            "path": "docs/session-merge-architecture-v2.md",
+            "line": 352
+          }
+        ],
+        "scope": "new",
+        "issue_key": "irrecoverable-state-classification",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R03-C04",
+        "lines": [
+          80,
+          80
+        ],
+        "quote": "- **M2. v1 旧包缺失记阻断 gap**（`MergePackageService.java:608` `legacy_package_missing`）：与 §1 第 5 条\"重复合并不依赖旧包存活\"、§4.4\"不依赖祖先会话存在\"冲突。旧包被清理后，E 类会话的再次合并将永久阻断。建议降级为非阻断缺口（标明无法精确跨包去重）。",
+        "title": "legacy旧包缺失阻断重复合并",
+        "category": "functional",
+        "verdict": "规范歧义",
+        "reason": "缺失v1包确实blocking且不会恢复；但“不依赖旧包”与“只从现存包收录、不冒充完整历史”边界存在张力，应明确是否允许摘要降级后再认定，不按旧榜给其他缺陷半分。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+            "line": 606
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 195
+          },
+          {
+            "path": "docs/session-merge-architecture-v2.md",
+            "line": 185
+          },
+          {
+            "path": "docs/session-merge-architecture-v2.md",
+            "line": 216
+          }
+        ],
+        "scope": "new",
+        "issue_key": "missing-legacy-package-policy",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R03-C05",
+        "lines": [
+          81,
+          81
+        ],
+        "quote": "- **M3. `MergeProgressRepository.java:177` 依赖 `MergeSummaryService.CallUsage`**，而后者反向依赖 Repository，形成包内环，违反 §10\"Repository 只依赖 JDBC/事务/序列化\"。建议把 `CallUsage` 移到 `MergeHandoffData`。",
+        "title": "Repository依赖Summary内部CallUsage形成包内环",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "仓库finishAttempt签名直接引用Summary.CallUsage，Summary依赖仓库；职责整理建议成立，未证明产品功能故障。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeProgressRepository.java",
+            "line": 177
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java",
+            "line": 63
+          }
+        ],
+        "scope": "new",
+        "issue_key": "repository-callusage-dependency",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R03-C06",
+        "lines": [
+          82,
+          82
+        ],
+        "quote": "- **M4. `HandoffReadService.authorize()`（`:49-56`）把所有 IOException 包成 `HANDOFF_INVALID_RESOURCE`**，吞掉 `InterruptedIOException`（用户取消被当成\"非法资源\"）和 budget 超时（应为 `HANDOFF_READ_BUDGET_EXCEEDED`，§7.2）。`read()` 路径（`:206-208`）同样。建议重抛中断、透出原码。",
+        "title": "authorize把截止/中断错误包装为非法资源",
+        "category": "functional",
+        "verdict": "成立",
+        "reason": "authorize catch(IOException)覆盖Budget.check的截止和中断，异常code变为HANDOFF_INVALID_RESOURCE，虽然message仍保留原始原因。截止应按规格保留明确预算错误类别。",
+        "trigger": "HandoffRead授权校验超时或线程中断",
+        "expected": "返回可识别的预算/中断错误",
+        "actual": "外层AuthorizationException.code统一HANDOFF_INVALID_RESOURCE",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java",
+            "line": 41
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java",
+            "line": 49
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java",
+            "line": 55
+          },
+          {
+            "path": "docs/session-merge-architecture-v2.md",
+            "line": 387
+          }
+        ],
+        "scope": "new",
+        "issue_key": "handoff-authorization-error-classification",
+        "severity": "moderate",
+        "credit": 1,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R03-C07",
+        "lines": [
+          82,
+          82
+        ],
+        "quote": "- **M4. `HandoffReadService.authorize()`（`:49-56`）把所有 IOException 包成 `HANDOFF_INVALID_RESOURCE`**，吞掉 `InterruptedIOException`（用户取消被当成\"非法资源\"）和 budget 超时（应为 `HANDOFF_READ_BUDGET_EXCEEDED`，§7.2）。`read()` 路径（`:206-208`）同样。建议重抛中断、透出原码。",
+        "title": "read入口也吞掉InterruptedIOException",
+        "category": "functional",
+        "verdict": "不成立",
+        "reason": "read在207行明确catch InterruptedIOException并原样重抛；不能把authorize的catch概括为read入口同样吞中断。后续resolve分支另有IOException包装，但报告指定206-208的入口指控不成立。",
+        "trigger": "read初始完整性校验发生线程中断",
+        "expected": "保留中断语义",
+        "actual": "代码已显式重抛InterruptedIOException",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java",
+            "line": 206
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java",
+            "line": 207
+          },
+          {
+            "path": "backend/src/test/java/com/aicodeassistant/session/merge/HandoffReadServiceTest.java",
+            "line": 165
+          }
+        ],
+        "scope": "new",
+        "issue_key": "read-initial-interruption-swallowed",
+        "severity": "moderate",
+        "credit": 0,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R03-C08",
+        "lines": [
+          83,
+          83
+        ],
+        "quote": "- **M5. `HandoffReadTool.getDescription()` 缺 §7.1 强制的程序生成指引**（\"继续来源任务先读交接详情\"\"目录/未展开计数不代表已了解详情，历史测试不代表当前测试\"等）。参考入口侧已有等价表述，工具说明需补齐——这是 §7.1 明确写在\"及\"两侧的要求。",
+        "title": "固定工具说明遗漏交接使用指引",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "getDescription确实没有373行要求的读详情/核对现状/复测等完整指引；入口已有部分说明。属于可直接修正文案规范缺口，未以真实模型证据证明已导致错误开发。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/tool/impl/HandoffReadTool.java",
+            "line": 16
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java",
+            "line": 68
+          },
+          {
+            "path": "docs/session-merge-architecture-v2.md",
+            "line": 373
+          }
+        ],
+        "scope": "new",
+        "issue_key": "handoff-tool-guidance-incomplete",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R03-C09",
+        "lines": [
+          84,
+          88
+        ],
+        "quote": "- **M6. 测试覆盖回退 4 处**（§9 矩阵空洞，均因旧断言删除后未补替代）：\n  a. 准入/忙态：审批中（waiting_interaction）拒绝、后台租约忙拒绝、同键不同参数 409、2～5/重复 ID 参数校验；\n  b. `stop=length`/截断 JSON 不得当成功的缩小处理（§6.3 表格行）；\n  c. v2 seal 路径的磁盘余量/复制配额暂停（现有 `MERGE_DISK_SPACE_LOW` 用例全走 legacy `build` 路径，而在线入口已不调用它）；\n  d. `occurrences.jsonl` 重复位置清单与 artifact_manifests/entries 导出（生产代码已实现）零断言；慢 hook/通知 hook 失败不回滚目标无替代测试。",
+        "title": "准入/截断响应/v2复制/artifact/通知测试缺口",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "现有服务测试覆盖根和后代忙，但未覆盖waiting_interaction等细分；长度停止、v2磁盘路径、artifact夹具及hook失败缺专门断言。legacy build测试不能自动证明seal覆盖。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/test/java/com/aicodeassistant/session/merge/SessionMergeServiceTest.java",
+            "line": 146
+          },
+          {
+            "path": "backend/src/test/java/com/aicodeassistant/session/merge/MergeSummaryServiceTest.java",
+            "line": 74
+          },
+          {
+            "path": "backend/src/test/java/com/aicodeassistant/session/merge/MergePackageServiceTest.java",
+            "line": 380
+          },
+          {
+            "path": "backend/src/test/java/com/aicodeassistant/session/merge/MergeFixture.java",
+            "line": 36
+          }
+        ],
+        "scope": "new",
+        "issue_key": "merge-required-test-gaps",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R03-C10",
+        "lines": [
+          92,
+          92
+        ],
+        "quote": "- cancel 与发布竞态时返回 `MERGE_STALE_OPERATION` 而非 §5.3 的 `MERGE_ALREADY_COMPLETED`（`SessionMergeService.java:150`）；",
+        "title": "取消与发布竞态返回stale而非already-completed",
+        "category": "functional",
+        "verdict": "成立",
+        "reason": "第一次get尚未completed而UPDATE时发布已提交，cancel返回false分支固定STALE；状态安全但错误分类不符合区分已完成的接口约定。",
+        "trigger": "发布提交落在cancel首次get与UPDATE之间",
+        "expected": "已完成时返回MERGE_ALREADY_COMPLETED",
+        "actual": "409 MERGE_STALE_OPERATION，附最新状态",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 147
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 150
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeProgressRepository.java",
+            "line": 120
+          },
+          {
+            "path": "docs/session-merge-architecture-v2.md",
+            "line": 272
+          }
+        ],
+        "scope": "new",
+        "issue_key": "cancel-publish-conflict-code",
+        "severity": "minor",
+        "credit": 1,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R03-C11",
+        "lines": [
+          93,
+          93
+        ],
+        "quote": "- `lockedSourceSessionIds` 只含根来源，实际 lease 锁了整棵子任务树（`SessionMergeService.java:263`）；",
+        "title": "DTO锁集合只含根而gate锁整棵来源树",
+        "category": "conditional",
+        "verdict": "证据不足",
+        "reason": "DTO只返回根而gate锁后代的事实成立，但报告未证明普通用户可操作后代会话的支持内UI路径；列表SessionController另返回真实gate占用。暂不把资料字段差异升级为漏锁功能缺陷。",
+        "trigger": "空闲根来源拥有已保存后代并正在复制",
+        "expected": "DTO暴露实际被锁的来源树成员",
+        "actual": "只返回请求的根来源ID",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 114
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 263
+          },
+          {
+            "path": "docs/session-merge-architecture-v2.md",
+            "line": 272
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/controller/SessionController.java",
+            "line": 175
+          }
+        ],
+        "scope": "new",
+        "issue_key": "locked-descendants-omitted",
+        "severity": "moderate",
+        "credit": null,
+        "verification": "needs_repro"
+      },
+      {
+        "claim_id": "R03-C12",
+        "lines": [
+          94,
+          94
+        ],
+        "quote": "- 请求字节保护阈值 900KiB 低于规范默认 1MiB 且未计入 JSON 转义膨胀（`MergeSummaryService.java:212`）；聚合分批用 UTF-16 字符数与估算 token 混用（`:99`）；\"同单元/模型最多 3 次\"按单次运行局部计数，持久 `attempt_count` 不参与上限（`:216`）；`details.jsonl` 用 truncate 直写而非原子写（`:119`）；取消时当前 attempt 行永久残留 `running`；",
+        "title": "请求字节保护未测JSON转义及系统包装",
+        "category": "engineering",
+        "verdict": "证据不足",
+        "reason": "检查确实仅input UTF8且阈值900KiB，但正常单元来自32KiB正文片或约8192字符聚合批次，尚未证明受支持在线路径会发送超过1MiB。900KiB保护比默认保守本身不构成功能错误。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java",
+            "line": 212
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java",
+            "line": 78
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java",
+            "line": 99
+          },
+          {
+            "path": "docs/session-merge-architecture-v2.md",
+            "line": 334
+          }
+        ],
+        "scope": "new",
+        "issue_key": "serialized-request-byte-guard",
+        "severity": null,
+        "credit": null,
+        "verification": "needs_repro"
+      },
+      {
+        "claim_id": "R03-C13",
+        "lines": [
+          94,
+          94
+        ],
+        "quote": "- 请求字节保护阈值 900KiB 低于规范默认 1MiB 且未计入 JSON 转义膨胀（`MergeSummaryService.java:212`）；聚合分批用 UTF-16 字符数与估算 token 混用（`:99`）；\"同单元/模型最多 3 次\"按单次运行局部计数，持久 `attempt_count` 不参与上限（`:216`）；`details.jsonl` 用 truncate 直写而非原子写（`:119`）；取消时当前 attempt 行永久残留 `running`；",
+        "title": "聚合预分批按UTF16字符而非token",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "size=end-start+128用于8192字符预分批，真正调用前又用capacity与budget检查并split，因此是计量命名/规划保守性建议，非已证预算越界。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java",
+            "line": 98
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java",
+            "line": 212
+          }
+        ],
+        "scope": "new",
+        "issue_key": "aggregate-planning-character-budget",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R03-C14",
+        "lines": [
+          94,
+          94
+        ],
+        "quote": "- 请求字节保护阈值 900KiB 低于规范默认 1MiB 且未计入 JSON 转义膨胀（`MergeSummaryService.java:212`）；聚合分批用 UTF-16 字符数与估算 token 混用（`:99`）；\"同单元/模型最多 3 次\"按单次运行局部计数，持久 `attempt_count` 不参与上限（`:216`）；`details.jsonl` 用 truncate 直写而非原子写（`:119`）；取消时当前 attempt 行永久残留 `running`；",
+        "title": "同模型attempt上限仅局部3次",
+        "category": "conditional",
+        "verdict": "规范歧义",
+        "reason": "每次processStage确实重置attempt局部计数，但规格339限定自动尝试，用户主动resume通常允许修复后重试；不应把跨手动恢复累计超过3当成自动无限重试。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java",
+            "line": 216
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeProgressRepository.java",
+            "line": 115
+          },
+          {
+            "path": "docs/session-merge-architecture-v2.md",
+            "line": 339
+          }
+        ],
+        "scope": "new",
+        "issue_key": "attempt-limit-across-manual-resume",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R03-C15",
+        "lines": [
+          94,
+          94
+        ],
+        "quote": "- 请求字节保护阈值 900KiB 低于规范默认 1MiB 且未计入 JSON 转义膨胀（`MergeSummaryService.java:212`）；聚合分批用 UTF-16 字符数与估算 token 混用（`:99`）；\"同单元/模型最多 3 次\"按单次运行局部计数，持久 `attempt_count` 不参与上限（`:216`）；`details.jsonl` 用 truncate 直写而非原子写（`:119`）；取消时当前 attempt 行永久残留 `running`；",
+        "title": "details清单truncate直写非原子",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "输出直接打开catalog，未atomicWrite；但发布ready及完整性验证发生后，paused的中间清单不能被E消费，未证明资料错误发布。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java",
+            "line": 119
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java",
+            "line": 149
+          }
+        ],
+        "scope": "new",
+        "issue_key": "details-catalog-nonatomic-intermediate",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R03-C16",
+        "lines": [
+          94,
+          94
+        ],
+        "quote": "- 请求字节保护阈值 900KiB 低于规范默认 1MiB 且未计入 JSON 转义膨胀（`MergeSummaryService.java:212`）；聚合分批用 UTF-16 字符数与估算 token 混用（`:99`）；\"同单元/模型最多 3 次\"按单次运行局部计数，持久 `attempt_count` 不参与上限（`:216`）；`details.jsonl` 用 truncate 直写而非原子写（`:119`）；取消时当前 attempt 行永久残留 `running`；",
+        "title": "取消时当前attempt永久running",
+        "category": "conditional",
+        "verdict": "证据不足",
+        "reason": "正常已进入call的取消仍执行finally usageSink完成attempt，报告泛指取消永久running不成立；beginAttempt后且call前本地异常存在窗口，但不能视为所有取消路径。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java",
+            "line": 217
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java",
+            "line": 329
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeProgressRepository.java",
+            "line": 177
+          }
+        ],
+        "scope": "new",
+        "issue_key": "cancelled-attempt-running-window",
+        "severity": null,
+        "credit": null,
+        "verification": "needs_repro"
+      },
+      {
+        "claim_id": "R03-C17",
+        "lines": [
+          95,
+          95
+        ],
+        "quote": "- `MergeProgressRepository`：`failAttempt` 会把已 completed 的 attempt 改写为 error（`:197-200`）；`beginAttempt` 允许 running→running 重复递增（`:166`）；`pause()` 不校验影响行数（`:99-103`）；",
+        "title": "failAttempt可将completed改写error",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "这是传输完成后schema验证失败时的结果终态标记；usage未被清空且汇总不按outcome过滤，未证明计费数据损坏。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeProgressRepository.java",
+            "line": 197
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeProgressRepository.java",
+            "line": 190
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java",
+            "line": 224
+          }
+        ],
+        "scope": "new",
+        "issue_key": "attempt-outcome-transport-vs-validation",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R03-C18",
+        "lines": [
+          95,
+          95
+        ],
+        "quote": "- `MergeProgressRepository`：`failAttempt` 会把已 completed 的 attempt 改写为 error（`:197-200`）；`beginAttempt` 允许 running→running 重复递增（`:166`）；`pause()` 不校验影响行数（`:99-103`）；",
+        "title": "beginAttempt允许running再次递增",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "局部重试需要running到running新attempt且串行worker/epoch守卫存在；状态条件事实正确，未证明重复worker故障。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeProgressRepository.java",
+            "line": 161
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 132
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java",
+            "line": 216
+          }
+        ],
+        "scope": "new",
+        "issue_key": "attempt-running-to-running",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R03-C19",
+        "lines": [
+          95,
+          95
+        ],
+        "quote": "- `MergeProgressRepository`：`failAttempt` 会把已 completed 的 attempt 改写为 error（`:197-200`）；`beginAttempt` 允许 running→running 重复递增（`:166`）；`pause()` 不校验影响行数（`:99-103`）；",
+        "title": "pause不校验更新行数",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "取消/已完成及过期epoch时有意不覆写状态，0行可接受；纯一致性建议并非丢失正确性证据。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeProgressRepository.java",
+            "line": 98
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 225
+          }
+        ],
+        "scope": "new",
+        "issue_key": "pause-zero-row-check",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R03-C20",
+        "lines": [
+          96,
+          96
+        ],
+        "quote": "- `MergePackageService.packageRoot()` 以 `user.dir` 为解析输入，§4.2 要求不硬编码 cwd（`:89`）；messages/artifacts/checkpoints 分页均 `LIMIT 1` 逐行查询，长历史下数千次往返（性能备注）；",
+        "title": "packageRoot使用cwd参数",
+        "category": "engineering",
+        "verdict": "规范歧义",
+        "reason": "代码调用DatabaseResolver且使用与SqliteConfig相同的cwd默认输入，配置根会覆盖该参数；与“不硬编码cwd”字面有张力，但未证明正常配置下与实际项目库不一致。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+            "line": 87
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/config/database/DatabaseResolver.java",
+            "line": 42
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/config/database/SqliteConfig.java",
+            "line": 94
+          },
+          {
+            "path": "docs/session-merge-architecture-v2.md",
+            "line": 120
+          }
+        ],
+        "scope": "new",
+        "issue_key": "package-root-cwd-fallback",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R03-C21",
+        "lines": [
+          96,
+          96
+        ],
+        "quote": "- `MergePackageService.packageRoot()` 以 `user.dir` 为解析输入，§4.2 要求不硬编码 cwd（`:89`）；messages/artifacts/checkpoints 分页均 `LIMIT 1` 逐行查询，长历史下数千次往返（性能备注）；",
+        "title": "长历史逐行SQL与目录扫描性能",
+        "category": "conditional",
+        "verdict": "成立",
+        "reason": "LIMIT 1分页和多次目录遍历存在，报告注明性能备注，尚无延迟或普通主链路影响测量。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+            "line": 421
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+            "line": 445
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java",
+            "line": 185
+          }
+        ],
+        "scope": "new",
+        "issue_key": "merge-linear-page-query-overhead",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R03-C22",
+        "lines": [
+          97,
+          97
+        ],
+        "quote": "- `V026_ExtendSessionMerges.java:104` `SQL.split(\";\")` 依赖 SQL 文本无内嵌分号，当前成立但脆弱；",
+        "title": "迁移SQL用分号切分脆弱",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "当前内嵌SQL无字符串内分号，改进建议成立但当前不会因此误执行。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/config/database/V026_ExtendSessionMerges.java",
+            "line": 104
+          }
+        ],
+        "scope": "new",
+        "issue_key": "migration-semicolon-split",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R03-C23",
+        "lines": [
+          98,
+          98
+        ],
+        "quote": "- unit state/operation status 字符串字面量散落，未在 `MergeHandoffData` 集中为常量；",
+        "title": "状态字符串未集中常量",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "状态字面量散布在仓库/服务；纯可维护性不计产品缺陷。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeProgressRepository.java",
+            "line": 115
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 138
+          }
+        ],
+        "scope": "new",
+        "issue_key": "status-string-constants",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R03-C24",
+        "lines": [
+          99,
+          99
+        ],
+        "quote": "- `HandoffReadService` 命中片段截取可能切断代理对（`:261`）；跨分片续接每分片一次全目录扫描（O(n²)，有 15s 预算兜底）；",
+        "title": "搜索命中摘要可能切断UTF16代理对",
+        "category": "functional",
+        "verdict": "成立",
+        "reason": "substring前后文边界未调整，虽然chunk/carry调整代理对，但命中附近emoji刚好跨match-100或尾部边界时可产生孤立代理项，输出摘要损坏；原文与继续游标未丢失。",
+        "trigger": "匹配前后文截取边界落在emoji高低代理之间",
+        "expected": "摘要保持完整Unicode码点",
+        "actual": "substring结果含孤立代理项",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java",
+            "line": 260
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java",
+            "line": 268
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java",
+            "line": 313
+          }
+        ],
+        "scope": "new",
+        "issue_key": "search-snippet-surrogate-boundary",
+        "severity": "minor",
+        "credit": 1,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R03-C25",
+        "lines": [
+          99,
+          99
+        ],
+        "quote": "- `HandoffReadService` 命中片段截取可能切断代理对（`:261`）；跨分片续接每分片一次全目录扫描（O(n²)，有 15s 预算兜底）；",
+        "title": "跨分片查找每次扫描目录可能平方增长",
+        "category": "conditional",
+        "verdict": "成立",
+        "reason": "resolve每次从catalog起点线性定位后继ref，很多分片时可能二次扫描；有15秒截止，未测得具体不可用规模。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java",
+            "line": 176
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java",
+            "line": 280
+          }
+        ],
+        "scope": "new",
+        "issue_key": "search-adjacent-catalog-quadratic",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R03-C26",
+        "lines": [
+          100,
+          100
+        ],
+        "quote": "- 前端：`selectMergeSourceIds` 在 POST 响应到达前不本地标记来源占用（服务端 gate 兜底）；protocol=1 降级无专项测试；`validatedTerminal` 跳过后续轮询导致 `targetAvailable` 可能陈旧；",
+        "title": "提交响应前无本地来源占用",
+        "category": "conditional",
+        "verdict": "成立",
+        "reason": "selector没有operation即空；客户端可能暂时显示可用但后台gate负责最终拒绝，与服务端锁权威设计一致，未证明新的独立功能缺陷。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "frontend/src/store/sessionMergeStore.ts",
+            "line": 28
+          },
+          {
+            "path": "frontend/src/store/sessionMergeStore.ts",
+            "line": 132
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 95
+          }
+        ],
+        "scope": "new",
+        "issue_key": "source-lock-before-post-response",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R03-C27",
+        "lines": [
+          100,
+          100
+        ],
+        "quote": "- 前端：`selectMergeSourceIds` 在 POST 响应到达前不本地标记来源占用（服务端 gate 兜底）；protocol=1 降级无专项测试；`validatedTerminal` 跳过后续轮询导致 `targetAvailable` 可能陈旧；",
+        "title": "protocol1缺专项前端测试",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "当前测试无protocolVersion=1专项断言；应补兼容性覆盖，不推出运行失败。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "frontend/src/store/sessionMergeStore.test.ts",
+            "line": 398
+          },
+          {
+            "path": "frontend/src/components/session/SessionMergePanel.test.tsx",
+            "line": 40
+          }
+        ],
+        "scope": "new",
+        "issue_key": "legacy-ui-test-gap",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R03-C28",
+        "lines": [
+          100,
+          100
+        ],
+        "quote": "- 前端：`selectMergeSourceIds` 在 POST 响应到达前不本地标记来源占用（服务端 gate 兜底）；protocol=1 降级无专项测试；`validatedTerminal` 跳过后续轮询导致 `targetAvailable` 可能陈旧；",
+        "title": "终态缓存导致targetAvailable陈旧",
+        "category": "functional",
+        "verdict": "成立",
+        "reason": "已验证completed后refresh短路；外部删除E不再查询，按钮仍启用直至重新打开dialog清缓存，实际activate可能失败。",
+        "trigger": "结果卡已展示且E随后在其他入口删除",
+        "expected": "结果可用性随服务端更新",
+        "actual": "缓存targetAvailable可保持true，打开动作失败",
+        "code_refs": [
+          {
+            "path": "frontend/src/store/sessionMergeStore.ts",
+            "line": 141
+          },
+          {
+            "path": "frontend/src/store/sessionMergeStore.ts",
+            "line": 119
+          },
+          {
+            "path": "frontend/src/components/session/SessionMergePanel.tsx",
+            "line": 214
+          }
+        ],
+        "scope": "new",
+        "issue_key": "terminal-target-availability-stale",
+        "severity": "minor",
+        "credit": 1,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R03-C29",
+        "lines": [
+          101,
+          101
+        ],
+        "quote": "- `QueryController`/`WebSocketController` 对 `HandoffContextService` 用字段注入而类内其他依赖为构造器注入（风格不一致，无功能影响）。",
+        "title": "控制器混用字段与构造注入",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "风格建议无功能后果。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/controller/QueryController.java",
+            "line": 178
+          }
+        ],
+        "scope": "new",
+        "issue_key": "controller-injection-style",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R03-C30",
+        "lines": [
+          29,
+          30
+        ],
+        "quote": "   - `AuthorizationService.java:158` 仅将 `handoff-read-v1` 且 `RiskClass.SAFE` 且 effects 恰为 `[READ_RESOURCE]` 的操作纳入只读放行，**未加入 SAFE_INTERNAL**（§7.3 红线）；`OperationAnalyzerRegistry.java:87` 按 `instanceof` 分派，同名 MCP/动态工具分别走 `isMcp()`/`generic` 分支，不能继承权限（测试 `OperationAnalyzerRegistryTest.java:45-66` 佐证）。\n   - `HandoffReadTool` 无任何 Spring 注解，全局唯一构造点是 `HandoffContextService`，`ToolRegistry` 只收集 Bean——普通主会话与子代理的工具集合、schema、token 开销不变（§7.2）。",
+        "title": "具体同名工具和普通工具池安全保证",
+        "category": "global",
+        "verdict": "成立",
+        "reason": "analyzer按真实类型分派，HandoffRead不是全局Bean，普通配置不调用handoff；这是具体安全机制核验，未发现所指路径放宽。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/authorization/OperationAnalyzerRegistry.java",
+            "line": 87
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/tool/impl/HandoffReadTool.java",
+            "line": 10
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java",
+            "line": 39
+          }
+        ],
+        "scope": "new",
+        "issue_key": "builtin-tool-identity-isolation",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R03-C31",
+        "lines": [
+          64,
+          64
+        ],
+        "quote": "- §7.2 游标绑定包版本+参数、16KiB/8MiB 上限、15 秒截止与中断检查、UTF-8 边界分页、跨分片重叠去重、长行尾部不漏、路径穿越/symlink 防御、PLAN 模式只读——逐项核实通过且有测试；",
+        "title": "HandoffRead读路径拒绝穿越与符号链接",
+        "category": "global",
+        "verdict": "成立",
+        "reason": "该段针对7.2读取，safeFile逐段拒symlink；不能外推为source复制每条分支均安全。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java",
+            "line": 179
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+            "line": 304
+          }
+        ],
+        "scope": "new",
+        "issue_key": "handoff-read-path-containment",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R03-C32",
+        "lines": [
+          42,
+          42
+        ],
+        "quote": "| 后端全量 `./mvnw -Dspring.profiles.active=test test` | 2,975 项：**2,974 通过、1 失败、70 跳过**，1 分 21 秒 |",
+        "title": "测试数字包含跳过项目的通过计数不自洽",
+        "category": "engineering",
+        "verdict": "不成立",
+        "reason": "2975总数、2974通过、1失败再加70跳过不相容；只能证明此行统计口径写错，不能据此推断没有跑测试或伪造日志。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [],
+        "scope": "out",
+        "issue_key": "test-count-arithmetic",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      }
+    ],
+    "decisions": {
+      "normal_function": {
+        "points": 5,
+        "lines": [
+          19,
+          34
+        ],
+        "quote": "## 一、问题 1 结论：对非合并分支功能链路的影响 —— 无破坏\n\n**结论：本次改动不会对非合并分支（普通/fork/Swarm 会话链路）造成负面影响，且有多层证据支撑。**\n\n1. **规范 §10 明令\"保持不改\"的文件与 HEAD 逐字节一致**（`git diff` 为空）：`SessionManager`、`SessionMessagePersistence`、`SubAgentExecutor`、`SwarmWorkerRunner`、`SessionExecutionGate`、`ToolRegistry`。普通会话的执行与持久化机制零改动。\n2. **普通请求零开销、零行为变化**，逐点核实：\n   - `QueryController.java:178/265/362` 与 `WebSocketController.java:959` 的交接启用均以 `HandoffContextService.isMerged(config)` 静态纯元数据检查门控——无 `sessionMergeOperationId` 标记的普通会话**不调用交接服务、不查合并表、不注入工具**（规范 §7.1\"没有该标记时不调用交接服务\"）。\n   - `QueryLoopState.java:31-35` 新增标记为 `@JsonIgnore` 不序列化字段，无默认执行行为（§10）。\n   - `QueryEngine` 无标记时直接返回空投影，原历史/预算/工具/图片分支不变；phase2 用原总预算校验含投影 payload，预算不双扣（测试 `QueryEngineUnitTest.java:1948-1986` 佐证）。\n   - `ImageRefInjector.java:96-99` 旧重载以 `(path,hash)->false` 委托新逻辑，普通路径行为逐字节等价；新入口仅在路径安全被拒**且**绑定包内已登记、哈希实时复核匹配时放行（§10 授权的窄扩展，未放宽普通文件读取权限）。\n   - `AuthorizationService.java:158` 仅将 `handoff-read-v1` 且 `RiskClass.SAFE` 且 effects 恰为 `[READ_RESOURCE]` 的操作纳入只读放行，**未加入 SAFE_INTERNAL**（§7.3 红线）；`OperationAnalyzerRegistry.java:87` 按 `instanceof` 分派，同名 MCP/动态工具分别走 `isMcp()`/`generic` 分支，不能继承权限（测试 `OperationAnalyzerRegistryTest.java:45-66` 佐证）。\n   - `HandoffReadTool` 无任何 Spring 注解，全局唯一构造点是 `HandoffContextService`，`ToolRegistry` 只收集 Bean——普通主会话与子代理的工具集合、schema、token 开销不变（§7.2）。\n   - `MergePackageService` 旧 `build/packagePath/deleteUnreferenced` scratchpad 分支完整保留，仅供兼容夹具；`V026` 迁移幂等（已有 `protocol_version` 仅 validate），启动时只多一次校验。\n3. **实测佐证**：后端全量 2,975 项中除 1 个与本次无关的既有环境失败外全部通过（详见第二节）；前端 894 项全通过。\n\n**唯一需要说明的边界情况**：V026 迁移会在所有环境启动时执行。SQL 与附录 A 逐字一致、事务内执行、中断整体回滚、旧 preparing 行转 failed/LEGACY_INTERRUPTED 并保留旧包——对存量用户库是安全升级，符合 §5.1/附录 A。",
+        "reason": "普通入口守卫、原持久化文件与工具池隔离符合独立代码核验；合并来源的取消显示问题不等于无关普通请求回归。"
+      },
+      "boundary": {
+        "points": 5,
+        "lines": [
+          23,
+          34
+        ],
+        "quote": "1. **规范 §10 明令\"保持不改\"的文件与 HEAD 逐字节一致**（`git diff` 为空）：`SessionManager`、`SessionMessagePersistence`、`SubAgentExecutor`、`SwarmWorkerRunner`、`SessionExecutionGate`、`ToolRegistry`。普通会话的执行与持久化机制零改动。\n2. **普通请求零开销、零行为变化**，逐点核实：\n   - `QueryController.java:178/265/362` 与 `WebSocketController.java:959` 的交接启用均以 `HandoffContextService.isMerged(config)` 静态纯元数据检查门控——无 `sessionMergeOperationId` 标记的普通会话**不调用交接服务、不查合并表、不注入工具**（规范 §7.1\"没有该标记时不调用交接服务\"）。\n   - `QueryLoopState.java:31-35` 新增标记为 `@JsonIgnore` 不序列化字段，无默认执行行为（§10）。\n   - `QueryEngine` 无标记时直接返回空投影，原历史/预算/工具/图片分支不变；phase2 用原总预算校验含投影 payload，预算不双扣（测试 `QueryEngineUnitTest.java:1948-1986` 佐证）。\n   - `ImageRefInjector.java:96-99` 旧重载以 `(path,hash)->false` 委托新逻辑，普通路径行为逐字节等价；新入口仅在路径安全被拒**且**绑定包内已登记、哈希实时复核匹配时放行（§10 授权的窄扩展，未放宽普通文件读取权限）。\n   - `AuthorizationService.java:158` 仅将 `handoff-read-v1` 且 `RiskClass.SAFE` 且 effects 恰为 `[READ_RESOURCE]` 的操作纳入只读放行，**未加入 SAFE_INTERNAL**（§7.3 红线）；`OperationAnalyzerRegistry.java:87` 按 `instanceof` 分派，同名 MCP/动态工具分别走 `isMcp()`/`generic` 分支，不能继承权限（测试 `OperationAnalyzerRegistryTest.java:45-66` 佐证）。\n   - `HandoffReadTool` 无任何 Spring 注解，全局唯一构造点是 `HandoffContextService`，`ToolRegistry` 只收集 Bean——普通主会话与子代理的工具集合、schema、token 开销不变（§7.2）。\n   - `MergePackageService` 旧 `build/packagePath/deleteUnreferenced` scratchpad 分支完整保留，仅供兼容夹具；`V026` 迁移幂等（已有 `protocol_version` 仅 validate），启动时只多一次校验。\n3. **实测佐证**：后端全量 2,975 项中除 1 个与本次无关的既有环境失败外全部通过（详见第二节）；前端 894 项全通过。\n\n**唯一需要说明的边界情况**：V026 迁移会在所有环境启动时执行。SQL 与附录 A 逐字一致、事务内执行、中断整体回滚、旧 preparing 行转 failed/LEGACY_INTERRUPTED 并保留旧包——对存量用户库是安全升级，符合 §5.1/附录 A。",
+        "reason": "全文明确静态元数据守卫、公共图片/授权接点与V026全环境迁移边界；不把“零开销”口头概括单独当绝对零风险声明。"
+      },
+      "release": {
+        "points": 5,
+        "lines": [
+          105,
+          116
+        ],
+        "quote": "## 五、是否达到提交 GitHub 的发布标准 —— 结论\n\n**暂未达到，差一步。建议修复 H1 并补齐 M6 测试缺口后再提交；其余中/低项可列入后续迭代。**\n\n| 维度 | 评估 |\n| --- | --- |\n| 非合并分支安全性 | ✅ 无破坏，证据充分（第一节） |\n| 规范符合性 | ✅ 主干高度符合（第三节） |\n| 代码质量 | 良好：事务边界、并发栅栏、日志卫生（无全文/凭据）均到位；存在 1 个高级功能缺陷与若干一致性瑕疵 |\n| 测试覆盖 | 主体扎实且改写正当；但有 4 处 §9 矩阵空洞（M6），不能说完全满足规范 |\n| 实测门禁 | 前端全绿+构建通过；后端在本机有 1 个**既有环境性**失败（缺 ripgrep，HEAD 同现），CI 环境需确保 rg 可用或修复回退路径 |\n| 规范自述的遗留验收 | ⚠️ §9 末段**真实模型接续开发语义验收尚未执行**（文档第 3、471 行均明示），stub 测试不能替代；规范允许阶段分提交，但\"整体闭合前不宣称完成\" |",
+        "reason": "明确当前未达标准，先修功能缺陷并补覆盖，不把结构测试当完成版。"
+      },
+      "semantic": {
+        "points": 5,
+        "lines": [
+          116,
+          124
+        ],
+        "quote": "| 规范自述的遗留验收 | ⚠️ §9 末段**真实模型接续开发语义验收尚未执行**（文档第 3、471 行均明示），stub 测试不能替代；规范允许阶段分提交，但\"整体闭合前不宣称完成\" |\n\n**建议行动顺序**：\n\n1. 修复 H1（非关键附件降级非阻断 + 阻断 gap 补 ref）——这是唯一会导致用户场景永久卡死的功能缺陷；\n2. 补 M6 四项测试缺口（准入/忙态、stop=length、v2 磁盘暂停、occurrences/artifact 断言）；\n3. 顺手处理 M3–M5（依赖方向、错误码透出、工具说明补全，均为小改动）；\n4. 确认 CI 环境 ripgrep 可用（或修复 grep 回退对显式隐藏目录的处理），使后端套件全绿；\n5. 提交时包含 `docs/session-merge-architecture-v2.md` 本身；提交信息中如实标注\"真实模型语义验收未执行\"。",
+        "reason": "明确真实模型接续语义未执行且stub不能替代，并允许阶段提交。"
+      }
+    }
+  },
+  {
+    "report_id": "R06",
+    "read_complete": true,
+    "claims": [
+      {
+        "claim_id": "R06-C01",
+        "lines": [
+          187,
+          192
+        ],
+        "quote": "**M1. `HandoffReadTool.call` 对 `currentRunId` 缺少防御性校验（潜在 NPE）**\n- 位置：`backend/src/main/java/com/aicodeassistant/tool/impl/HandoffReadTool.java`（`call` 方法，约 L28-L45）\n- 现状：`String root=subjects.resolve(context.currentRunId()).rootSessionId();` 直接假定非空。\n- 依据：文档 7.3 要求通过 `AuthorizationSubjectResolver.resolve(currentRunId).rootSessionId()` 校验绑定，同时要求工具不应在错误上下文中崩溃。\n- 影响：当前 QueryEngine 接入路径下 runId 必然存在，线上无即时风险；未来在无 run 的测试/诊断场景直接调用会 NPE 且难定位。\n- 建议：前置 `context == null || context.currentRunId() == null` 校验，返回 `ToolResult.validationError(\"HANDOFF_CONTEXT_MISSING\", ...)`。",
+        "title": "缺少currentRunId校验导致未来NPE",
+        "category": "conditional",
+        "verdict": "不成立",
+        "reason": "报告自己排除线上风险；currentRunId=null时Resolver已有显式AuthorizationException，resolve从不正常返回null。只有context对象本身null才直接NPE，不能把二者混为一谈。不作为受支持产品FP。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/tool/impl/HandoffReadTool.java",
+            "line": 29
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/authorization/AuthorizationSubjectResolver.java",
+            "line": 36
+          }
+        ],
+        "scope": "new",
+        "issue_key": "tool-null-run-context",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R06-C02",
+        "lines": [
+          194,
+          198
+        ],
+        "quote": "**M2. `HandoffReadTool` 的 `asset` 分支对 `images == null` 无防护（测试易错点）**\n- 位置：`backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java`（四参构造器以 `null` 传入 `ImageResultExternalizer`，约 L20-L31）；`HandoffReadTool` 的 `asset` 分支。\n- 依据：文档 7.2 强调图片通过现有 `ImageResultExternalizer` 处理；能力不可用时应返回说明而非崩溃。\n- 影响：生产使用 `@Autowired` 五参构造器不受影响，现有测试也注入了 mock；属未来编写测试时的隐含陷阱。\n- 建议：在 `asset` 分支对 `images == null` 返回 `HANDOFF_ASSET_UNSUPPORTED` 验证错误。",
+        "title": "测试构造器images为null可能使asset崩溃",
+        "category": "conditional",
+        "verdict": "成立",
+        "reason": "四参构造器确实传null，asset支持图片走42时会NPE；生产Autowired五参不受影响，属于测试夹具防御建议。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java",
+            "line": 22
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/tool/impl/HandoffReadTool.java",
+            "line": 42
+          }
+        ],
+        "scope": "new",
+        "issue_key": "test-constructor-null-images",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R06-C03",
+        "lines": [
+          202,
+          205
+        ],
+        "quote": "**N1. `MergePackageService` 路径安全校验错误码复用**\n- 位置：`MergePackageService.java` 约 L304-L319。\n- 现状：绝对路径、`..` 穿越、符号链接、越界均返回 `MERGE_INVALID_REF`。\n- 建议：如需诊断区分，可细分为 `MERGE_REF_SYMLINK`、`MERGE_REF_OUT_OF_SCOPE` 等。逻辑正确，仅为可读性。",
+        "title": "路径错误码可细分",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "safeFile多种拒绝使用MERGE_INVALID_REF，逻辑仍拒绝越界。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+            "line": 304
+          }
+        ],
+        "scope": "new",
+        "issue_key": "path-error-code-granularity",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R06-C04",
+        "lines": [
+          207,
+          209
+        ],
+        "quote": "**N2. 前端轮询间隔硬编码**\n- 位置：`sessionMergeStore.ts` 中 `nextActiveCheck = Date.now() + 5000`。\n- 建议：常量化或配置化以便调整退避策略。",
+        "title": "active轮询间隔应提为常量",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "5000毫秒确实硬编码，风格/配置建议。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "frontend/src/store/sessionMergeStore.ts",
+            "line": 145
+          }
+        ],
+        "scope": "new",
+        "issue_key": "poll-interval-constant",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R06-C05",
+        "lines": [
+          171,
+          171
+        ],
+        "quote": "- 前端缺少 `resume` / `cancel` 新行为的专门单测（暂停后换模型恢复、取消后通知与锁集合更新）。",
+        "title": "前端缺少resume/cancel专门单测",
+        "category": "engineering",
+        "verdict": "不成立",
+        "reason": "store427含换模型和expectedEpoch、440含取消与锁释放，487含控制/轮询串行。面板交互覆盖仍可扩展，但不能称这两种新行为没有专门单测。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "frontend/src/store/sessionMergeStore.test.ts",
+            "line": 427
+          },
+          {
+            "path": "frontend/src/store/sessionMergeStore.test.ts",
+            "line": 440
+          },
+          {
+            "path": "frontend/src/store/sessionMergeStore.test.ts",
+            "line": 487
+          }
+        ],
+        "scope": "new",
+        "issue_key": "existing-resume-cancel-tests-denied",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R06-C06",
+        "lines": [
+          172,
+          172
+        ],
+        "quote": "- 后端缺少 `MERGE_DISK_SPACE_LOW`（磁盘不足）与 `HANDOFF_INVALID_CURSOR`（游标越界）的针对性用例。",
+        "title": "缺少磁盘不足与游标越界针对性测试",
+        "category": "engineering",
+        "verdict": "不成立",
+        "reason": "pkgtest380/448有磁盘测试（确实多为legacy），readtest151明确构造mid-line cursor并断言HANDOFF_INVALID_CURSOR。应准确说v2 seal磁盘专项及具体偏移类型不足，非两者都无用例。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/test/java/com/aicodeassistant/session/merge/MergePackageServiceTest.java",
+            "line": 380
+          },
+          {
+            "path": "backend/src/test/java/com/aicodeassistant/session/merge/HandoffReadServiceTest.java",
+            "line": 151
+          }
+        ],
+        "scope": "new",
+        "issue_key": "existing-disk-cursor-tests-denied",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R06-C07",
+        "lines": [
+          173,
+          173
+        ],
+        "quote": "- 未运行 e2e（按要求不启动重型套件），浏览器端整体交互仅依赖单元测试。",
+        "title": "未跑浏览器E2E",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "这是报告自述验证边界，不冒充端到端覆盖。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "frontend/src/components/session/SessionMergePanel.test.tsx",
+            "line": 40
+          }
+        ],
+        "scope": "new",
+        "issue_key": "browser-e2e-unexecuted",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R06-C08",
+        "lines": [
+          222,
+          236
+        ],
+        "quote": "- 当前 diff 未包含 `CHANGELOG.md` / `README.md` 更新；按项目既往提交规范，重要特性需有变更记录。\n\n### 6.3 总体结论\n\n**有条件达标。**\n\n依据：\n- 架构一致性：与 v2 文档高度一致，无偏离。\n- 正确性：无 Blocker / Major；两处 Minor 均为防御性加固，不影响当前线上路径。\n- 影响面：非合并链路零回归。\n- 测试：后端 10 个关键测试类 + 前端 63 例全绿；TypeScript 类型检查通过。\n\n**建议提交前处理**\n1. 补齐 `HandoffReadTool` 两处防御性校验（M1、M2）——工作量极小，可消除唯一残留正确性风险。\n2. 同步 `CHANGELOG.md`，补充 Session Merge v2 条目。",
+        "title": "建议补CHANGELOG",
+        "category": "engineering",
+        "verdict": "证据不足",
+        "reason": "diff确无CHANGELOG更新，但所谓项目既往强制规范未附出处；可列交付文档建议，不据此判产品错误。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [],
+        "scope": "new",
+        "issue_key": "changelog-synchronization",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R06-C09",
+        "lines": [
+          240,
+          240
+        ],
+        "quote": "- `MergePackageService.importPrevious` 与 `MergeSummaryService.processStage / split` 适度拆分以降低认知负担。",
+        "title": "建议适度拆分复杂方法",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "大型方法存在，纯维护性建议无需产品缺陷加分。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+            "line": 601
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java",
+            "line": 204
+          }
+        ],
+        "scope": "new",
+        "issue_key": "method-complexity-refactor",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R06-C10",
+        "lines": [
+          241,
+          241
+        ],
+        "quote": "- 对 `MERGE_SNAPSHOT_CORRUPT`、`HANDOFF_HASH_MISMATCH`、`RECORD_REQUIRES_HANDLING` 等关键错误码输出结构化日志（operationId、sourceIds、原因）以便运维监控。",
+        "title": "错误日志增加来源及operation结构字段",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "现log含id/code/type，补sourceIds是诊断建议，不能说现有错误不可定位。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 219
+          }
+        ],
+        "scope": "new",
+        "issue_key": "merge-error-diagnostics",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R06-C11",
+        "lines": [
+          242,
+          242
+        ],
+        "quote": "- `SessionMergePanel` 在 `paused` 状态突出提示“恢复将重试未完成单元并可能再次计费”；对 `targetAvailable === false` 提供“重新合并”或“查看历史交接索引”入口。",
+        "title": "增加恢复计费/目标缺失操作提示",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "现panel缺该完整提示，属UX建议，不能凭缺按钮推导资料无法读取。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "frontend/src/components/session/SessionMergePanel.tsx",
+            "line": 215
+          },
+          {
+            "path": "frontend/src/components/session/SessionMergePanel.tsx",
+            "line": 217
+          }
+        ],
+        "scope": "new",
+        "issue_key": "resume-and-deleted-target-ux",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R06-C12",
+        "lines": [
+          104,
+          104
+        ],
+        "quote": "| HandoffRead 为内置只读工具，不注册为全局 Spring Bean，遵循授权框架 | 7.x | 符合 | `HandoffContextServiceTest` 断言 `HandoffReadTool` 无 `@Component`；`OperationAnalyzerRegistry` 专用 `handoff-read-v1` analyzer；binding 变更时 recheck 抛 `HANDOFF_BINDING_CHANGED`；`AuthorizationService` 将 `handoff-read-v1` 纳入 SAFE 读自动放行 |",
+        "title": "HandoffRead真实类型与binding安全保证",
+        "category": "global",
+        "verdict": "成立",
+        "reason": "绑定由可信run主体解析、授权分析器校验，非Bean且允许列表仍约束注入。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/tool/impl/HandoffReadTool.java",
+            "line": 29
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/authorization/OperationAnalyzerRegistry.java",
+            "line": 87
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java",
+            "line": 44
+          }
+        ],
+        "scope": "new",
+        "issue_key": "builtin-tool-identity-isolation",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R06-C13",
+        "lines": [
+          105,
+          105
+        ],
+        "quote": "| 前端来源锁真实依赖服务端 gate、封存后释放、恢复/取消为独立操作 | 第 8 / 10 节 | 符合 | `selectMergeSourceIds` 仅在 `status === 'preparing'` 时返回 `lockedSourceSessionIds`；`resume`/`cancel` 映射后端接口；`dismiss` 仅在不可恢复/不可取消终态可用；面板文案明确“快照封存后可继续使用来源” |",
+        "title": "preparing状态门控符合真实锁集合规范",
+        "category": "global",
+        "verdict": "不成立",
+        "reason": "代码确有preparing门控，但cancelled仍持锁的收尾窗口被过滤，与规范272仅真实gate权威不符；此为具体实现符合性错误保证。",
+        "trigger": "复制期间取消，worker尚未释放lease",
+        "expected": "仍认可服务端非空lockedSourceSessionIds",
+        "actual": "状态cancelled导致selector返回空",
+        "code_refs": [
+          {
+            "path": "frontend/src/store/sessionMergeStore.ts",
+            "line": 30
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 150
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 230
+          },
+          {
+            "path": "docs/session-merge-architecture-v2.md",
+            "line": 272
+          }
+        ],
+        "scope": "new",
+        "issue_key": "cancelled-source-lock-display",
+        "severity": "moderate",
+        "credit": 0,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R06-C14",
+        "lines": [
+          150,
+          150
+        ],
+        "quote": "| `MergeSummaryServiceTest` | 分页提取、聚合、预算、失败路径（JSON 错误、长度错误、413、上下文错误） |",
+        "title": "Summary测试覆盖JSON长度错误",
+        "category": "engineering",
+        "verdict": "证据不足",
+        "reason": "有schema直接校验和413用例，但没有stop=length运行处理断言；表格未分清解析单测与完整恢复路径，不据此推断伪造实跑。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/test/java/com/aicodeassistant/session/merge/MergeSummaryServiceTest.java",
+            "line": 47
+          },
+          {
+            "path": "backend/src/test/java/com/aicodeassistant/session/merge/MergeSummaryServiceTest.java",
+            "line": 74
+          }
+        ],
+        "scope": "new",
+        "issue_key": "summary-length-test-coverage",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      }
+    ],
+    "decisions": {
+      "normal_function": {
+        "points": 5,
+        "lines": [
+          115,
+          126
+        ],
+        "quote": "| 公共符号 | 调用方 | 非合并链路是否触达 | 结论 |\n|---|---|---|---|\n| `V026_ExtendSessionMerges` | `MigrationRunner` | 仅迁移期执行，不改 `sessions` 表、不改普通请求路径 | 无影响 |\n| `MergeProgressRepository` / `MergeHandoffData` | `SessionMergeService`、`MergeSummaryService`、`HandoffReadService` | 无普通请求路径引用 | 无影响 |\n| `HandoffContextService.configure / project / inject / canReadAsset` | `QueryEngine`（历史预算 Step1、API 消息准备 Step3、备用预算）、`QueryController`、`WebSocketController` | `handoffOperationId == null` 时返回空投影、预留 0 token；两条入口均以 `isMerged` 守卫 | 普通会话历史预算与 HEAD 基线一致 |\n| `ImageRefInjector.injectForApiCall` 新增 `BiPredicate boundHandoffAsset` 重载 | `QueryEngine` | 旧签名保留并委托到新签名，默认 `(path,hash) -> false`；仅当 pathSecurity 拒绝且为 E 会话交接包内图片时走 handoff 绑定校验 | 普通会话图片安全边界不变；E 会话新增读取路径受 `HandoffReadService` 路径/哈希校验约束 |\n| `AuthorizationService` SAFE 读自动放行 | 所有经 `OperationAnalyzerRegistry` 的工具调用 | 仅新增 `handoff-read-v1` 一个 analyzerId；`file-v1` 逻辑不变；其他工具（用户自定义、MCP）不受影响 | 不放宽其他工具权限 |\n| `OperationAnalyzerRegistry.analyzerFor / isExplicitCoreTool` | 工具授权入口 | 仅对 `HandoffReadTool` 实例返回专用 analyzer；同名 MCP/动态工具仍走 `static-or-remote-v1` | 增强了防冒充保护，非放宽 |\n| `SessionMergeController` 新端点 | 前端 `sessionMergeStore` | 新增 REST 路径，不改既有路由 | 无影响 |\n| 前端 `MergeOperation` 类型 / `useSessionMergeStore` / `isMergeSource` | `SessionMergePanel`、会话列表 | 锁集合仅由服务端返回决定，不再受本地残留记录影响 | 普通会话可用性更准确 |\n\n**明确结论：本次改动不会对非合并分支的功能链路（普通会话消息收发、权限授权、普通工具调用、工作区、恢复/重连、上下文折叠、图片处理等）造成负面影响或破坏。** 所有新行为均以 `metadata_json.sessionMergeOperationId` 为唯一开关，普通会话不会进入任何新增代码路径。",
+        "reason": "表格正确识别普通请求守卫、图片/授权原分支，未发现无关普通链路新增功能破坏。"
+      },
+      "boundary": {
+        "points": 5,
+        "lines": [
+          117,
+          126
+        ],
+        "quote": "| `V026_ExtendSessionMerges` | `MigrationRunner` | 仅迁移期执行，不改 `sessions` 表、不改普通请求路径 | 无影响 |\n| `MergeProgressRepository` / `MergeHandoffData` | `SessionMergeService`、`MergeSummaryService`、`HandoffReadService` | 无普通请求路径引用 | 无影响 |\n| `HandoffContextService.configure / project / inject / canReadAsset` | `QueryEngine`（历史预算 Step1、API 消息准备 Step3、备用预算）、`QueryController`、`WebSocketController` | `handoffOperationId == null` 时返回空投影、预留 0 token；两条入口均以 `isMerged` 守卫 | 普通会话历史预算与 HEAD 基线一致 |\n| `ImageRefInjector.injectForApiCall` 新增 `BiPredicate boundHandoffAsset` 重载 | `QueryEngine` | 旧签名保留并委托到新签名，默认 `(path,hash) -> false`；仅当 pathSecurity 拒绝且为 E 会话交接包内图片时走 handoff 绑定校验 | 普通会话图片安全边界不变；E 会话新增读取路径受 `HandoffReadService` 路径/哈希校验约束 |\n| `AuthorizationService` SAFE 读自动放行 | 所有经 `OperationAnalyzerRegistry` 的工具调用 | 仅新增 `handoff-read-v1` 一个 analyzerId；`file-v1` 逻辑不变；其他工具（用户自定义、MCP）不受影响 | 不放宽其他工具权限 |\n| `OperationAnalyzerRegistry.analyzerFor / isExplicitCoreTool` | 工具授权入口 | 仅对 `HandoffReadTool` 实例返回专用 analyzer；同名 MCP/动态工具仍走 `static-or-remote-v1` | 增强了防冒充保护，非放宽 |\n| `SessionMergeController` 新端点 | 前端 `sessionMergeStore` | 新增 REST 路径，不改既有路由 | 无影响 |\n| 前端 `MergeOperation` 类型 / `useSessionMergeStore` / `isMergeSource` | `SessionMergePanel`、会话列表 | 锁集合仅由服务端返回决定，不再受本地残留记录影响 | 普通会话可用性更准确 |\n\n**明确结论：本次改动不会对非合并分支的功能链路（普通会话消息收发、权限授权、普通工具调用、工作区、恢复/重连、上下文折叠、图片处理等）造成负面影响或破坏。** 所有新行为均以 `metadata_json.sessionMergeOperationId` 为唯一开关，普通会话不会进入任何新增代码路径。",
+        "reason": "虽126总结过满，但正文列出全局迁移和公共授权接点，249又限定被排除集成范围；按冻结规则结合全文给予边界分。"
+      },
+      "release": {
+        "points": 0,
+        "lines": [
+          226,
+          242
+        ],
+        "quote": "**有条件达标。**\n\n依据：\n- 架构一致性：与 v2 文档高度一致，无偏离。\n- 正确性：无 Blocker / Major；两处 Minor 均为防御性加固，不影响当前线上路径。\n- 影响面：非合并链路零回归。\n- 测试：后端 10 个关键测试类 + 前端 63 例全绿；TypeScript 类型检查通过。\n\n**建议提交前处理**\n1. 补齐 `HandoffReadTool` 两处防御性校验（M1、M2）——工作量极小，可消除唯一残留正确性风险。\n2. 同步 `CHANGELOG.md`，补充 Session Merge v2 条目。\n\n**可选改进（非阻塞）**\n- 前端补 `resume` / `cancel` 单测；后端补磁盘不足与游标越界用例。\n- `MergePackageService.importPrevious` 与 `MergeSummaryService.processStage / split` 适度拆分以降低认知负担。\n- 对 `MERGE_SNAPSHOT_CORRUPT`、`HANDOFF_HASH_MISMATCH`、`RECORD_REQUIRES_HANDLING` 等关键错误码输出结构化日志（operationId、sourceIds、原因）以便运维监控。\n- `SessionMergePanel` 在 `paused` 状态突出提示“恢复将重试未完成单元并可能再次计费”；对 `targetAvailable === false` 提供“重新合并”或“查看历史交接索引”入口。",
+        "reason": "有条件达标仅要求防御校验和CHANGELOG，宣称无Major且唯一正确性风险可消除，未区分阶段提交与功能完成版。"
+      },
+      "semantic": {
+        "points": 0,
+        "lines": [
+          246,
+          250
+        ],
+        "quote": "## 七、风险与假设说明\n\n- 后端测试证据基于 `-q` 静默模式的退出码与无失败输出，未逐用例列出；如需更强证据可去掉 `-q` 复跑。\n- 被排除文件（如 `SessionStatusCapsule.tsx`、`sessionStatusMeta.ts`）与合并状态展示存在关联，但按要求未纳入评估，其与 `sessionMergeStore` 的集成正确性不在本结论范围内。\n- 本轮为纯审查，未做任何代码修改；是否执行上述加固与 CHANGELOG 同步，等待用户明确指令。",
+        "reason": "全文未回答真实模型语义验收尚未完成及stub不可替代，属于未回答，不作为FP。"
+      }
+    }
+  },
+  {
+    "report_id": "R07",
+    "read_complete": true,
+    "claims": [
+      {
+        "claim_id": "R07-C01",
+        "lines": [
+          106,
+          146
+        ],
+        "quote": "### P2-1：阻断记录恢复时绕过材料分类，归档专用内容可能进入模型输入\n\n**位置**\n\n- `MergePackageService.java:265–271`\n- 正常分类逻辑：同文件 `509–535`\n- 下游整理输入：`MergeSummaryService.java:72–79、198–201`\n\n**触发条件**\n\n消息或 checkpoint 因物化上限被保存为阻断记录，随后提高上限并恢复；原始记录包含思考内容、私有续传状态或内嵌图片。\n\n**根因**\n\n正常解析路径会：\n\n- 跳过仅供归档的思考和续传字段。\n- 将图片作为资产处理，而非把 base64 当正文交给模型。\n\n恢复路径却直接将完整原始 JSON 转成提取文本，没有复用上述分类逻辑。因此，同一条记录是否经过暂停恢复，会改变模型能看到的内容。\n\n**影响**\n\n- 违反规范第4.4节的\"仅归档材料\"边界。\n- 图片 base64 可能被当成普通文本切片、整理，增加无效输入和成本。\n- 原本不应参与整理的内部状态可能发送至所选 provider。\n\n这是**合并恢复链路的问题**，不是普通会话保存路径的直接回归；没有证据表明已经发生凭据泄露。\n\n**修复建议**\n\n正常解析与恢复解析应共用同一套分类、校验和投影逻辑。恢复仍读取封存原件，但不能用完整 JSON 文本代替受控投影。\n\n**必须补充的测试**\n\n让同一记录分别经历：\n\n1. 正常封存和解析。\n2. 先阻断、提高上限、再恢复。\n\n断言两条路径产生等价的模型可见内容，同时原件完整保留、模型输入不包含归档专用字段及图片 base64。",
+        "title": "恢复投影绕过归档字段和图片分类",
+        "category": "functional",
+        "verdict": "成立",
+        "reason": "正常export跳过thinking/private状态，恢复直接将content JSON写模型文字投影，包含思考/私有状态及base64。无需真实模型响应即可确认输入边界。",
+        "trigger": "合法大消息/checkpoint因物化上限暂停，提高上限恢复",
+        "expected": "恢复与正常路径同一材料分类",
+        "actual": "整个原始content JSON进入提取文字",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+            "line": 265
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+            "line": 270
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+            "line": 514
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java",
+            "line": 72
+          }
+        ],
+        "scope": "new",
+        "issue_key": "recovered-raw-classification-bypass",
+        "severity": "serious",
+        "credit": 1,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R07-C02",
+        "lines": [
+          150,
+          191
+        ],
+        "quote": "### P2-2：换模型恢复可能跳过已有聚合计划，导致持续暂停、无法发布\n\n**位置**\n\n- `MergeSummaryService.java:87–106、120–122`\n- 恢复单元状态：`MergeProgressRepository.java:108–115`\n\n**触发条件**\n\n1. 已完成一层聚合，只剩一个结果。\n2. 旧模型估算该结果超过1536 token，于是创建下一层聚合任务。\n3. 下一层调用失败，操作暂停。\n4. 换模型恢复后，新模型估算同一结果不超过1536 token。\n\n**根因**\n\n是否结束聚合，取决于**当前模型的动态估算**；但未完成的聚合计划已经持久化。\n\n新模型可能使循环提前退出，遗留旧计划中的 pending 单元。随后完整性校验发现未完成单元，抛出 `MERGE_INCOMPLETE_UNITS`。\n\n再次使用该模型恢复，仍可能重复同一路径。\n\n**影响**\n\n- 合并无法发布，恢复操作不能有效推进。\n- 未结束操作继续占用 active slot，阻止新的合并。\n- 不直接阻断普通查询。\n\n这不符合规范第5.2、5.3节关于恢复未完成单元的要求，也暴露了聚合计划与执行终止条件不一致的问题。\n\n**修复建议**\n\n必须明确持久计划的权威性：\n\n- 优先完成已经存在的待处理层，再判断是否结束；或\n- 事务性地作废不再需要的未完成计划，发布校验仅针对有效计划。\n\n不能简单忽略 pending 单元，否则会破坏完整性保障。\n\n**必须补充的测试**\n\n在第二层聚合暂停后切换模型，使前一层结果跨过1536 token 阈值。验证恢复可以发布、没有遗留活动 pending，已完成单元不会重复调用模型。",
+        "title": "换模型后聚合提前退出遗留pending",
+        "category": "functional",
+        "verdict": "成立",
+        "reason": "1536阈值用当前模型估算，但已有计划保存在repo；新估算可使循环break而发布全量单位校验仍拒绝pending，当前模型下重复恢复会再次暂停。",
+        "trigger": "旧模型创建下一层后失败，新模型估算上一结果<=1536",
+        "expected": "处理或显式作废持久化未完成层",
+        "actual": "MERGE_INCOMPLETE_UNITS再次paused",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java",
+            "line": 89
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java",
+            "line": 120
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeProgressRepository.java",
+            "line": 115
+          }
+        ],
+        "scope": "new",
+        "issue_key": "model-switch-orphaned-aggregate-unit",
+        "severity": "moderate",
+        "credit": 1,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R07-C03",
+        "lines": [
+          195,
+          236
+        ],
+        "quote": "### P2-3：取消状态被提前等同于来源锁已释放，前后端可用性判断不一致\n\n**位置**\n\n- `sessionMergeStore.ts:28–31`\n- 终态处理：同文件 `141–142、188–189`\n- 后端取消与解锁：`SessionMergeService.java:150–153、230、263`\n\n**触发条件**\n\n在快照复制期间取消合并，worker 尚未完成退出和清理。\n\n**根因**\n\n后端存在合法的过渡状态：\n\n- 操作已经是 `cancelled`。\n- 实际来源 gate 尚未释放。\n- 服务端返回的 `lockedSourceSessionIds` 仍然非空。\n\n前端却只在 `preparing` 时认可锁集合，看到 `cancelled` 就立即推断来源未占用。\n\n**影响**\n\n- 界面提前表现为来源会话可用。\n- 用户尝试执行或写入时，后端仍可能拒绝。\n- **后端写保护仍然有效，没有发现因此绕过保护或造成数据丢失。**\n\n该问题直接影响参与合并的普通来源会话，不影响无关会话。它违反了规范要求的\"根据服务端真实锁集合判断占用\"。\n\n**修复建议**\n\n直接使用服务端锁集合，不从操作状态推断是否解锁；同时修正终态停止轮询的条件：\n\n- 终态但锁非空：继续有界查询。\n- 确认锁集合为空：才结束解锁状态跟踪。\n\n只改 selector、不改终态缓存和轮询，会产生另一种风险：取消时的旧锁可能长期留在前端。\n\n**必须补充的测试**\n\n用同步屏障阻塞复制，取消后先返回\"已取消但仍有锁\"，随后 worker 退出并返回空锁。验证前端只在收到真实空集合后解除占用。",
+        "title": "取消复制时UI提前解除来源占用",
+        "category": "functional",
+        "verdict": "成立",
+        "reason": "cancel先写cancelled再异步abort，finally才释放lease；get期间返回实际锁而selector只认preparing。终态缓存还会过早停止更新，后台保护仍有效。",
+        "trigger": "快照复制未退出时取消",
+        "expected": "等待服务端锁集合清空后解除UI占用",
+        "actual": "cancelled+非空锁被selector当空集合",
+        "code_refs": [
+          {
+            "path": "frontend/src/store/sessionMergeStore.ts",
+            "line": 30
+          },
+          {
+            "path": "frontend/src/store/sessionMergeStore.ts",
+            "line": 141
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 150
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 230
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 263
+          }
+        ],
+        "scope": "new",
+        "issue_key": "cancelled-source-lock-display",
+        "severity": "moderate",
+        "credit": 1,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R07-C04",
+        "lines": [
+          247,
+          247
+        ],
+        "quote": "| 4.3：复制截止点与来源树写隔离 | 部分符合／待验证 | 有来源及后代 gate、集合与消息边界复核；尚不能证明所有写入口及跨表并发边界完全闭合。 |",
+        "title": "跨表写入/来源树隔离尚需验证",
+        "category": "conditional",
+        "verdict": "证据不足",
+        "reason": "报告没有指控已发生绕过，只提出所有写入口遵守gate的证明缺口；不将未验证改为产品FP。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 114
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+            "line": 411
+          }
+        ],
+        "scope": "new",
+        "issue_key": "snapshot-cross-table-concurrency-boundary",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R07-C05",
+        "lines": [
+          255,
+          255
+        ],
+        "quote": "| 6.3：单请求预算、响应上限和有限重试 | 部分符合／待验证 | 已有估算预算及大小限制；完整 provider 序列化请求硬上限、取消后的实际退出时效未验证。 |",
+        "title": "完整序列化字节/取消退出时效未验证",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "明确作为未验证而非宣称已超限；代码只有input字节check、取消依赖provider响应AbortContext，应做针对性故障注入。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java",
+            "line": 212
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java",
+            "line": 300
+          }
+        ],
+        "scope": "new",
+        "issue_key": "serialized-request-and-cancel-verification-gap",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R07-C06",
+        "lines": [
+          257,
+          257
+        ],
+        "quote": "| 7.2/7.3：可信根绑定、只读工具、不继承同名权限 | 静态符合 | 按真实工具类型分派，分析及 recheck 校验绑定，没有发现普通同名工具自动取得权限的路径。 |",
+        "title": "可信根绑定和同名工具不继承权限",
+        "category": "global",
+        "verdict": "成立",
+        "reason": "真实类分派、run主体解析与绑定recheck存在。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/tool/impl/HandoffReadTool.java",
+            "line": 29
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/authorization/OperationAnalyzerRegistry.java",
+            "line": 87
+          }
+        ],
+        "scope": "new",
+        "issue_key": "builtin-tool-identity-isolation",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R07-C07",
+        "lines": [
+          258,
+          258
+        ],
+        "quote": "| 7.2：读取分页、完整性、游标和硬限制 | 静态符合 | 15秒检查覆盖 hash 和正文；搜索正文8MiB，输出16KiB，游标绑定版本及参数。 |",
+        "title": "读取校验目录正文覆盖截止预算",
+        "category": "global",
+        "verdict": "成立",
+        "reason": "Budget通过hash/catalog/skip/chunk传播；错误码包装另属候选，不否定资源检查本身覆盖。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java",
+            "line": 41
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java",
+            "line": 92
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java",
+            "line": 126
+          }
+        ],
+        "scope": "new",
+        "issue_key": "read-operation-budget-enforcement",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R07-C08",
+        "lines": [
+          283,
+          283
+        ],
+        "quote": "已有测试断言覆盖普通分支零交接调用、预算差额和投影不写回历史；**小模型、连续压缩、413恢复的完整执行链仍未验证。**",
+        "title": "小模型连续压缩413完整链路未验证",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "普通/E参数化用例存在，不等于已覆盖全部压缩阶段和真实provider413接续。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/engine/QueryEngine.java",
+            "line": 1830
+          },
+          {
+            "path": "backend/src/test/java/com/aicodeassistant/session/merge/HandoffReadServiceTest.java",
+            "line": 81
+          }
+        ],
+        "scope": "new",
+        "issue_key": "compaction-handoff-integration-test-gap",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R07-C09",
+        "lines": [
+          299,
+          305
+        ],
+        "quote": "### 5. 数据库迁移：影响所有会话，必须单独设发布门禁\n\n**V026 不受会话 metadata 开关控制。**\n\n所有使用该数据库的应用启动都需要执行或校验迁移；一旦迁移失败，普通会话也无法使用。\n\n本轮没有发现受支持旧库必然失败的新增缺陷，但实际旧库升级、完整迁移执行器和再次启动验收尚未完成。",
+        "title": "迁移是全局启动风险且需旧库启动验证",
+        "category": "conditional",
+        "verdict": "成立",
+        "reason": "V026对所有项目启动生效，报告明确未发现受支持旧库必然失败，风险边界描述准确。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/config/database/V026_ExtendSessionMerges.java",
+            "line": 17
+          }
+        ],
+        "scope": "new",
+        "issue_key": "migration-global-startup-boundary",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R07-C10",
+        "lines": [
+          313,
+          317
+        ],
+        "quote": "### 7. fork/Swarm：没有直接修改，不等于零回归\n\n会话管理、消息持久化、子代理执行和 Swarm runner 的相关文件相对 HEAD 没有直接变化。\n\n但它们仍依赖共享引擎、授权、数据库和 gate。**本轮没有运行 fork/Swarm 场景，也没有证明合并目标派生后的全部 metadata 继承行为。**",
+        "title": "forkSwarm未改不等于所有派生行为已验证",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "既有四文件不变但共享引擎/授权/库仍是依赖，未声称派生metadata已出错。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/engine/QueryEngine.java",
+            "line": 1811
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java",
+            "line": 33
+          }
+        ],
+        "scope": "new",
+        "issue_key": "fork-swarm-validation-boundary",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R07-C11",
+        "lines": [
+          344,
+          344
+        ],
+        "quote": "| 恢复投影缺少负向断言 | `MergePackageServiceTest.java:35–49、75–93` 主要验证封存原件恢复 | 无法发现思考字段、续传状态或 base64 进入整理输入。 |",
+        "title": "恢复分类缺负向断言",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "现有大记录恢复测试只查尾部及封存hash，不禁止thinking/private/base64进入提取。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/test/java/com/aicodeassistant/session/merge/MergePackageServiceTest.java",
+            "line": 35
+          }
+        ],
+        "scope": "new",
+        "issue_key": "recovery-classification-test-gap",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R07-C12",
+        "lines": [
+          345,
+          345
+        ],
+        "quote": "| 换模型测试未覆盖聚合阈值变化 | `MergeSummaryServiceTest.java:23–25` 对不同模型采用相同估算 | 无法发现持久聚合计划与新模型终止条件冲突。 |",
+        "title": "换模型测试未改变估算阈值",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "counter mock针对所有模型用相同length/2；无法命中新旧模型跨1536阈值。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/test/java/com/aicodeassistant/session/merge/MergeSummaryServiceTest.java",
+            "line": 24
+          },
+          {
+            "path": "backend/src/test/java/com/aicodeassistant/session/merge/SessionMergeServiceTest.java",
+            "line": 35
+          }
+        ],
+        "scope": "new",
+        "issue_key": "model-switch-threshold-test-gap",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R07-C13",
+        "lines": [
+          346,
+          346
+        ],
+        "quote": "| 取消测试没有复制阶段延迟解锁窗口 | `sessionMergeStore.test.ts:443` 直接返回空锁 | 无法发现 cancelled 与真实解锁之间的时间差。 |",
+        "title": "取消测试未覆盖复制尚持锁窗口",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "store取消mock直接空锁；service取消发生首个LLM内，封存已释放来源，未覆盖复制阶段取消。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "frontend/src/store/sessionMergeStore.test.ts",
+            "line": 443
+          },
+          {
+            "path": "backend/src/test/java/com/aicodeassistant/session/merge/SessionMergeServiceTest.java",
+            "line": 130
+          }
+        ],
+        "scope": "new",
+        "issue_key": "cancel-during-copy-test-gap",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R07-C14",
+        "lines": [
+          347,
+          347
+        ],
+        "quote": "| 部分测试仍走旧封装路径 | `MergePackageServiceTest.java:212、247、259、278、293、309` 调用旧 `build`，线上使用 `seal` | 旧图片、checkpoint、路径及复制测试不能自动算作新链路覆盖。 |",
+        "title": "legacy build测试不能作为seal覆盖",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "列出的旧测试调用build而生产execute调用seal，覆盖不能自动转移。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/test/java/com/aicodeassistant/session/merge/MergePackageServiceTest.java",
+            "line": 212
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 190
+          }
+        ],
+        "scope": "new",
+        "issue_key": "legacy-build-vs-seal-test-gap",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R07-C15",
+        "lines": [
+          348,
+          348
+        ],
+        "quote": "| artifact 导出分支未被夹具激活 | `MergeFixture.java:36–44` 未创建两张 artifact 表；生产代码按表存在与否进入分支 | 无法证明真实产物导出、复制及来源删除后的读取正确。 |",
+        "title": "fixture未创建artifact表",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "fixture仅初始化基础/checkpoint/merge等表，未激活tableExists的artifact分支。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/test/java/com/aicodeassistant/session/merge/MergeFixture.java",
+            "line": 36
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+            "line": 442
+          }
+        ],
+        "scope": "new",
+        "issue_key": "artifact-fixture-test-gap",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R07-C16",
+        "lines": [
+          349,
+          349
+        ],
+        "quote": "| 夹具弱化生产数据库接线 | `MergeFixture.java:45–47` 将写串行器模拟为直接执行，且未显式开启外键 | 不足以代表生产并发和约束环境。 |",
+        "title": "fixture未代表生产串行器/外键环境",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "executeWriteVoid被同步直接执行mock，未启SQLite外键；独立迁移测试外键覆盖不等于service夹具生产并发。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/test/java/com/aicodeassistant/session/merge/MergeFixture.java",
+            "line": 45
+          }
+        ],
+        "scope": "new",
+        "issue_key": "service-fixture-production-concurrency-gap",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R07-C17",
+        "lines": [
+          350,
+          350
+        ],
+        "quote": "| 个别测试名称强于实际断言 | \"待办隔离\"未调用 TodoWrite；\"聚合引用\"未核对完整返回范围 | 不能据名称计算能力覆盖。 |",
+        "title": "部分测试名强于实际断言",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "待办隔离只比较state历史、聚合引用主要解析ref，不代表真实TodoWrite或全部范围核对。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/test/java/com/aicodeassistant/session/merge/HandoffReadServiceTest.java",
+            "line": 81
+          },
+          {
+            "path": "backend/src/test/java/com/aicodeassistant/session/merge/HandoffReadServiceTest.java",
+            "line": 121
+          }
+        ],
+        "scope": "new",
+        "issue_key": "test-name-vs-assertion-gap",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R07-C18",
+        "lines": [
+          351,
+          351
+        ],
+        "quote": "| 发布回滚服务用例故障发生较早 | `SessionMergeServiceTest.java:152–158` 在发布事务前失败 | 不能算服务层事务中段失败的完整覆盖。 |",
+        "title": "发布回滚服务测试未进入发布事务",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "第二次workspace绑定校验抛异常位于tx之前，因此该用例不验证创建目标后事务中段回滚；独立repo事务用例不能替代。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/test/java/com/aicodeassistant/session/merge/SessionMergeServiceTest.java",
+            "line": 152
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 202
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 207
+          }
+        ],
+        "scope": "new",
+        "issue_key": "publication-transaction-middle-fault-test-gap",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R07-C19",
+        "lines": [
+          352,
+          352
+        ],
+        "quote": "| 新增面板交互覆盖不足 | paused/resume/cancel、目标可用性缺少完整专项覆盖 | 状态仓库单测不能替代真实交互验收。 |",
+        "title": "面板暂停恢复取消交互覆盖不足",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "store有控制测试，panel未覆盖完整点击流程；报告明确区分层次。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "frontend/src/components/session/SessionMergePanel.test.tsx",
+            "line": 40
+          },
+          {
+            "path": "frontend/src/store/sessionMergeStore.test.ts",
+            "line": 427
+          }
+        ],
+        "scope": "new",
+        "issue_key": "panel-control-interaction-test-gap",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R07-C20",
+        "lines": [
+          368,
+          370
+        ],
+        "quote": "另一个提交完整性风险是：范围内有 **11个未跟踪文件**，包括6个生产文件、4个测试和1份规范。只提交已跟踪修改，会遗漏新服务、迁移等必要依赖。\n\n**审查排除不等于提交排除。** 指定的16个文件没有获得本次审查背书；如果后续选择性提交，实际提交组合仍需重新构建验证。",
+        "title": "未跟踪文件须纳入实际提交组合",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "当时新增生产/测试/文档需要显式暂存；被排除文件未获审查背书，提交组合应单独验证。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [],
+        "scope": "out",
+        "issue_key": "selective-commit-completeness",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      }
+    ],
+    "decisions": {
+      "normal_function": {
+        "points": 5,
+        "lines": [
+          319,
+          321
+        ],
+        "quote": "**综合判断：**\n\n> 没有发现无关普通会话必然损坏的新增路径；但参与合并的来源会话存在已确认的前端状态问题，公共链路和数据库升级也尚不足以获得\"零回归\"背书。",
+        "reason": "明确未发现无关普通链路新增破坏，并准确限定来源取消窗口UI问题。"
+      },
+      "boundary": {
+        "points": 5,
+        "lines": [
+          265,
+          321
+        ],
+        "quote": "## 五、对非合并功能链路的影响\n\n**不能用\"有 metadata 开关\"直接推出\"所有普通链路完全不受影响\"。** 本次既有受开关保护的交接行为，也有全局公共代码和启动迁移。\n\n### 1. HTTP/WebSocket 普通查询：未发现直接破坏，但缺集成验证\n\n证据：`QueryController.java:161–180、249–267、342–364`；`WebSocketController.java:921–941、954–961`\n\n普通会话没有合并标记时，不调用交接配置，也不会因此读取交接包或查询合并记录。原有历史加载和持久化接线保留。\n\n不过，这些入口已有代码修改，尚未运行完整 HTTP/WebSocket 回归。\n\n### 2. 查询引擎和历史预算：普通分支有明确退回原行为的逻辑\n\n证据：`QueryEngine.java:838–847、940–952、1811–1817、1830–1836`；`HandoffContextService.java:84–86`\n\n所有查询都会经过新增辅助调用，但普通分支返回空投影、预留0 token，空投影不会改变历史。\n\n已有测试断言覆盖普通分支零交接调用、预算差额和投影不写回历史；**小模型、连续压缩、413恢复的完整执行链仍未验证。**\n\n### 3. 工具与授权：未发现普通工具越权回归\n\n交接工具不是全局注册的工具 Bean；配置时复制集合后追加，没有直接污染全局工具集合。\n\n全局授权分析器确实发生变化，但当前分派以真实工具类型和绑定校验为依据，没有发现同名 MCP/动态工具获得交接工具权限的路径。\n\n### 4. 图片引用：旧入口保留，但共享实现仍属于回归范围\n\n证据：`ImageRefInjector.java:92–103、255–300`；`QueryEngine.java:907–912`\n\n旧重载将新增资产授权条件固定为 false，原路径权限、大小及 hash 校验保留。合并会话才可能获得绑定资产的附加授权。\n\n因此，静态上保留了普通行为，但不能称为\"共享代码完全未变\"。\n\n### 5. 数据库迁移：影响所有会话，必须单独设发布门禁\n\n**V026 不受会话 metadata 开关控制。**\n\n所有使用该数据库的应用启动都需要执行或校验迁移；一旦迁移失败，普通会话也无法使用。\n\n本轮没有发现受支持旧库必然失败的新增缺陷，但实际旧库升级、完整迁移执行器和再次启动验收尚未完成。\n\n### 6. 前端状态：普通页面也会发生新增后台请求\n\n合并面板挂载后会发现活动操作，即使当前没有本地 pending 操作，也存在经过节流的后台请求。\n\n已有请求合并、错误隔离和监听清理逻辑，没有发现这些请求必然破坏普通页面；但 P2-3 已确认会影响被选为合并来源的普通会话可用性显示。\n\n### 7. fork/Swarm：没有直接修改，不等于零回归\n\n会话管理、消息持久化、子代理执行和 Swarm runner 的相关文件相对 HEAD 没有直接变化。\n\n但它们仍依赖共享引擎、授权、数据库和 gate。**本轮没有运行 fork/Swarm 场景，也没有证明合并目标派生后的全部 metadata 继承行为。**\n\n**综合判断：**\n\n> 没有发现无关普通会话必然损坏的新增路径；但参与合并的来源会话存在已确认的前端状态问题，公共链路和数据库升级也尚不足以获得\"零回归\"背书。",
+        "reason": "逐项列出共享引擎/迁移/后台轮询/验证未闭合，拒绝绝对零回归。"
+      },
+      "release": {
+        "points": 5,
+        "lines": [
+          364,
+          380
+        ],
+        "quote": "### 提交判断\n\n如果只是保存开发进度，可以作为**明确标注已知问题的开发中提交**；但不建议把它标记为功能完成或发布就绪。\n\n另一个提交完整性风险是：范围内有 **11个未跟踪文件**，包括6个生产文件、4个测试和1份规范。只提交已跟踪修改，会遗漏新服务、迁移等必要依赖。\n\n**审查排除不等于提交排除。** 指定的16个文件没有获得本次审查背书；如果后续选择性提交，实际提交组合仍需重新构建验证。\n\n### 发布前最低门禁\n\n1. **修复3项 P2，并补齐对应回归测试。**\n2. **验证数据库升级**：旧库迁移、完整启动、再次启动校验、约束失败回滚。\n3. **验证普通链路**：HTTP/WebSocket 查询、持久化、工具授权、图片，以及 fork/Swarm。\n4. **验证恢复边界**：换模型、连续压缩、413、取消期间 worker 收尾及交接入口重建。\n5. **补齐真实 artifact 表结构测试**，覆盖导出、读取和来源删除。\n6. **执行后端定向及全量验证、前端单测与构建。**\n7. **完成浏览器交互及规范要求的真实模型接续开发样本**，不能仅用 stub provider 或结构校验替代。",
+        "reason": "允许注明已知问题的阶段提交，禁止标记功能完成或发布就绪。"
+      },
+      "semantic": {
+        "points": 5,
+        "lines": [
+          374,
+          380
+        ],
+        "quote": "1. **修复3项 P2，并补齐对应回归测试。**\n2. **验证数据库升级**：旧库迁移、完整启动、再次启动校验、约束失败回滚。\n3. **验证普通链路**：HTTP/WebSocket 查询、持久化、工具授权、图片，以及 fork/Swarm。\n4. **验证恢复边界**：换模型、连续压缩、413、取消期间 worker 收尾及交接入口重建。\n5. **补齐真实 artifact 表结构测试**，覆盖导出、读取和来源删除。\n6. **执行后端定向及全量验证、前端单测与构建。**\n7. **完成浏览器交互及规范要求的真实模型接续开发样本**，不能仅用 stub provider 或结构校验替代。",
+        "reason": "明确真实模型样本不可由stub/结构校验替代，并说明尚未执行。"
+      }
+    }
+  },
+  {
+    "report_id": "R08",
+    "read_complete": true,
+    "claims": [
+      {
+        "claim_id": "R08-C01",
+        "lines": [
+          104,
+          104
+        ],
+        "quote": "> **说明**：初步审查曾标记 `MergeSummaryService.call` 中 `ScheduledExecutorService` 用于 try-with-resources 为编译错误。经交叉验证确认为**误报**——项目使用 Java 21（pom.xml 配置 `<java.version>21</java.version>`，运行时为 OpenJDK 21.0.10 Corretto），而 `ExecutorService` 自 Java 19 起已实现 `AutoCloseable`。`mvnw compile` 验证编译通过，无任何错误。",
+        "title": "ScheduledExecutorService不可用于try-with-resources已撤回",
+        "category": "retracted",
+        "verdict": "不成立",
+        "reason": "Java21 ExecutorService继承AutoCloseable；最终报告已明确撤回，不计FP。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java",
+            "line": 302
+          }
+        ],
+        "scope": "new",
+        "issue_key": "executor-autocloseable-compilation",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R08-C02",
+        "lines": [
+          110,
+          123
+        ],
+        "quote": "#### M1：HandoffContextService 依赖注入防御性边界\n\n**文件**：`backend/src/main/java/com/aicodeassistant/engine/QueryEngine.java`\n\n**问题描述**：当 `handoffOperationId != null` 但 `handoffContext` Bean 缺失时（`@Autowired(required=false)`），直接抛出 `IllegalStateException(\"HANDOFF_CONTEXT_UNAVAILABLE\")`。当前架构下不存在真实触发路径（所有设置 `handoffOperationId` 的入口都运行在有该 Bean 的 Spring 容器中），但未来若有新入口（如测试夹具或 CLI 工具）在不加载 `HandoffContextService` Bean 的上下文中设置了该字段，将导致运行时崩溃而非优雅降级。\n\n**建议**：补充防御性日志或集成测试覆盖此边界：\n\n```java\nif (state.getHandoffOperationId() != null && handoffContext == null) {\n    log.error(\"Merged session flag present but HandoffContextService is unavailable\");\n    return new HandoffContextService.Projection(List.of(), 0);\n}\n```",
+        "title": "缺HandoffContext Bean的未来入口应降级",
+        "category": "conditional",
+        "verdict": "证据不足",
+        "reason": "报告承认生产无触发路径。抛错为fail-closed可防静默丢失交接，建议返回空投影并非显然更正确；不算已证功能缺陷。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/engine/QueryEngine.java",
+            "line": 1813
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java",
+            "line": 43
+          }
+        ],
+        "scope": "new",
+        "issue_key": "hypothetical-missing-handoff-bean",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R08-C03",
+        "lines": [
+          127,
+          133
+        ],
+        "quote": "#### L1：前端合并面板 errorCode 展示不足\n\n**文件**：`frontend/src/components/session/SessionMergePanel.tsx`\n\n**问题描述**：当合并暂停时，面板未向用户展示具体的 `errorCode`（如 `MERGE_SOURCE_BUSY`、`MERGE_DISK_SPACE_LOW`），用户难以判断恢复条件。\n\n**建议**：在 panel 的暂停状态文案中补充 `errorCode` 的简短说明，帮助用户理解暂停原因和恢复条件。",
+        "title": "暂停面板未直接展示errorCode",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "panel确实不渲染errorCode字段，但渲染服务端已翻译的error说明，不能由此声称用户完全不知道恢复条件。可保留诊断UX建议。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "frontend/src/components/session/SessionMergePanel.tsx",
+            "line": 207
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 237
+          }
+        ],
+        "scope": "new",
+        "issue_key": "panel-error-code-visibility",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R08-C04",
+        "lines": [
+          135,
+          141
+        ],
+        "quote": "#### L2：目标会话删除提示可优化\n\n**文件**：`frontend/src/components/session/SessionMergePanel.tsx`\n\n**问题描述**：`targetAvailable === false` 时面板显示\"目标会话已删除\"，但未提示合并资料的保留情况。\n\n**建议**：补充\"合并资料仍保留在交接包中，可通过 HandoffRead 读取\"的说明，与后端语义保持一致。",
+        "title": "删除E后应提示仍可HandoffRead读取",
+        "category": "engineering",
+        "verdict": "不成立",
+        "reason": "目标删除立即使binding JOIN失效，包可能等清理但已不能通过该E的HandoffRead读取；建议文案声称与后端一致不正确。它是建议中的错误事实，不应实施。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeProgressRepository.java",
+            "line": 37
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java",
+            "line": 46
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 271
+          }
+        ],
+        "scope": "new",
+        "issue_key": "deleted-target-handoff-read-claim",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R08-C05",
+        "lines": [
+          66,
+          66
+        ],
+        "quote": "| 前端 store 锁集合基于服务端 | **通过** | `selectMergeSourceIds` 直接基于 `lockedSourceSessionIds` |",
+        "title": "selector直接依据真实锁集合符合规范",
+        "category": "global",
+        "verdict": "不成立",
+        "reason": "漏掉preparing门控，取消而worker未退出时服务端锁非空但selector返回空，是具体锁语义保证错误。",
+        "trigger": "取消复制但真实gate尚持有",
+        "expected": "以真实锁集合为准",
+        "actual": "状态过滤忽略真实锁",
+        "code_refs": [
+          {
+            "path": "frontend/src/store/sessionMergeStore.ts",
+            "line": 30
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 150
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 230
+          }
+        ],
+        "scope": "new",
+        "issue_key": "cancelled-source-lock-display",
+        "severity": "moderate",
+        "credit": 0,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R08-C06",
+        "lines": [
+          86,
+          90
+        ],
+        "quote": "新增的 `SAFE_READ_AUTO` 放行逻辑仅适用于 `handoff-read-v1` analyzer，普通 MCP/动态工具仍走原有 `static-or-remote-v1`。`recheck` 时强制校验 binding 不变，否则抛 `HANDOFF_BINDING_CHANGED`，防止权限泄露。\n\n### 3.4 ImageRefInjector 图片处理\n\n普通会话调用传入 `(path,hash)->false` 的 BiPredicate，不改变原有 pathSecurity 行为。仅合并会话通过 `handoffContext.canReadAsset` 在交接包范围内放宽读取。",
+        "title": "同名工具与普通图片权限保持隔离",
+        "category": "global",
+        "verdict": "成立",
+        "reason": "专用分析器按真实类分派，旧图片入口传false，新范围绑定检查局限E。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/authorization/OperationAnalyzerRegistry.java",
+            "line": 87
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/engine/ImageRefInjector.java",
+            "line": 96
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java",
+            "line": 54
+          }
+        ],
+        "scope": "new",
+        "issue_key": "builtin-tool-identity-isolation",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R08-C07",
+        "lines": [
+          149,
+          155
+        ],
+        "quote": "| 授权层 | `AuthorizationServiceProjectFileScopeTest` / `OperationAnalyzerRegistryTest` | **充分** — 验证了 handoff-read-v1 专用 analyzer 和同名工具走原有路径 |\n| QueryEngine | `QueryEngineUnitTest` | **充分** — 验证了空投影路径和历史预算不变 |\n| 合并核心流程 | `SessionMergeServiceTest` | **充分** — 覆盖了快照封存、恢复 epoch 递增、目标删除后绑定失效、取消等场景 |\n| 合并摘要 | `MergeSummaryServiceTest` | **充分** — 验证了分块聚合和 ready.json 生成 |\n| 合并资料包 | `MergePackageServiceTest` / `MergeFixture` | **充分** — 验证了快照校验逻辑 |\n| 前端 store | `sessionMergeStore.test.ts` | **充分** — 包含串行化控制、状态恢复、终态去重等用例 |\n| 前端面板 | `SessionMergePanel.test.tsx` | **充分** — 覆盖了各 stage 文案和条件渲染 |",
+        "title": "关键测试充分覆盖全部流程的总结",
+        "category": "engineering",
+        "verdict": "证据不足",
+        "reason": "存在所列测试文件和相关断言，但充分性缺量化依据，恢复分类/取消复制等负向覆盖缺失；未指控伪造，不能把主观充分评价当产品FP。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/test/java/com/aicodeassistant/session/merge/MergePackageServiceTest.java",
+            "line": 35
+          },
+          {
+            "path": "frontend/src/store/sessionMergeStore.test.ts",
+            "line": 443
+          }
+        ],
+        "scope": "new",
+        "issue_key": "test-sufficiency-overstatement",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R08-C08",
+        "lines": [
+          177,
+          180
+        ],
+        "quote": "- `sessionMergeStore` 的 `refresh()` 通过 `/api/session-merges/active` 做轻量背景发现，`nextActiveCheck` 控制轮询频率\n- 服务端返回 Conflict 且 body 包含 `operation` 时，采用服务端权威结果替换本地 pending\n- 终态使用 `validatedTerminal` 集合避免重复通知\n- `resume/cancel` 通过 `control(...)` 串行化控制请求与 `refresh` 的并发",
+        "title": "终态缓存及控制串行机制存在",
+        "category": "global",
+        "verdict": "成立",
+        "reason": "代码有validatedTerminal和统一inflight。该段只描述机制本身，不将存在缓存扩写为所有恢复场景正确。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "frontend/src/store/sessionMergeStore.ts",
+            "line": 141
+          },
+          {
+            "path": "frontend/src/store/sessionMergeStore.ts",
+            "line": 226
+          }
+        ],
+        "scope": "new",
+        "issue_key": "frontend-terminal-cache-mechanism",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      }
+    ],
+    "decisions": {
+      "normal_function": {
+        "points": 5,
+        "lines": [
+          74,
+          90
+        ],
+        "quote": "**结论：未发现对非合并分支功能链路的任何负面影响。**\n\n### 3.1 QueryController / WebSocketController\n\n所有新增代码均在 `isMerged` 守卫之后，普通会话完全不进入交接配置路径。`QueryEngine.execute(config, state, handler)` 的原有调用签名和行为保持不变。\n\n### 3.2 QueryEngine 历史预算\n\n`handoffOperationId == null` 时，`handoffProjection()` 返回空投影（`List.of(), 0`），历史预算计算与图片预算逻辑与原实现保持等价。无 token 预算被额外占用。\n\n### 3.3 AuthorizationService 授权层\n\n新增的 `SAFE_READ_AUTO` 放行逻辑仅适用于 `handoff-read-v1` analyzer，普通 MCP/动态工具仍走原有 `static-or-remote-v1`。`recheck` 时强制校验 binding 不变，否则抛 `HANDOFF_BINDING_CHANGED`，防止权限泄露。\n\n### 3.4 ImageRefInjector 图片处理\n\n普通会话调用传入 `(path,hash)->false` 的 BiPredicate，不改变原有 pathSecurity 行为。仅合并会话通过 `handoffContext.canReadAsset` 在交接包范围内放宽读取。",
+        "reason": "正确识别普通请求/图片/工具池隔离，没有无关普通功能损坏指控。"
+      },
+      "boundary": {
+        "points": 0,
+        "lines": [
+          197,
+          197
+        ],
+        "quote": "**总结**：本次改动严格遵循 `session-merge-architecture-v2.md` 的架构规范，通过元数据开关（`sessionMergeOperationId`）实现了会话合并能力与既有功能链路的严格隔离。所有新增代码路径均在守卫条件之后，普通会话的创建、消息收发、权限控制、文件操作等基础功能不受任何影响。测试覆盖充分，代码质量达到 GitHub 发布标准。",
+        "reason": "宣称所有新增路径均受metadata守卫且基础功能不受任何影响，未识别全局迁移等边界，也无运行验证限制消解。"
+      },
+      "release": {
+        "points": 0,
+        "lines": [
+          186,
+          197
+        ],
+        "quote": "### 判定结果：**Pass — 建议发布**\n\n| 维度 | 评估 |\n|---|---|\n| 编译状态 | 通过（Java 21，`mvnw compile` 验证成功） |\n| 架构合规性 | 全部 8 项规范要求通过 |\n| 非合并链路影响 | 无负面影响，隔离机制设计严密 |\n| 代码质量 | 无 Critical/High 问题，1 项 Medium 防御性建议 |\n| 测试覆盖 | 充分，关键路径均有对应用例 |\n| 发布风险 | 低 — 仅存防御性边界建议和 UX 优化建议，不影响功能正确性 |\n\n**总结**：本次改动严格遵循 `session-merge-architecture-v2.md` 的架构规范，通过元数据开关（`sessionMergeOperationId`）实现了会话合并能力与既有功能链路的严格隔离。所有新增代码路径均在守卫条件之后，普通会话的创建、消息收发、权限控制、文件操作等基础功能不受任何影响。测试覆盖充分，代码质量达到 GitHub 发布标准。",
+        "reason": "明确Pass建议发布、低风险不影响正确性，与仍存在已核实缺陷和未完成验收不符。"
+      },
+      "semantic": {
+        "points": 0,
+        "lines": [
+          184,
+          197
+        ],
+        "quote": "## 七、发布就绪度判定\n\n### 判定结果：**Pass — 建议发布**\n\n| 维度 | 评估 |\n|---|---|\n| 编译状态 | 通过（Java 21，`mvnw compile` 验证成功） |\n| 架构合规性 | 全部 8 项规范要求通过 |\n| 非合并链路影响 | 无负面影响，隔离机制设计严密 |\n| 代码质量 | 无 Critical/High 问题，1 项 Medium 防御性建议 |\n| 测试覆盖 | 充分，关键路径均有对应用例 |\n| 发布风险 | 低 — 仅存防御性边界建议和 UX 优化建议，不影响功能正确性 |\n\n**总结**：本次改动严格遵循 `session-merge-architecture-v2.md` 的架构规范，通过元数据开关（`sessionMergeOperationId`）实现了会话合并能力与既有功能链路的严格隔离。所有新增代码路径均在守卫条件之后，普通会话的创建、消息收发、权限控制、文件操作等基础功能不受任何影响。测试覆盖充分，代码质量达到 GitHub 发布标准。",
+        "reason": "全文没有真实模型语义验收未完成/不可由stub替代的说明，属于未回答。"
+      }
+    }
+  },
+  {
+    "report_id": "R09",
+    "read_complete": true,
+    "claims": [
+      {
+        "claim_id": "R09-C01",
+        "lines": [
+          92,
+          92
+        ],
+        "quote": "| 1 | major | **合并会话 E 每 turn 重复执行昂贵投影**：`project()` 每轮被调 3 次（L779/L844 经 `prepareCompactionContext` 各一次 + L841 直调），反应式压缩路径（L1933/L1973）还会追加；每次均执行 DB 绑定查询 + 整包哈希校验 + brief 文件读取，无任何请求级缓存 | 在 `QueryLoopState` 或请求作用域内缓存投影结果（同一 turn 预算参数相同时复用），或将 `prepareCompactionContext` 两次调用合并为一次投影计算 | `backend/src/main/java/com/aicodeassistant/engine/QueryEngine.java` L779-L844；`HandoffContextService.java` L62-L79 |",
+        "title": "E每轮重复投影校验缺少请求内复用",
+        "category": "conditional",
+        "verdict": "成立",
+        "reason": "正常轮至少779/841/844三次调用project，brief各自新Budget重新哈希；影响规模和性能劣化尚未量化，报告major等级不照抄。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/engine/QueryEngine.java",
+            "line": 779
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/engine/QueryEngine.java",
+            "line": 841
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/engine/QueryEngine.java",
+            "line": 844
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java",
+            "line": 71
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java",
+            "line": 110
+          }
+        ],
+        "scope": "new",
+        "issue_key": "repeated-turn-handoff-verification",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R09-C02",
+        "lines": [
+          93,
+          93
+        ],
+        "quote": "| 2 | major | **缺失 legacy v1 包被记为阻塞缺口导致永久暂停**：`importPrevious` 对缺失旧包记 `gap(...,true)`（blocking），转暂停后恢复时 `validateSnapshot` 重读同一 blockedReason 必然再次暂停，不可自愈。违反规范\"不依赖旧包存活\"（第 19 行）与\"仅收录现存旧包、说明去重局限\"（第 216 行）——旧包可随目标删除被合法清理（第 187 行），阻塞会使此类来源永远无法再合并 | 将 `legacy_package_missing` 降为非阻塞缺口（`gap(...,false)`），以来源现有 DB 消息 + 新消息继续合并，并在结果警告中说明无法跨包精确去重；补充对应测试用例 | `backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java` L606-L611 |",
+        "title": "缺失v1包导致永久暂停",
+        "category": "functional",
+        "verdict": "规范歧义",
+        "reason": "行为属实，但旧协议资料完整性与非依赖旧包的规范边界有张力，不能直接降级历史完整性或当成其他恢复bug半命中。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+            "line": 606
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 195
+          },
+          {
+            "path": "docs/session-merge-architecture-v2.md",
+            "line": 216
+          }
+        ],
+        "scope": "new",
+        "issue_key": "missing-legacy-package-policy",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R09-C03",
+        "lines": [
+          94,
+          94
+        ],
+        "quote": "| 3 | minor | **取消路径误打\"Merge paused\"日志**：cancel 使工作线程抛 `MERGE_INTERRUPTED`（L176），catch 块（L218-219）对取消同样打 \"Merge paused\" warn。数据库状态正确（cancel 已原子置 cancelled 且后续 pause UPDATE 命中 0 行），仅日志误导排障 | 在 catch 中区分 `MERGE_INTERRUPTED` 与取消语义，按实际终态输出日志文案 | `backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java` L218-L219 |",
+        "title": "取消worker仍打印Merge paused",
+        "category": "functional",
+        "verdict": "成立",
+        "reason": "abort导致check抛MERGE_INTERRUPTED被统一catch打印paused，但DB取消状态受epoch保护仍cancelled，日志误导不影响资料。",
+        "trigger": "执行中的合并被取消，worker检查取消",
+        "expected": "日志说明cancelled",
+        "actual": "warn文本Merge paused",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 176
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 219
+          }
+        ],
+        "scope": "new",
+        "issue_key": "cancel-log-says-paused",
+        "severity": "minor",
+        "credit": 1,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R09-C04",
+        "lines": [
+          95,
+          95
+        ],
+        "quote": "| 4 | minor | **自建仓储实例绕过 Spring 容器**：`MergeProgressRepository` 带 `@Repository` 注解，但 `SessionMergeService` 构造函数 `new` 自建实例，容器内存在双实例；与 `HandoffContextService`/`HandoffReadService` 的注入方式不一致。因共享同一 JdbcTemplate 且仓储无状态，功能等价、无事务风险，仅一致性问题 | 改为构造函数注入 `MergeProgressRepository` Bean，删除自建实例 | `backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java` L72 |",
+        "title": "仓库自建与Spring实例重复",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "服务new仓库，别处注入Bean，但仓库无状态且共用同一JDBC/事务管理器；未产生独立事务风险。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 72
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeProgressRepository.java",
+            "line": 20
+          }
+        ],
+        "scope": "new",
+        "issue_key": "repository-manual-construction",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R09-C05",
+        "lines": [
+          96,
+          96
+        ],
+        "quote": "| 5 | minor | **`validatedTerminal` Set 缺少完整清理**（1/2 验证者确认，附注纳入）：终态操作 ID 只增，仅 `openDialog` 时 delete。因 active_slot 唯一且页面重载即清空，实际条目极少、影响可忽略 | 可在记录被 `removeSaved` 时同步 delete，或保持现状并加注释说明生命周期 | `frontend/src/store/sessionMergeStore.ts` L115 |",
+        "title": "validatedTerminal集合仅部分清理",
+        "category": "conditional",
+        "verdict": "成立",
+        "reason": "add后通常只有openDialog delete，dismiss不清；页面重载清空且每操作一键，属于有界实际场景下未量化内存风险。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "frontend/src/store/sessionMergeStore.ts",
+            "line": 115
+          },
+          {
+            "path": "frontend/src/store/sessionMergeStore.ts",
+            "line": 121
+          },
+          {
+            "path": "frontend/src/store/sessionMergeStore.ts",
+            "line": 188
+          },
+          {
+            "path": "frontend/src/store/sessionMergeStore.ts",
+            "line": 218
+          }
+        ],
+        "scope": "new",
+        "issue_key": "terminal-cache-id-retention",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R09-C06",
+        "lines": [
+          81,
+          81
+        ],
+        "quote": "1. `project()` 在预算极小/包不可读时抛 `IllegalStateException` 使 E 请求报错——规范 7.1/7.3 明确要求\"连最小入口都放不下时返回正常容量错误\"\"包损坏报明确错误\"，且异常被 QueryEngine 捕获转为会话错误消息（非 500）。",
+        "title": "小预算错误作为既定设计无需处理",
+        "category": "global",
+        "verdict": "证据不足",
+        "reason": "QueryEngine外层确实捕获并转QueryResult/handler，不可因局部无catch推导HTTP500；但IllegalStateException没有走正常容量错误类型，报告称完全符合容量错误要求仍需沿入口响应核对。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java",
+            "line": 74
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/engine/QueryEngine.java",
+            "line": 364
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/controller/QueryController.java",
+            "line": 180
+          },
+          {
+            "path": "docs/session-merge-architecture-v2.md",
+            "line": 371
+          }
+        ],
+        "scope": "new",
+        "issue_key": "handoff-budget-error-mapping",
+        "severity": null,
+        "credit": null,
+        "verification": "needs_repro"
+      },
+      {
+        "claim_id": "R09-C07",
+        "lines": [
+          82,
+          82
+        ],
+        "quote": "2. 前端 `control()` 的 inflight 串行在 while 退出至赋值间无 await 插入点，JS 单线程下无竞态，后端另有 epoch 围栏兜底。",
+        "title": "control等候inflight后赋值无JS并发窗口",
+        "category": "global",
+        "verdict": "成立",
+        "reason": "while await每次醒来重新检查inflight，离开while后到赋值没有await，JS单线程可防两个控制请求同时起飞。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "frontend/src/store/sessionMergeStore.ts",
+            "line": 226
+          }
+        ],
+        "scope": "new",
+        "issue_key": "frontend-control-request-serialization",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R09-C08",
+        "lines": [
+          104,
+          116
+        ],
+        "quote": "规范第 9 节测试矩阵基本全覆盖：\n\n- 迁移安全（6 场景：旧行保留/再执行幂等/CHECK 约束/唯一 active 名额/重复 target 回滚/外键）\n- 封存后来源释放与消息排除\n- 普通请求零调用隔离（`verifyNoInteractions` 强断言）\n- 跨包/路径穿越/symlink 拒绝、损坏目录\n- 预算超限、游标连续性、跨分片搜索与代理对、15 秒超时\n- 单元恢复不重做、取消围栏迟到响应、发布失败回滚、重启续跑、绑定失效\n- 同名工具冒充走 generic 分析器、PLAN 模式授权放行\n- 前端进度/暂停/恢复/取消 UI\n- 4183 字节/13370 输出的极端记录合成回归\n\n新增测试约 19 个文件，断言密度高，与规范条款逐条对应。",
+        "title": "规范测试矩阵基本全覆盖",
+        "category": "engineering",
+        "verdict": "不成立",
+        "reason": "现有面板无完整暂停恢复取消点击、artifact夹具及真实模型缺口，且测试文件计数19不符本次13代码测试文件；这是覆盖夸大，不等同缺陷误报。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/test/java/com/aicodeassistant/session/merge/MergeFixture.java",
+            "line": 36
+          },
+          {
+            "path": "frontend/src/components/session/SessionMergePanel.test.tsx",
+            "line": 40
+          },
+          {
+            "path": "backend/src/test/java/com/aicodeassistant/session/merge/MergeSummaryServiceTest.java",
+            "line": 24
+          }
+        ],
+        "scope": "new",
+        "issue_key": "merge-test-matrix-complete-claim",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R09-C09",
+        "lines": [
+          109,
+          109
+        ],
+        "quote": "- 跨包/路径穿越/symlink 拒绝、损坏目录",
+        "title": "读取路径拒绝越界和symlink测试存在",
+        "category": "global",
+        "verdict": "成立",
+        "reason": "HandoffReadServiceTest确有ref穿越/symlink拒绝；未明确扩写到全部来源复制分支，因此不拿复制symlink漏项惩罚这句。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/test/java/com/aicodeassistant/session/merge/HandoffReadServiceTest.java",
+            "line": 66
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+            "line": 304
+          }
+        ],
+        "scope": "new",
+        "issue_key": "handoff-read-path-containment",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R09-C10",
+        "lines": [
+          124,
+          124
+        ],
+        "quote": "1. **真实模型语义验收尚未执行**（文档自述缺口）——摘要/提取/聚合的模型调用在测试中均为 mock，`MergeSummaryService.call()` 的真实行为（含 4183 字节分片回归）未经真实模型验证；",
+        "title": "4183字节等合成回归不是真实模型验收",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "测试stub构造响应、无真实provider接续开发样本，描述边界准确。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/test/java/com/aicodeassistant/session/merge/MergeSummaryServiceTest.java",
+            "line": 55
+          }
+        ],
+        "scope": "new",
+        "issue_key": "semantic-vs-synthetic-test-boundary",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      }
+    ],
+    "decisions": {
+      "normal_function": {
+        "points": 5,
+        "lines": [
+          63,
+          77
+        ],
+        "quote": "## 三、对非合并分支的影响评估\n\n**结论：未发现对普通/fork/Swarm 主链路的破坏，隔离证据链完整。**\n\n| 隔离点 | 证据 |\n|---|---|\n| 投影零开销 | `QueryEngine.java` L1811 `handoffProjection` 在 `handoffOperationId==null` 时直接返回空投影；`QueryEngineUnitTest` 以 `verifyNoInteractions(handoff)` 证明普通请求不触碰任何合并服务 |\n| 入口门控 | 3 个 REST 入口 + WS 路径均以 `isMerged(session.config())` 前置判断；普通会话 metadata 无 `sessionMergeOperationId`，`configure` 原样返回同一 QueryConfig 实例（`HandoffContextServiceTest.ordinaryRequestRetainsTheExactConfiguration` 断言 `isSameAs`） |\n| 工具池隔离 | `HandoffReadTool` 无 `@Component` 注解（测试显式断言），不进入全局工具注册表/schema/token 计算 |\n| 图片注入 | `ImageRefInjector` 新重载默认谓词恒为 false，仅 E 请求传真实绑定谓词 |\n| 迁移安全 | V026 事务内重建表、逐列复制旧行，旧行 `protocol=1/active_slot=NULL` 保留，旧 preparing→failed/LEGACY_INTERRUPTED；`V026ExtendSessionMergesTest` 覆盖再执行幂等/CHECK/唯一名额/FK |\n| 基线文件 | 规范第 10 节要求\"保持不改\"的 SessionManager、SessionMessagePersistence、SubAgentExecutor、SwarmWorkerRunner、SessionExecutionGate、ToolRegistry 均不在改动列表（git status 核实） |\n| 预算不双扣 | phase1 扣 `reservedTokens`、phase2 仍用原 `inputBudget`；普通会话投影为空、预留为 0，行为与改动前完全一致 |\n\n**需知悉的既定设计**：前端新增每 5 秒节流一次的 `GET /api/session-merges/active` 后台轮询（所有页面，无操作时返回 204）。这是规范要求的重启续跑能力，开销极小，属可接受项。",
+        "reason": "无关普通分支保持原工具和预算，结论符合本轮代码核验。"
+      },
+      "boundary": {
+        "points": 5,
+        "lines": [
+          67,
+          77
+        ],
+        "quote": "| 隔离点 | 证据 |\n|---|---|\n| 投影零开销 | `QueryEngine.java` L1811 `handoffProjection` 在 `handoffOperationId==null` 时直接返回空投影；`QueryEngineUnitTest` 以 `verifyNoInteractions(handoff)` 证明普通请求不触碰任何合并服务 |\n| 入口门控 | 3 个 REST 入口 + WS 路径均以 `isMerged(session.config())` 前置判断；普通会话 metadata 无 `sessionMergeOperationId`，`configure` 原样返回同一 QueryConfig 实例（`HandoffContextServiceTest.ordinaryRequestRetainsTheExactConfiguration` 断言 `isSameAs`） |\n| 工具池隔离 | `HandoffReadTool` 无 `@Component` 注解（测试显式断言），不进入全局工具注册表/schema/token 计算 |\n| 图片注入 | `ImageRefInjector` 新重载默认谓词恒为 false，仅 E 请求传真实绑定谓词 |\n| 迁移安全 | V026 事务内重建表、逐列复制旧行，旧行 `protocol=1/active_slot=NULL` 保留，旧 preparing→failed/LEGACY_INTERRUPTED；`V026ExtendSessionMergesTest` 覆盖再执行幂等/CHECK/唯一名额/FK |\n| 基线文件 | 规范第 10 节要求\"保持不改\"的 SessionManager、SessionMessagePersistence、SubAgentExecutor、SwarmWorkerRunner、SessionExecutionGate、ToolRegistry 均不在改动列表（git status 核实） |\n| 预算不双扣 | phase1 扣 `reservedTokens`、phase2 仍用原 `inputBudget`；普通会话投影为空、预留为 0，行为与改动前完全一致 |\n\n**需知悉的既定设计**：前端新增每 5 秒节流一次的 `GET /api/session-merges/active` 后台轮询（所有页面，无操作时返回 204）。这是规范要求的重启续跑能力，开销极小，属可接受项。",
+        "reason": "列出全局迁移与所有页面后台请求并限定接受的开销，没有单凭守卫声称无任何共享变化。"
+      },
+      "release": {
+        "points": 0,
+        "lines": [
+          118,
+          137
+        ],
+        "quote": "### 发布标准结论\n\n**代码质量与测试覆盖达到提交 GitHub 的标准**；隔离设计经单测强断言（`verifyNoInteractions`/`isSameAs`/非 Bean 断言）保障，非合并链路无破坏。\n\n**两点必须在发布说明中明示**：\n\n1. **真实模型语义验收尚未执行**（文档自述缺口）——摘要/提取/聚合的模型调用在测试中均为 mock，`MergeSummaryService.call()` 的真实行为（含 4183 字节分片回归）未经真实模型验证；\n2. **建议先修复问题 1（E 会话性能）与问题 2（违反\"必须保留\"级规范条款）再推送**，问题 3-5 可随后跟进。\n\n---\n\n## 六、最终判定\n\n| 维度 | 结论 |\n|---|---|\n| 非合并分支影响 | **无负面影响或破坏**，隔离证据链完整（零调用隔离 + 入口门控 + 工具池隔离 + 迁移无损 + 基线文件零改动） |\n| 代码质量 | 与规范逐条对应，架构实现完整；无 critical 级缺陷，无数据丢失或安全漏洞 |\n| 测试覆盖 | 规范第 9 节矩阵全覆盖，约 19 个新增测试文件 |\n| 发现问题 | 2 major + 3 minor（详见第四节），经双子代理交叉验证 |\n| 发布建议 | 改动可以提交；建议以\"修复问题 1、2 + 发布说明注明模型验收缺口\"作为推送前置条件；若接受带已知缺陷推送，则当前状态不构成阻断 |",
+        "reason": "要求先修major再推送但又称架构完整/当前不阻断，未明确阶段推送与完成版合入的界线，按未消解冲突记0。"
+      },
+      "semantic": {
+        "points": 5,
+        "lines": [
+          122,
+          124
+        ],
+        "quote": "**两点必须在发布说明中明示**：\n\n1. **真实模型语义验收尚未执行**（文档自述缺口）——摘要/提取/聚合的模型调用在测试中均为 mock，`MergeSummaryService.call()` 的真实行为（含 4183 字节分片回归）未经真实模型验证；",
+        "reason": "明确真实模型语义未执行，mock不能代表真实模型验证。"
+      }
+    }
+  },
+  {
+    "report_id": "R10",
+    "read_complete": true,
+    "claims": [
+      {
+        "claim_id": "R10-C01",
+        "lines": [
+          78,
+          78
+        ],
+        "quote": "| 1 | **每轮最多 3 次重复交接投影**：`handoffProjection` 在预循环压缩（L779）、主流程（L841）、`prepareCompactionContext`（L1835）各执行一次，每次都做绑定查询 + 9 个文件全量哈希校验 + 读 brief。仅影响合并会话，无正确性问题（2/2 确认） | 每轮缓存一次 `Projection` 结果复用，或在 `QueryLoopState` 上暂存 | `QueryEngine.java` L779/L841/L1835；`HandoffContextService.java` L59-80 | minor |",
+        "title": "E每轮重复投影成本",
+        "category": "conditional",
+        "verdict": "成立",
+        "reason": "project被多次调用，每次brief新建预算重算清单hash；报告明确无正确性问题，未测性能严重性。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/engine/QueryEngine.java",
+            "line": 779
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/engine/QueryEngine.java",
+            "line": 841
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/engine/QueryEngine.java",
+            "line": 844
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java",
+            "line": 110
+          }
+        ],
+        "scope": "new",
+        "issue_key": "repeated-turn-handoff-verification",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R10-C02",
+        "lines": [
+          79,
+          79
+        ],
+        "quote": "| 2 | **交接异常的用户可见形态不统一**：`HANDOFF_BINDING_MISMATCH`/`HANDOFF_NOT_BOUND` 在 controller 层抛出后落入泛型 500 且消息被掩盖；`HANDOFF_CONTEXT_BUDGET_TOO_SMALL` 在引擎内转为裸错误码文本，非文档 7.1 要求的\"正常容量错误\"。不会污染合并状态（2/2 确认） | 为绑定类异常注册明确的 4xx 响应；预算不足映射为现有容量错误码 | `HandoffContextService.java` L42/L74；`QueryController.java` L178 | minor |",
+        "title": "configure绑定错误落入泛型500并掩盖原因",
+        "category": "functional",
+        "verdict": "成立",
+        "reason": "configure在QueryEngine.execute外抛IllegalStateException/AuthorizationException；GlobalExceptionHandler未设对应handler而由138行泛型异常处理返回500 INTERNAL_ERROR，丢失HANDOFF_BINDING_MISMATCH/HANDOFF_NOT_BOUND。此与预算project在engine内捕获是两条不同路径。",
+        "trigger": "E元数据与权威绑定不符或权威绑定缺失",
+        "expected": "明确提示交接绑定错误，供诊断处理",
+        "actual": "HTTP500 INTERNAL_ERROR / An unexpected error occurred",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java",
+            "line": 42
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java",
+            "line": 74
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/controller/QueryController.java",
+            "line": 178
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/engine/QueryEngine.java",
+            "line": 364
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/controller/GlobalExceptionHandler.java",
+            "line": 138
+          }
+        ],
+        "scope": "new",
+        "issue_key": "handoff-binding-error-500",
+        "severity": "moderate",
+        "credit": 1,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R10-C03",
+        "lines": [
+          80,
+          80
+        ],
+        "quote": "| 3 | **工具说明缺少文档 7.1 要求的指引文案**：`HandoffRead.getDescription()` 未含\"涉及代码修改时读取相关现有文件、历史与现状有差异则说明、必要时复测\"。入口投影/header 文案仅覆盖\"核对当前代码\"，\"必要时复测\"两处均缺（2/2 确认） | 在工具说明末尾补一句差异处理与复测指引 | `HandoffReadTool.java` L16 | minor |",
+        "title": "工具说明未含现状差异处理和复测指引",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "工具及最小入口缺完整373行指引，属可改的提示规范缺口；没有真实模型证据证明已导致错误代码。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/tool/impl/HandoffReadTool.java",
+            "line": 16
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java",
+            "line": 68
+          },
+          {
+            "path": "docs/session-merge-architecture-v2.md",
+            "line": 373
+          }
+        ],
+        "scope": "new",
+        "issue_key": "handoff-tool-guidance-incomplete",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R10-C04",
+        "lines": [
+          81,
+          81
+        ],
+        "quote": "| 4 | **v1 旧包缺失时整体暂停（设计确认点）**：`legacy_package_missing` 为阻断 gap。验证者存在分歧：一方认为与第 1 节\"不依赖旧包存活\"有字面张力；另一方认为 v1 目标自身无原始内容，缺包时继续会\"冒充完整记录\"，暂停属合理 fail-closed 且可恢复（1/2 确认） | 建议保留现状，在文档 4.4 节补一句\"旧包缺失时暂停而非降级\"以消除歧义 | `MergePackageService.java` L606-608 | low |",
+        "title": "旧包缺失暂停属于设计确认点",
+        "category": "conditional",
+        "verdict": "规范歧义",
+        "reason": "正确记录争议；但其“可恢复”字样在已封存blocking gap下并不成立，不能靠还原旧源目录使本包缺口消失。整体以设计确认点呈现，不给其他恢复缺陷半分。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+            "line": 608
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 195
+          },
+          {
+            "path": "docs/session-merge-architecture-v2.md",
+            "line": 216
+          }
+        ],
+        "scope": "new",
+        "issue_key": "missing-legacy-package-policy",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R10-C05",
+        "lines": [
+          82,
+          82
+        ],
+        "quote": "| 5 | **补记路径未比对来源集合**：seal 已写盘但 DB 未记录时，`validateSnapshot` 校验了 operationId/版本/哈希，未按文档 4.3 字面要求比对 `manifest.sources`。包路径由 operationId(UUID) 派生，实际风险可忽略（2/2 确认） | 一行比对即可闭合纵深防御缺口 | `SessionMergeService.java` L184-186 | low |",
+        "title": "补记封存未校验来源集合",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "validateSnapshot检查operation/version/hash未比对ledger请求sourceIds；现有路径由同操作生成，无支持内错配触发证据，属规范纵深防御缺口。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+            "line": 184
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+            "line": 185
+          },
+          {
+            "path": "docs/session-merge-architecture-v2.md",
+            "line": 173
+          }
+        ],
+        "scope": "new",
+        "issue_key": "sealed-ledger-source-set-check",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R10-C06",
+        "lines": [
+          85,
+          85
+        ],
+        "quote": "- `history_storage_version` 无写入方（0/2 确认误报）：无害保守分支，且文档明确禁止新增写入。",
+        "title": "history_storage_version无写入不构成现有故障",
+        "category": "retracted",
+        "verdict": "成立",
+        "reason": "默认0使checkpoint仍被保守导出；无写入方是死条件/维护性问题，不是数据遗漏。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+            "line": 440
+          }
+        ],
+        "scope": "new",
+        "issue_key": "history-storage-version-dead-condition",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R10-C07",
+        "lines": [
+          86,
+          86
+        ],
+        "quote": "- attempt 两段式 outcome 记账（0/2 确认误报）：崩溃窗口期 usage 汇总一致（聚合 SQL 不按 outcome 过滤），且文档已接受末次调用重复计费。",
+        "title": "attempt校验失败改outcome不会丢usage",
+        "category": "retracted",
+        "verdict": "成立",
+        "reason": "finishAttempt按running/unknown幂等，failAttempt只改completed的outcome；聚合SQL不按outcome过滤，不能推出费用丢失。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeProgressRepository.java",
+            "line": 184
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeProgressRepository.java",
+            "line": 190
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeProgressRepository.java",
+            "line": 199
+          }
+        ],
+        "scope": "new",
+        "issue_key": "attempt-outcome-transport-vs-validation",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R10-C08",
+        "lines": [
+          58,
+          59
+        ],
+        "quote": "| `AuthorizationService` | 仅新增 `handoff-read-v1` 分支；`instanceof` 分派使同名 MCP/动态工具无法继承权限 | ✅ 专项测试覆盖冒充者 |\n| `HandoffReadTool` | 未注册为 Spring Bean，不进全局工具池 | ✅ 测试断言无 `@Component` |",
+        "title": "普通同名工具不能继承交接权限",
+        "category": "global",
+        "verdict": "成立",
+        "reason": "真实类分派及不全局注册在代码和对应测试中成立。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/authorization/OperationAnalyzerRegistry.java",
+            "line": 87
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/tool/impl/HandoffReadTool.java",
+            "line": 10
+          }
+        ],
+        "scope": "new",
+        "issue_key": "builtin-tool-identity-isolation",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R10-C09",
+        "lines": [
+          63,
+          63
+        ],
+        "quote": "另核实：`SubAgentExecutor`、`AgentResumeService`、`SwarmWorkerRunner` 的 `queryEngine.execute` 调用点均使用独立 `QueryLoopState`，不携带交接标记，符合文档\"普通/fork/Swarm 不自动注入交接入口\"的要求。",
+        "title": "普通子代理不自动注入交接标记",
+        "category": "global",
+        "verdict": "成立",
+        "reason": "原执行者独立构造state，本次没有增加传播，符合375既定边界；不等于E子任务天然拥有全部资料。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java",
+            "line": 43
+          },
+          {
+            "path": "docs/session-merge-architecture-v2.md",
+            "line": 375
+          }
+        ],
+        "scope": "new",
+        "issue_key": "ordinary-agent-no-handoff-propagation",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R10-C10",
+        "lines": [
+          70,
+          70
+        ],
+        "quote": "- 覆盖与文档第 9 节验收表逐行对应：封存即释放、中断恢复、取消围栏、不确定提交、损坏资料暂停、>16 单元、413 拆分、游标/穿越/symlink 拒绝、Unicode 搜索进位等均有断言。",
+        "title": "列出的结构性回归断言存在",
+        "category": "engineering",
+        "verdict": "成立",
+        "reason": "大部分列举的结构用例存在；不把这句话扩大成全部第9节已验收，后文已明确语义未做。",
+        "trigger": "",
+        "expected": "",
+        "actual": "",
+        "code_refs": [
+          {
+            "path": "backend/src/test/java/com/aicodeassistant/session/merge/SessionMergeServiceTest.java",
+            "line": 100
+          },
+          {
+            "path": "backend/src/test/java/com/aicodeassistant/session/merge/MergeSummaryServiceTest.java",
+            "line": 65
+          },
+          {
+            "path": "backend/src/test/java/com/aicodeassistant/session/merge/HandoffReadServiceTest.java",
+            "line": 129
+          }
+        ],
+        "scope": "new",
+        "issue_key": "existing-structural-regression-coverage",
+        "severity": null,
+        "credit": null,
+        "verification": "static"
+      },
+      {
+        "claim_id": "R10-C11",
+        "lines": [
+          79,
+          79
+        ],
+        "quote": "| 2 | **交接异常的用户可见形态不统一**：`HANDOFF_BINDING_MISMATCH`/`HANDOFF_NOT_BOUND` 在 controller 层抛出后落入泛型 500 且消息被掩盖；`HANDOFF_CONTEXT_BUDGET_TOO_SMALL` 在引擎内转为裸错误码文本，非文档 7.1 要求的\"正常容量错误\"。不会污染合并状态（2/2 确认） | 为绑定类异常注册明确的 4xx 响应；预算不足映射为现有容量错误码 | `HandoffContextService.java` L42/L74；`QueryController.java` L178 | minor |",
+        "title": "交接预算不足返回裸内部错误码而非正常容量分类",
+        "category": "functional",
+        "verdict": "成立",
+        "reason": "project抛IllegalStateException，execute364捕获且407通知handler；REST仍ResponseEntity.ok但结果error是裸HANDOFF_CONTEXT_BUDGET_TOO_SMALL，未走正常容量LlmApiException路径。报告对预算错误区别于controller500的描述准确。",
+        "trigger": "E可用入口额度小于最小交接入口且工具可用",
+        "expected": "按既有容量错误机制说明窗口不足",
+        "actual": "QueryResult.stopReason=error，error为裸HANDOFF_CONTEXT_BUDGET_TOO_SMALL；不是HTTP500",
+        "code_refs": [
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java",
+            "line": 74
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/engine/QueryEngine.java",
+            "line": 364
+          },
+          {
+            "path": "backend/src/main/java/com/aicodeassistant/controller/QueryController.java",
+            "line": 185
+          }
+        ],
+        "scope": "new",
+        "issue_key": "handoff-budget-error-mapping",
+        "severity": "moderate",
+        "credit": 1,
+        "verification": "static"
+      }
+    ],
+    "decisions": {
+      "normal_function": {
+        "points": 5,
+        "lines": [
+          49,
+          63
+        ],
+        "quote": "## 问题 1：对非合并分支的影响评估 —— ✅ 隔离性合格\n\n逐接点核实结果：\n\n| 接点 | 隔离机制 | 结论 |\n|---|---|---|\n| `QueryController`（3 个入口）/ `WebSocketController` | `isMerged(metadata)` 为 false 时不调用交接服务、不查合并表 | ✅ 测试验证 `verifyNoInteractions` |\n| `QueryEngine` | `handoffOperationId==null` → 空投影，`historyBudget==inputBudget`，phase1/phase2 与原路径一致 | ✅ 参数化测试断言普通路径预算差为 0 |\n| `ImageRefInjector` | 原 7 参方法委托新重载并传恒 false 谓词，行为不变 | ✅ |\n| `AuthorizationService` | 仅新增 `handoff-read-v1` 分支；`instanceof` 分派使同名 MCP/动态工具无法继承权限 | ✅ 专项测试覆盖冒充者 |\n| `HandoffReadTool` | 未注册为 Spring Bean，不进全局工具池 | ✅ 测试断言无 `@Component` |\n| `SessionManager` / `SessionMessagePersistence` / `SubAgentExecutor` / `SwarmWorkerRunner` / `SessionExecutionGate` | 零改动（git 确认） | ✅ 对应回归测试全部通过 |\n| `V026` 迁移 | 不动 V024 checksum；旧行保留、旧 preparing 转 failed/LEGACY_INTERRUPTED；回滚安全 | ✅ 迁移测试通过 |\n\n另核实：`SubAgentExecutor`、`AgentResumeService`、`SwarmWorkerRunner` 的 `queryEngine.execute` 调用点均使用独立 `QueryLoopState`，不携带交接标记，符合文档\"普通/fork/Swarm 不自动注入交接入口\"的要求。",
+        "reason": "普通工具/预算/保存机制判断与核验一致。"
+      },
+      "boundary": {
+        "points": 5,
+        "lines": [
+          55,
+          63
+        ],
+        "quote": "| `QueryController`（3 个入口）/ `WebSocketController` | `isMerged(metadata)` 为 false 时不调用交接服务、不查合并表 | ✅ 测试验证 `verifyNoInteractions` |\n| `QueryEngine` | `handoffOperationId==null` → 空投影，`historyBudget==inputBudget`，phase1/phase2 与原路径一致 | ✅ 参数化测试断言普通路径预算差为 0 |\n| `ImageRefInjector` | 原 7 参方法委托新重载并传恒 false 谓词，行为不变 | ✅ |\n| `AuthorizationService` | 仅新增 `handoff-read-v1` 分支；`instanceof` 分派使同名 MCP/动态工具无法继承权限 | ✅ 专项测试覆盖冒充者 |\n| `HandoffReadTool` | 未注册为 Spring Bean，不进全局工具池 | ✅ 测试断言无 `@Component` |\n| `SessionManager` / `SessionMessagePersistence` / `SubAgentExecutor` / `SwarmWorkerRunner` / `SessionExecutionGate` | 零改动（git 确认） | ✅ 对应回归测试全部通过 |\n| `V026` 迁移 | 不动 V024 checksum；旧行保留、旧 preparing 转 failed/LEGACY_INTERRUPTED；回滚安全 | ✅ 迁移测试通过 |\n\n另核实：`SubAgentExecutor`、`AgentResumeService`、`SwarmWorkerRunner` 的 `queryEngine.execute` 调用点均使用独立 `QueryLoopState`，不携带交接标记，符合文档\"普通/fork/Swarm 不自动注入交接入口\"的要求。",
+        "reason": "列明公共授权/图片/全局V026迁移及测试证据，不按一般无负面影响表述机械扣分。"
+      },
+      "release": {
+        "points": 0,
+        "lines": [
+          92,
+          96
+        ],
+        "quote": "## 结论\n\n1. **非合并分支功能链路无负面影响**，隔离机制有测试背书。\n2. **代码质量、测试覆盖与文档规范符合度均达到提交 GitHub 的标准**：本次实测后端合并核心 76 项 + 隔离性批次 + `QueryEngineUnitTest` 65 项全部通过；前端 894 通过 / 16 跳过 / 0 失败；生产构建通过。\n3. 5 项问题全部为 minor/low，不阻塞提交；其中 4 项 minor 可在后续迭代中低成本修复。",
+        "reason": "结论视全部问题为minor可后续并认为规范符合度达标，未区分阶段代码提交与完成版发布；语义缺口虽承认但未弥补功能缺陷漏审。"
+      },
+      "semantic": {
+        "points": 5,
+        "lines": [
+          88,
+          90
+        ],
+        "quote": "## 残留风险提示\n\n文档第 9 节的**真实模型语义验收**（接续开发样本评测）尚未执行——这是文档自述的边界，不阻塞代码提交，但发布说明中不应把 stub 测试描述为语义验收通过。",
+        "reason": "准确说明真实模型语义验收未做，stub不应冒充通过。"
+      }
+    }
+  }
+]

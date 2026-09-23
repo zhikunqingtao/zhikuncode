@@ -1,0 +1,569 @@
+[
+  {
+    "claim_id": "R02-C07",
+    "before": {
+      "category": "functional",
+      "verdict": "不成立",
+      "severity": "moderate",
+      "credit": 0
+    },
+    "after": {
+      "category": "conditional",
+      "verdict": "证据不足",
+      "severity": null,
+      "credit": null
+    },
+    "reason": "缺乏epoch变化后仍preparing且无worker的可达路径；明确条件风险不罚FP。"
+  },
+  {
+    "claim_id": "R05-C11",
+    "before": {
+      "category": "functional",
+      "verdict": "不成立",
+      "severity": "moderate",
+      "credit": 0
+    },
+    "after": {
+      "category": "conditional",
+      "verdict": "范围外",
+      "severity": null,
+      "credit": null
+    },
+    "reason": "当前cancel返回Operation；报告明确假设204/空体，属未采用协议的防御建议。"
+  },
+  {
+    "claim_id": "R05-C29",
+    "before": {
+      "category": "functional",
+      "verdict": "不成立",
+      "severity": "moderate",
+      "credit": 0
+    },
+    "after": {
+      "category": "conditional",
+      "verdict": "范围外",
+      "severity": null,
+      "credit": null
+    },
+    "reason": "明确假设异常旧DB绕过UNIQUE，不是支持内正常运行态。"
+  },
+  {
+    "claim_id": "R05-C17",
+    "before": {
+      "category": "functional",
+      "verdict": "不成立",
+      "severity": "serious",
+      "credit": 0
+    },
+    "after": {
+      "category": "engineering",
+      "verdict": "规范歧义",
+      "severity": null,
+      "credit": null
+    },
+    "reason": "聚合sourceId空是事实，完整evidence链仍在；单行归属的规范含义不清，不罚资料丢失FP。"
+  },
+  {
+    "claim_id": "R10-C02",
+    "before": {
+      "category": "functional",
+      "verdict": "成立",
+      "severity": "moderate",
+      "credit": 1
+    },
+    "after": {
+      "category": "conditional",
+      "verdict": "规范歧义",
+      "severity": null,
+      "credit": null
+    },
+    "reason": "坏绑定fail-closed有规范依据，不能与受支持的小预算错误通道混同。"
+  },
+  {
+    "claim_id": "R11-C02",
+    "before": {
+      "category": "conditional",
+      "verdict": "证据不足",
+      "severity": null,
+      "credit": null,
+      "verification": "needs_repro"
+    },
+    "after": {
+      "category": "functional",
+      "verdict": "不成立",
+      "severity": "moderate",
+      "credit": 0,
+      "verification": "static"
+    },
+    "reason": "固定4096字符pieces/8192 batch及hash不依赖模型；与真实1536阈值问题触发不同，明确机制已证伪。"
+  },
+  {
+    "claim_id": "R02-C02",
+    "before": {
+      "category": "functional",
+      "verdict": "证据不足",
+      "severity": null,
+      "credit": null,
+      "verification": "needs_repro"
+    },
+    "after": {
+      "category": "functional",
+      "verdict": "成立",
+      "severity": "moderate",
+      "credit": 1,
+      "verification": "reproduced"
+    },
+    "reason": "合成原件不变，启用Jackson现有ALLOW_SINGLE_QUOTES后已可解析，恢复仍在读raw前被缺ref挡住；提高物化上限的正控制能恢复。仅确认这类关联协议缺口，损坏资料允许暂停，不采用永久/所有恢复失效的泛化。"
+  },
+  {
+    "claim_id": "R05-C01",
+    "before": {
+      "category": "functional",
+      "verdict": "证据不足",
+      "severity": null,
+      "credit": null,
+      "verification": "needs_repro"
+    },
+    "after": {
+      "category": "functional",
+      "verdict": "成立",
+      "severity": "moderate",
+      "credit": 1,
+      "verification": "reproduced"
+    },
+    "reason": "合成原件不变，启用Jackson现有ALLOW_SINGLE_QUOTES后已可解析，恢复仍在读raw前被缺ref挡住；提高物化上限的正控制能恢复。仅确认这类关联协议缺口，损坏资料允许暂停，不采用永久/所有恢复失效的泛化。"
+  },
+  {
+    "claim_id": "R13-C15",
+    "before": {
+      "category": "functional",
+      "verdict": "证据不足",
+      "severity": null,
+      "credit": null,
+      "verification": "needs_repro"
+    },
+    "after": {
+      "category": "functional",
+      "verdict": "成立",
+      "severity": "moderate",
+      "credit": 1,
+      "verification": "reproduced"
+    },
+    "reason": "合成原件不变，启用Jackson现有ALLOW_SINGLE_QUOTES后已可解析，恢复仍在读raw前被缺ref挡住；提高物化上限的正控制能恢复。仅确认这类关联协议缺口，损坏资料允许暂停，不采用永久/所有恢复失效的泛化。"
+  },
+  {
+    "claim_id": "R03-C02",
+    "before": {
+      "category": "conditional",
+      "verdict": "证据不足",
+      "severity": "serious",
+      "credit": null,
+      "verification": "needs_repro"
+    },
+    "after": {
+      "category": "functional",
+      "verdict": "成立",
+      "severity": "moderate",
+      "credit": 1,
+      "verification": "reproduced"
+    },
+    "reason": "合成原件不变，启用Jackson现有ALLOW_SINGLE_QUOTES后已可解析，恢复仍在读raw前被缺ref挡住；提高物化上限的正控制能恢复。仅确认这类关联协议缺口，损坏资料允许暂停，不采用永久/所有恢复失效的泛化。"
+  },
+  {
+    "claim_id": "R11-C03",
+    "before": {
+      "category": "functional",
+      "verdict": "成立",
+      "severity": "moderate",
+      "credit": 1,
+      "verification": "needs_repro"
+    },
+    "after": {
+      "category": "functional",
+      "verdict": "成立",
+      "severity": "moderate",
+      "credit": 1,
+      "verification": "reproduced"
+    },
+    "reason": "合成原件不变，启用Jackson现有ALLOW_SINGLE_QUOTES后已可解析，恢复仍在读raw前被缺ref挡住；提高物化上限的正控制能恢复。仅确认这类关联协议缺口，损坏资料允许暂停，不采用永久/所有恢复失效的泛化。"
+  },
+  {
+    "claim_id": "R14-C04",
+    "before": {
+      "category": "functional",
+      "verdict": "成立",
+      "severity": "moderate",
+      "credit": 1,
+      "verification": "needs_repro"
+    },
+    "after": {
+      "category": "functional",
+      "verdict": "成立",
+      "severity": "moderate",
+      "credit": 1,
+      "verification": "reproduced"
+    },
+    "reason": "合成原件不变，启用Jackson现有ALLOW_SINGLE_QUOTES后已可解析，恢复仍在读raw前被缺ref挡住；提高物化上限的正控制能恢复。仅确认这类关联协议缺口，损坏资料允许暂停，不采用永久/所有恢复失效的泛化。"
+  },
+  {
+    "claim_id": "R02-C20",
+    "before": {
+      "verdict": "证据不足",
+      "severity": null,
+      "credit": null,
+      "verification": "needs_repro"
+    },
+    "after": {
+      "verdict": "成立",
+      "severity": "moderate",
+      "credit": 1,
+      "verification": "reproduced"
+    },
+    "reason": "有效WebP在当前macOS/JDK环境有.webp后缀时MIME通过，a_hash无扩展副本被拒；默认ImageIO无WebP reader。确认此环境和副本路径，不证明所有平台永远拒绝，也未证明有后缀即完成视觉注入。"
+  },
+  {
+    "claim_id": "R14-C14",
+    "before": {
+      "credit": 1,
+      "verification": "static"
+    },
+    "after": {
+      "credit": 0.5,
+      "verification": "reproduced"
+    },
+    "reason": "同R02/R05/R13：真实tiny预算触发正确，但QueryEngine捕获project异常并返回error，REST控制器正常ResponseEntity.ok；不是异常穿透/必然500。按同规则半命中并半份归因错误。"
+  },
+  {
+    "claim_id": "R17-C08",
+    "before": {
+      "credit": 1,
+      "verification": "static"
+    },
+    "after": {
+      "credit": 0.5,
+      "verification": "reproduced"
+    },
+    "reason": "同R02/R05/R13：真实tiny预算触发正确，但QueryEngine捕获project异常并返回error，REST控制器正常ResponseEntity.ok；不是异常穿透/必然500。按同规则半命中并半份归因错误。"
+  },
+  {
+    "claim_id": "R14-C42",
+    "before": {
+      "verification": "needs_repro"
+    },
+    "after": {
+      "verification": "reproduced"
+    },
+    "reason": "真实约12MiB PNG获工具成功image_ref后未注入。最早实际限制是1,500,000 Base64字符预算，另有10MiB文件上限，均低于工具20MiB。报告指出真实阈值不兼容，未声称10MiB检查先执行，完整命中。"
+  },
+  {
+    "claim_id": "R03-C07",
+    "before": {
+      "severity": "moderate"
+    },
+    "after": {
+      "severity": "minor"
+    },
+    "reason": "统一按其具体指控的可证明后果计轻微：错误分类/状态展示，未声称资料毁损；不沿用作者P级。"
+  },
+  {
+    "claim_id": "R05-C33",
+    "before": {
+      "severity": "moderate"
+    },
+    "after": {
+      "severity": "minor"
+    },
+    "reason": "统一按其具体指控的可证明后果计轻微：错误分类/状态展示，未声称资料毁损；不沿用作者P级。"
+  },
+  {
+    "claim_id": "R13-C30",
+    "before": {
+      "severity": "moderate"
+    },
+    "after": {
+      "severity": "minor"
+    },
+    "reason": "统一按其具体指控的可证明后果计轻微：错误分类/状态展示，未声称资料毁损；不沿用作者P级。"
+  },
+  {
+    "claim_id": "R06-C13",
+    "before": {
+      "severity": "moderate",
+      "credit": 0
+    },
+    "after": {
+      "severity": null,
+      "credit": null
+    },
+    "reason": "概括性UI符合保证只保留事实裁定，漏报由FN体现，不加整体判断FP。"
+  },
+  {
+    "claim_id": "R08-C05",
+    "before": {
+      "severity": "moderate",
+      "credit": 0
+    },
+    "after": {
+      "severity": null,
+      "credit": null
+    },
+    "reason": "概括性UI符合保证只保留事实裁定，漏报由FN体现，不加整体判断FP。"
+  },
+  {
+    "report_id": "R13",
+    "decision": "release",
+    "before": {
+      "points": 0,
+      "lines": [
+        597,
+        605
+      ],
+      "quote": "**但第二个问题的答案是否定的：现在还不能发。** 障碍不在产品逻辑（**阻断级代码缺陷 0 项**），而在**验证的完整性与陈述的真实性**：\n\n- 规格第 9 节明令\"保留并扩展\"的测试被删掉了 8 项，其中工具 ID 隔离、审批/后台忙时拒绝、慢 hook 三项是规格**点名要求保留**的\n- 6 个规格错误码有 5 个零断言，且恰好掩盖了一个真实的 500 缺陷（I2）\n- `occurrences.jsonl` 和 E 状态隔离这两个**核心语义**完全无覆盖——前者正是本次改造要解决的线上失败的直接成因\n- §9 强制的真实模型语义验收未执行，仓库无任何样本或记录\n- 文档写着一个在本机无法复现的\"0 失败\"\n\n按第六节清单完成第 1–6 项后即可发布；第 7 项（I1）强烈建议同批修掉，因为它是唯一会让用户在正常使用中撞到 500 且**无法自愈**的缺陷。",
+      "reason": "指出I5恢复受阻等功能风险，却称阻断级代码缺陷0、只完成1-6测试/文档即可发布；对完成版产品问题的取舍未消解，且具体symlink安全判断错误。整体结论只在此维处理，不作为FP重复扣。"
+    },
+    "after": {
+      "points": 5,
+      "reason": "原文597明确现在还不能发，602要求真实语义验收；允许阶段提交不扣分，缺陷漏审不在发布维重复罚。"
+    }
+  },
+  {
+    "report_id": "R17",
+    "decision": "boundary",
+    "before": {
+      "points": 0,
+      "lines": [
+        12,
+        17
+      ],
+      "quote": "**达到发布标准,建议放行。**\n\n- 未发现任何阻断级风险;\n- 非合并链路的影响经代码与测试双重验证为**零**;\n- 实测全量测试全绿(后端 2,975 项 0 失败,前端 894 项通过,生产构建通过);\n- 存在 4 个建议尽快跟进的 P2 改进项和若干 P3 打磨项,均不阻塞提交。",
+      "reason": "报告直接声称影响经代码和测试验证为零，未提供新增公共分支/运行开销/验证范围方面的风险限定；具体数学等价不证明整体绝对零影响。"
+    },
+    "after": {
+      "points": 5,
+      "reason": "全文38—54门控与64全局迁移说明公共改动；与R03/R10同标准。零影响措辞过满，不当作绝对零风险证明。"
+    }
+  },
+  {
+    "report_id": "R04",
+    "decision": "release",
+    "before": {
+      "points": 0,
+      "lines": [
+        69,
+        77
+      ],
+      "quote": "## 五、发布结论\n\n**已达到提交 GitHub 的标准**：非合并链路隔离干净且有测试证明（普通请求零交接调用、预算等价、原生 tool ID 不串来源）；合并链路严格按 v2 架构落地（封存即释放、持久进度、epoch fencing、原子发布、有界入口、只读工具授权）；定向结构测试与前端构建全绿；无禁用测试或放宽断言。\n\n建议：\n\n1. 提交信息中保留\"真实模型语义验收未执行\"的声明（文档第 9 节强制要求，不得以 stub 结果冒充语义验收）；\n2. 中等问题 1–3 修复成本低，可在本次或紧随的提交中处理，不阻塞本次提交；\n3. 测试覆盖缺口可列为后续任务，其中\"E 对 A/B 状态隔离\"和\"准入拒绝\"两类建议优先补齐。",
+      "reason": "未明确阻止功能完成版合入发布，或将已有缺陷/语义未验收仅作可跟进声明；按冻结规则不算正确完成版判断。"
+    },
+    "after": {
+      "points": 0,
+      "reason": "未明确回答当前能否作为功能完成版合入发布；允许提交/推送和披露语义未验收本身并非错误，不据此捏造赞成正式发布。"
+    }
+  },
+  {
+    "report_id": "R09",
+    "decision": "release",
+    "before": {
+      "points": 0,
+      "lines": [
+        118,
+        137
+      ],
+      "quote": "### 发布标准结论\n\n**代码质量与测试覆盖达到提交 GitHub 的标准**；隔离设计经单测强断言（`verifyNoInteractions`/`isSameAs`/非 Bean 断言）保障，非合并链路无破坏。\n\n**两点必须在发布说明中明示**：\n\n1. **真实模型语义验收尚未执行**（文档自述缺口）——摘要/提取/聚合的模型调用在测试中均为 mock，`MergeSummaryService.call()` 的真实行为（含 4183 字节分片回归）未经真实模型验证；\n2. **建议先修复问题 1（E 会话性能）与问题 2（违反\"必须保留\"级规范条款）再推送**，问题 3-5 可随后跟进。\n\n---\n\n## 六、最终判定\n\n| 维度 | 结论 |\n|---|---|\n| 非合并分支影响 | **无负面影响或破坏**，隔离证据链完整（零调用隔离 + 入口门控 + 工具池隔离 + 迁移无损 + 基线文件零改动） |\n| 代码质量 | 与规范逐条对应，架构实现完整；无 critical 级缺陷，无数据丢失或安全漏洞 |\n| 测试覆盖 | 规范第 9 节矩阵全覆盖，约 19 个新增测试文件 |\n| 发现问题 | 2 major + 3 minor（详见第四节），经双子代理交叉验证 |\n| 发布建议 | 改动可以提交；建议以\"修复问题 1、2 + 发布说明注明模型验收缺口\"作为推送前置条件；若接受带已知缺陷推送，则当前状态不构成阻断 |",
+      "reason": "要求先修major再推送但又称架构完整/当前不阻断，未明确阶段推送与完成版合入的界线，按未消解冲突记0。"
+    },
+    "after": {
+      "points": 0,
+      "reason": "未明确回答当前能否作为功能完成版合入发布；允许提交/推送和披露语义未验收本身并非错误，不据此捏造赞成正式发布。"
+    }
+  },
+  {
+    "report_id": "R10",
+    "decision": "release",
+    "before": {
+      "points": 0,
+      "lines": [
+        92,
+        96
+      ],
+      "quote": "## 结论\n\n1. **非合并分支功能链路无负面影响**，隔离机制有测试背书。\n2. **代码质量、测试覆盖与文档规范符合度均达到提交 GitHub 的标准**：本次实测后端合并核心 76 项 + 隔离性批次 + `QueryEngineUnitTest` 65 项全部通过；前端 894 通过 / 16 跳过 / 0 失败；生产构建通过。\n3. 5 项问题全部为 minor/low，不阻塞提交；其中 4 项 minor 可在后续迭代中低成本修复。",
+      "reason": "结论视全部问题为minor可后续并认为规范符合度达标，未区分阶段代码提交与完成版发布；语义缺口虽承认但未弥补功能缺陷漏审。"
+    },
+    "after": {
+      "points": 0,
+      "reason": "未明确回答当前能否作为功能完成版合入发布；允许提交/推送和披露语义未验收本身并非错误，不据此捏造赞成正式发布。"
+    }
+  },
+  {
+    "report_id": "R16",
+    "decision": "release",
+    "before": {
+      "points": 0,
+      "lines": [
+        278,
+        286
+      ],
+      "quote": "### 判断：**有条件可以提交 GitHub**（无 P0/P1 阻塞）\n\n| 类别 | 内容 |\n|---|---|\n| **建议提交前处理（或 PR 明示接受）** | ① 锁集合含 descendants 或前端去掉 status 门控（P2 #1/#2）② 补 Panel 控制断言（P2 #3） |\n| **非阻塞** | P3 五条（风格 / NPE 防御 / `failAttempt` / `SQL.split` / 通知文案） |\n| **必须在提交信息/PR 中如实声明** | 「真实模型接续开发语义验收尚未执行」；stub 测试不得表述为语义验收闭环 |\n| **工作区卫生** | 通过；未跟踪文件均为应入库的源码/测试/规格文档 |\n| **额外提醒** | 忽略清单中的 `frontend/e2e/message-copy-all.spec.ts` **当前不存在**，若属本次交付物需确认是否漏提交或清单笔误 |",
+      "reason": "未明确阻止功能完成版合入发布，或将已有缺陷/语义未验收仅作可跟进声明；按冻结规则不算正确完成版判断。"
+    },
+    "after": {
+      "points": 0,
+      "reason": "未明确回答当前能否作为功能完成版合入发布；允许提交/推送和披露语义未验收本身并非错误，不据此捏造赞成正式发布。"
+    }
+  },
+  {
+    "report_id": "R12",
+    "decision": "release",
+    "before": {
+      "points": 0,
+      "lines": [
+        218,
+        234
+      ],
+      "quote": "## 六、发布标准最终判定\n\n**工程层面达标**：\n\n- 测试与构建全部独立复现通过（受控环境全量 0 失败）\n- 架构五项核心承诺成立，V026 与规格逐行一致\n- 无严重级缺陷；普通/fork/Swarm 链路零影响（本文第二节四维取证）\n- 代码质量、依赖方向、资源管理、日志规范均合格\n\n**两个发布前建议**：\n\n1. **优先修复中 5（前端锁语义）+ 补中 6 的两个测试**——最接近用户可见缺陷，改动量小（去掉一个状态门控 + 两个测试用例），但需连带验证 Sidebar/App 消费行为\n2. **修复中 1/中 2（HandoffContextService 异常降级）**——避免包损坏时合并会话 E 完全不可用（触发面窄但不体面）\n\n**一个明确缺口（须在发布说明中如实标注）**：\n\n文档自身声明「**真实模型接续开发语义验收尚未执行**」——第 9 节要求的 A/B 合并为 E 后完成联调的语义样本（含「封存后共享代码又有变化」变体）均未跑过。当前所有验证均为 stub provider 层面。如果发布标准包含该语义验收，这一项尚未满足；这是文档自认的边界而非代码缺陷，但不应在发布说明中省略。",
+      "reason": "未明确阻止功能完成版合入发布，或将已有缺陷/语义未验收仅作可跟进声明；按冻结规则不算正确完成版判断。"
+    },
+    "after": {
+      "points": 0,
+      "reason": "原文234将语义验收是否属于发布标准条件化，未明确作出当前完成版暂不可发布结论。"
+    }
+  },
+  {
+    "report_id": "R08",
+    "decision": "release",
+    "before": {
+      "points": 0,
+      "lines": [
+        186,
+        197
+      ],
+      "quote": "### 判定结果：**Pass — 建议发布**\n\n| 维度 | 评估 |\n|---|---|\n| 编译状态 | 通过（Java 21，`mvnw compile` 验证成功） |\n| 架构合规性 | 全部 8 项规范要求通过 |\n| 非合并链路影响 | 无负面影响，隔离机制设计严密 |\n| 代码质量 | 无 Critical/High 问题，1 项 Medium 防御性建议 |\n| 测试覆盖 | 充分，关键路径均有对应用例 |\n| 发布风险 | 低 — 仅存防御性边界建议和 UX 优化建议，不影响功能正确性 |\n\n**总结**：本次改动严格遵循 `session-merge-architecture-v2.md` 的架构规范，通过元数据开关（`sessionMergeOperationId`）实现了会话合并能力与既有功能链路的严格隔离。所有新增代码路径均在守卫条件之后，普通会话的创建、消息收发、权限控制、文件操作等基础功能不受任何影响。测试覆盖充分，代码质量达到 GitHub 发布标准。",
+      "reason": "明确Pass建议发布、低风险不影响正确性，与仍存在已核实缺陷和未完成验收不符。"
+    },
+    "after": {
+      "points": 0,
+      "reason": "明确建议发布/达到发布标准，与尚存确认缺陷和未完成真实语义验收矛盾。"
+    }
+  },
+  {
+    "report_id": "R17",
+    "decision": "release",
+    "before": {
+      "points": 0,
+      "lines": [
+        12,
+        17
+      ],
+      "quote": "**达到发布标准,建议放行。**\n\n- 未发现任何阻断级风险;\n- 非合并链路的影响经代码与测试双重验证为**零**;\n- 实测全量测试全绿(后端 2,975 项 0 失败,前端 894 项通过,生产构建通过);\n- 存在 4 个建议尽快跟进的 P2 改进项和若干 P3 打磨项,均不阻塞提交。",
+      "reason": "未明确阻止功能完成版合入发布，或将已有缺陷/语义未验收仅作可跟进声明；按冻结规则不算正确完成版判断。"
+    },
+    "after": {
+      "points": 0,
+      "reason": "明确建议发布/达到发布标准，与尚存确认缺陷和未完成真实语义验收矛盾。"
+    }
+  },
+  {
+    "claim_id": "R09-C03",
+    "before": {
+      "category": "functional",
+      "severity": "minor",
+      "credit": 1
+    },
+    "after": {
+      "category": "engineering",
+      "severity": null,
+      "credit": null
+    },
+    "reason": "日志记paused与持久cancelled不一致，但只是诊断措辞，未改变功能状态；工程项不作产品缺陷。"
+  },
+  {
+    "claim_id": "R03-C28",
+    "before": {
+      "scope": "new",
+      "severity": "minor",
+      "credit": 1
+    },
+    "after": {
+      "scope": "retained",
+      "severity": null,
+      "credit": null
+    },
+    "reason": "基线b98已对所有终态停止查询，删除E后旧入口打开失败的用户后果已存在；新targetAvailable首验/重开还改善，不计本次新增回归。"
+  },
+  {
+    "claim_id": "R05-C27",
+    "before": {
+      "verdict": "范围外",
+      "scope": "retained",
+      "severity": null,
+      "credit": null
+    },
+    "after": {
+      "verdict": "成立",
+      "scope": "new",
+      "severity": "minor",
+      "credit": 1
+    },
+    "reason": "旧push助手未改，但v2新增恢复后再暂停让同一operation同key再次通知可达；与R12/R14/R16统一。"
+  },
+  {
+    "claim_id": "R02-C04",
+    "before": {
+      "severity": "moderate"
+    },
+    "after": {
+      "severity": "minor"
+    },
+    "reason": "按统一缺陷后果与恢复条件评级，见defects.json。"
+  },
+  {
+    "claim_id": "R02-C09",
+    "before": {
+      "severity": "moderate"
+    },
+    "after": {
+      "severity": "minor"
+    },
+    "reason": "按统一缺陷后果与恢复条件评级，见defects.json。"
+  },
+  {
+    "claim_id": "R03-C06",
+    "before": {
+      "severity": "moderate"
+    },
+    "after": {
+      "severity": "minor"
+    },
+    "reason": "按统一缺陷后果与恢复条件评级，见defects.json。"
+  },
+  {
+    "claim_id": "R05-C31",
+    "before": {
+      "severity": "moderate"
+    },
+    "after": {
+      "severity": "minor"
+    },
+    "reason": "按统一缺陷后果与恢复条件评级，见defects.json。"
+  },
+  {
+    "claim_id": "R07-C03",
+    "before": {
+      "severity": "moderate"
+    },
+    "after": {
+      "severity": "minor"
+    },
+    "reason": "按统一缺陷后果与恢复条件评级，见defects.json。"
+  },
+  {
+    "claim_id": "R13-C16",
+    "before": {
+      "severity": "moderate"
+    },
+    "after": {
+      "severity": "minor"
+    },
+    "reason": "按统一缺陷后果与恢复条件评级，见defects.json。"
+  }
+]

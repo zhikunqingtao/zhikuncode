@@ -1,0 +1,9 @@
+{
+  "frozen_at_utc": "2026-09-23T00:15:24.597002+00:00",
+  "note": "首次算分前冻结；后续事实修正另留记录，不更改计分规则。",
+  "sha256": {
+    "claims/unified.json": "cf6da12945258804d439f28f7e19972c25ee7c39b125f333d4422bce3d1aef99",
+    "defects.json": "5d6848bed2961763ddf1de3a6c7de7d1997c5b6ce48626b29f98ca34d837cfe9",
+    "claims/adjudication-changes.json": "516c64daf80793e625cacf70a78a349c69aabf83a808548e555752df72b8db19"
+  }
+}

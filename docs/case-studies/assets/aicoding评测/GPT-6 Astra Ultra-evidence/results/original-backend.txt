@@ -1,0 +1,127 @@
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-09-23 07:56:15.607 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V002_InitProjectSchema - Creating data.db schema...
+2026-09-23 07:56:16.252 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V012_AddCheckpointSchema - Creating agent_checkpoints table...
+2026-09-23 07:56:16.258 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V012_AddCheckpointSchema - V012: agent_checkpoints table created.
+2026-09-23 07:56:16.440 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.session.SessionManager - Registered sub-agent session: child (parent=A)
+2026-09-23 07:56:16.634 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V002_InitProjectSchema - Creating data.db schema...
+2026-09-23 07:56:16.648 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V012_AddCheckpointSchema - Creating agent_checkpoints table...
+2026-09-23 07:56:16.651 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V012_AddCheckpointSchema - V012: agent_checkpoints table created.
+2026-09-23 07:56:16.732 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V002_InitProjectSchema - Creating data.db schema...
+2026-09-23 07:56:16.741 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V012_AddCheckpointSchema - Creating agent_checkpoints table...
+2026-09-23 07:56:16.743 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V012_AddCheckpointSchema - V012: agent_checkpoints table created.
+2026-09-23 07:56:16.818 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V002_InitProjectSchema - Creating data.db schema...
+2026-09-23 07:56:16.828 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V012_AddCheckpointSchema - Creating agent_checkpoints table...
+2026-09-23 07:56:16.831 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V012_AddCheckpointSchema - V012: agent_checkpoints table created.
+2026-09-23 07:56:17.246 INFO  [] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.session.merge.MergeSummaryService - Merge call: request=adc68ef6-efd1-47a1-b1d2-c0a9efdf420e, model=test-model, inputEstimatedTokens=57, inputBytes=145, generationBudget=34816
+2026-09-23 07:56:17.258 INFO  [] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.session.merge.MergeSummaryService - Merge call result: request=adc68ef6-efd1-47a1-b1d2-c0a9efdf420e, stop=end_turn, complete=true, visibleBytes=143, usageReported=true, totalOutputTokens=13370
+2026-09-23 07:56:17.274 INFO  [] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.session.merge.MergeSummaryService - Merge call: request=f28eeee4-ac69-409b-b620-e9691150246e, model=test-model, inputEstimatedTokens=66, inputBytes=227, generationBudget=34816
+2026-09-23 07:56:17.281 INFO  [] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.session.merge.MergeSummaryService - Merge call result: request=f28eeee4-ac69-409b-b620-e9691150246e, stop=end_turn, complete=true, visibleBytes=143, usageReported=true, totalOutputTokens=13370
+2026-09-23 07:56:17.290 INFO  [] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.session.merge.MergeSummaryService - Merge call: request=95fcc67a-9289-4f15-ae02-a10dea90598e, model=test-model, inputEstimatedTokens=85, inputBytes=184, generationBudget=34816
+2026-09-23 07:56:17.292 INFO  [] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.session.merge.MergeSummaryService - Merge call result: request=95fcc67a-9289-4f15-ae02-a10dea90598e, stop=end_turn, complete=true, visibleBytes=143, usageReported=true, totalOutputTokens=13370
+2026-09-23 07:56:17.302 INFO  [] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.session.merge.MergeSummaryService - Merge call: request=27161afa-5885-4b39-99b0-2eccbab93ef7, model=test-model, inputEstimatedTokens=57, inputBytes=145, generationBudget=34816
+2026-09-23 07:56:17.305 INFO  [] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.session.merge.MergeSummaryService - Merge call result: request=27161afa-5885-4b39-99b0-2eccbab93ef7, stop=end_turn, complete=true, visibleBytes=143, usageReported=true, totalOutputTokens=13370
+2026-09-23 07:56:17.324 INFO  [] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.session.merge.MergeSummaryService - Merge call: request=ebd432ff-d69f-469b-a58c-a27dffc594b2, model=test-model, inputEstimatedTokens=440, inputBytes=984, generationBudget=34816
+2026-09-23 07:56:17.326 INFO  [] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.session.merge.MergeSummaryService - Merge call result: request=ebd432ff-d69f-469b-a58c-a27dffc594b2, stop=end_turn, complete=true, visibleBytes=143, usageReported=true, totalOutputTokens=13370
+2026-09-23 07:56:17.432 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V002_InitProjectSchema - Creating data.db schema...
+2026-09-23 07:56:17.440 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V012_AddCheckpointSchema - Creating agent_checkpoints table...
+2026-09-23 07:56:17.442 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.V012_AddCheckpointSchema - V012: agent_checkpoints table created.
+2026-09-23 07:56:17.464 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.session.SessionManager - Registered sub-agent session: child (parent=A)
+[ERROR] Tests run: 5, Failures: 5, Errors: 0, Skipped: 0, Time elapsed: 3.055 s <<< FAILURE! -- in com.aicodeassistant.session.merge.MergeReviewReproTest
+[ERROR] com.aicodeassistant.session.merge.MergeReviewReproTest.sameCheckpointUuidWithChangedLegacyToolResultMustRetainVersions -- Time elapsed: 2.174 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expected size: 2 but was: 1 in:
+[RecordEntry[recordRef=r_7ef2042b6117352757f6816c37abca02e420dbaa8e563615d59c3e6c72efb758, origin=Origin[sessionId=child, recordId=same-tool-result, version=f5a9a8b7b238e12695eef6d27d414b2f43b1f0e4ad82b6a5ac17e4a469bbeb42, kind=message], role=user, createdAt=, rawRef=r_7ef2042b6117352757f6816c37abca02e420dbaa8e563615d59c3e6c72efb758:raw, processingPolicy=extract]]
+	at com.aicodeassistant.session.merge.MergeReviewReproTest.sameCheckpointUuidWithChangedLegacyToolResultMustRetainVersions(MergeReviewReproTest.java:48)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.aicodeassistant.session.merge.MergeReviewReproTest.copiedManagedFileMustNotAlsoBeReportedAsAnExternalGap -- Time elapsed: 0.098 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: 0L
+ but was: 1L
+	at com.aicodeassistant.session.merge.MergeReviewReproTest.copiedManagedFileMustNotAlsoBeReportedAsAnExternalGap(MergeReviewReproTest.java:81)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.aicodeassistant.session.merge.MergeReviewReproTest.recoveredProjectionMustNotSendArchiveOnlyBlocksToExtractor -- Time elapsed: 0.083 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  "Recovered immutable raw ref=r_3c2d3fb39fb1a3bec5bc319fc320a96633c3ada1681d64c7abb002f6564c7ad8:raw; source=A
+[{"text":"visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement ","type":"text"},{"thinking":"ARCHIVE_ONLY_REASONING","type":"thinking"},{"state":"PRIVATE_CONTINUATION_STATE","type":"provider_response_state"}]"
+not to contain:
+  ["ARCHIVE_ONLY_REASONING", "PRIVATE_CONTINUATION_STATE"]
+but found:
+  ["ARCHIVE_ONLY_REASONING", "PRIVATE_CONTINUATION_STATE"]
+
+	at com.aicodeassistant.session.merge.MergeReviewReproTest.recoveredProjectionMustNotSendArchiveOnlyBlocksToExtractor(MergeReviewReproTest.java:32)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.aicodeassistant.session.merge.MergeReviewReproTest.imageOnlyUserRequirementMustNotPublishWithoutAnyVisualExtraction -- Time elapsed: 0.615 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: "paused"
+ but was: "completed"
+	at com.aicodeassistant.session.merge.MergeReviewReproTest.imageOnlyUserRequirementMustNotPublishWithoutAnyVisualExtraction(MergeReviewReproTest.java:71)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.aicodeassistant.session.merge.MergeReviewReproTest.ordinarySavedCheckpointToolResultMustBeSearchableForExtraction -- Time elapsed: 0.065 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  "来源 A; 工程目录为共享外部引用: <TEST_TEMP>; 标题: A来源 B; 工程目录为共享外部引用: <TEST_TEMP>; 标题: B来源 child; 工程目录为共享外部引用: <TEST_TEMP>; 标题: null来源 child; 消息 legacy-result; user; ; stop=
+
+消息元数据: "
+to contain:
+  "ONLY_EVIDENCE_TEST_FAILED" 
+	at com.aicodeassistant.session.merge.MergeReviewReproTest.ordinarySavedCheckpointToolResultMustBeSearchableForExtraction(MergeReviewReproTest.java:60)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   MergeReviewReproTest.copiedManagedFileMustNotAlsoBeReportedAsAnExternalGap:81 
+expected: 0L
+ but was: 1L
+[ERROR]   MergeReviewReproTest.imageOnlyUserRequirementMustNotPublishWithoutAnyVisualExtraction:71 
+expected: "paused"
+ but was: "completed"
+[ERROR]   MergeReviewReproTest.ordinarySavedCheckpointToolResultMustBeSearchableForExtraction:60 
+Expecting actual:
+  "来源 A; 工程目录为共享外部引用: <TEST_TEMP>; 标题: A来源 B; 工程目录为共享外部引用: <TEST_TEMP>; 标题: B来源 child; 工程目录为共享外部引用: <TEST_TEMP>; 标题: null来源 child; 消息 legacy-result; user; ; stop=
+
+消息元数据: "
+to contain:
+  "ONLY_EVIDENCE_TEST_FAILED" 
+[ERROR]   MergeReviewReproTest.recoveredProjectionMustNotSendArchiveOnlyBlocksToExtractor:32 
+Expecting actual:
+  "Recovered immutable raw ref=r_3c2d3fb39fb1a3bec5bc319fc320a96633c3ada1681d64c7abb002f6564c7ad8:raw; source=A
+[{"text":"visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement visible requirement ","type":"text"},{"thinking":"ARCHIVE_ONLY_REASONING","type":"thinking"},{"state":"PRIVATE_CONTINUATION_STATE","type":"provider_response_state"}]"
+not to contain:
+  ["ARCHIVE_ONLY_REASONING", "PRIVATE_CONTINUATION_STATE"]
+but found:
+  ["ARCHIVE_ONLY_REASONING", "PRIVATE_CONTINUATION_STATE"]
+
+[ERROR]   MergeReviewReproTest.sameCheckpointUuidWithChangedLegacyToolResultMustRetainVersions:48 
+Expected size: 2 but was: 1 in:
+[RecordEntry[recordRef=r_7ef2042b6117352757f6816c37abca02e420dbaa8e563615d59c3e6c72efb758, origin=Origin[sessionId=child, recordId=same-tool-result, version=f5a9a8b7b238e12695eef6d27d414b2f43b1f0e4ad82b6a5ac17e4a469bbeb42, kind=message], role=user, createdAt=, rawRef=r_7ef2042b6117352757f6816c37abca02e420dbaa8e563615d59c3e6c72efb758:raw, processingPolicy=extract]]
+[ERROR] Tests run: 5, Failures: 5, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.4:test (default-test) on project ai-code-assistant-backend: There are test failures.
+[ERROR] 
+[ERROR] See <ISOLATED_ROOT>/backend/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

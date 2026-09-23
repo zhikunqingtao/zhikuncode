@@ -1,0 +1,613 @@
+[
+  {
+    "report_id": "R02",
+    "label": "DeepSeekHarness / deepseekV4.1flashmax-session-merge-v2代码审查报告",
+    "score": "60.7",
+    "defect_score": "40.7",
+    "judgement_score": "20",
+    "TP": "14.0",
+    "FP": "1.0",
+    "FN": "26.0",
+    "precision": "0.9333333333333333333333333333",
+    "recall": "0.35",
+    "F": "0.5090909090909090909090909091",
+    "hits": {
+      "D03": "1",
+      "D04": "1",
+      "D17": "1",
+      "D13": "1",
+      "D09": "0.5",
+      "D11": "1",
+      "D08": "1",
+      "D15": "1"
+    },
+    "errors": {
+      "partial:handoff-small-budget-error": "1.0"
+    },
+    "decisions": {
+      "normal_function": 5,
+      "boundary": 5,
+      "release": 5,
+      "semantic": 5
+    },
+    "excluded": 22,
+    "uncertain": 7,
+    "partial": 1,
+    "verdict_counts": {
+      "成立": 18,
+      "证据不足": 4,
+      "规范歧义": 3,
+      "范围外": 1,
+      "不成立": 4
+    },
+    "rank": 1
+  },
+  {
+    "report_id": "R14",
+    "label": "zhikuncode / deepseekV4.1flash-session-merge-v2-code-review-report",
+    "score": "58.5",
+    "defect_score": "38.5",
+    "judgement_score": "20",
+    "TP": "13.0",
+    "FP": "1.0",
+    "FN": "27.0",
+    "precision": "0.9285714285714285714285714286",
+    "recall": "0.325",
+    "F": "0.4814814814814814814814814815",
+    "hits": {
+      "D04": "1",
+      "D09": "0.5",
+      "D13": "1",
+      "D15": "1",
+      "D07": "1",
+      "D22": "1",
+      "D20": "1",
+      "D08": "1",
+      "D12": "1"
+    },
+    "errors": {
+      "partial:handoff-small-budget-error": "1.0"
+    },
+    "decisions": {
+      "normal_function": 5,
+      "boundary": 5,
+      "release": 5,
+      "semantic": 5
+    },
+    "excluded": 42,
+    "uncertain": 7,
+    "partial": 1,
+    "verdict_counts": {
+      "成立": 40,
+      "不成立": 1,
+      "规范歧义": 4,
+      "范围外": 3,
+      "证据不足": 3
+    },
+    "rank": 2
+  },
+  {
+    "report_id": "R01",
+    "label": "Codex / Astra极高_会话合并v2完整代码审查报告_2026-09-22",
+    "score": "54.5",
+    "defect_score": "34.5",
+    "judgement_score": "20",
+    "TP": "11",
+    "FP": "0",
+    "FN": "29",
+    "precision": "1",
+    "recall": "0.275",
+    "F": "0.4313725490196078431372549020",
+    "hits": {
+      "D01": "1",
+      "D02": "1",
+      "D07": "1",
+      "D14": "1"
+    },
+    "errors": {},
+    "decisions": {
+      "normal_function": 5,
+      "boundary": 5,
+      "release": 5,
+      "semantic": 5
+    },
+    "excluded": 15,
+    "uncertain": 2,
+    "partial": 0,
+    "verdict_counts": {
+      "成立": 17,
+      "规范歧义": 1,
+      "证据不足": 1
+    },
+    "rank": 3
+  },
+  {
+    "report_id": "R13",
+    "label": "zhikuncode / Qwen3.8max-session-merge-v2-code-review-report",
+    "score": "46.7",
+    "defect_score": "26.7",
+    "judgement_score": "20",
+    "TP": "10.0",
+    "FP": "10.0",
+    "FN": "30.0",
+    "precision": "0.5",
+    "recall": "0.25",
+    "F": "0.3333333333333333333333333333",
+    "hits": {
+      "D09": "0.5",
+      "D04": "1",
+      "D13": "1",
+      "D10": "1",
+      "D15": "1",
+      "D08": "1",
+      "D19": "1"
+    },
+    "errors": {
+      "partial:handoff-small-budget-error": "1.0",
+      "local-admission-race-error": "2",
+      "missing-epoch-bypasses-fence": "2",
+      "attempt-schema-failure-outcome": "1",
+      "snapshot-intermediate-symlink": "4"
+    },
+    "decisions": {
+      "normal_function": 5,
+      "boundary": 5,
+      "release": 5,
+      "semantic": 5
+    },
+    "excluded": 53,
+    "uncertain": 11,
+    "partial": 1,
+    "verdict_counts": {
+      "成立": 40,
+      "不成立": 11,
+      "范围外": 2,
+      "规范歧义": 3,
+      "证据不足": 8
+    },
+    "rank": 4
+  },
+  {
+    "report_id": "R07",
+    "label": "QoderIDE / Sonus-session-merge-v2-review",
+    "score": "43.8",
+    "defect_score": "23.8",
+    "judgement_score": "20",
+    "TP": "7",
+    "FP": "0",
+    "FN": "33",
+    "precision": "1",
+    "recall": "0.175",
+    "F": "0.2978723404255319148936170213",
+    "hits": {
+      "D01": "1",
+      "D06": "1",
+      "D15": "1"
+    },
+    "errors": {},
+    "decisions": {
+      "normal_function": 5,
+      "boundary": 5,
+      "release": 5,
+      "semantic": 5
+    },
+    "excluded": 17,
+    "uncertain": 1,
+    "partial": 0,
+    "verdict_counts": {
+      "成立": 19,
+      "证据不足": 1
+    },
+    "rank": 5
+  },
+  {
+    "report_id": "R03",
+    "label": "KimiCode / KimiK3-session-merge-v2-review",
+    "score": "43.3",
+    "defect_score": "23.3",
+    "judgement_score": "20",
+    "TP": "7",
+    "FP": "1",
+    "FN": "33",
+    "precision": "0.875",
+    "recall": "0.175",
+    "F": "0.2916666666666666666666666667",
+    "hits": {
+      "D05": "1",
+      "D04": "1",
+      "D13": "1",
+      "D21": "1",
+      "D16": "1"
+    },
+    "errors": {
+      "read-initial-interruption-swallowed": "1"
+    },
+    "decisions": {
+      "normal_function": 5,
+      "boundary": 5,
+      "release": 5,
+      "semantic": 5
+    },
+    "excluded": 26,
+    "uncertain": 7,
+    "partial": 0,
+    "verdict_counts": {
+      "成立": 23,
+      "规范歧义": 4,
+      "不成立": 2,
+      "证据不足": 3
+    },
+    "rank": 6
+  },
+  {
+    "report_id": "R05",
+    "label": "Qoder / qwen3.8max极高新版本-会话合并v2代码审查报告",
+    "score": "42.9",
+    "defect_score": "22.9",
+    "judgement_score": "20",
+    "TP": "7.0",
+    "FP": "2.0",
+    "FN": "33.0",
+    "precision": "0.7777777777777777777777777778",
+    "recall": "0.175",
+    "F": "0.2857142857142857142857142857",
+    "hits": {
+      "D04": "1",
+      "D08": "1",
+      "D09": "0.5",
+      "D22": "1",
+      "D13": "1"
+    },
+    "errors": {
+      "partial:handoff-small-budget-error": "1.0",
+      "missing-hash-null-pointer": "1"
+    },
+    "decisions": {
+      "normal_function": 5,
+      "boundary": 5,
+      "release": 5,
+      "semantic": 5
+    },
+    "excluded": 40,
+    "uncertain": 16,
+    "partial": 1,
+    "verdict_counts": {
+      "成立": 22,
+      "不成立": 4,
+      "证据不足": 9,
+      "规范歧义": 7,
+      "范围外": 4
+    },
+    "rank": 7
+  },
+  {
+    "report_id": "R11",
+    "label": "cursor / Grok4.7-会话合并v2完整代码审查报告",
+    "score": "37.0",
+    "defect_score": "17.0",
+    "judgement_score": "20",
+    "TP": "5",
+    "FP": "2",
+    "FN": "35",
+    "precision": "0.7142857142857142857142857143",
+    "recall": "0.125",
+    "F": "0.2127659574468085106382978723",
+    "hits": {
+      "D04": "1",
+      "D09": "1",
+      "D15": "1"
+    },
+    "errors": {
+      "model-switch-aggregate-resume": "2"
+    },
+    "decisions": {
+      "normal_function": 5,
+      "boundary": 5,
+      "release": 5,
+      "semantic": 5
+    },
+    "excluded": 9,
+    "uncertain": 2,
+    "partial": 0,
+    "verdict_counts": {
+      "成立": 10,
+      "不成立": 1,
+      "规范歧义": 2
+    },
+    "rank": 8
+  },
+  {
+    "report_id": "R12",
+    "label": "zhikuncode / GLM5.3-session-merge-v2-code-review",
+    "score": "32.8",
+    "defect_score": "17.8",
+    "judgement_score": "15",
+    "TP": "5",
+    "FP": "0",
+    "FN": "35",
+    "precision": "1",
+    "recall": "0.125",
+    "F": "0.2222222222222222222222222222",
+    "hits": {
+      "D09": "1",
+      "D15": "1",
+      "D20": "1",
+      "D22": "1"
+    },
+    "errors": {},
+    "decisions": {
+      "normal_function": 5,
+      "boundary": 5,
+      "release": 0,
+      "semantic": 5
+    },
+    "excluded": 21,
+    "uncertain": 6,
+    "partial": 0,
+    "verdict_counts": {
+      "成立": 18,
+      "规范歧义": 2,
+      "证据不足": 4,
+      "范围外": 1
+    },
+    "rank": 9
+  },
+  {
+    "report_id": "R04",
+    "label": "Qoder / kimik3-session-merge-v2-review",
+    "score": "26.2",
+    "defect_score": "11.2",
+    "judgement_score": "15",
+    "TP": "3",
+    "FP": "0",
+    "FN": "37",
+    "precision": "1",
+    "recall": "0.075",
+    "F": "0.1395348837209302325581395349",
+    "hits": {
+      "D09": "1",
+      "D18": "1"
+    },
+    "errors": {},
+    "decisions": {
+      "normal_function": 5,
+      "boundary": 5,
+      "release": 0,
+      "semantic": 5
+    },
+    "excluded": 11,
+    "uncertain": 2,
+    "partial": 0,
+    "verdict_counts": {
+      "成立": 10,
+      "范围外": 1,
+      "规范歧义": 1,
+      "证据不足": 1
+    },
+    "rank": 10
+  },
+  {
+    "report_id": "R15",
+    "label": "zhikuncode / kimik3_session-merge-v2-code-review-report",
+    "score": "26.2",
+    "defect_score": "11.2",
+    "judgement_score": "15",
+    "TP": "3",
+    "FP": "0",
+    "FN": "37",
+    "precision": "1",
+    "recall": "0.075",
+    "F": "0.1395348837209302325581395349",
+    "hits": {
+      "D13": "1",
+      "D08": "1"
+    },
+    "errors": {},
+    "decisions": {
+      "normal_function": 5,
+      "boundary": 5,
+      "release": 0,
+      "semantic": 5
+    },
+    "excluded": 25,
+    "uncertain": 2,
+    "partial": 0,
+    "verdict_counts": {
+      "成立": 21,
+      "规范歧义": 1,
+      "范围外": 2,
+      "证据不足": 1,
+      "不成立": 2
+    },
+    "rank": 10
+  },
+  {
+    "report_id": "R10",
+    "label": "TraeCode / kimik3-会话合并v2代码审查报告",
+    "score": "22.6",
+    "defect_score": "7.6",
+    "judgement_score": "15",
+    "TP": "2",
+    "FP": "0",
+    "FN": "38",
+    "precision": "1",
+    "recall": "0.05",
+    "F": "0.09523809523809523809523809524",
+    "hits": {
+      "D09": "1"
+    },
+    "errors": {},
+    "decisions": {
+      "normal_function": 5,
+      "boundary": 5,
+      "release": 0,
+      "semantic": 5
+    },
+    "excluded": 10,
+    "uncertain": 2,
+    "partial": 0,
+    "verdict_counts": {
+      "成立": 9,
+      "规范歧义": 2
+    },
+    "rank": 12
+  },
+  {
+    "report_id": "R16",
+    "label": "小米mimo / session-merge-v2-code-review",
+    "score": "22.6",
+    "defect_score": "7.6",
+    "judgement_score": "15",
+    "TP": "2",
+    "FP": "0",
+    "FN": "38",
+    "precision": "1",
+    "recall": "0.05",
+    "F": "0.09523809523809523809523809524",
+    "hits": {
+      "D15": "1",
+      "D22": "1"
+    },
+    "errors": {},
+    "decisions": {
+      "normal_function": 5,
+      "boundary": 5,
+      "release": 0,
+      "semantic": 5
+    },
+    "excluded": 12,
+    "uncertain": 2,
+    "partial": 0,
+    "verdict_counts": {
+      "成立": 12,
+      "规范歧义": 1,
+      "证据不足": 1
+    },
+    "rank": 12
+  },
+  {
+    "report_id": "R17",
+    "label": "智普ZCode / 会话合并v2代码审查报告",
+    "score": "18.8",
+    "defect_score": "3.8",
+    "judgement_score": "15",
+    "TP": "1.0",
+    "FP": "1.0",
+    "FN": "39.0",
+    "precision": "0.5",
+    "recall": "0.025",
+    "F": "0.04761904761904761904761904762",
+    "hits": {
+      "D09": "0.5"
+    },
+    "errors": {
+      "partial:handoff-small-budget-error": "1.0"
+    },
+    "decisions": {
+      "normal_function": 5,
+      "boundary": 5,
+      "release": 0,
+      "semantic": 5
+    },
+    "excluded": 10,
+    "uncertain": 1,
+    "partial": 1,
+    "verdict_counts": {
+      "成立": 9,
+      "规范歧义": 1,
+      "不成立": 1
+    },
+    "rank": 14
+  },
+  {
+    "report_id": "R09",
+    "label": "TraeCode / Qwen3.8Max-会话合并v2代码审查报告",
+    "score": "15.0",
+    "defect_score": "0.0",
+    "judgement_score": "15",
+    "TP": "0",
+    "FP": "0",
+    "FN": "40",
+    "precision": "0",
+    "recall": "0",
+    "F": "0",
+    "hits": {},
+    "errors": {},
+    "decisions": {
+      "normal_function": 5,
+      "boundary": 5,
+      "release": 0,
+      "semantic": 5
+    },
+    "excluded": 10,
+    "uncertain": 2,
+    "partial": 0,
+    "verdict_counts": {
+      "成立": 7,
+      "规范歧义": 1,
+      "证据不足": 1,
+      "不成立": 1
+    },
+    "rank": 15
+  },
+  {
+    "report_id": "R06",
+    "label": "QoderIDE / Cantus-zhikuncode-session-merge-v2-代码审查报告-2026-09-22",
+    "score": "10.0",
+    "defect_score": "0.0",
+    "judgement_score": "10",
+    "TP": "0",
+    "FP": "0",
+    "FN": "40",
+    "precision": "0",
+    "recall": "0",
+    "F": "0",
+    "hits": {},
+    "errors": {},
+    "decisions": {
+      "normal_function": 5,
+      "boundary": 5,
+      "release": 0,
+      "semantic": 0
+    },
+    "excluded": 14,
+    "uncertain": 2,
+    "partial": 0,
+    "verdict_counts": {
+      "不成立": 4,
+      "成立": 8,
+      "证据不足": 2
+    },
+    "rank": 16
+  },
+  {
+    "report_id": "R08",
+    "label": "QoderIDE / 极致模型-会话合并v2代码审查报告",
+    "score": "5.0",
+    "defect_score": "0.0",
+    "judgement_score": "5",
+    "TP": "0",
+    "FP": "0",
+    "FN": "40",
+    "precision": "0",
+    "recall": "0",
+    "F": "0",
+    "hits": {},
+    "errors": {},
+    "decisions": {
+      "normal_function": 5,
+      "boundary": 0,
+      "release": 0,
+      "semantic": 0
+    },
+    "excluded": 8,
+    "uncertain": 2,
+    "partial": 0,
+    "verdict_counts": {
+      "不成立": 3,
+      "证据不足": 2,
+      "成立": 3
+    },
+    "rank": 17
+  }
+]

@@ -1,0 +1,279 @@
+{
+  "frozen_at_utc": "2026-09-22T23:53:27.708206+00:00",
+  "branch": "aicoding-eval-0923",
+  "head": "207fe6d0d159db1b575af243dbf3c77536377431",
+  "original_baseline": "b98e18721169436f8f35373a4120c530f54310d5",
+  "initial_tracked_diff": "",
+  "files": [
+    {
+      "path": "backend/src/main/java/com/aicodeassistant/authorization/AuthorizationService.java",
+      "bytes": 29111,
+      "sha256": "89cb6ce9951bd5ca72c02caaa703a90866a871ecdfb8c48bb94f20e92b624587"
+    },
+    {
+      "path": "backend/src/main/java/com/aicodeassistant/authorization/OperationAnalyzerRegistry.java",
+      "bytes": 38068,
+      "sha256": "52edf94a3579280ab07e843e0b5a2d2412ad2b39032231a56632d0c013f1e8ea"
+    },
+    {
+      "path": "backend/src/main/java/com/aicodeassistant/config/database/V026_ExtendSessionMerges.java",
+      "bytes": 8323,
+      "sha256": "153494e34554bcca734d55526b55161b82669df5052e3b99ceacb70441b3bb22"
+    },
+    {
+      "path": "backend/src/main/java/com/aicodeassistant/controller/QueryController.java",
+      "bytes": 27957,
+      "sha256": "817516c9b06f3654a2b02711f5c29e7ac77ff65ce2a6c9e4f5f4671ba7cc8aed"
+    },
+    {
+      "path": "backend/src/main/java/com/aicodeassistant/controller/SessionMergeController.java",
+      "bytes": 2145,
+      "sha256": "cd927d597de6775c702e825b7c485b32a9dc321a2ee5aa6206e73dfad90fa3cb"
+    },
+    {
+      "path": "backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java",
+      "bytes": 5881,
+      "sha256": "2d3c4987c7ee4a15cad873c1a51f9108f681ad4978a7485032209f122f88129d"
+    },
+    {
+      "path": "backend/src/main/java/com/aicodeassistant/engine/ImageRefInjector.java",
+      "bytes": 20915,
+      "sha256": "9615cce4cca7bff9a27f2006d1eff163f470387426fa1b5ca712ddfc58f009c9"
+    },
+    {
+      "path": "backend/src/main/java/com/aicodeassistant/engine/QueryEngine.java",
+      "bytes": 151882,
+      "sha256": "4f0abd350c6397c293b756f8c516f2893d2b4250737ef466400a9c04d4fefc6c"
+    },
+    {
+      "path": "backend/src/main/java/com/aicodeassistant/engine/QueryLoopState.java",
+      "bytes": 12076,
+      "sha256": "e5eec4e335ae8237887abeb97a9a112fe0d06820640d49ca694a49437fab8270"
+    },
+    {
+      "path": "backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java",
+      "bytes": 22863,
+      "sha256": "f6754dee1ab56f512de7b47a0584c88dc4ac89d292bc4536ce357d1bb6aa408a"
+    },
+    {
+      "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeHandoffData.java",
+      "bytes": 2912,
+      "sha256": "0ae5c4321da15c96423f691bab1dee6176d6e1a787bb6b6d625e4bda87cc6183"
+    },
+    {
+      "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java",
+      "bytes": 80585,
+      "sha256": "6426ce9a8e8dc924ff6fe6c8725ba6640c57c5f9cae4747110f36f75ccbb1979"
+    },
+    {
+      "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeProgressRepository.java",
+      "bytes": 14414,
+      "sha256": "422a256813776623c9e1cd8a7e97cbd54b81200008b6818eb9dc1553a4411b59"
+    },
+    {
+      "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java",
+      "bytes": 26137,
+      "sha256": "3d949ec563e223d9dbe2261759f19f40de3515f846da0cd9989e2d209e1b59c5"
+    },
+    {
+      "path": "backend/src/main/java/com/aicodeassistant/session/merge/MergeTextBudget.java",
+      "bytes": 2084,
+      "sha256": "9975902de0b0fa992d2b28fcb47cd38ed1b60c74dd398d1a72feaa7d4fddde64"
+    },
+    {
+      "path": "backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java",
+      "bytes": 20755,
+      "sha256": "f7e717d94f52c50031dcf008fc47e3380c4950365880556c42df0ba75a27fec0"
+    },
+    {
+      "path": "backend/src/main/java/com/aicodeassistant/tool/impl/HandoffReadTool.java",
+      "bytes": 3508,
+      "sha256": "10a1f31ba5ad8b5ebf10333d5c36331470eeb228e28e8a8a16d9e30fbcd5fb79"
+    },
+    {
+      "path": "backend/src/main/java/com/aicodeassistant/websocket/WebSocketController.java",
+      "bytes": 110410,
+      "sha256": "ff4fb43cbcc99a1626ca7ebb50287cc3c9d89572ecb8d9fc1515c146880f08b9"
+    },
+    {
+      "path": "backend/src/test/java/com/aicodeassistant/authorization/AuthorizationServiceProjectFileScopeTest.java",
+      "bytes": 14451,
+      "sha256": "ea4abcf64e2a94ca2f419bab923dfc06e3e8fdb6b64f91745512ebdf06ce409a"
+    },
+    {
+      "path": "backend/src/test/java/com/aicodeassistant/authorization/OperationAnalyzerRegistryTest.java",
+      "bytes": 48366,
+      "sha256": "53af5e1b00e100b83a7ef7daeca3287402fe9a8522bd1b122a05fd29f6e76abf"
+    },
+    {
+      "path": "backend/src/test/java/com/aicodeassistant/config/database/V026ExtendSessionMergesTest.java",
+      "bytes": 4906,
+      "sha256": "749fff959b6203de9cfc7bea57b4e38dec677461b483289d89d3c037541b6892"
+    },
+    {
+      "path": "backend/src/test/java/com/aicodeassistant/engine/HandoffContextServiceTest.java",
+      "bytes": 4101,
+      "sha256": "b050dd6af6ec108e3438cad83b3417e31d8a5d7717da89f73b2bb139497a4c98"
+    },
+    {
+      "path": "backend/src/test/java/com/aicodeassistant/engine/QueryEngineUnitTest.java",
+      "bytes": 112239,
+      "sha256": "5eb834d65bc86afd21da94df366f473a6cc3bfe3830f8031a934d0503d1bd012"
+    },
+    {
+      "path": "backend/src/test/java/com/aicodeassistant/session/merge/HandoffReadServiceTest.java",
+      "bytes": 18002,
+      "sha256": "abd5b451ad0f340896b5d7114db1011a1903595b47cf3e9fe47361cbfa1b0514"
+    },
+    {
+      "path": "backend/src/test/java/com/aicodeassistant/session/merge/MergeFixture.java",
+      "bytes": 2929,
+      "sha256": "d10edc722293f9d51cff4bc61f806aab2536df781bf7f5f438b6bc6823f471ba"
+    },
+    {
+      "path": "backend/src/test/java/com/aicodeassistant/session/merge/MergePackageServiceTest.java",
+      "bytes": 34462,
+      "sha256": "4a4a05a3d2411b3f57cdd432052f57711302c1cebefb4048bfa199d4da88a3bd"
+    },
+    {
+      "path": "backend/src/test/java/com/aicodeassistant/session/merge/MergeProgressRepositoryTest.java",
+      "bytes": 4937,
+      "sha256": "1082a22dc28eb46c06317ccc55d212163c968abba4de0ec6236c5308c740e365"
+    },
+    {
+      "path": "backend/src/test/java/com/aicodeassistant/session/merge/MergeSummaryServiceTest.java",
+      "bytes": 7365,
+      "sha256": "afdb7283bc98480a30f25d8811c5d80896bec706f8b50b2f1ad9650f53440db2"
+    },
+    {
+      "path": "backend/src/test/java/com/aicodeassistant/session/merge/SessionMergeServiceTest.java",
+      "bytes": 16569,
+      "sha256": "3c7947e7d4fe15f03ea32fcce6dc296bf1b8cc22f723a9bf2e6535eec66e0893"
+    },
+    {
+      "path": "docs/session-merge-architecture-v2.md",
+      "bytes": 63133,
+      "sha256": "d6ffa1da3b15052bc60182546367ed5c2e521017d797c283776057208f53250a"
+    },
+    {
+      "path": "frontend/src/components/session/SessionMergePanel.test.tsx",
+      "bytes": 21377,
+      "sha256": "5c57958261606b0aaa123c96a0b6481fd26ff98bf862fc2bde18650f0682a035"
+    },
+    {
+      "path": "frontend/src/components/session/SessionMergePanel.tsx",
+      "bytes": 18017,
+      "sha256": "71a045daeb7e3933cf3fbbcb82d2c88beb1b26643d24069124adbf3b97108a94"
+    },
+    {
+      "path": "frontend/src/store/sessionMergeStore.test.ts",
+      "bytes": 29559,
+      "sha256": "1178823b95baf0fcc58a95e9ab57fbcf33e831354d74b13dd99020bf3d018179"
+    },
+    {
+      "path": "frontend/src/store/sessionMergeStore.ts",
+      "bytes": 16317,
+      "sha256": "bb6ce1dea9ea73901f8a98227d87872b3ab7587931ea3713d5190c38ee13705d"
+    },
+    {
+      "path": "docs/case-studies/assets/aicoding评测/Codex/Astra极高_会话合并v2完整代码审查报告_2026-09-22.md",
+      "bytes": 20992,
+      "sha256": "da3f3f4b07a740b7a81029880b55dcc77019f9b57abd36ec58d2cf8910d08123"
+    },
+    {
+      "path": "docs/case-studies/assets/aicoding评测/DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2代码审查报告.md",
+      "bytes": 23655,
+      "sha256": "a0372bb6fc5951c7c4539a98cb19051881f45dc205a5e8d6f527fea75e30c281"
+    },
+    {
+      "path": "docs/case-studies/assets/aicoding评测/KimiCode/KimiK3-session-merge-v2-review.md",
+      "bytes": 14772,
+      "sha256": "585b3e23e1aaf2590202d8332abb2bb151ca12c6cd84cff20970b175058237a4"
+    },
+    {
+      "path": "docs/case-studies/assets/aicoding评测/Qoder/kimik3-session-merge-v2-review.md",
+      "bytes": 11089,
+      "sha256": "f767de7a794857168ec2b79d6012cfa9e9d560e436396da7eb90671355d176f5"
+    },
+    {
+      "path": "docs/case-studies/assets/aicoding评测/Qoder/qwen3.8max极高新版本-会话合并v2代码审查报告.md",
+      "bytes": 50005,
+      "sha256": "250303732c1353f9661bd5e171d9446eb0c09f4a0e76ba85749c054e10878699"
+    },
+    {
+      "path": "docs/case-studies/assets/aicoding评测/QoderIDE/Cantus-zhikuncode-session-merge-v2-代码审查报告-2026-09-22.md",
+      "bytes": 17547,
+      "sha256": "e7de7dfa002b076df84aa57e83778109bfea22e6df0ed17acd6bbde57124aa15"
+    },
+    {
+      "path": "docs/case-studies/assets/aicoding评测/QoderIDE/Sonus-session-merge-v2-review.md",
+      "bytes": 21136,
+      "sha256": "b1447fe74ca2db8dc2fcee8288ce5ade4f36355df1d09cf6c0fa20d3e8931160"
+    },
+    {
+      "path": "docs/case-studies/assets/aicoding评测/QoderIDE/极致模型-会话合并v2代码审查报告.md",
+      "bytes": 11160,
+      "sha256": "ca237f8395644f08227bc9a1862a85faaca5e8cec62592b828e485a46a1d6b4d"
+    },
+    {
+      "path": "docs/case-studies/assets/aicoding评测/TraeCode/Qwen3.8Max-会话合并v2代码审查报告.md",
+      "bytes": 10665,
+      "sha256": "97319de114582ea625bdb44aa1f071707ebd0610ddde7c87d30a8b26db2cdad4"
+    },
+    {
+      "path": "docs/case-studies/assets/aicoding评测/TraeCode/kimik3-会话合并v2代码审查报告.md",
+      "bytes": 8957,
+      "sha256": "80b2385e95077d3dba320b0f465b3992cc0ff116eb707ebca63f5d12069b92d9"
+    },
+    {
+      "path": "docs/case-studies/assets/aicoding评测/cursor/Grok4.7-会话合并v2完整代码审查报告.md",
+      "bytes": 17756,
+      "sha256": "b9c4f84bf6b49de954b4a6623738eb19d0c4c81be942d4a5842a1215e2c1ef46"
+    },
+    {
+      "path": "docs/case-studies/assets/aicoding评测/zhikuncode/GLM5.3-session-merge-v2-code-review.md",
+      "bytes": 23078,
+      "sha256": "4bede0a829bed115a205f8200a8e0a27d9bcdafa11c223c2885064b8b3b207ca"
+    },
+    {
+      "path": "docs/case-studies/assets/aicoding评测/zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md",
+      "bytes": 68906,
+      "sha256": "35d16f03a382c06db0fd2ef8e90eb482fe23e43fffe96973e0fb7ee9eed9d111"
+    },
+    {
+      "path": "docs/case-studies/assets/aicoding评测/zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md",
+      "bytes": 38204,
+      "sha256": "831475e790246748d8c79b8f1a5dd8980dd82c2f64cce02dba2aff6df6c197ed"
+    },
+    {
+      "path": "docs/case-studies/assets/aicoding评测/zhikuncode/kimik3_session-merge-v2-code-review-report.md",
+      "bytes": 27848,
+      "sha256": "f1d163db6693c8f294307ad05901e15ba81bcf31383e4b5b8bcbdad79fc1bbea"
+    },
+    {
+      "path": "docs/case-studies/assets/aicoding评测/小米mimo/session-merge-v2-code-review.md",
+      "bytes": 23687,
+      "sha256": "6af33f49e42cd089c74b9eb72cd3c20a8b3eab87e52d7dbbbb169e32f3aca6ff"
+    },
+    {
+      "path": "docs/case-studies/assets/aicoding评测/智普ZCode/会话合并v2代码审查报告.md",
+      "bytes": 10040,
+      "sha256": "8efaf680b65190f81079e30e4cc2f8b6961cec22473417153f52bbc9e04ea156"
+    },
+    {
+      "path": "docs/case-studies/assets/aicoding评测/钉钉录屏_2026-09-23_010719.mp4",
+      "bytes": 44367679,
+      "sha256": "7a4bc8dedcd7be56f66a44be7731eb4f157f1a9f2df385fa7292017e5630fde6"
+    },
+    {
+      "path": "docs/case-studies/assets/aicoding评测/钉钉录屏_2026-09-22_233604.mp4",
+      "bytes": 92898904,
+      "sha256": "61b30cba1c9afd86cc06a6993e8044bef1dc460cfc4f53564bcf81e968957afa"
+    },
+    {
+      "path": "docs/case-studies/assets/aicoding评测/Opus5.5-17份审查报告排名分析方法过程证据与结论.md",
+      "bytes": 45946,
+      "sha256": "e91c0dacaffa6a430c6e0da1203f992583b4731fc5c6a17732062177ab744566"
+    }
+  ]
+}

@@ -1,0 +1,399 @@
+{
+  "rank_ranges": {
+    "R01": {
+      "min_rank": 3,
+      "max_rank": 4
+    },
+    "R02": {
+      "min_rank": 1,
+      "max_rank": 1
+    },
+    "R03": {
+      "min_rank": 4,
+      "max_rank": 6
+    },
+    "R04": {
+      "min_rank": 10,
+      "max_rank": 10
+    },
+    "R05": {
+      "min_rank": 6,
+      "max_rank": 7
+    },
+    "R06": {
+      "min_rank": 16,
+      "max_rank": 16
+    },
+    "R07": {
+      "min_rank": 4,
+      "max_rank": 7
+    },
+    "R08": {
+      "min_rank": 17,
+      "max_rank": 17
+    },
+    "R09": {
+      "min_rank": 15,
+      "max_rank": 15
+    },
+    "R10": {
+      "min_rank": 12,
+      "max_rank": 13
+    },
+    "R11": {
+      "min_rank": 8,
+      "max_rank": 9
+    },
+    "R12": {
+      "min_rank": 6,
+      "max_rank": 9
+    },
+    "R13": {
+      "min_rank": 3,
+      "max_rank": 8
+    },
+    "R14": {
+      "min_rank": 1,
+      "max_rank": 2
+    },
+    "R15": {
+      "min_rank": 10,
+      "max_rank": 10
+    },
+    "R16": {
+      "min_rank": 10,
+      "max_rank": 12
+    },
+    "R17": {
+      "min_rank": 14,
+      "max_rank": 14
+    }
+  },
+  "reversals": [
+    {
+      "a": "R01",
+      "b": "R13",
+      "a_above": [
+        "beta=0.5;weights=4-2-1;defects=70",
+        "beta=0.5;weights=4-2-1;defects=80",
+        "beta=0.5;weights=4-2-1;defects=90",
+        "beta=0.5;weights=3-2-1;defects=70",
+        "beta=0.5;weights=3-2-1;defects=80",
+        "beta=0.5;weights=3-2-1;defects=90",
+        "beta=0.5;weights=2-1-1;defects=70",
+        "beta=0.5;weights=2-1-1;defects=80",
+        "beta=0.5;weights=2-1-1;defects=90",
+        "beta=1;weights=4-2-1;defects=70",
+        "beta=1;weights=4-2-1;defects=80",
+        "beta=1;weights=4-2-1;defects=90",
+        "beta=1;weights=3-2-1;defects=70",
+        "beta=1;weights=3-2-1;defects=80",
+        "beta=1;weights=3-2-1;defects=90",
+        "beta=1;weights=2-1-1;defects=70",
+        "beta=1;weights=2-1-1;defects=80",
+        "beta=1;weights=2-1-1;defects=90",
+        "beta=2;weights=4-2-1;defects=70",
+        "beta=2;weights=4-2-1;defects=80",
+        "beta=2;weights=4-2-1;defects=90"
+      ],
+      "b_above": [
+        "beta=2;weights=3-2-1;defects=70",
+        "beta=2;weights=3-2-1;defects=80",
+        "beta=2;weights=3-2-1;defects=90",
+        "beta=2;weights=2-1-1;defects=70",
+        "beta=2;weights=2-1-1;defects=80",
+        "beta=2;weights=2-1-1;defects=90"
+      ],
+      "ties": []
+    },
+    {
+      "a": "R03",
+      "b": "R07",
+      "a_above": [
+        "beta=0.5;weights=3-2-1;defects=70",
+        "beta=0.5;weights=3-2-1;defects=80",
+        "beta=0.5;weights=3-2-1;defects=90",
+        "beta=0.5;weights=2-1-1;defects=70",
+        "beta=0.5;weights=2-1-1;defects=80",
+        "beta=0.5;weights=2-1-1;defects=90",
+        "beta=1;weights=3-2-1;defects=70",
+        "beta=1;weights=3-2-1;defects=80",
+        "beta=1;weights=3-2-1;defects=90",
+        "beta=1;weights=2-1-1;defects=70",
+        "beta=1;weights=2-1-1;defects=80",
+        "beta=1;weights=2-1-1;defects=90",
+        "beta=2;weights=3-2-1;defects=70",
+        "beta=2;weights=3-2-1;defects=80",
+        "beta=2;weights=3-2-1;defects=90",
+        "beta=2;weights=2-1-1;defects=70",
+        "beta=2;weights=2-1-1;defects=80",
+        "beta=2;weights=2-1-1;defects=90"
+      ],
+      "b_above": [
+        "beta=0.5;weights=4-2-1;defects=70",
+        "beta=0.5;weights=4-2-1;defects=80",
+        "beta=0.5;weights=4-2-1;defects=90",
+        "beta=1;weights=4-2-1;defects=70",
+        "beta=1;weights=4-2-1;defects=80",
+        "beta=1;weights=4-2-1;defects=90",
+        "beta=2;weights=4-2-1;defects=70",
+        "beta=2;weights=4-2-1;defects=80",
+        "beta=2;weights=4-2-1;defects=90"
+      ],
+      "ties": []
+    },
+    {
+      "a": "R03",
+      "b": "R13",
+      "a_above": [
+        "beta=0.5;weights=4-2-1;defects=70",
+        "beta=0.5;weights=4-2-1;defects=80",
+        "beta=0.5;weights=4-2-1;defects=90",
+        "beta=0.5;weights=3-2-1;defects=70",
+        "beta=0.5;weights=3-2-1;defects=80",
+        "beta=0.5;weights=3-2-1;defects=90",
+        "beta=0.5;weights=2-1-1;defects=70",
+        "beta=0.5;weights=2-1-1;defects=80",
+        "beta=0.5;weights=2-1-1;defects=90"
+      ],
+      "b_above": [
+        "beta=1;weights=4-2-1;defects=70",
+        "beta=1;weights=4-2-1;defects=80",
+        "beta=1;weights=4-2-1;defects=90",
+        "beta=1;weights=3-2-1;defects=70",
+        "beta=1;weights=3-2-1;defects=80",
+        "beta=1;weights=3-2-1;defects=90",
+        "beta=1;weights=2-1-1;defects=70",
+        "beta=1;weights=2-1-1;defects=80",
+        "beta=1;weights=2-1-1;defects=90",
+        "beta=2;weights=4-2-1;defects=70",
+        "beta=2;weights=4-2-1;defects=80",
+        "beta=2;weights=4-2-1;defects=90",
+        "beta=2;weights=3-2-1;defects=70",
+        "beta=2;weights=3-2-1;defects=80",
+        "beta=2;weights=3-2-1;defects=90",
+        "beta=2;weights=2-1-1;defects=70",
+        "beta=2;weights=2-1-1;defects=80",
+        "beta=2;weights=2-1-1;defects=90"
+      ],
+      "ties": []
+    },
+    {
+      "a": "R05",
+      "b": "R07",
+      "a_above": [
+        "beta=1;weights=3-2-1;defects=70",
+        "beta=1;weights=3-2-1;defects=80",
+        "beta=1;weights=3-2-1;defects=90",
+        "beta=1;weights=2-1-1;defects=70",
+        "beta=1;weights=2-1-1;defects=80",
+        "beta=1;weights=2-1-1;defects=90",
+        "beta=2;weights=3-2-1;defects=70",
+        "beta=2;weights=3-2-1;defects=80",
+        "beta=2;weights=3-2-1;defects=90",
+        "beta=2;weights=2-1-1;defects=70",
+        "beta=2;weights=2-1-1;defects=80",
+        "beta=2;weights=2-1-1;defects=90"
+      ],
+      "b_above": [
+        "beta=0.5;weights=4-2-1;defects=70",
+        "beta=0.5;weights=4-2-1;defects=80",
+        "beta=0.5;weights=4-2-1;defects=90",
+        "beta=0.5;weights=3-2-1;defects=70",
+        "beta=0.5;weights=3-2-1;defects=80",
+        "beta=0.5;weights=3-2-1;defects=90",
+        "beta=0.5;weights=2-1-1;defects=70",
+        "beta=0.5;weights=2-1-1;defects=80",
+        "beta=0.5;weights=2-1-1;defects=90",
+        "beta=1;weights=4-2-1;defects=70",
+        "beta=1;weights=4-2-1;defects=80",
+        "beta=1;weights=4-2-1;defects=90",
+        "beta=2;weights=4-2-1;defects=70",
+        "beta=2;weights=4-2-1;defects=80",
+        "beta=2;weights=4-2-1;defects=90"
+      ],
+      "ties": []
+    },
+    {
+      "a": "R05",
+      "b": "R12",
+      "a_above": [
+        "beta=0.5;weights=4-2-1;defects=70",
+        "beta=0.5;weights=4-2-1;defects=80",
+        "beta=0.5;weights=4-2-1;defects=90",
+        "beta=0.5;weights=3-2-1;defects=70",
+        "beta=0.5;weights=3-2-1;defects=80",
+        "beta=0.5;weights=3-2-1;defects=90",
+        "beta=0.5;weights=2-1-1;defects=70",
+        "beta=0.5;weights=2-1-1;defects=80",
+        "beta=1;weights=4-2-1;defects=70",
+        "beta=1;weights=4-2-1;defects=80",
+        "beta=1;weights=4-2-1;defects=90",
+        "beta=1;weights=3-2-1;defects=70",
+        "beta=1;weights=3-2-1;defects=80",
+        "beta=1;weights=3-2-1;defects=90",
+        "beta=1;weights=2-1-1;defects=70",
+        "beta=1;weights=2-1-1;defects=80",
+        "beta=1;weights=2-1-1;defects=90",
+        "beta=2;weights=4-2-1;defects=70",
+        "beta=2;weights=4-2-1;defects=80",
+        "beta=2;weights=4-2-1;defects=90",
+        "beta=2;weights=3-2-1;defects=70",
+        "beta=2;weights=3-2-1;defects=80",
+        "beta=2;weights=3-2-1;defects=90",
+        "beta=2;weights=2-1-1;defects=70",
+        "beta=2;weights=2-1-1;defects=80",
+        "beta=2;weights=2-1-1;defects=90"
+      ],
+      "b_above": [
+        "beta=0.5;weights=2-1-1;defects=90"
+      ],
+      "ties": []
+    },
+    {
+      "a": "R05",
+      "b": "R13",
+      "a_above": [
+        "beta=0.5;weights=4-2-1;defects=70",
+        "beta=0.5;weights=4-2-1;defects=80",
+        "beta=0.5;weights=4-2-1;defects=90",
+        "beta=0.5;weights=3-2-1;defects=70",
+        "beta=0.5;weights=3-2-1;defects=80",
+        "beta=0.5;weights=3-2-1;defects=90",
+        "beta=0.5;weights=2-1-1;defects=70",
+        "beta=0.5;weights=2-1-1;defects=80",
+        "beta=0.5;weights=2-1-1;defects=90"
+      ],
+      "b_above": [
+        "beta=1;weights=4-2-1;defects=70",
+        "beta=1;weights=4-2-1;defects=80",
+        "beta=1;weights=4-2-1;defects=90",
+        "beta=1;weights=3-2-1;defects=70",
+        "beta=1;weights=3-2-1;defects=80",
+        "beta=1;weights=3-2-1;defects=90",
+        "beta=1;weights=2-1-1;defects=70",
+        "beta=1;weights=2-1-1;defects=80",
+        "beta=1;weights=2-1-1;defects=90",
+        "beta=2;weights=4-2-1;defects=70",
+        "beta=2;weights=4-2-1;defects=80",
+        "beta=2;weights=4-2-1;defects=90",
+        "beta=2;weights=3-2-1;defects=70",
+        "beta=2;weights=3-2-1;defects=80",
+        "beta=2;weights=3-2-1;defects=90",
+        "beta=2;weights=2-1-1;defects=70",
+        "beta=2;weights=2-1-1;defects=80",
+        "beta=2;weights=2-1-1;defects=90"
+      ],
+      "ties": []
+    },
+    {
+      "a": "R07",
+      "b": "R13",
+      "a_above": [
+        "beta=0.5;weights=4-2-1;defects=70",
+        "beta=0.5;weights=4-2-1;defects=80",
+        "beta=0.5;weights=4-2-1;defects=90",
+        "beta=0.5;weights=3-2-1;defects=70",
+        "beta=0.5;weights=3-2-1;defects=80",
+        "beta=0.5;weights=3-2-1;defects=90",
+        "beta=0.5;weights=2-1-1;defects=70",
+        "beta=0.5;weights=2-1-1;defects=80",
+        "beta=0.5;weights=2-1-1;defects=90"
+      ],
+      "b_above": [
+        "beta=1;weights=4-2-1;defects=70",
+        "beta=1;weights=4-2-1;defects=80",
+        "beta=1;weights=4-2-1;defects=90",
+        "beta=1;weights=3-2-1;defects=70",
+        "beta=1;weights=3-2-1;defects=80",
+        "beta=1;weights=3-2-1;defects=90",
+        "beta=1;weights=2-1-1;defects=70",
+        "beta=1;weights=2-1-1;defects=80",
+        "beta=1;weights=2-1-1;defects=90",
+        "beta=2;weights=4-2-1;defects=70",
+        "beta=2;weights=4-2-1;defects=80",
+        "beta=2;weights=4-2-1;defects=90",
+        "beta=2;weights=3-2-1;defects=70",
+        "beta=2;weights=3-2-1;defects=80",
+        "beta=2;weights=3-2-1;defects=90",
+        "beta=2;weights=2-1-1;defects=70",
+        "beta=2;weights=2-1-1;defects=80",
+        "beta=2;weights=2-1-1;defects=90"
+      ],
+      "ties": []
+    },
+    {
+      "a": "R11",
+      "b": "R12",
+      "a_above": [
+        "beta=0.5;weights=4-2-1;defects=70",
+        "beta=0.5;weights=4-2-1;defects=80",
+        "beta=0.5;weights=3-2-1;defects=70",
+        "beta=0.5;weights=3-2-1;defects=80",
+        "beta=1;weights=4-2-1;defects=70",
+        "beta=1;weights=4-2-1;defects=80",
+        "beta=1;weights=4-2-1;defects=90",
+        "beta=1;weights=3-2-1;defects=70",
+        "beta=1;weights=3-2-1;defects=80",
+        "beta=1;weights=3-2-1;defects=90",
+        "beta=1;weights=2-1-1;defects=70",
+        "beta=2;weights=4-2-1;defects=70",
+        "beta=2;weights=4-2-1;defects=80",
+        "beta=2;weights=4-2-1;defects=90",
+        "beta=2;weights=3-2-1;defects=70",
+        "beta=2;weights=3-2-1;defects=80",
+        "beta=2;weights=3-2-1;defects=90",
+        "beta=2;weights=2-1-1;defects=70",
+        "beta=2;weights=2-1-1;defects=80"
+      ],
+      "b_above": [
+        "beta=0.5;weights=4-2-1;defects=90",
+        "beta=0.5;weights=3-2-1;defects=90",
+        "beta=0.5;weights=2-1-1;defects=70",
+        "beta=0.5;weights=2-1-1;defects=80",
+        "beta=0.5;weights=2-1-1;defects=90",
+        "beta=1;weights=2-1-1;defects=80",
+        "beta=1;weights=2-1-1;defects=90",
+        "beta=2;weights=2-1-1;defects=90"
+      ],
+      "ties": []
+    },
+    {
+      "a": "R12",
+      "b": "R13",
+      "a_above": [
+        "beta=0.5;weights=2-1-1;defects=90"
+      ],
+      "b_above": [
+        "beta=0.5;weights=4-2-1;defects=70",
+        "beta=0.5;weights=4-2-1;defects=80",
+        "beta=0.5;weights=4-2-1;defects=90",
+        "beta=0.5;weights=3-2-1;defects=70",
+        "beta=0.5;weights=3-2-1;defects=80",
+        "beta=0.5;weights=3-2-1;defects=90",
+        "beta=0.5;weights=2-1-1;defects=70",
+        "beta=0.5;weights=2-1-1;defects=80",
+        "beta=1;weights=4-2-1;defects=70",
+        "beta=1;weights=4-2-1;defects=80",
+        "beta=1;weights=4-2-1;defects=90",
+        "beta=1;weights=3-2-1;defects=70",
+        "beta=1;weights=3-2-1;defects=80",
+        "beta=1;weights=3-2-1;defects=90",
+        "beta=1;weights=2-1-1;defects=70",
+        "beta=1;weights=2-1-1;defects=80",
+        "beta=1;weights=2-1-1;defects=90",
+        "beta=2;weights=4-2-1;defects=70",
+        "beta=2;weights=4-2-1;defects=80",
+        "beta=2;weights=4-2-1;defects=90",
+        "beta=2;weights=3-2-1;defects=70",
+        "beta=2;weights=3-2-1;defects=80",
+        "beta=2;weights=3-2-1;defects=90",
+        "beta=2;weights=2-1-1;defects=70",
+        "beta=2;weights=2-1-1;defects=80",
+        "beta=2;weights=2-1-1;defects=90"
+      ],
+      "ties": []
+    }
+  ],
+  "note": "27个权重情景，不是抽样置信度。"
+}
