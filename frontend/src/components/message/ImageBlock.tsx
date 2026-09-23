@@ -5,8 +5,9 @@
  * 支持 base64 和 URL 两种图片源，响应式展示 + 点击放大。
  */
 
-import React, { useState, useCallback } from 'react';
-import { ZoomIn, X } from 'lucide-react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { ZoomIn, X, Copy, Check } from 'lucide-react';
+import { copyImageToClipboard } from '@/utils/messageContent';
 
 interface ImageBlockProps {
     /** base64 编码数据 (不含 data: 前缀) */
@@ -26,6 +27,13 @@ const ImageBlock: React.FC<ImageBlockProps> = ({
 }) => {
     const [zoomed, setZoomed] = useState(false);
     const [loadError, setLoadError] = useState(false);
+    const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle');
+    const copyTimerRef = useRef<number | null>(null);
+
+    // 卸载时清理复制状态重置定时器，避免组件销毁后 setState
+    useEffect(() => () => {
+        if (copyTimerRef.current !== null) window.clearTimeout(copyTimerRef.current);
+    }, []);
 
     const imageSrc = base64Data
         ? `data:${mediaType};base64,${base64Data}`
@@ -40,6 +48,25 @@ const ImageBlock: React.FC<ImageBlockProps> = ({
     }
 
     const toggleZoom = useCallback(() => setZoomed(prev => !prev), []);
+
+    // 复制图片到剪贴板：base64 直接转 Blob，URL 由工具内部 fetch；
+    // 剪贴板图片写入不支持/失败时工具内部会降级为复制 URL 文本——
+    // base64 与 src 双有时必须把 src 一并传入，否则降级链断在"复制失败"
+    const copyImage = useCallback(async (event: React.MouseEvent) => {
+        event.stopPropagation();
+        try {
+            await copyImageToClipboard(
+                base64Data
+                    ? { base64Data, mediaType, url: src }
+                    : { url: imageSrc, mediaType },
+            );
+            setCopyState('copied');
+        } catch {
+            setCopyState('failed');
+        }
+        if (copyTimerRef.current !== null) window.clearTimeout(copyTimerRef.current);
+        copyTimerRef.current = window.setTimeout(() => setCopyState('idle'), 2000);
+    }, [base64Data, imageSrc, mediaType, src]);
 
     if (!imageSrc) {
         return (
@@ -84,17 +111,30 @@ const ImageBlock: React.FC<ImageBlockProps> = ({
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
                     onClick={toggleZoom}
                 >
-                    <button
-                        onClick={(event) => {
-                            event.stopPropagation();
-                            setZoomed(false);
-                        }}
-                        className="panel-control absolute top-4 right-4 p-2 rounded-full bg-surfacev2 text-t1 hover:bg-sunken2"
-                        aria-label="Close zoom"
-                        type="button"
-                    >
-                        <X size={20} />
-                    </button>
+                    <div className="absolute top-4 right-4 flex items-center gap-2">
+                        <button
+                            onClick={copyImage}
+                            className={`panel-control p-2 rounded-full bg-surfacev2 hover:bg-sunken2 ${
+                                copyState === 'copied' ? 'text-ok' : copyState === 'failed' ? 'text-err' : 'text-t1'
+                            }`}
+                            aria-label={copyState === 'copied' ? 'Image copied' : copyState === 'failed' ? 'Copy image failed' : 'Copy image'}
+                            title={copyState === 'copied' ? '已复制' : copyState === 'failed' ? '复制失败' : '复制图片'}
+                            type="button"
+                        >
+                            {copyState === 'copied' ? <Check size={20} /> : <Copy size={20} />}
+                        </button>
+                        <button
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                setZoomed(false);
+                            }}
+                            className="panel-control p-2 rounded-full bg-surfacev2 text-t1 hover:bg-sunken2"
+                            aria-label="Close zoom"
+                            type="button"
+                        >
+                            <X size={20} />
+                        </button>
+                    </div>
                     <img
                         src={imageSrc}
                         alt={alt}

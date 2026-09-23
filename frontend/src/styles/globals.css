@@ -319,3 +319,52 @@ body {
   .expand-collapse[data-open="true"] { max-height: 600px; }
   .expand-collapse[data-open="false"] { max-height: 0; }
 }
+
+/* ===== 会话卡选中 pill（荧光浮起，framer-motion layoutId 滑动载体） =====
+   选中视觉独立成层：accent 染色底 + 45% 边框 + 外发光 + 浮起阴影 + 左侧 4px 渐变光柱。
+   color-mix 基于 --v2-accent 局部定制（不动全局 token），accent 运行时切换自动跟随；
+   切换会话时 framer-motion 对同一 layoutId 元素做 FLIP 滑动（magic move）。 */
+.session-active-pill {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  pointer-events: none;
+  /* FLIP 滑动期间 pill 以 transform 移动：will-change 提示合成器独立成层，
+     避免大面积模糊阴影每帧重排重绘（迟滞感主因）。 */
+  will-change: transform;
+  background: color-mix(in srgb, var(--v2-accent) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--v2-accent) 45%, transparent);
+  /* 外发光收敛至 10px blur：动画元素上的大范围阴影模糊是重绘热点 */
+  box-shadow:
+    0 0 10px -2px color-mix(in srgb, var(--v2-accent) 26%, transparent),
+    var(--v2-shadow-raised);
+}
+/* 左侧渐变光柱：上下内缩 8px 避开卡片圆角，自身带微光 */
+.session-active-pill::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 4px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, var(--v2-accent), var(--v2-accent-strong));
+  box-shadow: 0 0 6px color-mix(in srgb, var(--v2-accent) 50%, transparent);
+}
+/* 浅色：染色与光晕减弱（浅底发光显脏，主要靠染色+边框+光柱） */
+html.light .session-active-pill {
+  background: color-mix(in srgb, var(--v2-accent) 12%, transparent);
+  box-shadow:
+    0 0 8px -2px color-mix(in srgb, var(--v2-accent) 14%, transparent),
+    var(--v2-shadow-raised);
+}
+
+/* ===== 会话卡操作区：指针能力自适应可见性 =====
+   触屏/粗指针设备无 hover：操作区默认常驻可见（合并/删除入口可发现，
+   且避免 opacity-0 元素仍可被误触）；仅精确指针（鼠标）设备折叠为
+   hover/聚焦显示，保持列表整洁与键盘可达（focus-within）。 */
+@media (hover: hover) and (pointer: fine) {
+  .session-card .card-actions { opacity: 0; }
+  .session-card:hover .card-actions,
+  .session-card:focus-within .card-actions { opacity: 1; }
+}

@@ -31,6 +31,13 @@ final class MergeTextBudget {
             writer.append(text);
         }
     }
+    void atomicWrite(Path path, CharSequence text) throws IOException {
+        Path temporary=path.resolveSibling(path.getFileName()+".tmp-"+java.util.UUID.randomUUID());
+        try {
+            write(temporary,text,StandardOpenOption.CREATE_NEW);
+            Files.move(temporary,path,StandardCopyOption.ATOMIC_MOVE,StandardCopyOption.REPLACE_EXISTING);
+        } finally { Files.deleteIfExists(temporary); }
+    }
     private void reserve(int bytes) throws IOException {
         if (available.get() - bytes < reserve) throw new IOException("MERGE_DISK_SPACE_LOW");
     }

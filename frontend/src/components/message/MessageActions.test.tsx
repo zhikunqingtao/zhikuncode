@@ -200,3 +200,65 @@ describe('MessageActions — 消息组件集成', () => {
         expect(screen.getByTestId('message-timestamp')).toBeInTheDocument();
     });
 });
+
+describe('MessageActions — 复制全部（彩色按钮）', () => {
+    const mixedMessage = () => userMessage([
+        { type: 'text', text: '如图，帮我看看' },
+        { type: 'image', mediaType: 'image/png', url: 'https://oss.example.com/a.png' },
+    ]);
+
+    it('图文混合消息渲染彩色复制全部按钮，复制文本 + 图片链接', async () => {
+        render(<MessageActions message={mixedMessage()} />);
+        const btn = screen.getByTestId('message-copy-all-button');
+        fireEvent.click(btn);
+        await act(async () => {});
+        expect(clipboardWriteText).toHaveBeenCalledWith(
+            '如图，帮我看看\n[图片] https://oss.example.com/a.png',
+        );
+        expect(btn).toHaveAttribute('title', '已复制全部内容');
+    });
+
+    it('多图消息复制全部图片链接（按序编号）', async () => {
+        const msg = userMessage([
+            { type: 'text', text: '对比两张图' },
+            { type: 'image', mediaType: 'image/png', url: 'https://oss.example.com/1.png' },
+            { type: 'image', mediaType: 'image/png', url: 'https://oss.example.com/2.png' },
+        ]);
+        render(<MessageActions message={msg} />);
+        fireEvent.click(screen.getByTestId('message-copy-all-button'));
+        await act(async () => {});
+        expect(clipboardWriteText).toHaveBeenCalledWith(
+            '对比两张图\n[图片1] https://oss.example.com/1.png\n[图片2] https://oss.example.com/2.png',
+        );
+    });
+
+    it('纯文本消息不渲染彩色按钮（与普通复制等价）', () => {
+        render(<MessageActions message={userMessage([{ type: 'text', text: 'hi' }])} />);
+        expect(screen.queryByTestId('message-copy-all-button')).not.toBeInTheDocument();
+        expect(screen.getByTestId('message-copy-button')).toBeInTheDocument();
+    });
+
+    it('纯图片消息不渲染彩色按钮，流式进行中也不渲染', () => {
+        const { unmount } = render(
+            <MessageActions
+                message={userMessage([{ type: 'image', mediaType: 'image/png', url: 'https://oss.example.com/a.png' }])}
+            />,
+        );
+        expect(screen.queryByTestId('message-copy-all-button')).not.toBeInTheDocument();
+        unmount();
+        render(<MessageActions message={mixedMessage()} isStreaming />);
+        expect(screen.queryByTestId('message-copy-all-button')).not.toBeInTheDocument();
+    });
+
+    it('复制失败时按钮反馈"复制失败"，2 秒后恢复', async () => {
+        vi.useFakeTimers();
+        clipboardWriteText.mockRejectedValueOnce(new Error('denied'));
+        render(<MessageActions message={mixedMessage()} />);
+        const btn = screen.getByTestId('message-copy-all-button');
+        fireEvent.click(btn);
+        await act(async () => {});
+        expect(btn).toHaveAttribute('title', '复制失败');
+        act(() => { vi.advanceTimersByTime(2000); });
+        expect(btn).toHaveAttribute('title', '复制全部内容（含图片链接）');
+    });
+});

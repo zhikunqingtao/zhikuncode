@@ -33,6 +33,17 @@ class AuthorizationServiceProjectFileScopeTest {
     Path workspace;
 
     @Test
+    void planAllowsAnalyzedHandoffReadButNotAnUnknownToolWithTheSameName() {
+        var fixture=fixture(PermissionMode.PLAN,false);
+        var read=descriptor("HandoffRead","handoff-read-v1",List.of(EffectClass.READ_RESOURCE),RiskClass.SAFE,
+                List.of(new ResourceRef("handoff","bound:hash",false)));
+        assertThat(fixture.authorize(read).reasonCode()).isEqualTo("SAFE_READ_AUTO");
+        var unknown=descriptor("HandoffRead","static-or-remote-v1",List.of(EffectClass.READ_RESOURCE),RiskClass.SAFE,
+                List.of(new ResourceRef("handoff","bound:hash",false)));
+        assertThatThrownBy(() -> fixture.authorize(unknown)).isInstanceOf(AuthorizationException.class);
+    }
+
+    @Test
     void defaultModeAutoAllowsOnlyTrustedOrdinaryFileWrites() {
         Fixture fixture = fixture(PermissionMode.DEFAULT, true);
         OperationDescriptor write = descriptor(

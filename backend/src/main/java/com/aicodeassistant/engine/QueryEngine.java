@@ -361,6 +361,13 @@ public class QueryEngine {
             preCleanImageHistory(config, state);
             loopOutcome = queryLoop(config, state, handler, aborted);
             totalUsage = loopOutcome.usage();
+        } catch (HandoffContextService.CapacityException e) {
+            // Only merged sessions can raise this. Compaction cannot shrink the mandatory entry.
+            state.setRecoveryExhausted(true);
+            state.setRecoveryFailureMessage(e.getMessage());
+            totalUsage = state.getObservedUsage();
+            loopOutcome = new LoopOutcome(LoopExit.CONTEXT_RECOVERY_EXHAUSTED, totalUsage, null);
+            handler.onError(e);
         } catch (Exception e) {
             boolean persistenceFailed = e instanceof com.aicodeassistant.session.MessagePersistenceException;
             boolean cancelled = !persistenceFailed && (aborted.get() || isCancellation(e));
@@ -838,11 +845,13 @@ public class QueryEngine {
             int effectiveContextWindow = modelRegistry.getContextWindowForModel(effectiveModel);
             double tokenCharRatio = modelRegistry.getTokenCharRatio(effectiveModel);
             int inputBudget = historyInputBudget(config, effectiveContextWindow, tokenCharRatio, effectiveMaxTokens);
+            var handoff = handoffProjection(config,state,effectiveModel,inputBudget,tokenCharRatio);
+            int historyBudget = inputBudget - handoff.reservedTokens();
             // Recovery must use the actually selected model; retain this phase's shared deadline.
             prepareCompactionContext(config, state, effectiveModel, List.of(), false);
 
             TokenBudgetGuard.GuardResult guardResult = tokenBudgetGuard.enforcePhase1(
-                    state.getMessages(), inputBudget, tokenCharRatio, currentImageRequestId);
+                    state.getMessages(), historyBudget, tokenCharRatio, currentImageRequestId);
             if (guardResult.trimmed()) {
                 state.setMessages(guardResult.messages());
                 log.info("[ImageOpt] Phase1 cleanup: {} → {} tokens", guardResult.tokensBefore(), guardResult.tokensAfter());
@@ -855,7 +864,7 @@ public class QueryEngine {
             List<Message> budgetMessages = modelCaps.imageInputMode() == ModelCapabilities.ImageInputMode.BASE64_ONLY
                     ? UserImageTranscoder.withoutImagesForBudget(state.getMessages()) : state.getMessages();
             int currentTokens = tokenCounter.estimateTokens(budgetMessages, effectiveModel);
-            int remainingBudget = inputBudget - currentTokens;
+            int remainingBudget = historyBudget - currentTokens;
             String workingDir = state.getToolUseContext() != null ? state.getToolUseContext().workingDirectory() : null;
             int modelMaxImages = modelCaps.maxImages();
             List<Message> imagePreparedMessages = state.getMessages();
@@ -888,7 +897,7 @@ public class QueryEngine {
                         if (preparationAttempt == 0 && "IMAGE_CONTEXT_BUDGET_EXCEEDED".equals(failure.getErrorType())
                                 && tryReactiveCompact(config, state, handler, currentImageRequestId)) {
                             imagePreparedMessages = state.getMessages();
-                            remainingBudget = inputBudget - tokenCounter.estimateTokens(
+                            remainingBudget = historyBudget - tokenCounter.estimateTokens(
                                     UserImageTranscoder.withoutImagesForBudget(imagePreparedMessages), effectiveModel);
                             continue; // Retry preparation within the same model turn, including maxTurns=1.
                         }
@@ -902,9 +911,12 @@ public class QueryEngine {
                 toolImageBudget = Math.max(0, remainingBudget - UserImageTranscoder.imageTokens(
                         imagePreparedMessages, currentImageRequestId));
             }
-            ImageRefInjector.InjectResult injectResult = imageRefInjector.injectForApiCall(
-                imagePreparedMessages, runStartIndex, toolImageBudget, confirmedImageHashes,
-                rejectedImageBudgets, workingDir, modelMaxImages);
+            ImageRefInjector.InjectResult injectResult = handoffContext != null && !handoff.messages().isEmpty()
+                ? imageRefInjector.injectForApiCall(imagePreparedMessages, runStartIndex, toolImageBudget,
+                    confirmedImageHashes, rejectedImageBudgets, workingDir, modelMaxImages,
+                    (path,hash) -> handoffContext.canReadAsset(state.getToolUseContext(),path,hash))
+                : imageRefInjector.injectForApiCall(imagePreparedMessages, runStartIndex, toolImageBudget,
+                    confirmedImageHashes, rejectedImageBudgets, workingDir, modelMaxImages);
             // Optional/mocked injectors used by extensions may return null. Image
             // injection is an optimization and must never break the query loop.
             if (injectResult == null) {
@@ -932,7 +944,7 @@ public class QueryEngine {
             // degradation must not remove either occurrence in that case.
             pendingHashes.removeAll(UserImageTranscoder.imageHashes(imagePreparedMessages, currentImageRequestId));
 
-            List<MessageParam> typedMessages = messageNormalizer.normalizeTyped(CompactionHistory.forRequest(apiReadyMessages));
+            List<MessageParam> typedMessages = messageNormalizer.normalizeTyped(CompactionHistory.forRequest(com.aicodeassistant.engine.HandoffContextService.inject(apiReadyMessages,handoff)));
             List<Map<String, Object>> apiMessages = MessageParamConverter.toMaps(typedMessages);
             log.debug("Turn {} Step3: apiMessages.size={}, typedMessages.size={}",
                     turn, apiMessages.size(), typedMessages.size());
@@ -1800,6 +1812,18 @@ public class QueryEngine {
         return config;
     }
 
+    @org.springframework.beans.factory.annotation.Autowired(required=false)
+    private com.aicodeassistant.engine.HandoffContextService handoffContext;
+
+    private com.aicodeassistant.engine.HandoffContextService.Projection handoffProjection(
+            QueryConfig config,QueryLoopState state,String model,int budget,double ratio) {
+        if(state.getHandoffOperationId()==null)
+            return new com.aicodeassistant.engine.HandoffContextService.Projection(List.of(),0);
+        if(handoffContext==null) throw new IllegalStateException("HANDOFF_CONTEXT_UNAVAILABLE");
+        boolean available=config.tools().stream().anyMatch(com.aicodeassistant.tool.impl.HandoffReadTool.class::isInstance);
+        return handoffContext.project(state.getToolUseContext(),model,budget,ratio,available);
+    }
+
     private int historyInputBudget(QueryConfig config, int window, double ratio, int outputTokens) {
         int system = config.systemPrompt() == null ? 0 : (int)(config.systemPrompt().length() / ratio);
         int tools = 0;
@@ -1815,6 +1839,7 @@ public class QueryEngine {
         int window = modelRegistry.getContextWindowForModel(model);
         double ratio = modelRegistry.getTokenCharRatio(model);
         int budget = historyInputBudget(config, window, ratio, state.getEffectiveMaxTokens(config.maxTokens()));
+        budget -= handoffProjection(config,state,model,budget,ratio).reservedTokens();
         if (!protectedTail.isEmpty()) budget -= tokenCounter.estimateTokens(protectedTail, model);
         String session = state.getToolUseContext() == null ? null : state.getToolUseContext().sessionId();
         var signal = session == null ? CancellationSignal.none() : getOrCreateAbortContext(session);

@@ -1945,6 +1945,45 @@ class QueryEngineUnitTest {
         }
     }
 
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(booleans={false,true})
+    void handoffProjectionOnlyRunsForExplicitlyMergedSessions(boolean merged) {
+        var handoff=mock(com.aicodeassistant.engine.HandoffContextService.class);
+        var reference=new Message.UserMessage("handoff-test",Instant.EPOCH,
+                List.of(new ContentBlock.TextBlock("HandoffRead historical reference")),null,null);
+        if(merged) when(handoff.project(any(),anyString(),anyInt(),anyDouble(),anyBoolean())).thenReturn(
+                new com.aicodeassistant.engine.HandoffContextService.Projection(List.of(reference),200));
+        org.springframework.test.util.ReflectionTestUtils.setField(queryEngine,"handoffContext",handoff);
+        var provider=mock(LlmProvider.class); when(providerRegistry.getProvider(anyString())).thenReturn(provider);
+        when(messageNormalizer.normalizeTyped(anyList())).thenAnswer(i -> new MessageNormalizer().normalizeTyped(i.getArgument(0)));
+        when(streamingToolExecutor.newSession(any())).thenReturn(mock(StreamingToolExecutor.ExecutionSession.class));
+        when(apiRetryService.executeWithRetry(any(),anyString(),anyString(),any())).thenAnswer(i -> i.getArgument(0,Supplier.class).get());
+        AtomicReference<List<Map<String,Object>>> payload=new AtomicReference<>();
+        doAnswer(i -> {
+            payload.set(i.getArgument(1)); StreamChatCallback cb=i.getArgument(7);
+            cb.onEvent(new LlmStreamEvent.TextDelta("Continue with current code"));
+            cb.onEvent(new LlmStreamEvent.MessageDelta(new Usage(10,5,0,0),"end_turn")); cb.onComplete(); return null;
+        }).when(provider).streamChat(anyString(),anyList(),anyString(),anyList(),anyInt(),any(),any(LlmCallContext.class),any(StreamChatCallback.class));
+        when(hookService.executeStopHooks(anyList(),anyString())).thenReturn(HookRegistry.StopHookResult.ok());
+        var state=buildState("E current TODO supersedes historical TODO");
+        if(merged) state.setHandoffOperationId("merge-test");
+        var result=queryEngine.execute(buildConfig(),state,handler);
+        assertThat(result.isSuccess()).isTrue();
+        assertThat(objectMapper.valueToTree(payload.get()).toString()).contains("E current TODO");
+        if(merged) assertThat(objectMapper.valueToTree(payload.get()).toString()).contains("HandoffRead");
+        else {
+            assertThat(objectMapper.valueToTree(payload.get()).toString()).doesNotContain("HandoffRead");
+            verifyNoInteractions(handoff);
+        }
+        assertThat(state.getMessages()).noneMatch(m -> m.uuid().equals("handoff-test"));
+        var phase1=org.mockito.ArgumentCaptor.forClass(Integer.class);
+        var phase2=org.mockito.ArgumentCaptor.forClass(Integer.class);
+        verify(tokenBudgetGuard).enforcePhase1(anyList(),phase1.capture(),anyDouble(),nullable(String.class));
+        verify(tokenBudgetGuard).enforcePhase2(anyList(),phase2.capture(),anySet(),anyDouble());
+        assertThat(phase2.getValue()-phase1.getValue()).isEqualTo(merged ? 200 : 0);
+        assertThat(state.getCompactionContext().historyBudget()).isEqualTo(phase1.getValue());
+    }
+
     // ═══════════════ 辅助 ═══════════════
 
     private QueryConfig buildConfig() {
@@ -1977,4 +2016,21 @@ class QueryEngineUnitTest {
         @Override public void onAssistantMessage(Message.AssistantMessage message) { assistantMessages.add(message); }
         @Override public void onError(Throwable error) { errors.add(error); }
     }
+    @org.junit.jupiter.api.Test
+    void mergedEntryCapacityUsesTheExistingContextFailureResult() {
+        QueryConfig config=buildConfig();
+        QueryLoopState state=buildState("synthetic user request");
+        state.setHandoffOperationId("synthetic-merge");
+        HandoffContextService handoff=mock(HandoffContextService.class);
+        when(handoff.project(any(),anyString(),anyInt(),anyDouble(),anyBoolean()))
+                .thenThrow(new HandoffContextService.CapacityException());
+        org.springframework.test.util.ReflectionTestUtils.setField(queryEngine,"handoffContext",handoff);
+        QueryMessageHandler handler=mock(QueryMessageHandler.class);
+        QueryEngine.QueryResult result=queryEngine.execute(config,state,handler);
+        assertThat(result.error()).startsWith("CONTEXT_RECOVERY_EXHAUSTED: HANDOFF_CONTEXT_BUDGET_TOO_SMALL");
+        verify(handler).onError(isA(HandoffContextService.CapacityException.class));
+        verify(providerRegistry,never()).getProvider(anyString());
+        assertThat(state.getMessages()).anyMatch(m -> m instanceof com.aicodeassistant.model.Message.UserMessage);
+    }
+
 }

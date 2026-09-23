@@ -11,18 +11,24 @@
  * - 无文本但有图片 → base64 转 Blob 复制图片 (navigator.clipboard.write + ClipboardItem，
  *   不支持或失败时降级复制图片 URL 文本)
  * - 无可复制内容 / 流式进行中 → 不渲染复制按钮 (时间戳照常显示)
+ * - 图文混合消息额外渲染"复制全部"按钮 (CopyPlus 图标 + 文字，"运行中"同款
+ *   soft 徽章：bg-accent2-soft + border-accent2-ring + text-accent2-ink)，
+ *   复制「全部文本 + 全部图片链接」纯文本；粘贴回输入框时图片以 URL 文字随行，
+ *   由 agent 自行下载查看，不触发输入框的图片附件粘贴逻辑
  */
 
 import React, { useCallback, useState } from 'react';
-import { Copy, Check } from 'lucide-react';
+import { Copy, CopyPlus, Check } from 'lucide-react';
 import type { Message } from '@/types';
 import { formatMessageTime } from '@/utils/datetime';
 import { cn } from '@/components/ui/cn';
 import {
     extractMessageText,
     extractMessageImage,
+    extractMessageImages,
     hasCopyableContent,
     copyImageToClipboard,
+    copyMessageWithImageRefs,
 } from '@/utils/messageContent';
 
 interface MessageActionsProps {
@@ -37,8 +43,13 @@ const COPY_ICON_RESET_MS = 2000;
 
 const MessageActions: React.FC<MessageActionsProps> = ({ message, isStreaming = false, className }) => {
     const [copied, setCopied] = useState(false);
+    const [copyAllState, setCopyAllState] = useState<'idle' | 'copied' | 'failed'>('idle');
 
     const copyable = !isStreaming && hasCopyableContent(message);
+    // 「复制全部」仅在图文混合时显示：纯文本消息与普通复制等价，纯图片消息无文本可带
+    const copyAllable = !isStreaming
+        && extractMessageText(message) !== null
+        && extractMessageImages(message).length > 0;
 
     const handleCopy = useCallback(async () => {
         try {
@@ -57,6 +68,16 @@ const MessageActions: React.FC<MessageActionsProps> = ({ message, isStreaming = 
         }
     }, [message]);
 
+    const handleCopyAll = useCallback(async () => {
+        try {
+            await copyMessageWithImageRefs(message);
+            setCopyAllState('copied');
+        } catch {
+            setCopyAllState('failed');
+        }
+        setTimeout(() => setCopyAllState('idle'), COPY_ICON_RESET_MS);
+    }, [message]);
+
     return (
         <div
             className={cn(
@@ -64,6 +85,27 @@ const MessageActions: React.FC<MessageActionsProps> = ({ message, isStreaming = 
                 className,
             )}
         >
+            {copyAllable && (
+                <button
+                    type="button"
+                    onClick={handleCopyAll}
+                    className={cn(
+                        'inline-flex h-[32px] shrink-0 items-center justify-center gap-1 rounded-full border px-2.5 transition-colors duration-fast',
+                        'focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent2-ink',
+                        copyAllState === 'failed'
+                            ? 'border-err bg-errsoft text-err'
+                            : 'border-accent2-ring bg-accent2-soft text-accent2-ink hover:brightness-105',
+                    )}
+                    title={copyAllState === 'copied' ? '已复制全部内容' : copyAllState === 'failed' ? '复制失败' : '复制全部内容（含图片链接）'}
+                    aria-label={copyAllState === 'copied' ? '已复制全部内容' : copyAllState === 'failed' ? '复制失败' : '复制全部内容（含图片链接）'}
+                    data-testid="message-copy-all-button"
+                >
+                    {copyAllState === 'copied' ? <Check className="h-[18px] w-[18px]" /> : <CopyPlus className="h-[18px] w-[18px]" />}
+                    <span className="text-[13px] font-medium leading-none">
+                        {copyAllState === 'copied' ? '已复制' : copyAllState === 'failed' ? '复制失败' : '复制全部'}
+                    </span>
+                </button>
+            )}
             {copyable && (
                 <button
                     type="button"

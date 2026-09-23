@@ -155,7 +155,7 @@ public final class AuthorizationService {
                     null, executionAttemptId);
         }
         // SAFE 读操作在所有模式下自动放行，不弹窗（读操作已统一为 SAFE 级别）
-        boolean safeRead = "file-v1".equals(operation.analyzerId())
+        boolean safeRead = ("file-v1".equals(operation.analyzerId()) || "handoff-read-v1".equals(operation.analyzerId()))
                 && operation.risk() == RiskClass.SAFE
                 && operation.effects().equals(List.of(EffectClass.READ_RESOURCE));
         if (safeRead) {

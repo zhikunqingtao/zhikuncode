@@ -3,9 +3,10 @@
  *
  * 为消息 hover 操作条 (MessageActions) 提供:
  * - extractMessageText: 提取 text 块 Markdown 源码 (user/assistant) 或正文 (system)
- * - extractMessageImage: 提取第一个 image 块
+ * - extractMessageImage / extractMessageImages: 提取第一个 / 全部 image 块
  * - hasCopyableContent: 判断消息是否存在可复制内容
  * - base64ToBlob / copyImageToClipboard: 图片复制到剪贴板 (含 URL 文本降级)
+ * - copyMessageWithImageRefs: 全部文本 + 全部图片链接复制为纯文本 (粘贴回输入框续聊场景)
  */
 
 import type { Message, ContentBlock } from '@/types';
@@ -55,6 +56,22 @@ export function extractMessageImage(message: Message): CopyableImage | null {
         url: imageBlock.url,
         mediaType: imageBlock.mediaType,
     };
+}
+
+/**
+ * 提取消息中的全部图片块（仅 user/assistant 消息），按出现顺序返回。
+ * 无 base64 也无 url 的空图片块被过滤；无图片时返回空数组。
+ */
+export function extractMessageImages(message: Message): CopyableImage[] {
+    if (message.type !== 'user' && message.type !== 'assistant') return [];
+    return message.content
+        .filter((b): b is ImageBlock => b.type === 'image')
+        .filter(b => Boolean(b.base64Data || b.url))
+        .map(b => ({
+            base64Data: b.base64Data,
+            url: b.url,
+            mediaType: b.mediaType,
+        }));
 }
 
 /**
@@ -126,4 +143,35 @@ export async function copyImageToClipboard(image: CopyableImage): Promise<void> 
     }
 
     throw new Error('copyImageToClipboard: no clipboard path available');
+}
+
+/**
+ * 将消息的全部内容（全部文本 + 全部图片链接）复制为纯文本。
+ *
+ * 主要场景：复制后粘贴回 zhikuncode 输入框继续对话——
+ * 图片以 URL 文字形式随行（agent 收到后自行下载查看），
+ * 剪贴板不含图片文件，不触发输入框的图片附件粘贴逻辑，文字完整保留。
+ *
+ * 格式：文本原样（多 text 块 join 换行），随后每个图片一行：
+ * - 有 URL：`[图片] https://...`（多图时 `[图片1]` `[图片2]` ...）
+ * - 仅 base64 无 URL：`[图片]（内嵌图片，无链接）` 占位
+ */
+export async function copyMessageWithImageRefs(message: Message): Promise<void> {
+    const text = extractMessageText(message) ?? '';
+    const images = extractMessageImages(message);
+
+    const parts: string[] = [];
+    if (text) parts.push(text);
+    images.forEach((image, index) => {
+        const label = images.length > 1 ? `[图片${index + 1}]` : '[图片]';
+        parts.push(image.url ? `${label} ${image.url}` : `${label}（内嵌图片，无链接）`);
+    });
+    const plainText = parts.join('\n');
+    if (!plainText) {
+        throw new Error('copyMessageWithImageRefs: nothing to copy');
+    }
+    if (typeof navigator.clipboard?.writeText !== 'function') {
+        throw new Error('copyMessageWithImageRefs: clipboard.writeText unavailable');
+    }
+    await navigator.clipboard.writeText(plainText);
 }

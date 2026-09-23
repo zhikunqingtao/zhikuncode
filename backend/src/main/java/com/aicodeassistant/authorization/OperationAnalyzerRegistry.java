@@ -84,6 +84,7 @@ public final class OperationAnalyzerRegistry {
 
     public OperationAnalyzer analyzerFor(Tool tool) {
         if (tool.isMcp()) return mcp;
+        if (tool instanceof com.aicodeassistant.tool.impl.HandoffReadTool) return handoffRead;
         // 名称看似 MCP 但没有适配器身份的动态工具仍按未知工具处理，不能继承 MCP 持久授权。
         if (tool.getName().startsWith("mcp__")) return generic;
         if ("Bash".equals(tool.getName())) return bash;
@@ -99,8 +100,24 @@ public final class OperationAnalyzerRegistry {
         return generic;
     }
 
+    private final OperationAnalyzer handoffRead = new OperationAnalyzer() {
+        public String id() { return "handoff-read-v1"; }
+        public OperationDescriptor analyze(Tool tool, FrozenToolInput frozen, ToolInput input,
+                ToolUseContext context, AuthorizationSubject subject) {
+            String binding=((com.aicodeassistant.tool.impl.HandoffReadTool)tool).authorize(subject.rootSessionId(),input);
+            return descriptor(id(),tool,frozen,"read",List.of(EffectClass.READ_RESOURCE),
+                    List.of(new ResourceRef("handoff",binding,false)),List.of(),List.of(),RiskClass.SAFE,"读取本会话交接资料");
+        }
+        public void recheck(Tool tool, OperationDescriptor descriptor, ToolInput input,
+                ToolUseContext context, AuthorizationSubject subject) {
+            String binding=((com.aicodeassistant.tool.impl.HandoffReadTool)tool).authorize(subject.rootSessionId(),input);
+            if(!descriptor.resources().equals(List.of(new ResourceRef("handoff",binding,false))))
+                throw new AuthorizationException("HANDOFF_BINDING_CHANGED","交接绑定已变化");
+        }
+    };
+
     public boolean isExplicitCoreTool(String name) {
-        return "Bash".equals(name) || "PowerShell".equals(name) || "PublishArtifact".equals(name) || "PublishMeoo".equals(name) || "InspectMeooDeployment".equals(name)
+        return "HandoffRead".equals(name) || "Bash".equals(name) || "PowerShell".equals(name) || "PublishArtifact".equals(name) || "PublishMeoo".equals(name) || "InspectMeooDeployment".equals(name)
                 || FILE_READ.contains(name)
                 || FILE_WRITE.contains(name) || NETWORK.contains(name) || CONTROL.contains(name)
                 || VERIFY_CONTROL.contains(name) || SAFE_INTERNAL.contains(name);

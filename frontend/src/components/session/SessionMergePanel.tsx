@@ -10,11 +10,11 @@ import { isSessionGenerating, type SessionSummary } from '@/utils/sessionGroups'
 const field = 'w-full rounded-[10px] border border-hairline bg-surfacev2 p-2 text-t1';
 const button = 'rounded-[10px] border border-hairline px-3 py-2 text-sm text-t1 hover:bg-hover2 disabled:opacity-40';
 const sessionName = (session: SessionSummary) => session.title || taskTitle(null, [], session.workingDirectory, session.goalPreview);
-const stages: Record<string, string> = { recovering: '恢复合并进度', snapshot: '整理过程与复制产物', summarizing: '生成交接摘要', committing: '创建新会话', completed: '合并完成', failed: '合并失败', interrupted: '合并已中断' };
+const stages: Record<string, string> = { snapshotting: '复制并封存来源', extracting: '整理详细交接', aggregating: '生成有界概览', validating: '校验交接资料', publishing: '创建新会话', recovering: '恢复合并进度', snapshot: '整理过程与复制产物', summarizing: '生成交接摘要', committing: '创建新会话', completed: '合并完成', failed: '合并失败', interrupted: '合并已中断' };
 
 /** Mounted once by App so polling survives sidebar collapse, tab changes, and mobile navigation. */
 export function SessionMergePanel() {
-    const { open, source, pending, error, storageWarning, recoveryNotice, submitting, closeDialog, submit, refresh, dismiss } = useSessionMergeStore();
+    const { open, source, pending, error, storageWarning, recoveryNotice, submitting, closeDialog, submit, refresh, dismiss, resume, cancel } = useSessionMergeStore();
     const models = useModelStore(s => s.models);
     const sessionId = useSessionStore(s => s.sessionId);
     const status = useSessionStore(s => s.status);
@@ -75,7 +75,7 @@ export function SessionMergePanel() {
         if (sessionId !== originSession.current) autoOpen.current = false;
     }, [sessionId]);
     const openTarget = async () => {
-        if (pending?.operation?.status !== 'completed') return;
+        if (pending?.operation?.status !== 'completed' || pending.operation.targetAvailable === false) return;
         const result = await activateSessionCandidate(pending.operation.targetSessionId);
         if (useSessionMergeStore.getState().pending?.key !== pending.key) return;
         if (result.status === 'activated') closeDialog();
@@ -145,7 +145,7 @@ export function SessionMergePanel() {
         <Dialog open={open} onClose={closeDialog} title="合并为新会话" className="max-w-xl">
             <div className="p-4 md:p-6 space-y-4 max-h-[75vh] overflow-y-auto text-sm text-t2">
                 {!pending && source && <>
-                    <p>选择 2～5 个空闲会话。来源将保留原样，整理期间可以查看，暂不能执行或删除。过程以文本资料保留，原生工具卡片仍到来源会话查看。</p>
+                    <p>选择 2～5 个空闲会话。来源保留原样，仅复制快照期间暂不能执行或删除；封存后立即恢复使用。新会话使用独立交接资料，工程代码目录共享。</p>
                     <div role="group" aria-label="已选来源会话" className="space-y-2">
                         <p>已选 {selected.length}/5</p>
                         {selected.map(s => <div key={s.id} className="break-all">
@@ -195,23 +195,38 @@ export function SessionMergePanel() {
                     }}>开始合并</button>
                 </>}
                 {pending && <>
-                    <p role="status">{syncUncertain ? '合并状态待确认' : stages[pending.operation?.stage ?? ''] ?? '提交中，可关闭面板，稍后恢复进度。'}</p>
+                    <p role="status">{syncUncertain ? '合并状态待确认' : pending.operation?.status === 'paused' ? '合并已暂停，进度已保留' : pending.operation?.status === 'cancelled' ? '合并已取消' : stages[pending.operation?.stage ?? ''] ?? '提交中，可关闭面板，稍后恢复进度。'}</p>
                     {busy && <p>{syncUncertain
-                        ? '进度同步失败，正在重试查询；确认结果前暂不能操作来源会话。'
-                        : `${pending.request.sourceSessionIds.length} 个来源会话暂被占用，其他会话可正常使用。`}</p>}
+                        ? '进度同步失败，正在重试查询；来源占用以服务端为准。'
+                        : `${pending.operation?.lockedSourceSessionIds?.length ?? 0} 个来源会话正在复制；快照封存后可继续使用来源。`}</p>}
                     {busy && pending.operation?.result.copiedCount !== undefined && <p>
-                        资料已整理：复制 {pending.operation.result.copiedCount} 个文件，未收录 {pending.operation.result.warningCount ?? 0} 项。
+                        资料已整理：复制 {pending.operation.result.copiedCount} 个文件，资料缺口或未解析项 {pending.operation.result.warningCount ?? 0} 项。
                     </p>}
-                    {pending.operation?.status === 'failed' && <p role="alert">{pending.operation.error}</p>}
+                    {pending.operation?.progress && <p>整理单元：{pending.operation.progress.completedUnits}/{pending.operation.progress.knownUnits}{pending.operation.progress.totalFinal ? '' : '（总数随分片增加）'}</p>}
+                    {pending.operation?.retryAt && <p>正在等待重试：{pending.operation.retryAt}</p>}
+                    {['paused', 'failed'].includes(pending.operation?.status ?? '') && <p role="alert">{pending.operation?.error}</p>}
+                    {!!pending.operation?.result.warnings?.length && <details open><summary>资料缺口与未解析项</summary><ul className="space-y-2 break-all">
+                        {pending.operation.result.warnings.map((w, i) => <li key={i}>{w.sourceId ? `来源 ${w.sourceId}：` : ''}{w.originalPath}：{w.reason}</li>)}
+                    </ul>
+                        {(pending.operation.result.warningCount ?? 0) > pending.operation.result.warnings.length
+                            && <p>这里只展示前 {pending.operation.result.warnings.length} 项，完整清单保存在资料包 snapshot/gaps.jsonl；新会话可通过 HandoffRead 读取 ref=gaps。</p>}
+                    </details>}
                     {pending.operation?.status === 'completed' && <>
-                        <p>已复制 {pending.operation.result.copiedCount ?? 0} 个文件，未收录 {pending.operation.result.warningCount ?? 0} 项。</p>
-                        {!!pending.operation.result.warnings?.length && <details open><summary>未收录清单</summary><ul className="space-y-2 break-all">
-                            {pending.operation.result.warnings.map((w, i) => <li key={i}>{w.originalPath}：{w.reason}</li>)}
-                        </ul></details>}
+                        <p>已复制 {pending.operation.result.copiedCount ?? 0} 个文件，资料缺口或未解析项 {pending.operation.result.warningCount ?? 0} 项。</p>
                         <p className="break-all">资料索引：{pending.operation.result.indexPath}</p>
-                        <button className={button} onClick={() => void openTarget()}>打开新会话</button>
+                        <button className={button} disabled={pending.operation.targetAvailable === false} onClick={() => void openTarget()}>打开新会话</button>
+                        {pending.operation.targetAvailable === false && <p>目标会话已删除。</p>}
                     </>}
-                    {!busy && <button className={button} onClick={dismiss}>关闭结果</button>}
+                    {pending.operation?.canResume && <>
+                        <label className="block">恢复时使用模型<select className={field} value={model} onChange={e => setModel(e.target.value)}>
+                            <option value="">继续使用原模型</option>
+                            {models.map(m => <option key={m.id} value={m.id}>{m.displayName}</option>)}
+                        </select></label>
+                        <button className={button} disabled={submitting} onClick={() => void resume(model || undefined)}>恢复合并</button>
+                        <p>已提交的整理单元会复用；中断时未提交的最后一次调用可能重做并再次计费。</p>
+                    </>}
+                    {pending.operation?.canCancel && <button className={button} disabled={submitting} onClick={() => void cancel()}>取消合并</button>}
+                    {!busy && !pending.operation?.canCancel && <button className={button} onClick={dismiss}>关闭结果</button>}
                 </>}
                 {recoveryMessages}
                 {(error || activationError) && <p role="alert">{error || activationError}{busy && <button className={button} disabled={submitting} onClick={() => void refresh()}>重试查询</button>}</p>}
