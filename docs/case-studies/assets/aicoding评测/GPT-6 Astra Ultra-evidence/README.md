@@ -17,6 +17,7 @@
 |[results/sensitivity.csv](results/sensitivity.csv)、[results/stability.json](results/stability.json)|27 组完整结果、名次范围及逐对反转参数|
 |[reproduction-results.md](reproduction-results.md)、[results/run-summary.json](results/run-summary.json)|实际执行的合成复现、结果、脱敏日志哈希及局限|
 |[video-observations.md](video-observations.md)|视频分段概览和 3 个精确时间点的画面，只作附录、不计分|
+|[补充分析录屏记录](video/analysis-recording-20260923-074629.json)|评分完成后补充的本次分析录屏；压缩参数、原片与压缩版哈希、解码验证，不改变原冻结清单|
 
 ## 评分复算
 
@@ -27,6 +28,8 @@ python3 "docs/case-studies/assets/aicoding评测/GPT-6 Astra Ultra-evidence/reco
 ```
 
 脚本核对原文件哈希、规则冻结及最终裁定哈希，生成主榜 JSON/CSV、全量核验台账、命中矩阵、27 个敏感性方案 JSON/CSV 和反转明细。输入文件或规则已改变会拒绝复算，不悄悄把新代码当旧版本。
+
+原 Opus 排名在评分冻结后按用户要求重命名为 [Claude Opus5.5-17份审查报告排名分析方法过程证据与结论.md](../Claude%20Opus5.5-17份审查报告排名分析方法过程证据与结论.md)，内容未改。冻结清单保留原文件名；复算脚本仅在旧路径不存在时接受这一固定新路径，并继续校验原 SHA-256。
 
 需要原被审代码时使用 `manifest.json` 中的提交 `207fe6d0d159db1b575af243dbf3c77536377431`；原差异基线为 `b98e18721169436f8f35373a4120c530f54310d5`。仓库相对源码链接用于阅读，哈希和提交确定本轮实际版本。不得在新代码上运行测试后继续沿用旧结论而不注明。
 

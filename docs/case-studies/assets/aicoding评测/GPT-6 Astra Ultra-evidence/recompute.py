@@ -13,10 +13,17 @@ def round1(x):return str(x.quantize(Decimal('.1'), rounding=ROUND_HALF_UP))
 def D(x):return Decimal(str(x))
 def link(path,line=None):
  import os
- return quote(os.path.relpath(ROOT/path,P),safe='/')+(f'#L{line}' if line else '')
+ # GitHub needs source view for Markdown line anchors; headings use rendered view.
+ view='?plain=1' if line and pathlib.Path(path).suffix.lower()=='.md' else ''
+ return quote(os.path.relpath(ROOT/path,P),safe='/')+view+(f'#L{line}' if line else '')
 freeze=read('rules-freeze.json');assert sha(P/'rules.md')==freeze['sha256'],'Scoring rules changed'
 for n,h in read('adjudication-freeze.json')['sha256'].items():assert sha(P/n)==h,f'Adjudication changed: {n}'
-for f in read('manifest.json')['files']:assert sha(ROOT/f['path'])==f['sha256'],f"Frozen input changed: {f['path']}"
+# The user renamed the old ranking after the freeze; still require the original bytes.
+renamed_inputs={'docs/case-studies/assets/aicoding评测/Opus5.5-17份审查报告排名分析方法过程证据与结论.md':'docs/case-studies/assets/aicoding评测/Claude Opus5.5-17份审查报告排名分析方法过程证据与结论.md'}
+for f in read('manifest.json')['files']:
+ source=ROOT/f['path']
+ if not source.is_file() and f['path'] in renamed_inputs:source=ROOT/renamed_inputs[f['path']]
+ assert sha(source)==f['sha256'],f"Frozen input changed: {f['path']}"
 reports=read('claims/unified.json');catalog=read('defects.json');info={r['id']:r for r in read('reports.json')}
 assert len(reports)==len(info)==17 and len({r['report_id'] for r in reports})==17
 assert len({c['claim_id'] for r in reports for c in r['claims']})==sum(len(r['claims']) for r in reports)

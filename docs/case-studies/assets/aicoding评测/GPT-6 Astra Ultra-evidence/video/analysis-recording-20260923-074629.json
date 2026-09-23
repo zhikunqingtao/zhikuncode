@@ -1,0 +1,72 @@
+{
+  "added_at_utc": "2026-09-23T00:58:49.252752+00:00",
+  "role": "User-supplied recording of the analysis that produced this ranking; supplementary material added after scoring, not scored.",
+  "source": {
+    "filename": "钉钉录屏_2026-09-23 074629.mp4",
+    "bytes": 852602162,
+    "duration_seconds": 3041.603333,
+    "sha256": "0d4409dd70ba4aad8673754e8bb2deab1075068d7e2c4f87150373128e192876",
+    "streams": [
+      {
+        "codec_name": "hevc",
+        "codec_type": "video",
+        "width": 2498,
+        "height": 1440,
+        "pix_fmt": "yuv420p10le",
+        "avg_frame_rate": "13081800/912481"
+      }
+    ]
+  },
+  "compressed": {
+    "repository_path": "docs/case-studies/assets/aicoding评测/钉钉录屏_2026-09-23_074629.mp4",
+    "bytes": 73995136,
+    "decimal_MB": 73.995,
+    "duration_seconds": 3041.6,
+    "sha256": "519c56fb8a45c91c67a502f15c79f268208700a0d331d2ed54f45660dc7b2364",
+    "streams": [
+      {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1874,
+        "height": 1080,
+        "pix_fmt": "yuv420p",
+        "avg_frame_rate": "5/1"
+      }
+    ]
+  },
+  "encoding": {
+    "codec": "libx264",
+    "two_pass": true,
+    "preset": "slow",
+    "tune": "stillimage",
+    "video_bitrate_bps": 195000,
+    "maxrate_bps": 750000,
+    "bufsize_bits": 1500000,
+    "filter": "fps=5,scale=-2:1080:flags=lanczos",
+    "gop_frames": 50,
+    "threads": 6,
+    "faststart": true,
+    "trimmed": false,
+    "audio": "Source has no audio track; none added",
+    "lossless": false,
+    "ffmpeg_version": "ffmpeg version 8.1 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "validation": {
+    "size_limit_bytes": 80000000,
+    "within_limit": true,
+    "full_decode_exit_code": 0,
+    "decode_error_output_bytes": 0,
+    "sample_frame_seconds": [
+      30,
+      1500,
+      2880
+    ],
+    "moov_before_mdat": true
+  },
+  "poster": {
+    "repository_path": "docs/case-studies/assets/aicoding评测/GPT-6 Astra Ultra-evidence/video/analysis-20260923-074629.jpg",
+    "timestamp_seconds": 1500,
+    "sha256": "c98c531067ddfdb25ee15d7722d4c8226136511e838d0b5041dab09e1aa91806"
+  },
+  "scope_note": "Complete timeline retained with reduced resolution and 5fps sampling; not a frame-exact lossless original or a full frame-by-frame content audit. Original frozen scoring materials and scores unchanged."
+}

@@ -8,7 +8,7 @@
 
 ### R01-normal_function
 
-**判断分：5/5**。[原文 L95–L108](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md#L95)。结论限定为未发现普通主链路新增回归，与静态门控一致。
+**判断分：5/5**。[原文 L95–L108](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md?plain=1#L95)。结论限定为未发现普通主链路新增回归，与静态门控一致。
 
 ````text
 **非合并路径评估**
@@ -29,7 +29,7 @@
 
 ### R01-boundary
 
-**判断分：5/5**。[原文 L106–L108](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md#L106)。明确后台active请求与共享SQLite/磁盘、迁移及压力验证边界，拒绝绝对零风险。
+**判断分：5/5**。[原文 L106–L108](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md?plain=1#L106)。明确后台active请求与共享SQLite/磁盘、迁移及压力验证边界，拒绝绝对零风险。
 
 ````text
 | 前端恢复与锁可见性 | 存在发现 4 的旧终态缓存问题；后台 active 发现新增周期性请求 | UI 恢复仍有缺口；不能宣称所有非合并页面完全无负面影响 |
@@ -39,7 +39,7 @@
 
 ### R01-release
 
-**判断分：5/5**。[原文 L149–L151](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md#L149)。允许Draft/开发分支，明确不作为已完成验收正式版本。
+**判断分：5/5**。[原文 L149–L151](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md?plain=1#L149)。允许Draft/开发分支，明确不作为已完成验收正式版本。
 
 ````text
 **提交建议**
@@ -49,7 +49,7 @@
 
 ### R01-semantic
 
-**判断分：5/5**。[原文 L132–L133](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md#L132)。明确真实模型未执行且不以stub替代。
+**判断分：5/5**。[原文 L132–L133](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md?plain=1#L132)。明确真实模型未执行且不以stub替代。
 
 ````text
 | 真实模型接续开发 | 未执行 | 不以 stub 测试替代；未主动调用付费模型 |
@@ -60,7 +60,7 @@
 
 **恢复投影绕过归档字段过滤** — 成立 / functional / scope=new / 入分；统一问题：D01；credit=1。
 
-[原文 L32–L42](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md#L32)
+[原文 L32–L42](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md?plain=1#L32)
 
 ````text
 **发现 1 — P1：恢复投影绕过归档字段过滤，把思考/供应商私有字段作为提取材料。**
@@ -92,7 +92,7 @@
 
 **旧工具结果版本折叠且未进入投影** — 成立 / functional / scope=new / 入分；统一问题：D02；credit=1。
 
-[原文 L44–L57](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md#L44)
+[原文 L44–L57](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md?plain=1#L44)
 
 ````text
 **发现 2 — P1：旧格式工具结果未参与消息版本判定，并且没有进入可提取、可搜索的文字。**
@@ -127,7 +127,7 @@ checkpoint 的 `Message.UserMessage` 允许把旧工具结果保存在顶层 `to
 
 **仅图片含关键需求仍可发布** — 规范歧义 / functional / scope=new / 不入分；统一问题：critical-uninterpreted-attachment；credit=None。
 
-[原文 L59–L69](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md#L59)
+[原文 L59–L69](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md?plain=1#L59)
 
 ````text
 **发现 3 — P2：关键输入只在图片/未解析附件中时，缺少发布阻断。**
@@ -149,7 +149,7 @@ checkpoint 的 `Message.UserMessage` 允许把旧工具结果保存在顶层 `to
 
 判定理由：代码确实只复制图片并以未知占位，stub仍可completed；规范183要求无法理解的关键附件暂停，但正常PNG可在E经asset读取，未先视觉提取不自动等于现有能力无法理解。测试证明未做视觉整理，不足证明所示支持PNG必须暂停。
 
-代码：[MergePackageService.java:523](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L523)；[MergePackageService.java:599](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L599)；[MergeSummaryService.java:326](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L326)；[session-merge-architecture-v2.md:183](../../../../session-merge-architecture-v2.md#L183)
+代码：[MergePackageService.java:523](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L523)；[MergePackageService.java:599](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L599)；[MergeSummaryService.java:326](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L326)；[session-merge-architecture-v2.md:183](../../../../session-merge-architecture-v2.md?plain=1#L183)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -157,7 +157,7 @@ checkpoint 的 `Message.UserMessage` 允许把旧工具结果保存在顶层 `to
 
 **旧终态缓存阻止active发现** — 成立 / functional / scope=new / 入分；统一问题：D07；credit=1。
 
-[原文 L71–L81](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md#L71)
+[原文 L71–L81](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md?plain=1#L71)
 
 ````text
 **发现 4 — P2：本地旧终态记录会阻止发现服务端当前未结束操作。**
@@ -189,7 +189,7 @@ checkpoint 的 `Message.UserMessage` 允许把旧工具结果保存在顶层 `to
 
 **已复制路径仍计为外部缺口** — 成立 / functional / scope=new / 入分；统一问题：D14；credit=1。
 
-[原文 L83–L93](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md#L83)
+[原文 L83–L93](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md?plain=1#L83)
 
 ````text
 **发现 5 — P2：同一托管文件既成功复制，又被作为外部缺口计数。**
@@ -221,7 +221,7 @@ checkpoint 的 `Message.UserMessage` 允许把旧工具结果保存在顶层 `to
 
 **旧helper测试不足以保障在线seal** — 成立 / engineering / scope=new / 不入分；统一问题：legacy-helper-tests；credit=None。
 
-[原文 L116–L116](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md#L116)
+[原文 L116–L116](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md?plain=1#L116)
 
 ````text
 - MergePackageService 已 1,122 行，其中旧 build 约 400 行仅用于兼容夹具。大量磁盘/复制/Unicode 测试仍测试该旧入口，对当前 seal 在线入口不构成直接保障。应迁移必要断言至 seal，同时保留真正需要的 legacy import 兼容验证。
@@ -233,7 +233,7 @@ checkpoint 的 `Message.UserMessage` 允许把旧工具结果保存在顶层 `to
 
 判定理由：旧build被规范保留为兼容夹具；Unicode/复制配额等多个测试仍调用build，在线服务走seal，需迁移有意义断言。
 
-代码：[MergePackageServiceTest.java:198](../../../../../backend/src/test/java/com/aicodeassistant/session/merge/MergePackageServiceTest.java#L198)；[MergePackageServiceTest.java:356](../../../../../backend/src/test/java/com/aicodeassistant/session/merge/MergePackageServiceTest.java#L356)；[SessionMergeService.java:190](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L190)；[session-merge-architecture-v2.md:5](../../../../session-merge-architecture-v2.md#L5)
+代码：[MergePackageServiceTest.java:198](../../../../../backend/src/test/java/com/aicodeassistant/session/merge/MergePackageServiceTest.java#L198)；[MergePackageServiceTest.java:356](../../../../../backend/src/test/java/com/aicodeassistant/session/merge/MergePackageServiceTest.java#L356)；[SessionMergeService.java:190](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L190)；[session-merge-architecture-v2.md:5](../../../../session-merge-architecture-v2.md?plain=1#L5)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -241,7 +241,7 @@ checkpoint 的 `Message.UserMessage` 允许把旧工具结果保存在顶层 `to
 
 **排版和依赖注入混用** — 成立 / engineering / scope=new / 不入分；统一问题：formatting-and-injection；credit=None。
 
-[原文 L117–L117](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md#L117)
+[原文 L117–L117](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md?plain=1#L117)
 
 ````text
 - 新增生产代码大量压缩为单行语句，导入用全限定类名、字段注入与手动 new Repository 混用，使事务和取消路径难读。应在现有服务内整理命名、排版和依赖注入，不增加文档禁止的新子系统。
@@ -261,7 +261,7 @@ checkpoint 的 `Message.UserMessage` 允许把旧工具结果保存在顶层 `to
 
 **逐单元全表与逐ref重扫性能风险** — 证据不足 / conditional / scope=new / 不入分；统一问题：quadratic-planning-scans；credit=None。
 
-[原文 L118–L118](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md#L118)
+[原文 L118–L118](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md?plain=1#L118)
 
 ````text
 - `processStage` 每次取全阶段 units 再过滤下一个单元；`source` 为每个 ref 从头扫描投影清单。长历史可能形成二次增长的扫描/SQL物化开销。本次没有基准数据，列为性能风险，不声称已造成普通聊天卡顿。可用既有表的 keyset/下一未完成单元查询优化，不引入向量索引或新检索平台。
@@ -281,7 +281,7 @@ checkpoint 的 `Message.UserMessage` 允许把旧工具结果保存在顶层 `to
 
 **split图完整性缺显式验证** — 成立 / engineering / scope=new / 不入分；统一问题：split-graph-validation；credit=None。
 
-[原文 L119–L119](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md#L119)
+[原文 L119–L119](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md?plain=1#L119)
 
 ````text
 - 发布验证跳过 split 父节点，没有显式逐项验证 childUnitIds 的存在/最终完成；目前 split 事务提供基础一致性，但规范要求的恢复/发布图完整性防护及故障注入测试仍应补齐。未将这一点列为已复现的线上故障。
@@ -301,7 +301,7 @@ checkpoint 的 `Message.UserMessage` 允许把旧工具结果保存在顶层 `to
 
 **固定工具说明缺部分语义指引** — 成立 / engineering / scope=new / 不入分；统一问题：handoff-tool-guidance；credit=None。
 
-[原文 L120–L120](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md#L120)
+[原文 L120–L120](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md?plain=1#L120)
 
 ````text
 - HandoffRead 工具固定说明没有完全承载文档要求的“跨前后端读取双方约定、历史验证不代表当前验证”等语义引导；入口已有相关提示，仍应统一到固定工具说明，并由真实样本检验行为。
@@ -313,7 +313,7 @@ checkpoint 的 `Message.UserMessage` 允许把旧工具结果保存在顶层 `to
 
 判定理由：Tool.getDescription未包含跨前后端和当前代码/历史测试边界全部要求；参考入口有部分指引。
 
-代码：[HandoffReadTool.java:16](../../../../../backend/src/main/java/com/aicodeassistant/tool/impl/HandoffReadTool.java#L16)；[HandoffContextService.java:68](../../../../../backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java#L68)；[session-merge-architecture-v2.md:373](../../../../session-merge-architecture-v2.md#L373)
+代码：[HandoffReadTool.java:16](../../../../../backend/src/main/java/com/aicodeassistant/tool/impl/HandoffReadTool.java#L16)；[HandoffContextService.java:68](../../../../../backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java#L68)；[session-merge-architecture-v2.md:373](../../../../session-merge-architecture-v2.md?plain=1#L373)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -321,7 +321,7 @@ checkpoint 的 `Message.UserMessage` 允许把旧工具结果保存在顶层 `to
 
 **将复现补成正式回归** — 成立 / engineering / scope=new / 不入分；统一问题：reproduction-regressions；credit=None。
 
-[原文 L141–L141](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md#L141)
+[原文 L141–L141](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md?plain=1#L141)
 
 ````text
 1. 把本报告 6 个失败断言修成正式回归测试，并补 checkpoint/消息的恢复一致性、旧结果镜像冲突及附件类型变体。
@@ -341,7 +341,7 @@ checkpoint 的 `Message.UserMessage` 允许把旧工具结果保存在顶层 `to
 
 **准入有效测试删除未补** — 成立 / engineering / scope=new / 不入分；统一问题：admission-test-gaps；credit=None。
 
-[原文 L142–L142](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md#L142)
+[原文 L142–L142](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md?plain=1#L142)
 
 ````text
 2. 保留并迁移原有仍有效的准入测试：第五来源 busy、等待审批/后台 writer、同键不同参数、非法来源集合和部分 token 获取失败后的清理。新版 SessionMergeServiceTest 删除了一批旧测试，不能把所有删除都视为合理更新。
@@ -361,7 +361,7 @@ checkpoint 的 `Message.UserMessage` 允许把旧工具结果保存在顶层 `to
 
 **事务回滚测试实际在事务前失败** — 成立 / engineering / scope=new / 不入分；统一问题：publication-rollback-test-gap；credit=None。
 
-[原文 L143–L143](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md#L143)
+[原文 L143–L143](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md?plain=1#L143)
 
 ````text
 3. 真正的事务中途失败测试：当前 `failedPublicationRollsBackTargetAndPreservesPreparedFiles` 通过工作区校验抛错，发生在 tx.execute 之前，不能证明“createSessionRecord 后 addMessage/complete 失败”的事务回滚。应覆盖这两个真实事务内部故障点，以及取消与提交竞态。
@@ -381,7 +381,7 @@ checkpoint 的 `Message.UserMessage` 允许把旧工具结果保存在顶层 `to
 
 **真实QueryEngine压缩413小模型组合覆盖不足** — 成立 / engineering / scope=new / 不入分；统一问题：handoff-query-recovery-tests；credit=None。
 
-[原文 L144–L144](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md#L144)
+[原文 L144–L144](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md?plain=1#L144)
 
 ````text
 4. 合并上下文在实际 QueryEngine 发生压缩、413 和换小模型之后的组合测试。现有新增 QueryEngine 用例只证明普通/合并单轮投影与预算差，HandoffContext 的预算夹具不能完全替代真实回退链路。
@@ -401,7 +401,7 @@ checkpoint 的 `Message.UserMessage` 允许把旧工具结果保存在顶层 `to
 
 **E状态不回写A/B缺直接端到端断言** — 成立 / engineering / scope=new / 不入分；统一问题：session-state-isolation-tests；credit=None。
 
-[原文 L145–L145](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md#L145)
+[原文 L145–L145](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md?plain=1#L145)
 
 ````text
 5. E 的待办、设置、压缩、文件读取缓存和删除对 A/B 不回写的直接端到端断言；现有共享 session ID 隔离是合理基础，但不等于文档全部新验收已自动覆盖。
@@ -413,7 +413,7 @@ checkpoint 的 `Message.UserMessage` 允许把旧工具结果保存在顶层 `to
 
 判定理由：独立session ID提供基础隔离，但现有merge测试未直测TodoWrite/FileStateCache与设置变更对来源零回写。
 
-代码：[SessionMergeService.java:209](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L209)；[SessionMergeServiceTest.java:69](../../../../../backend/src/test/java/com/aicodeassistant/session/merge/SessionMergeServiceTest.java#L69)；[session-merge-architecture-v2.md:417](../../../../session-merge-architecture-v2.md#L417)
+代码：[SessionMergeService.java:209](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L209)；[SessionMergeServiceTest.java:69](../../../../../backend/src/test/java/com/aicodeassistant/session/merge/SessionMergeServiceTest.java#L69)；[session-merge-architecture-v2.md:417](../../../../session-merge-architecture-v2.md?plain=1#L417)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -421,7 +421,7 @@ checkpoint 的 `Message.UserMessage` 允许把旧工具结果保存在顶层 `to
 
 **Panel新恢复取消等交互缺测试** — 成立 / engineering / scope=new / 不入分；统一问题：panel-v2-test-gaps；credit=None。
 
-[原文 L146–L146](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md#L146)
+[原文 L146–L146](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md?plain=1#L146)
 
 ````text
 6. panel 层新增恢复/取消/换模型/目标不可用操作测试；现有 panel 修改基本为 fixture/文案适配，新交互主要只有 store 测试。
@@ -441,7 +441,7 @@ checkpoint 的 `Message.UserMessage` 允许把旧工具结果保存在顶层 `to
 
 **真实模型接续样本未完成** — 成立 / engineering / scope=new / 不入分；统一问题：semantic-acceptance-missing；credit=None。
 
-[原文 L147–L147](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md#L147)
+[原文 L147–L147](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md?plain=1#L147)
 
 ````text
 7. 按第 9 节运行真实模型语义样本：服务端 name→displayName、前端仍读 name；E 查阅双方证据、读取当前代码、修复联调并复测；后续轮次不重复旧待办。再覆盖封存后代码变化、目录兜底、删除来源后读取、未验证自述及冲突双方。记录授权、模型、费用及样本边界。这一项尚未获得真实模型结果，不能宣称已完成。
@@ -453,7 +453,7 @@ checkpoint 的 `Message.UserMessage` 允许把旧工具结果保存在顶层 `to
 
 判定理由：文档3/9明确未执行，报告未把stub当语义验收。
 
-代码：[session-merge-architecture-v2.md:3](../../../../session-merge-architecture-v2.md#L3)；[session-merge-architecture-v2.md:453](../../../../session-merge-architecture-v2.md#L453)
+代码：[session-merge-architecture-v2.md:3](../../../../session-merge-architecture-v2.md?plain=1#L3)；[session-merge-architecture-v2.md:453](../../../../session-merge-architecture-v2.md?plain=1#L453)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -461,7 +461,7 @@ checkpoint 的 `Message.UserMessage` 允许把旧工具结果保存在顶层 `to
 
 **普通链路的具体隔离保证** — 成立 / global / scope=new / 不入分；统一问题：ordinary-path-isolation；credit=None。
 
-[原文 L99–L105](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md#L99)
+[原文 L99–L105](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md?plain=1#L99)
 
 ````text
 | 普通 REST / SSE / WebSocket 对话 | configure 仅在既有 metadata 含合并标记时调用；QueryEngine 无运行标记返回空投影 | 未发现新增查包、查合并表或工具注入进入普通推理请求 |
@@ -487,7 +487,7 @@ checkpoint 的 `Message.UserMessage` 允许把旧工具结果保存在顶层 `to
 
 **只读工具ref哈希及symlink保证** — 成立 / global / scope=new / 不入分；统一问题：read-side-resource-boundary；credit=None。
 
-[原文 L112–L112](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md#L112)
+[原文 L112–L112](../Codex/Astra%E6%9E%81%E9%AB%98_%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A_2026-09-22.md?plain=1#L112)
 
 ````text
 已实现的关键点包括：V026 保持旧迁移不变并重建 CHECK；数据库唯一 active_slot；运行 epoch 抵御旧 worker；独立 snapshot 与原文哈希；串行提取及单元落库；去掉 16 次总调用和旧 3,500 拒绝规则；分层摘要保留详情；取消后等待 writer 再清包；发布与目标创建处于同一事务；通过 target 存在性撤销绑定；只读工具按 ref 读取、限量、游标、哈希和 symlink 检查。实现职责大体仍在文档指定的服务中，没有扩展成额外工作流平台。
@@ -509,7 +509,7 @@ checkpoint 的 `Message.UserMessage` 允许把旧工具结果保存在顶层 `to
 
 ### R02-normal_function
 
-**判断分：5/5**。[原文 L19–L19](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L19)。以未发现破坏表述，门控和普通保存隔离与代码一致。
+**判断分：5/5**。[原文 L19–L19](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L19)。以未发现破坏表述，门控和普通保存隔离与代码一致。
 
 ````text
 | 是否破坏非合并分支？ | **未发现破坏。** 静默隔离 + 全量回归 + 基线对照三重证据一致（详见第二节） |
@@ -517,7 +517,7 @@ checkpoint 的 `Message.UserMessage` 允许把旧工具结果保存在顶层 `to
 
 ### R02-boundary
 
-**判断分：5/5**。[原文 L54–L57](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L54)。明确迁移和启动同步清理/续跑全局影响，未将普通分支隔离扩张为无共享影响。
+**判断分：5/5**。[原文 L54–L57](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L54)。明确迁移和启动同步清理/续跑全局影响，未将普通分支隔离扩张为无共享影响。
 
 ````text
 ### 2.3 仍需注意的两个"非合并但全局"影响
@@ -528,7 +528,7 @@ checkpoint 的 `Message.UserMessage` 允许把旧工具结果保存在顶层 `to
 
 ### R02-release
 
-**判断分：5/5**。[原文 L191–L195](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L191)。明确正确性问题未闭合，不宣称完成版达标。虽然措辞要求修完才提交更严，不误放完成版。
+**判断分：5/5**。[原文 L191–L195](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L191)。明确正确性问题未闭合，不宣称完成版达标。虽然措辞要求修完才提交更严，不误放完成版。
 
 ````text
 ## 九、总体评价
@@ -540,7 +540,7 @@ checkpoint 的 `Message.UserMessage` 允许把旧工具结果保存在顶层 `to
 
 ### R02-semantic
 
-**判断分：5/5**。[原文 L167–L167](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L167)。明确stub不能替代真实模型语义验收。
+**判断分：5/5**。[原文 L167–L167](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L167)。明确stub不能替代真实模型语义验收。
 
 ````text
 2. **文档缺失内容**：规范第 9 节要求"必须包含一个接续开发样本"（A 改 `name`→`displayName`、B 未联调）与真实模型语义验收，文档第 3 / 471 行自认**尚未执行**。按该文档自身的验收标准，本改动目前**只完成了 stub 层验证**，语义验收仍是发布前的未完成项——必须在 PR 描述里明确，不能以"自动化全绿"代替。
@@ -550,7 +550,7 @@ checkpoint 的 `Message.UserMessage` 允许把旧工具结果保存在顶层 `to
 
 **引用文件中间symlink穿透复制边界** — 成立 / functional / scope=new / 入分；统一问题：D03；credit=1。
 
-[原文 L73–L88](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L73)
+[原文 L73–L88](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L73)
 
 ````text
 ### P1-1 封存期引用文件复制存在 symlink 穿透（违反规范第 156 行）
@@ -587,7 +587,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **阻断gap引用与恢复协议不一致** — 成立 / functional / scope=new / 入分；统一问题：D04；credit=1。
 
-[原文 L90–L101](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L90)
+[原文 L90–L101](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L90)
 
 ````text
 ### P1-2 阻断型 gap 报 `paused` 但实际不可恢复（暂停/恢复死循环）
@@ -612,7 +612,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 核实范围：已修正解析配置仍被gap/ref关联校验阻止；不等于所有坏原件应可恢复。
 
-代码：[MergePackageService.java:235](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L235)；[MergePackageService.java:436](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L436)；[MergePackageService.java:531](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L531)；[session-merge-architecture-v2.md:179](../../../../session-merge-architecture-v2.md#L179)
+代码：[MergePackageService.java:235](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L235)；[MergePackageService.java:436](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L436)；[MergePackageService.java:531](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L531)；[session-merge-architecture-v2.md:179](../../../../session-merge-architecture-v2.md?plain=1#L179)
 
 核验：[reproductions/RankingProtocolReproTest.java](reproductions/RankingProtocolReproTest.java)
 
@@ -620,7 +620,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **每轮反复校验清单性能** — 证据不足 / conditional / scope=new / 不入分；统一问题：repeated-handoff-integrity-io；credit=None。
 
-[原文 L103–L107](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L103)
+[原文 L103–L107](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L103)
 
 ````text
 ### P1-3 每轮请求对整包做 2～4 次全量哈希校验（性能）
@@ -644,7 +644,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **内嵌图片复制配额丢失可操作错误分类** — 成立 / functional / scope=new / 入分；统一问题：D17；credit=1。
 
-[原文 L111–L111](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L111)
+[原文 L111–L111](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L111)
 
 ````text
 1. **图片复制配额异常绕过错误分类**：`MergePackageService` 第 528 行抛 `CopyLimitException`（`IOException` 子类），只被第 531 行的 `IllegalArgumentException` catch 覆盖，异常逃逸到 `SessionMergeService.safeCode`，中文消息 → 落成 `MERGE_PREPARATION_FAILED`，绕过了规范第 339/352 行要求的 `MERGE_COPY_INCOMPLETE` / `MERGE_DISK_SPACE_LOW` 可操作分类（`explain()` 也匹配不到）。
@@ -666,7 +666,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **封存缺fsync** — 规范歧义 / conditional / scope=new / 不入分；统一问题：snapshot-fsync；credit=None。
 
-[原文 L112–L112](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L112)
+[原文 L112–L112](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L112)
 
 ````text
 2. **封存无 fsync**：`Files.move(staging, sealed, ATOMIC_MOVE)`（第 170-173 行）前未 `flush/fsync` 目录与文件，与规范第 166 行"关闭/刷新文件"不完全一致；掉电可能封存出撕裂快照（`validateSnapshot` 能检出，退化为再暂停，而非静默损坏）。建议补 fsync 或明确记录该取舍。
@@ -686,7 +686,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **来源原地变更检测弱** — 范围外 / conditional / scope=out / 不入分；统一问题：external-db-mutation-cutoff；credit=None。
 
-[原文 L113–L113](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L113)
+[原文 L113–L113](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L113)
 
 ````text
 3. **来源变更检测偏弱**：仅比较 `MAX(seq_num)` 与行数（第 439 行），原地修改一条历史消息不会被发现；并发删行会让 `queryForObject` 抛 `EmptyResultDataAccessException`（RuntimeException）而非 `SOURCE_CHANGED`。规范第 164 行要求"观测到变更必须暂停"。
@@ -698,7 +698,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 判定理由：MAX/count不能检出外部同量修改，但规范164明确外部直接改库不支持；应用写入由gate阻止。分页读取缺失行本身136有SOURCE_CHANGED，不是所有删行都裸运行异常。
 
-代码：[MergePackageService.java:439](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L439)；[MergePackageService.java:136](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L136)；[session-merge-architecture-v2.md:164](../../../../session-merge-architecture-v2.md#L164)
+代码：[MergePackageService.java:439](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L439)；[MergePackageService.java:136](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L136)；[session-merge-architecture-v2.md:164](../../../../session-merge-architecture-v2.md?plain=1#L164)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -706,7 +706,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **pause静默失效留下preparing无worker** — 证据不足 / conditional / scope=new / 不入分；统一问题：pause-epoch-orphan-worker；credit=None。
 
-[原文 L114–L114](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L114)
+[原文 L114–L114](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L114)
 
 ````text
 4. **恢复路径的能力差距**：`resume` 会把 `failed` 单元重置为 `pending`（`MergeProgressRepository` 第 115 行），而 `pause` 不使用 `changed()` 校验（第 98-103 行）→ 若 pause 因 epoch 不符而静默失效，操作可能滞留在 `preparing` 且无 worker（需重启才被 `interrupted()` 捞回）。建议 pause 失败时补降级日志或兜底调度。
@@ -726,7 +726,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **工具currentRunId缺空判** — 不成立 / engineering / scope=new / 不入分；统一问题：tool-null-run-guard；credit=None。
 
-[原文 L115–L115](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L115)
+[原文 L115–L115](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L115)
 
 ````text
 5. **`HandoffReadTool.call` 未防 `currentRunId == null`**（第 29 行），而 `HandoffContextService.canReadAsset` 做了空判，属同类不一致。
@@ -746,7 +746,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **读预算错误码压平为授权错误** — 成立 / functional / scope=new / 入分；统一问题：D13；credit=1。
 
-[原文 L116–L116](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L116)
+[原文 L116–L116](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L116)
 
 ````text
 6. **错误码被压平**：`HandoffReadService.read` 把校验阶段的所有 `IOException`（含 `HANDOFF_READ_BUDGET_EXCEEDED`）统一转成 `AuthorizationException("HANDOFF_INVALID_RESOURCE")`（第 206-208 行），仅保留 message。规范 §7.2 要求超时"明确报 HANDOFF_READ_BUDGET_EXCEEDED"——现有测试只断言 message，掩盖了码值变化；且工具层最终呈现为 `permission denied`，可能误导模型以为"没权限"。另：`asset` 动作在 `read()` 的 else 分支会静默返回空列表（实际靠工具层拦截），属死分支。
@@ -760,7 +760,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 核实范围：授权/读取支路把预算错误码包成INVALID_RESOURCE等泛码；read入口中断反例正常重抛。
 
-代码：[HandoffReadService.java:55](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L55)；[HandoffReadService.java:208](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L208)；[HandoffReadService.java:43](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L43)；[session-merge-architecture-v2.md:387](../../../../session-merge-architecture-v2.md#L387)
+代码：[HandoffReadService.java:55](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L55)；[HandoffReadService.java:208](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L208)；[HandoffReadService.java:43](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L43)；[session-merge-architecture-v2.md:387](../../../../session-merge-architecture-v2.md?plain=1#L387)
 
 核验：[reproductions/RankingReadReproTest.java](reproductions/RankingReadReproTest.java)
 
@@ -768,7 +768,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **read直接asset返回空成功** — 成立 / engineering / scope=new / 不入分；统一问题：read-asset-internal-dead-branch；credit=None。
 
-[原文 L116–L116](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L116)
+[原文 L116–L116](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L116)
 
 ````text
 6. **错误码被压平**：`HandoffReadService.read` 把校验阶段的所有 `IOException`（含 `HANDOFF_READ_BUDGET_EXCEEDED`）统一转成 `AuthorizationException("HANDOFF_INVALID_RESOURCE")`（第 206-208 行），仅保留 message。规范 §7.2 要求超时"明确报 HANDOFF_READ_BUDGET_EXCEEDED"——现有测试只断言 message，掩盖了码值变化；且工具层最终呈现为 `permission denied`，可能误导模型以为"没权限"。另：`asset` 动作在 `read()` 的 else 分支会静默返回空列表（实际靠工具层拦截），属死分支。
@@ -788,7 +788,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **小窗口入口容量未分类且声称HTTP500** — 成立 / functional / scope=new / 入分；统一问题：D09；credit=0.5。
 
-[原文 L117–L117](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L117)
+[原文 L117–L117](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L117)
 
 ````text
 7. **入口失败是 500 而非容量错误**：`project()` 抛 `IllegalStateException("HANDOFF_CONTEXT_BUDGET_TOO_SMALL" / "HANDOFF_UNAVAILABLE")`，经 `GlobalExceptionHandler` 第 138 行变成不透明的 500；规范第 371 行要求"返回正常容量错误"。同理 `configure` 里的 `AuthorizationException(HANDOFF_NOT_BOUND)` 也是 500。建议加显式异常映射（容量类 4xx + 可读 code）。
@@ -810,7 +810,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **configure无绑定可能通用500** — 规范歧义 / conditional / scope=new / 不入分；统一问题：handoff-missing-binding-error；credit=None。
 
-[原文 L117–L117](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L117)
+[原文 L117–L117](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L117)
 
 ````text
 7. **入口失败是 500 而非容量错误**：`project()` 抛 `IllegalStateException("HANDOFF_CONTEXT_BUDGET_TOO_SMALL" / "HANDOFF_UNAVAILABLE")`，经 `GlobalExceptionHandler` 第 138 行变成不透明的 500；规范第 371 行要求"返回正常容量错误"。同理 `configure` 里的 `AuthorizationException(HANDOFF_NOT_BOUND)` 也是 500。建议加显式异常映射（容量类 4xx + 可读 code）。
@@ -830,7 +830,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **锁DTO仅列根来源** — 规范歧义 / engineering / scope=new / 不入分；统一问题：lock-dto-descendants；credit=None。
 
-[原文 L118–L118](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L118)
+[原文 L118–L118](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L118)
 
 ````text
 8. **`lockedSourceSessionIds` 只报根来源**（`SessionMergeService` 第 263 行），gate 实际同时锁子任务；虽然同批释放，但契约上不如规范"锁集合来自真实 gate"严谨。
@@ -842,7 +842,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 判定理由：Service263只从request roots滤真实gate，子任务不返回；规范只说锁集合来自真实gate，未明确所有不可选子任务必须UI列出。根来源锁判定真实，未证用户错误动作。
 
-代码：[SessionMergeService.java:263](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L263)；[SessionMergeService.java:114](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L114)；[session-merge-architecture-v2.md:421](../../../../session-merge-architecture-v2.md#L421)
+代码：[SessionMergeService.java:263](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L263)；[SessionMergeService.java:114](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L114)；[session-merge-architecture-v2.md:421](../../../../session-merge-architecture-v2.md?plain=1#L421)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -850,7 +850,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **结果4MiB读上限** — 不成立 / engineering / scope=new / 不入分；统一问题：detail-result-size-cap；credit=None。
 
-[原文 L119–L119](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L119)
+[原文 L119–L119](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L119)
 
 ````text
 9. **大结果上限需与规范对齐**：单个 unit 结果 >4 MiB 即整任务暂停（`MergeSummaryService` 第 178 行）；可见输出 256 KiB 上限使正常路径够用，但该上限与规范"超大详细结果保留原文件"的表述需要对齐说明。
@@ -870,7 +870,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **注入及密集排版** — 成立 / engineering / scope=new / 不入分；统一问题：formatting-and-injection；credit=None。
 
-[原文 L125–L126](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L125)
+[原文 L125–L126](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L125)
 
 ````text
 1. **注入风格不一致（会被 review 直接打回）**：`QueryController` 第 70-73 行与 `WebSocketController` 第 91-93 行新增了 **field injection**，而这两个文件在 HEAD 上 `@Autowired` 计数为 **0**（全构造器注入）；且使用行内全限定名 `com.aicodeassistant.engine.HandoffContextService`。同样问题在 `QueryEngine` 第 1809 行（此处 `required=false` 是有意的，但建议改为构造器可选注入并加注释）。建议统一为构造器注入 + 正常 import。
@@ -891,7 +891,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **多余core-tool名字登记削弱未来启动检查** — 成立 / engineering / scope=new / 不入分；统一问题：redundant-core-name-registration；credit=None。
 
-[原文 L127–L127](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L127)
+[原文 L127–L127](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L127)
 
 ````text
 3. **`isExplicitCoreTool("HandoffRead")` 是无效/误导性放行**（`OperationAnalyzerRegistry` 第 120 行）：该方法只服务 `ToolRegistry` 的启动自检，而 `HandoffReadTool` 并非 Bean；把它列为"显式核心工具"反而让未来一个同名 Spring Bean 逃过 `AUTHORIZATION_ANALYZER_MISSING` 自检。建议删除该字符串（真正生效的是 `instanceof` 分支）。
@@ -903,7 +903,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 判定理由：确为启动自检白名单；不是当前权限提升。规范396同时要求core登记，删除不是唯一解释。
 
-代码：[OperationAnalyzerRegistry.java:120](../../../../../backend/src/main/java/com/aicodeassistant/authorization/OperationAnalyzerRegistry.java#L120)；[ToolRegistry.java:48](../../../../../backend/src/main/java/com/aicodeassistant/tool/ToolRegistry.java#L48)；[session-merge-architecture-v2.md:396](../../../../session-merge-architecture-v2.md#L396)
+代码：[OperationAnalyzerRegistry.java:120](../../../../../backend/src/main/java/com/aicodeassistant/authorization/OperationAnalyzerRegistry.java#L120)；[ToolRegistry.java:48](../../../../../backend/src/main/java/com/aicodeassistant/tool/ToolRegistry.java#L48)；[session-merge-architecture-v2.md:396](../../../../session-merge-architecture-v2.md?plain=1#L396)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -911,7 +911,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **promptVersion未校验** — 证据不足 / conditional / scope=new / 不入分；统一问题：prompt-version-drift；credit=None。
 
-[原文 L128–L128](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L128)
+[原文 L128–L128](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L128)
 
 ````text
 4. **`Execution.promptVersion` 写入但从不校验**（`MergeHandoffData` 第 21 行、`SessionMergeService` 第 106 行）：修改提示词不会使旧单元失效，属隐性错误风险；要么用它参与 unitId/校验，要么删掉。
@@ -931,7 +931,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **ObjectMapper实例未统一** — 成立 / engineering / scope=new / 不入分；统一问题：objectmapper-reuse；credit=None。
 
-[原文 L129–L129](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L129)
+[原文 L129–L129](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L129)
 
 ````text
 5. **ObjectMapper 未复用容器实例**：`projectionCatalogs` 内 `new ObjectMapper()`，`MergeSummaryService` 第 32 行自建实例，建议注入共享实例（也避免与全局 Jackson 配置漂移）。
@@ -951,7 +951,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **attempt完成后补error可维护性** — 成立 / engineering / scope=new / 不入分；统一问题：attempt-outcome-maintainability；credit=None。
 
-[原文 L130–L130](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L130)
+[原文 L130–L130](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L130)
 
 ````text
 6. **可维护性小项**：`finishAttempt` / `failAttempt` 的"先 completed 再翻 error"补偿逻辑（`MergeProgressRepository` 第 197-200 行）语义晦涩，建议在 `call()` 里按结果直接上报 outcome；`HandoffReadTool` 用 ImageIO 探测类型导致 **WebP 永远判为不支持**（白名单里有 `image/webp`），与"复用现有图片能力"表述不符。
@@ -971,7 +971,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **无扩展副本WebP无法读取** — 成立 / functional / scope=new / 入分；统一问题：D11；credit=1。
 
-[原文 L130–L130](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L130)
+[原文 L130–L130](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L130)
 
 ````text
 6. **可维护性小项**：`finishAttempt` / `failAttempt` 的"先 completed 再翻 error"补偿逻辑（`MergeProgressRepository` 第 197-200 行）语义晦涩，建议在 `call()` 里按结果直接上报 outcome；`HandoffReadTool` 用 ImageIO 探测类型导致 **WebP 永远判为不支持**（白名单里有 `image/webp`），与"复用现有图片能力"表述不符。
@@ -993,7 +993,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **验收表中的测试缺口** — 成立 / engineering / scope=new / 不入分；统一问题：merge-test-coverage-gaps；credit=None。
 
-[原文 L141–L152](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L141)
+[原文 L141–L152](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L141)
 
 ````text
 | 迁移与单一操作 | ✅ | 但 **`MERGE_IDEMPOTENCY_CONFLICT`（同键不同参数 409，规范第 220 行）零覆盖**；`normalize()` 的 2～5 / 主来源 / 非法 ID 校验在重写测试中**被删除且未补** |
@@ -1024,7 +1024,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **artifact表分支和旧build测试** — 成立 / engineering / scope=new / 不入分；统一问题：legacy-helper-and-artifact-tests；credit=None。
 
-[原文 L156–L157](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L156)
+[原文 L156–L157](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L156)
 
 ````text
 - `artifact_manifests` / `artifact_entries` 导出（规范第 118 行硬要求）在测试夹具里**没有对应表**，`tableExists` 恒为 false → **该分支零执行**。
@@ -1045,7 +1045,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **restore测试因没refresh而空洞** — 不成立 / engineering / scope=new / 不入分；统一问题：restore-test-vacuous-claim；credit=None。
 
-[原文 L158–L158](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L158)
+[原文 L158–L158](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L158)
 
 ````text
 - 前端两处**空洞断言**：`sessionMergeStore.test.ts:410` 未调用 `refresh()` 就断言 paused 不被改写（即使回归也通过）；`sessionMergeStore.test.ts:487-508` 的 `finishPolling?.()` 因 `control()` 先占用 `inflight` 而是死分支（该用例实际证明的是"根本不会并发发 GET"，本身符合规范"恢复/取消与轮询串行"，但断言写法有误导）。
@@ -1065,7 +1065,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **串行测试未发GET** — 成立 / engineering / scope=new / 不入分；统一问题：polling-test-order-coverage；credit=None。
 
-[原文 L158–L158](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L158)
+[原文 L158–L158](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L158)
 
 ````text
 - 前端两处**空洞断言**：`sessionMergeStore.test.ts:410` 未调用 `refresh()` 就断言 paused 不被改写（即使回归也通过）；`sessionMergeStore.test.ts:487-508` 的 `finishPolling?.()` 因 `control()` 先占用 `inflight` 而是死分支（该用例实际证明的是"根本不会并发发 GET"，本身符合规范"恢复/取消与轮询串行"，但断言写法有误导）。
@@ -1085,7 +1085,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **取消等待在飞轮询** — 成立 / functional / scope=new / 入分；统一问题：D08；credit=1。
 
-[原文 L159–L159](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L159)
+[原文 L159–L159](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L159)
 
 ````text
 - `control()` 会 `while (inflight) await inflight`（`sessionMergeStore.ts` 第 227 行），最坏情况下"取消"要等一个 15 秒超时的轮询结束，建议在 UI 上给出"正在取消"反馈。
@@ -1107,7 +1107,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **非preparing持锁状态UI未显示** — 成立 / functional / scope=new / 入分；统一问题：D15；credit=1。
 
-[原文 L160–L160](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L160)
+[原文 L160–L160](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L160)
 
 ````text
 - 前端 `selectMergeSourceIds` 仅在 `status === 'preparing'` 时返回 `lockedSourceSessionIds`（`sessionMergeStore.ts` 第 30-31 行），而规范第 421 行要求"来源是否锁住只看 `lockedSourceSessionIds`"；`paused` 且仍持锁时 UI 会显示未锁定（服务端 gate 仍会拒绝，属向用户展示不一致的低危问题）。
@@ -1129,7 +1129,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **要求环境失败覆盖隔离绿色文档** — 不成立 / engineering / scope=new / 不入分；统一问题：isolated-test-evidence-invalidated；credit=None。
 
-[原文 L166–L166](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L166)
+[原文 L166–L166](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L166)
 
 ````text
 1. **文档结论与本机实测不符**：`docs/session-merge-architecture-v2.md` 第 7 行写"后端全量 2,975 项：2,905 通过、70 跳过、0 失败/错误"，实测为 **2,900 通过 / 5 失败**（`WorkspaceFileBoundaryTest`、`ManagedProcessRunnerTest`，基线同样失败）。既然文档要随包提交，应改为"5 项与本改动无关的环境相关失败（已用 HEAD 干净副本对照复现）"。
@@ -1141,7 +1141,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 判定理由：规范7明确只叠加本次改动的干净副本；该报告环境中基线也失败，不能否认另一个隔离运行的成功。可以补环境说明，不能把其5失败替换成唯一真实结论。
 
-代码：[session-merge-architecture-v2.md:7](../../../../session-merge-architecture-v2.md#L7)
+代码：[session-merge-architecture-v2.md:7](../../../../session-merge-architecture-v2.md?plain=1#L7)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -1149,7 +1149,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **真实语义验收缺失** — 成立 / engineering / scope=new / 不入分；统一问题：semantic-acceptance-missing；credit=None。
 
-[原文 L167–L167](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L167)
+[原文 L167–L167](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L167)
 
 ````text
 2. **文档缺失内容**：规范第 9 节要求"必须包含一个接续开发样本"（A 改 `name`→`displayName`、B 未联调）与真实模型语义验收，文档第 3 / 471 行自认**尚未执行**。按该文档自身的验收标准，本改动目前**只完成了 stub 层验证**，语义验收仍是发布前的未完成项——必须在 PR 描述里明确，不能以"自动化全绿"代替。
@@ -1161,7 +1161,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 判定理由：文档和报告均明确未执行。
 
-代码：[session-merge-architecture-v2.md:3](../../../../session-merge-architecture-v2.md#L3)；[session-merge-architecture-v2.md:453](../../../../session-merge-architecture-v2.md#L453)
+代码：[session-merge-architecture-v2.md:3](../../../../session-merge-architecture-v2.md?plain=1#L3)；[session-merge-architecture-v2.md:453](../../../../session-merge-architecture-v2.md?plain=1#L453)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -1169,7 +1169,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **未跟踪新增文件与排除文件提示** — 证据不足 / engineering / scope=new / 不入分；统一问题：commit-hygiene；credit=None。
 
-[原文 L168–L170](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L168)
+[原文 L168–L170](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L168)
 
 ````text
 3. **未跟踪文件**：6 个新增 Java 文件、2 个新增前端文件与架构文档均为 `??` 未跟踪状态（共 49 项变更）。提交时若使用 `git commit -am` 会**静默漏掉全部新增文件**；请显式 `git add` 后再提交。
@@ -1183,7 +1183,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 判定理由：属当时git工作区卫生提示，当前材料版本冻结不还原每个时点工作区；不构成功能TP/FP。
 
-代码：[session-merge-architecture-v2.md:7](../../../../session-merge-architecture-v2.md#L7)
+代码：[session-merge-architecture-v2.md:7](../../../../session-merge-architecture-v2.md?plain=1#L7)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -1191,7 +1191,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **迁移与启动清理/恢复全局影响** — 成立 / conditional / scope=new / 不入分；统一问题：merge-startup-side-effects；credit=None。
 
-[原文 L56–L57](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L56)
+[原文 L56–L57](../DeepSeekHarness/deepseekV4.1flashmax-session-merge-v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L56)
 
 ````text
 1. **迁移对所有用户库生效**：`V026` 会 DROP 并重建 `session_merges`（`V026_ExtendSessionMerges.java` 第 13-98 行）。已核对旧校验器 `V024_CreateSessionMerges.validate()` 只校验列存在，因此**不会因 schema 变更导致启动校验失败**；`MigrationRunner` 在事务内执行并以 `protocol_version` 存在性做幂等，测试覆盖了"再启动校验通过 / 重复 target 回滚"。
@@ -1214,7 +1214,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 ### R03-normal_function
 
-**判断分：5/5**。[原文 L19–L34](../KimiCode/KimiK3-session-merge-v2-review.md#L19)。普通入口守卫、原持久化文件与工具池隔离符合独立代码核验；合并来源的取消显示问题不等于无关普通请求回归。
+**判断分：5/5**。[原文 L19–L34](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L19)。普通入口守卫、原持久化文件与工具池隔离符合独立代码核验；合并来源的取消显示问题不等于无关普通请求回归。
 
 ````text
 ## 一、问题 1 结论：对非合并分支功能链路的影响 —— 无破坏
@@ -1237,7 +1237,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 ### R03-boundary
 
-**判断分：5/5**。[原文 L23–L34](../KimiCode/KimiK3-session-merge-v2-review.md#L23)。全文明确静态元数据守卫、公共图片/授权接点与V026全环境迁移边界；不把“零开销”口头概括单独当绝对零风险声明。
+**判断分：5/5**。[原文 L23–L34](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L23)。全文明确静态元数据守卫、公共图片/授权接点与V026全环境迁移边界；不把“零开销”口头概括单独当绝对零风险声明。
 
 ````text
 1. **规范 §10 明令"保持不改"的文件与 HEAD 逐字节一致**（`git diff` 为空）：`SessionManager`、`SessionMessagePersistence`、`SubAgentExecutor`、`SwarmWorkerRunner`、`SessionExecutionGate`、`ToolRegistry`。普通会话的执行与持久化机制零改动。
@@ -1256,7 +1256,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 ### R03-release
 
-**判断分：5/5**。[原文 L105–L116](../KimiCode/KimiK3-session-merge-v2-review.md#L105)。明确当前未达标准，先修功能缺陷并补覆盖，不把结构测试当完成版。
+**判断分：5/5**。[原文 L105–L116](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L105)。明确当前未达标准，先修功能缺陷并补覆盖，不把结构测试当完成版。
 
 ````text
 ## 五、是否达到提交 GitHub 的发布标准 —— 结论
@@ -1275,7 +1275,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 ### R03-semantic
 
-**判断分：5/5**。[原文 L116–L124](../KimiCode/KimiK3-session-merge-v2-review.md#L116)。明确真实模型接续语义未执行且stub不能替代，并允许阶段提交。
+**判断分：5/5**。[原文 L116–L124](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L116)。明确真实模型接续语义未执行且stub不能替代，并允许阶段提交。
 
 ````text
 | 规范自述的遗留验收 | ⚠️ §9 末段**真实模型接续开发语义验收尚未执行**（文档第 3、471 行均明示），stub 测试不能替代；规范允许阶段分提交，但"整体闭合前不宣称完成" |
@@ -1293,7 +1293,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **非关键非UTF8文本附件阻断整个合并** — 成立 / functional / scope=new / 入分；统一问题：D05；credit=1。
 
-[原文 L75–L75](../KimiCode/KimiK3-session-merge-v2-review.md#L75)
+[原文 L75–L75](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L75)
 
 ````text
 **H1. 三类阻断性 gap 形成永久死暂停，含此类来源的合并永远无法完成** —— `MergePackageService.java:598`（非 UTF-8 文本附件如 GBK 日志）、`:531`（base64 非法的内嵌图片）、`:436`（消息级 content_json 解析失败写了无 ref 后缀的裸 `RECORD_REQUIRES_HANDLING`）。三者的共同后果：记录未按 blocked 登记或 gap 缺 ref，`recoverBlockedProjections`（`:232-236`）校验必然抛错 → resume 永远重现同一失败 → 只能取消，而来源内容不变，取消重建后依旧失败。且非关键附件阻断本身违反 §4.4"非关键附件未解析可明确标记并保留原件"。**建议**：非关键附件解析失败降级为非阻断 gap（保留原件+标记）；确需阻断的一律携带 blocked 记录 ref，使配置修复后可恢复。
@@ -1307,7 +1307,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 核实范围：已保存非关键GBK日志原件已复制，仍因不能UTF8解析阻断合并。
 
-代码：[MergePackageService.java:583](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L583)；[MergePackageService.java:589](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L589)；[MergePackageService.java:598](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L598)；[MergePackageService.java:235](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L235)；[session-merge-architecture-v2.md:183](../../../../session-merge-architecture-v2.md#L183)
+代码：[MergePackageService.java:583](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L583)；[MergePackageService.java:589](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L589)；[MergePackageService.java:598](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L598)；[MergePackageService.java:235](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L235)；[session-merge-architecture-v2.md:183](../../../../session-merge-architecture-v2.md?plain=1#L183)
 
 核验：[reproductions/RankingProtocolReproTest.java](reproductions/RankingProtocolReproTest.java)
 
@@ -1315,7 +1315,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **消息解析和非法图片gap缺少可恢复记录ref** — 成立 / functional / scope=new / 入分；统一问题：D04；credit=1。
 
-[原文 L75–L75](../KimiCode/KimiK3-session-merge-v2-review.md#L75)
+[原文 L75–L75](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L75)
 
 ````text
 **H1. 三类阻断性 gap 形成永久死暂停，含此类来源的合并永远无法完成** —— `MergePackageService.java:598`（非 UTF-8 文本附件如 GBK 日志）、`:531`（base64 非法的内嵌图片）、`:436`（消息级 content_json 解析失败写了无 ref 后缀的裸 `RECORD_REQUIRES_HANDLING`）。三者的共同后果：记录未按 blocked 登记或 gap 缺 ref，`recoverBlockedProjections`（`:232-236`）校验必然抛错 → resume 永远重现同一失败 → 只能取消，而来源内容不变，取消重建后依旧失败。且非关键附件阻断本身违反 §4.4"非关键附件未解析可明确标记并保留原件"。**建议**：非关键附件解析失败降级为非阻断 gap（保留原件+标记）；确需阻断的一律携带 blocked 记录 ref，使配置修复后可恢复。
@@ -1329,7 +1329,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 核实范围：已修正解析配置仍被gap/ref关联校验阻止；不等于所有坏原件应可恢复。
 
-代码：[MergePackageService.java:435](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L435)；[MergePackageService.java:531](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L531)；[MergePackageService.java:235](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L235)；[session-merge-architecture-v2.md:179](../../../../session-merge-architecture-v2.md#L179)；[session-merge-architecture-v2.md:183](../../../../session-merge-architecture-v2.md#L183)
+代码：[MergePackageService.java:435](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L435)；[MergePackageService.java:531](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L531)；[MergePackageService.java:235](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L235)；[session-merge-architecture-v2.md:179](../../../../session-merge-architecture-v2.md?plain=1#L179)；[session-merge-architecture-v2.md:183](../../../../session-merge-architecture-v2.md?plain=1#L183)
 
 核验：[reproductions/RankingProtocolReproTest.java](reproductions/RankingProtocolReproTest.java)
 
@@ -1337,7 +1337,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **v2无failed终态且损坏快照一律paused** — 规范歧义 / functional / scope=new / 不入分；统一问题：irrecoverable-state-classification；credit=None。
 
-[原文 L79–L79](../KimiCode/KimiK3-session-merge-v2-review.md#L79)
+[原文 L79–L79](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L79)
 
 ````text
 - **M1. v2 代码不存在任何到 failed 的转移路径**（`SessionMergeService.java:218-228`）：哈希不符等"确认无法恢复"的损坏也一律转 paused，用户提示"请排查后恢复"对此类情况永远无效。§5.1/§6.3 要求区分。建议至少在错误提示上引导取消，或提供确认转 failed 路径。
@@ -1349,7 +1349,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 判定理由：代码确实只有pause；规格211有failed，但352也规定先暂停诊断，代码没有可信的“已确认不可恢复”判定器，且说明允许cancel。不能仅由一次哈希不符认定必须自动failed。
 
-代码：[SessionMergeService.java:218](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L218)；[SessionMergeService.java:246](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L246)；[session-merge-architecture-v2.md:211](../../../../session-merge-architecture-v2.md#L211)；[session-merge-architecture-v2.md:352](../../../../session-merge-architecture-v2.md#L352)
+代码：[SessionMergeService.java:218](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L218)；[SessionMergeService.java:246](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L246)；[session-merge-architecture-v2.md:211](../../../../session-merge-architecture-v2.md?plain=1#L211)；[session-merge-architecture-v2.md:352](../../../../session-merge-architecture-v2.md?plain=1#L352)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -1357,7 +1357,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **legacy旧包缺失阻断重复合并** — 规范歧义 / functional / scope=new / 不入分；统一问题：missing-legacy-package-policy；credit=None。
 
-[原文 L80–L80](../KimiCode/KimiK3-session-merge-v2-review.md#L80)
+[原文 L80–L80](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L80)
 
 ````text
 - **M2. v1 旧包缺失记阻断 gap**（`MergePackageService.java:608` `legacy_package_missing`）：与 §1 第 5 条"重复合并不依赖旧包存活"、§4.4"不依赖祖先会话存在"冲突。旧包被清理后，E 类会话的再次合并将永久阻断。建议降级为非阻断缺口（标明无法精确跨包去重）。
@@ -1369,7 +1369,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 判定理由：缺失v1包确实blocking且不会恢复；但“不依赖旧包”与“只从现存包收录、不冒充完整历史”边界存在张力，应明确是否允许摘要降级后再认定，不按旧榜给其他缺陷半分。
 
-代码：[MergePackageService.java:606](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L606)；[SessionMergeService.java:195](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L195)；[session-merge-architecture-v2.md:185](../../../../session-merge-architecture-v2.md#L185)；[session-merge-architecture-v2.md:216](../../../../session-merge-architecture-v2.md#L216)
+代码：[MergePackageService.java:606](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L606)；[SessionMergeService.java:195](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L195)；[session-merge-architecture-v2.md:185](../../../../session-merge-architecture-v2.md?plain=1#L185)；[session-merge-architecture-v2.md:216](../../../../session-merge-architecture-v2.md?plain=1#L216)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -1377,7 +1377,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **Repository依赖Summary内部CallUsage形成包内环** — 成立 / engineering / scope=new / 不入分；统一问题：repository-callusage-dependency；credit=None。
 
-[原文 L81–L81](../KimiCode/KimiK3-session-merge-v2-review.md#L81)
+[原文 L81–L81](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L81)
 
 ````text
 - **M3. `MergeProgressRepository.java:177` 依赖 `MergeSummaryService.CallUsage`**，而后者反向依赖 Repository，形成包内环，违反 §10"Repository 只依赖 JDBC/事务/序列化"。建议把 `CallUsage` 移到 `MergeHandoffData`。
@@ -1397,7 +1397,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **authorize把截止/中断错误包装为非法资源** — 成立 / functional / scope=new / 入分；统一问题：D13；credit=1。
 
-[原文 L82–L82](../KimiCode/KimiK3-session-merge-v2-review.md#L82)
+[原文 L82–L82](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L82)
 
 ````text
 - **M4. `HandoffReadService.authorize()`（`:49-56`）把所有 IOException 包成 `HANDOFF_INVALID_RESOURCE`**，吞掉 `InterruptedIOException`（用户取消被当成"非法资源"）和 budget 超时（应为 `HANDOFF_READ_BUDGET_EXCEEDED`，§7.2）。`read()` 路径（`:206-208`）同样。建议重抛中断、透出原码。
@@ -1411,7 +1411,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 核实范围：授权/读取支路把预算错误码包成INVALID_RESOURCE等泛码；read入口中断反例正常重抛。
 
-代码：[HandoffReadService.java:41](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L41)；[HandoffReadService.java:49](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L49)；[HandoffReadService.java:55](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L55)；[session-merge-architecture-v2.md:387](../../../../session-merge-architecture-v2.md#L387)
+代码：[HandoffReadService.java:41](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L41)；[HandoffReadService.java:49](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L49)；[HandoffReadService.java:55](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L55)；[session-merge-architecture-v2.md:387](../../../../session-merge-architecture-v2.md?plain=1#L387)
 
 核验：[reproductions/RankingReadReproTest.java](reproductions/RankingReadReproTest.java)
 
@@ -1419,7 +1419,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **read入口也吞掉InterruptedIOException** — 不成立 / functional / scope=new / 入分；统一问题：read-initial-interruption-swallowed；credit=0。
 
-[原文 L82–L82](../KimiCode/KimiK3-session-merge-v2-review.md#L82)
+[原文 L82–L82](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L82)
 
 ````text
 - **M4. `HandoffReadService.authorize()`（`:49-56`）把所有 IOException 包成 `HANDOFF_INVALID_RESOURCE`**，吞掉 `InterruptedIOException`（用户取消被当成"非法资源"）和 budget 超时（应为 `HANDOFF_READ_BUDGET_EXCEEDED`，§7.2）。`read()` 路径（`:206-208`）同样。建议重抛中断、透出原码。
@@ -1439,7 +1439,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **固定工具说明遗漏交接使用指引** — 成立 / engineering / scope=new / 不入分；统一问题：handoff-tool-guidance-incomplete；credit=None。
 
-[原文 L83–L83](../KimiCode/KimiK3-session-merge-v2-review.md#L83)
+[原文 L83–L83](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L83)
 
 ````text
 - **M5. `HandoffReadTool.getDescription()` 缺 §7.1 强制的程序生成指引**（"继续来源任务先读交接详情""目录/未展开计数不代表已了解详情，历史测试不代表当前测试"等）。参考入口侧已有等价表述，工具说明需补齐——这是 §7.1 明确写在"及"两侧的要求。
@@ -1451,7 +1451,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 判定理由：getDescription确实没有373行要求的读详情/核对现状/复测等完整指引；入口已有部分说明。属于可直接修正文案规范缺口，未以真实模型证据证明已导致错误开发。
 
-代码：[HandoffReadTool.java:16](../../../../../backend/src/main/java/com/aicodeassistant/tool/impl/HandoffReadTool.java#L16)；[HandoffContextService.java:68](../../../../../backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java#L68)；[session-merge-architecture-v2.md:373](../../../../session-merge-architecture-v2.md#L373)
+代码：[HandoffReadTool.java:16](../../../../../backend/src/main/java/com/aicodeassistant/tool/impl/HandoffReadTool.java#L16)；[HandoffContextService.java:68](../../../../../backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java#L68)；[session-merge-architecture-v2.md:373](../../../../session-merge-architecture-v2.md?plain=1#L373)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -1459,7 +1459,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **准入/截断响应/v2复制/artifact/通知测试缺口** — 成立 / engineering / scope=new / 不入分；统一问题：merge-required-test-gaps；credit=None。
 
-[原文 L84–L88](../KimiCode/KimiK3-session-merge-v2-review.md#L84)
+[原文 L84–L88](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L84)
 
 ````text
 - **M6. 测试覆盖回退 4 处**（§9 矩阵空洞，均因旧断言删除后未补替代）：
@@ -1483,7 +1483,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **取消与发布竞态返回stale而非already-completed** — 成立 / functional / scope=new / 入分；统一问题：D21；credit=1。
 
-[原文 L92–L92](../KimiCode/KimiK3-session-merge-v2-review.md#L92)
+[原文 L92–L92](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L92)
 
 ````text
 - cancel 与发布竞态时返回 `MERGE_STALE_OPERATION` 而非 §5.3 的 `MERGE_ALREADY_COMPLETED`（`SessionMergeService.java:150`）；
@@ -1497,7 +1497,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 核实范围：读取cancel状态后publish抢先完成，CAS失败被映射STALE而非ALREADY_COMPLETED；原子性仍在。
 
-代码：[SessionMergeService.java:147](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L147)；[SessionMergeService.java:150](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L150)；[MergeProgressRepository.java:120](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeProgressRepository.java#L120)；[session-merge-architecture-v2.md:272](../../../../session-merge-architecture-v2.md#L272)
+代码：[SessionMergeService.java:147](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L147)；[SessionMergeService.java:150](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L150)；[MergeProgressRepository.java:120](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeProgressRepository.java#L120)；[session-merge-architecture-v2.md:272](../../../../session-merge-architecture-v2.md?plain=1#L272)
 
 核验：代码静态核验：见code_refs
 
@@ -1505,7 +1505,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **DTO锁集合只含根而gate锁整棵来源树** — 证据不足 / conditional / scope=new / 不入分；统一问题：locked-descendants-omitted；credit=None。
 
-[原文 L93–L93](../KimiCode/KimiK3-session-merge-v2-review.md#L93)
+[原文 L93–L93](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L93)
 
 ````text
 - `lockedSourceSessionIds` 只含根来源，实际 lease 锁了整棵子任务树（`SessionMergeService.java:263`）；
@@ -1517,7 +1517,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 判定理由：DTO只返回根而gate锁后代的事实成立，但报告未证明普通用户可操作后代会话的支持内UI路径；列表SessionController另返回真实gate占用。暂不把资料字段差异升级为漏锁功能缺陷。
 
-代码：[SessionMergeService.java:114](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L114)；[SessionMergeService.java:263](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L263)；[session-merge-architecture-v2.md:272](../../../../session-merge-architecture-v2.md#L272)；[SessionController.java:175](../../../../../backend/src/main/java/com/aicodeassistant/controller/SessionController.java#L175)
+代码：[SessionMergeService.java:114](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L114)；[SessionMergeService.java:263](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L263)；[session-merge-architecture-v2.md:272](../../../../session-merge-architecture-v2.md?plain=1#L272)；[SessionController.java:175](../../../../../backend/src/main/java/com/aicodeassistant/controller/SessionController.java#L175)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -1525,7 +1525,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **请求字节保护未测JSON转义及系统包装** — 证据不足 / engineering / scope=new / 不入分；统一问题：serialized-request-byte-guard；credit=None。
 
-[原文 L94–L94](../KimiCode/KimiK3-session-merge-v2-review.md#L94)
+[原文 L94–L94](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L94)
 
 ````text
 - 请求字节保护阈值 900KiB 低于规范默认 1MiB 且未计入 JSON 转义膨胀（`MergeSummaryService.java:212`）；聚合分批用 UTF-16 字符数与估算 token 混用（`:99`）；"同单元/模型最多 3 次"按单次运行局部计数，持久 `attempt_count` 不参与上限（`:216`）；`details.jsonl` 用 truncate 直写而非原子写（`:119`）；取消时当前 attempt 行永久残留 `running`；
@@ -1537,7 +1537,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 判定理由：检查确实仅input UTF8且阈值900KiB，但正常单元来自32KiB正文片或约8192字符聚合批次，尚未证明受支持在线路径会发送超过1MiB。900KiB保护比默认保守本身不构成功能错误。
 
-代码：[MergeSummaryService.java:212](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L212)；[MergeSummaryService.java:78](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L78)；[MergeSummaryService.java:99](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L99)；[session-merge-architecture-v2.md:334](../../../../session-merge-architecture-v2.md#L334)
+代码：[MergeSummaryService.java:212](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L212)；[MergeSummaryService.java:78](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L78)；[MergeSummaryService.java:99](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L99)；[session-merge-architecture-v2.md:334](../../../../session-merge-architecture-v2.md?plain=1#L334)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -1545,7 +1545,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **聚合预分批按UTF16字符而非token** — 成立 / engineering / scope=new / 不入分；统一问题：aggregate-planning-character-budget；credit=None。
 
-[原文 L94–L94](../KimiCode/KimiK3-session-merge-v2-review.md#L94)
+[原文 L94–L94](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L94)
 
 ````text
 - 请求字节保护阈值 900KiB 低于规范默认 1MiB 且未计入 JSON 转义膨胀（`MergeSummaryService.java:212`）；聚合分批用 UTF-16 字符数与估算 token 混用（`:99`）；"同单元/模型最多 3 次"按单次运行局部计数，持久 `attempt_count` 不参与上限（`:216`）；`details.jsonl` 用 truncate 直写而非原子写（`:119`）；取消时当前 attempt 行永久残留 `running`；
@@ -1565,7 +1565,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **同模型attempt上限仅局部3次** — 规范歧义 / conditional / scope=new / 不入分；统一问题：attempt-limit-across-manual-resume；credit=None。
 
-[原文 L94–L94](../KimiCode/KimiK3-session-merge-v2-review.md#L94)
+[原文 L94–L94](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L94)
 
 ````text
 - 请求字节保护阈值 900KiB 低于规范默认 1MiB 且未计入 JSON 转义膨胀（`MergeSummaryService.java:212`）；聚合分批用 UTF-16 字符数与估算 token 混用（`:99`）；"同单元/模型最多 3 次"按单次运行局部计数，持久 `attempt_count` 不参与上限（`:216`）；`details.jsonl` 用 truncate 直写而非原子写（`:119`）；取消时当前 attempt 行永久残留 `running`；
@@ -1577,7 +1577,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 判定理由：每次processStage确实重置attempt局部计数，但规格339限定自动尝试，用户主动resume通常允许修复后重试；不应把跨手动恢复累计超过3当成自动无限重试。
 
-代码：[MergeSummaryService.java:216](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L216)；[MergeProgressRepository.java:115](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeProgressRepository.java#L115)；[session-merge-architecture-v2.md:339](../../../../session-merge-architecture-v2.md#L339)
+代码：[MergeSummaryService.java:216](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L216)；[MergeProgressRepository.java:115](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeProgressRepository.java#L115)；[session-merge-architecture-v2.md:339](../../../../session-merge-architecture-v2.md?plain=1#L339)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -1585,7 +1585,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **details清单truncate直写非原子** — 成立 / engineering / scope=new / 不入分；统一问题：details-catalog-nonatomic-intermediate；credit=None。
 
-[原文 L94–L94](../KimiCode/KimiK3-session-merge-v2-review.md#L94)
+[原文 L94–L94](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L94)
 
 ````text
 - 请求字节保护阈值 900KiB 低于规范默认 1MiB 且未计入 JSON 转义膨胀（`MergeSummaryService.java:212`）；聚合分批用 UTF-16 字符数与估算 token 混用（`:99`）；"同单元/模型最多 3 次"按单次运行局部计数，持久 `attempt_count` 不参与上限（`:216`）；`details.jsonl` 用 truncate 直写而非原子写（`:119`）；取消时当前 attempt 行永久残留 `running`；
@@ -1605,7 +1605,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **取消时当前attempt永久running** — 证据不足 / conditional / scope=new / 不入分；统一问题：cancelled-attempt-running-window；credit=None。
 
-[原文 L94–L94](../KimiCode/KimiK3-session-merge-v2-review.md#L94)
+[原文 L94–L94](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L94)
 
 ````text
 - 请求字节保护阈值 900KiB 低于规范默认 1MiB 且未计入 JSON 转义膨胀（`MergeSummaryService.java:212`）；聚合分批用 UTF-16 字符数与估算 token 混用（`:99`）；"同单元/模型最多 3 次"按单次运行局部计数，持久 `attempt_count` 不参与上限（`:216`）；`details.jsonl` 用 truncate 直写而非原子写（`:119`）；取消时当前 attempt 行永久残留 `running`；
@@ -1625,7 +1625,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **failAttempt可将completed改写error** — 成立 / engineering / scope=new / 不入分；统一问题：attempt-outcome-transport-vs-validation；credit=None。
 
-[原文 L95–L95](../KimiCode/KimiK3-session-merge-v2-review.md#L95)
+[原文 L95–L95](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L95)
 
 ````text
 - `MergeProgressRepository`：`failAttempt` 会把已 completed 的 attempt 改写为 error（`:197-200`）；`beginAttempt` 允许 running→running 重复递增（`:166`）；`pause()` 不校验影响行数（`:99-103`）；
@@ -1645,7 +1645,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **beginAttempt允许running再次递增** — 成立 / engineering / scope=new / 不入分；统一问题：attempt-running-to-running；credit=None。
 
-[原文 L95–L95](../KimiCode/KimiK3-session-merge-v2-review.md#L95)
+[原文 L95–L95](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L95)
 
 ````text
 - `MergeProgressRepository`：`failAttempt` 会把已 completed 的 attempt 改写为 error（`:197-200`）；`beginAttempt` 允许 running→running 重复递增（`:166`）；`pause()` 不校验影响行数（`:99-103`）；
@@ -1665,7 +1665,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **pause不校验更新行数** — 成立 / engineering / scope=new / 不入分；统一问题：pause-zero-row-check；credit=None。
 
-[原文 L95–L95](../KimiCode/KimiK3-session-merge-v2-review.md#L95)
+[原文 L95–L95](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L95)
 
 ````text
 - `MergeProgressRepository`：`failAttempt` 会把已 completed 的 attempt 改写为 error（`:197-200`）；`beginAttempt` 允许 running→running 重复递增（`:166`）；`pause()` 不校验影响行数（`:99-103`）；
@@ -1685,7 +1685,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **packageRoot使用cwd参数** — 规范歧义 / engineering / scope=new / 不入分；统一问题：package-root-cwd-fallback；credit=None。
 
-[原文 L96–L96](../KimiCode/KimiK3-session-merge-v2-review.md#L96)
+[原文 L96–L96](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L96)
 
 ````text
 - `MergePackageService.packageRoot()` 以 `user.dir` 为解析输入，§4.2 要求不硬编码 cwd（`:89`）；messages/artifacts/checkpoints 分页均 `LIMIT 1` 逐行查询，长历史下数千次往返（性能备注）；
@@ -1697,7 +1697,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 判定理由：代码调用DatabaseResolver且使用与SqliteConfig相同的cwd默认输入，配置根会覆盖该参数；与“不硬编码cwd”字面有张力，但未证明正常配置下与实际项目库不一致。
 
-代码：[MergePackageService.java:87](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L87)；[DatabaseResolver.java:42](../../../../../backend/src/main/java/com/aicodeassistant/config/database/DatabaseResolver.java#L42)；[SqliteConfig.java:94](../../../../../backend/src/main/java/com/aicodeassistant/config/database/SqliteConfig.java#L94)；[session-merge-architecture-v2.md:120](../../../../session-merge-architecture-v2.md#L120)
+代码：[MergePackageService.java:87](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L87)；[DatabaseResolver.java:42](../../../../../backend/src/main/java/com/aicodeassistant/config/database/DatabaseResolver.java#L42)；[SqliteConfig.java:94](../../../../../backend/src/main/java/com/aicodeassistant/config/database/SqliteConfig.java#L94)；[session-merge-architecture-v2.md:120](../../../../session-merge-architecture-v2.md?plain=1#L120)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -1705,7 +1705,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **长历史逐行SQL与目录扫描性能** — 成立 / conditional / scope=new / 不入分；统一问题：merge-linear-page-query-overhead；credit=None。
 
-[原文 L96–L96](../KimiCode/KimiK3-session-merge-v2-review.md#L96)
+[原文 L96–L96](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L96)
 
 ````text
 - `MergePackageService.packageRoot()` 以 `user.dir` 为解析输入，§4.2 要求不硬编码 cwd（`:89`）；messages/artifacts/checkpoints 分页均 `LIMIT 1` 逐行查询，长历史下数千次往返（性能备注）；
@@ -1725,7 +1725,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **迁移SQL用分号切分脆弱** — 成立 / engineering / scope=new / 不入分；统一问题：migration-semicolon-split；credit=None。
 
-[原文 L97–L97](../KimiCode/KimiK3-session-merge-v2-review.md#L97)
+[原文 L97–L97](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L97)
 
 ````text
 - `V026_ExtendSessionMerges.java:104` `SQL.split(";")` 依赖 SQL 文本无内嵌分号，当前成立但脆弱；
@@ -1745,7 +1745,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **状态字符串未集中常量** — 成立 / engineering / scope=new / 不入分；统一问题：status-string-constants；credit=None。
 
-[原文 L98–L98](../KimiCode/KimiK3-session-merge-v2-review.md#L98)
+[原文 L98–L98](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L98)
 
 ````text
 - unit state/operation status 字符串字面量散落，未在 `MergeHandoffData` 集中为常量；
@@ -1765,7 +1765,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **搜索命中摘要可能切断UTF16代理对** — 成立 / functional / scope=new / 入分；统一问题：D16；credit=1。
 
-[原文 L99–L99](../KimiCode/KimiK3-session-merge-v2-review.md#L99)
+[原文 L99–L99](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L99)
 
 ````text
 - `HandoffReadService` 命中片段截取可能切断代理对（`:261`）；跨分片续接每分片一次全目录扫描（O(n²)，有 15s 预算兜底）；
@@ -1787,7 +1787,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **跨分片查找每次扫描目录可能平方增长** — 成立 / conditional / scope=new / 不入分；统一问题：search-adjacent-catalog-quadratic；credit=None。
 
-[原文 L99–L99](../KimiCode/KimiK3-session-merge-v2-review.md#L99)
+[原文 L99–L99](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L99)
 
 ````text
 - `HandoffReadService` 命中片段截取可能切断代理对（`:261`）；跨分片续接每分片一次全目录扫描（O(n²)，有 15s 预算兜底）；
@@ -1807,7 +1807,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **提交响应前无本地来源占用** — 成立 / conditional / scope=new / 不入分；统一问题：source-lock-before-post-response；credit=None。
 
-[原文 L100–L100](../KimiCode/KimiK3-session-merge-v2-review.md#L100)
+[原文 L100–L100](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L100)
 
 ````text
 - 前端：`selectMergeSourceIds` 在 POST 响应到达前不本地标记来源占用（服务端 gate 兜底）；protocol=1 降级无专项测试；`validatedTerminal` 跳过后续轮询导致 `targetAvailable` 可能陈旧；
@@ -1827,7 +1827,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **protocol1缺专项前端测试** — 成立 / engineering / scope=new / 不入分；统一问题：legacy-ui-test-gap；credit=None。
 
-[原文 L100–L100](../KimiCode/KimiK3-session-merge-v2-review.md#L100)
+[原文 L100–L100](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L100)
 
 ````text
 - 前端：`selectMergeSourceIds` 在 POST 响应到达前不本地标记来源占用（服务端 gate 兜底）；protocol=1 降级无专项测试；`validatedTerminal` 跳过后续轮询导致 `targetAvailable` 可能陈旧；
@@ -1847,7 +1847,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **终态缓存导致targetAvailable陈旧** — 成立 / functional / scope=retained / 不入分；统一问题：terminal-target-availability-stale；credit=None。
 
-[原文 L100–L100](../KimiCode/KimiK3-session-merge-v2-review.md#L100)
+[原文 L100–L100](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L100)
 
 ````text
 - 前端：`selectMergeSourceIds` 在 POST 响应到达前不本地标记来源占用（服务端 gate 兜底）；protocol=1 降级无专项测试；`validatedTerminal` 跳过后续轮询导致 `targetAvailable` 可能陈旧；
@@ -1867,7 +1867,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **控制器混用字段与构造注入** — 成立 / engineering / scope=new / 不入分；统一问题：controller-injection-style；credit=None。
 
-[原文 L101–L101](../KimiCode/KimiK3-session-merge-v2-review.md#L101)
+[原文 L101–L101](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L101)
 
 ````text
 - `QueryController`/`WebSocketController` 对 `HandoffContextService` 用字段注入而类内其他依赖为构造器注入（风格不一致，无功能影响）。
@@ -1887,7 +1887,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **具体同名工具和普通工具池安全保证** — 成立 / global / scope=new / 不入分；统一问题：builtin-tool-identity-isolation；credit=None。
 
-[原文 L29–L30](../KimiCode/KimiK3-session-merge-v2-review.md#L29)
+[原文 L29–L30](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L29)
 
 ````text
    - `AuthorizationService.java:158` 仅将 `handoff-read-v1` 且 `RiskClass.SAFE` 且 effects 恰为 `[READ_RESOURCE]` 的操作纳入只读放行，**未加入 SAFE_INTERNAL**（§7.3 红线）；`OperationAnalyzerRegistry.java:87` 按 `instanceof` 分派，同名 MCP/动态工具分别走 `isMcp()`/`generic` 分支，不能继承权限（测试 `OperationAnalyzerRegistryTest.java:45-66` 佐证）。
@@ -1908,7 +1908,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **HandoffRead读路径拒绝穿越与符号链接** — 成立 / global / scope=new / 不入分；统一问题：handoff-read-path-containment；credit=None。
 
-[原文 L64–L64](../KimiCode/KimiK3-session-merge-v2-review.md#L64)
+[原文 L64–L64](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L64)
 
 ````text
 - §7.2 游标绑定包版本+参数、16KiB/8MiB 上限、15 秒截止与中断检查、UTF-8 边界分页、跨分片重叠去重、长行尾部不漏、路径穿越/symlink 防御、PLAN 模式只读——逐项核实通过且有测试；
@@ -1928,7 +1928,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **测试数字包含跳过项目的通过计数不自洽** — 不成立 / engineering / scope=out / 不入分；统一问题：test-count-arithmetic；credit=None。
 
-[原文 L42–L42](../KimiCode/KimiK3-session-merge-v2-review.md#L42)
+[原文 L42–L42](../KimiCode/KimiK3-session-merge-v2-review.md?plain=1#L42)
 
 ````text
 | 后端全量 `./mvnw -Dspring.profiles.active=test test` | 2,975 项：**2,974 通过、1 失败、70 跳过**，1 分 21 秒 |
@@ -1950,7 +1950,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 ### R04-normal_function
 
-**判断分：5/5**。[原文 L18–L27](../Qoder/kimik3-session-merge-v2-review.md#L18)。普通请求不触发合并读取/工具注入，未发现报告范围内新增功能回归。
+**判断分：5/5**。[原文 L18–L27](../Qoder/kimik3-session-merge-v2-review.md?plain=1#L18)。普通请求不触发合并读取/工具注入，未发现报告范围内新增功能回归。
 
 ````text
 ## 二、问题 1：非合并分支链路影响评估 —— 结论：无破坏
@@ -1967,7 +1967,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 ### R04-boundary
 
-**判断分：5/5**。[原文 L16–L27](../Qoder/kimik3-session-merge-v2-review.md#L16)。全文说明短路、小对象/标记检查或 E 专属范围及验证局限，没有把绿色测试当绝对安全证明。
+**判断分：5/5**。[原文 L16–L27](../Qoder/kimik3-session-merge-v2-review.md?plain=1#L16)。全文说明短路、小对象/标记检查或 E 专属范围及验证局限，没有把绿色测试当绝对安全证明。
 
 ````text
 说明：文档声称的隔离副本全量验证（后端 2,975 项、前端 103 文件 876 项）本次未完整重跑，以上为针对合并链路的定向验证。
@@ -1986,7 +1986,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 ### R04-release
 
-**判断分：0/5**。[原文 L69–L77](../Qoder/kimik3-session-merge-v2-review.md#L69)。未明确回答当前能否作为功能完成版合入发布；允许提交/推送和披露语义未验收本身并非错误，不据此捏造赞成正式发布。
+**判断分：0/5**。[原文 L69–L77](../Qoder/kimik3-session-merge-v2-review.md?plain=1#L69)。未明确回答当前能否作为功能完成版合入发布；允许提交/推送和披露语义未验收本身并非错误，不据此捏造赞成正式发布。
 
 ````text
 ## 五、发布结论
@@ -2002,7 +2002,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 ### R04-semantic
 
-**判断分：5/5**。[原文 L67–L67](../Qoder/kimik3-session-merge-v2-review.md#L67)。明确真实模型语义验收未完成，stub 测试不能替代。
+**判断分：5/5**。[原文 L67–L67](../Qoder/kimik3-session-merge-v2-review.md?plain=1#L67)。明确真实模型语义验收未完成，stub 测试不能替代。
 
 ````text
 - **真实模型接续开发语义验收未执行**——文档明确 stub 结构测试不能替代语义评测，第 9 节的人工标注样本（含 A 改服务端字段、B 前端未联调的接续开发样本及"封存后共享代码又变化"变体）仍需另行执行。
@@ -2012,7 +2012,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **普通路径与内置工具身份隔离** — 成立 / global / scope=new / 不入分；统一问题：ordinary-path-isolation；credit=None。
 
-[原文 L22–L27](../Qoder/kimik3-session-merge-v2-review.md#L22)
+[原文 L22–L27](../Qoder/kimik3-session-merge-v2-review.md?plain=1#L22)
 
 ````text
 - **QueryLoopState**（`QueryLoopState.java:30-35`）：仅新增 `@JsonIgnore` 不序列化标记，无默认行为，符合文档第 10 节。
@@ -2037,7 +2037,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **history_storage_version 无生产写入方** — 成立 / engineering / scope=new / 不入分；统一问题：dead-history-storage-version；credit=None。
 
-[原文 L48–L48](../Qoder/kimik3-session-merge-v2-review.md#L48)
+[原文 L48–L48](../Qoder/kimik3-session-merge-v2-review.md?plain=1#L48)
 
 ````text
 1. **死条件引用不存在的元数据键** — `MergePackageService.java:440`：`history_storage_version != 2` 才导出 checkpoint，但全仓库（含前端）无任何写入方，文档 4.1 节还明确禁止新增该写入。条件恒真、checkpoint 永远导出——功能上恰好符合规范，但属于误导性代码。建议删除条件或注释说明意图。
@@ -2057,7 +2057,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **极小入口预算走通用失败而非容量错误** — 成立 / functional / scope=new / 入分；统一问题：D09；credit=1。
 
-[原文 L49–L49](../Qoder/kimik3-session-merge-v2-review.md#L49)
+[原文 L49–L49](../Qoder/kimik3-session-merge-v2-review.md?plain=1#L49)
 
 ````text
 2. **极小模型下 E 会话每轮 500** — `HandoffContextService.java:74,78`：最小入口也放不下时抛 `IllegalStateException(HANDOFF_CONTEXT_BUDGET_TOO_SMALL)`，从引擎循环冒出变成 500，而非文档 7.1 节要求的"正常容量错误"；`prepareCompactionContext` 路径同样会抛。建议映射为现有容量错误类型（如 413 语义的 LlmApiException），且不因此把已完成合并置为失败。
@@ -2079,7 +2079,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **模型配置失效被归为通用准备失败** — 成立 / functional / scope=new / 入分；统一问题：D18；credit=1。
 
-[原文 L50–L50](../Qoder/kimik3-session-merge-v2-review.md#L50)
+[原文 L50–L50](../Qoder/kimik3-session-merge-v2-review.md?plain=1#L50)
 
 ````text
 3. **模型失效的错误分类不精确** — `SessionMergeService.execute` 中 `summaries.select()` 抛中文 `IllegalArgumentException`，经 `safeCode` 归入 `MERGE_PREPARATION_FAILED`，恢复指引无法提示"换模型后恢复"。建议 select 失败映射到 `MERGE_MODEL_UNAVAILABLE`。
@@ -2101,7 +2101,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **attempt completed 改为 error 语义可澄清** — 成立 / engineering / scope=new / 不入分；统一问题：attempt-outcome-semantics；credit=None。
 
-[原文 L51–L51](../Qoder/kimik3-session-merge-v2-review.md#L51)
+[原文 L51–L51](../Qoder/kimik3-session-merge-v2-review.md?plain=1#L51)
 
 ````text
 4. **attempt outcome 语义混淆** — MergeSummaryService 校验失败路径调用 `failAttempt`，会把传输已成功（completed）的 attempt 改为 error（`MergeProgressRepository.java:197-199`）。usage 保留、计费汇总不受影响，但 outcome 含义模糊，建议注释说明或区分 outcome 取值。
@@ -2121,7 +2121,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **packageRoot 默认依赖 cwd** — 成立 / engineering / scope=new / 不入分；统一问题：package-root-resolver；credit=None。
 
-[原文 L52–L52](../Qoder/kimik3-session-merge-v2-review.md#L52)
+[原文 L52–L52](../Qoder/kimik3-session-merge-v2-review.md?plain=1#L52)
 
 ````text
 5. **packageRoot 回退 user.dir** — `MergePackageService.java:20-27`：未配置 project root 时依赖进程 cwd，与文档"不硬编码 cwd"有出入；resolver 为 null 时用 PRAGMA 真实库文件兜底且 `requireOperationPath` 自洽，实际风险低，建议统一改为以实际打开的数据库文件为准。
@@ -2141,7 +2141,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **来源集合变化直接拒绝，不做两次重取** — 成立 / engineering / scope=new / 不入分；统一问题：source-tree-retry-policy；credit=None。
 
-[原文 L56–L56](../Qoder/kimik3-session-merge-v2-review.md#L56)
+[原文 L56–L56](../Qoder/kimik3-session-merge-v2-review.md?plain=1#L56)
 
 ````text
 6. lockSources 树集合只重取一次（文档允许最多两次），属保守拒绝，可接受；`progress.create` 若并发违反唯一索引会 500 而非 409（单进程 synchronized 下概率极低）。
@@ -2161,7 +2161,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **多实例唯一名额冲突500** — 范围外 / conditional / scope=out / 不入分；统一问题：multi-instance-active-conflict；credit=None。
 
-[原文 L56–L56](../Qoder/kimik3-session-merge-v2-review.md#L56)
+[原文 L56–L56](../Qoder/kimik3-session-merge-v2-review.md?plain=1#L56)
 
 ````text
 6. lockSources 树集合只重取一次（文档允许最多两次），属保守拒绝，可接受；`progress.create` 若并发违反唯一索引会 500 而非 409（单进程 synchronized 下概率极低）。
@@ -2181,7 +2181,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **v2 运行时统一 paused** — 规范歧义 / engineering / scope=new / 不入分；统一问题：paused-without-failed-state；credit=None。
 
-[原文 L57–L57](../Qoder/kimik3-session-merge-v2-review.md#L57)
+[原文 L57–L57](../Qoder/kimik3-session-merge-v2-review.md?plain=1#L57)
 
 ````text
 7. v2 任何失败一律 paused、永不 failed——文档允许"确认无法恢复才 failed"，此实现选择保守，符合"不虚构可恢复进度"精神，建议在提交说明中写明这一取舍。
@@ -2193,7 +2193,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 判定理由：规范要求确认不可恢复才 failed，但未定义自动确认器；保守暂停且 cancel 可退出不等于永久卡死。
 
-代码：[SessionMergeService.java:218](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L218)；[session-merge-architecture-v2.md:352](../../../../session-merge-architecture-v2.md#L352)
+代码：[SessionMergeService.java:218](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L218)；[session-merge-architecture-v2.md:352](../../../../session-merge-architecture-v2.md?plain=1#L352)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -2201,7 +2201,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **注入/全限定名/未用参数风格** — 成立 / engineering / scope=new / 不入分；统一问题：injection-style；credit=None。
 
-[原文 L58–L58](../Qoder/kimik3-session-merge-v2-review.md#L58)
+[原文 L58–L58](../Qoder/kimik3-session-merge-v2-review.md?plain=1#L58)
 
 ````text
 8. 风格不一致：QueryController/WebSocketController 用字段注入 + 行内全限定名，与类内 constructor-final 风格冲突；`SessionMergeService` 构造函数仍接收已弃用的 `PermissionModeManager` 参数；`isExplicitCoreTool("HandoffRead")` 按名称登记会让假想的同名内部 bean 绕过启动 analyzer 检查（当前无此 bean，仅理论风险）。
@@ -2221,7 +2221,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **假想同名内部 bean 的启动检查绕过** — 证据不足 / conditional / scope=new / 不入分；统一问题：hypothetical-handoff-global-bean；credit=None。
 
-[原文 L58–L58](../Qoder/kimik3-session-merge-v2-review.md#L58)
+[原文 L58–L58](../Qoder/kimik3-session-merge-v2-review.md?plain=1#L58)
 
 ````text
 8. 风格不一致：QueryController/WebSocketController 用字段注入 + 行内全限定名，与类内 constructor-final 风格冲突；`SessionMergeService` 构造函数仍接收已弃用的 `PermissionModeManager` 参数；`isExplicitCoreTool("HandoffRead")` 按名称登记会让假想的同名内部 bean 绕过启动 analyzer 检查（当前无此 bean，仅理论风险）。
@@ -2241,7 +2241,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **逐消息 SQL 与 substr 读取性能** — 成立 / engineering / scope=new / 不入分；统一问题：snapshot-query-count；credit=None。
 
-[原文 L59–L59](../Qoder/kimik3-session-merge-v2-review.md#L59)
+[原文 L59–L59](../Qoder/kimik3-session-merge-v2-review.md?plain=1#L59)
 
 ````text
 9. 消息导出每条消息一次 SQL（LIMIT 1 分页）+ 每列 substr 流式读取，长历史下查询次数 ≈ 消息数；正确但可批量优化。
@@ -2261,7 +2261,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **准入/慢hook/隔离/入口重建及真实模型测试缺口** — 成立 / engineering / scope=new / 不入分；统一问题：merge-test-gaps；credit=None。
 
-[原文 L63–L67](../Qoder/kimik3-session-merge-v2-review.md#L63)
+[原文 L63–L67](../Qoder/kimik3-session-merge-v2-review.md?plain=1#L63)
 
 ````text
 - 审批中 / 后台服务忙 / 第五来源忙的准入拒绝无测试；
@@ -2277,7 +2277,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 判定理由：列举的是验证缺口；不能将未写测试直接当产品错误。真实模型未验收与规格一致。
 
-代码：[session-merge-architecture-v2.md:440](../../../../session-merge-architecture-v2.md#L440)；[SessionMergeServiceTest.java:1](../../../../../backend/src/test/java/com/aicodeassistant/session/merge/SessionMergeServiceTest.java#L1)
+代码：[session-merge-architecture-v2.md:440](../../../../session-merge-architecture-v2.md?plain=1#L440)；[SessionMergeServiceTest.java:1](../../../../../backend/src/test/java/com/aicodeassistant/session/merge/SessionMergeServiceTest.java#L1)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -2287,7 +2287,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 ### R05-normal_function
 
-**判断分：5/5**。[原文 L45–L56](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L45)。明确未发现功能性破坏，普通标记早退/预算等价有据。
+**判断分：5/5**。[原文 L45–L56](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L45)。明确未发现功能性破坏，普通标记早退/预算等价有据。
 
 ````text
 ### 结论：**未发现功能性破坏**
@@ -2306,7 +2306,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 ### R05-boundary
 
-**判断分：5/5**。[原文 L261–L265](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L261)。明确mock级隔离证据不足、缺真实入口证据；全文承认共享落点和E性能风险，未用绿色测试证明绝对无风险。
+**判断分：5/5**。[原文 L261–L265](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L261)。明确mock级隔离证据不足、缺真实入口证据；全文承认共享落点和E性能风险，未用绿色测试证明绝对无风险。
 
 ````text
 ### 3.3 隔离证明的强度
@@ -2318,7 +2318,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 ### R05-release
 
-**判断分：5/5**。[原文 L277–L284](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L277)。明确完成版不能发布，先修功能与覆盖并保持语义验收未完成标记；较严格的禁止推送措辞不算错误放行。
+**判断分：5/5**。[原文 L277–L284](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L277)。明确完成版不能发布，先修功能与覆盖并保持语义验收未完成标记；较严格的禁止推送措辞不算错误放行。
 
 ````text
 ### 不建议现在推送。最小放行清单：
@@ -2333,7 +2333,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 ### R05-semantic
 
-**判断分：5/5**。[原文 L164–L172](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L164)。明确缺真实模型/人工样本，不把数据隔离当接续决策验收。
+**判断分：5/5**。[原文 L164–L172](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L164)。明确缺真实模型/人工样本，不把数据隔离当接续决策验收。
 
 ````text
 #### P1-3｜语义验收完全缺失（文档已自认，不可当作已完成）
@@ -2351,7 +2351,7 @@ if ("external_reference".equals(asset.status()) && asset.originalPath().startsWi
 
 **P1-1 gap引用堵死恢复** — 成立 / functional / scope=new / 入分；统一问题：D04；credit=1。
 
-[原文 L119–L150](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L119)
+[原文 L119–L150](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L119)
 
 ````text
 #### P1-1｜暂停后的合并永远无法恢复（功能性缺陷，非理论）
@@ -2404,7 +2404,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P1-2有效测试删除未补** — 成立 / engineering / scope=new / 不入分；统一问题：admission-tool-id-hook-test-gaps；credit=None。
 
-[原文 L152–L162](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L152)
+[原文 L152–L162](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L152)
 
 ````text
 #### P1-2｜规范强制"保留并扩展"的测试被删除而非改写
@@ -2434,7 +2434,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P1-3真实语义样本缺失** — 成立 / engineering / scope=new / 不入分；统一问题：semantic-acceptance-missing；credit=None。
 
-[原文 L164–L172](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L164)
+[原文 L164–L172](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L164)
 
 ````text
 #### P1-3｜语义验收完全缺失（文档已自认，不可当作已完成）
@@ -2454,7 +2454,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 判定理由：真实模型样本无证据且规范自认未执行；不将stub当真实接续。
 
-代码：[session-merge-architecture-v2.md:3](../../../../session-merge-architecture-v2.md#L3)；[session-merge-architecture-v2.md:453](../../../../session-merge-architecture-v2.md#L453)
+代码：[session-merge-architecture-v2.md:3](../../../../session-merge-architecture-v2.md?plain=1#L3)；[session-merge-architecture-v2.md:453](../../../../session-merge-architecture-v2.md?plain=1#L453)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -2462,7 +2462,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **声称删除来源后读取无测试** — 不成立 / engineering / scope=new / 不入分；统一问题：source-deletion-test-missing-claim；credit=None。
 
-[原文 L170–L170](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L170)
+[原文 L170–L170](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L170)
 
 ````text
 - "E 更新待办不改 A/B"、"A 追加消息不改 E 资料"、"删除来源后 E 仍能读取已归档依据"三项均无测试（最接近的只有 `SessionMergeServiceTest:108-114` 验证截止边界后的来源消息不进入快照）。
@@ -2482,7 +2482,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-1祖先路径逃出staging** — 证据不足 / conditional / scope=new / 不入分；统一问题：ancestor-import-destination-containment；credit=None。
 
-[原文 L180–L180](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L180)
+[原文 L180–L180](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L180)
 
 ````text
 | P2-1 | `MergePackageService.java:~648-651` | **`importPrevious` 目标路径未复核（路径穿越）**。`relative = Path.of(entry.path())` **未规范化**；`"snapshot/a/../../evil.txt"` 能通过 `safeFile(previous,…)`（规范化后仍在 previous 内）、通过 `relative.startsWith("snapshot")`，`Path.of("snapshot").relativize(relative)` 保留内部 `..` 得到 `"a/../../evil.txt"`，`root.resolve(...)` 遂**写到暂存根之外**，`Files.createDirectories(destination.getParent())` 还会在包外建目录，随后 `budget.output(destination, CREATE_NEW)` 落盘。需祖先包被篡改（目录哈希受 DB `handoff_hash` 校验），可利用性低，但违反规范第 156 行明令禁止的路径穿越，且是**全文件唯一一处未用 `safeFile(root,…)` 复核的写入点**。修复：对 destination 再做一次 `safeFile(root, …)` 或规范化后校验 `startsWith(root)`。 |
@@ -2502,7 +2502,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-2轮询暂时禁用恢复取消** — 成立 / functional / scope=new / 入分；统一问题：D08；credit=1。
 
-[原文 L181–L181](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L181)
+[原文 L181–L181](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L181)
 
 ````text
 | P2-2 | `sessionMergeStore.ts:144` + `SessionMergePanel.tsx:222,225` | **后台轮询间歇性锁死恢复/取消按钮**。`refresh()`（轮询）内 `set({ submitting: true })`，而"恢复合并"（:222）与"取消合并"（:225）均为 `disabled={submitting}`。轮询约每 2s 一次 → 按钮随之间歇性禁用；若 GET 挂起，最长 15s（:147 `setTimeout(() => controller.abort(), 15000)`）内**用户无法取消卡死的合并**。违反规范第 420 行（"网络状态单独用 syncing/error"）与第 425 行（"取消不带进度版本，不因后台进度更新被拒绝"）。修复：把轮询的 `syncing` 与用户操作的 `submitting` 拆成两个标志。 |
@@ -2524,7 +2524,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-3容量未分类并错误推断REST500** — 成立 / functional / scope=new / 入分；统一问题：D09；credit=0.5。
 
-[原文 L182–L182](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L182)
+[原文 L182–L182](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L182)
 
 ````text
 | P2-3 | `HandoffContextService.java:74,78` → `QueryEngine.java:841` | **预算不足抛未处理异常而非容量错误**。`project()` 抛 `IllegalStateException("HANDOFF_CONTEXT_BUDGET_TOO_SMALL")`，而 :841 不在任何会将其转为容量错误的 try 内（最近的 `catch(RuntimeException)` 在 :1163，作用域仅包裹 LLM 调用且会 `throw e` 重抛）。规范第 371 行要求"连最小入口和当前请求都放不下时返回正常容量错误，不把已完成合并改为失败"。小窗口模型下 E 的每次请求都会变成未处理异常 → REST 500 / WS 通用错误。**仅影响 E，不影响普通会话。** |
@@ -2546,7 +2546,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-4绑定丢失应降级普通会话** — 规范歧义 / conditional / scope=new / 不入分；统一问题：handoff-missing-binding-error；credit=None。
 
-[原文 L183–L183](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L183)
+[原文 L183–L183](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L183)
 
 ````text
 | P2-4 | `HandoffContextService.java:41-42` | **绑定缺失时 E 永久不可用，无降级路径**。`reads.binding()` 在无绑定时抛 `AuthorizationException("HANDOFF_NOT_BOUND")`（`HandoffReadService:47`）。E 的 metadata 标记仍在但 DB 绑定消失（合并行被删、库损坏、legacy 行）时，E **每次请求都失败**，无法退回普通会话。 |
@@ -2558,7 +2558,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 判定理由：绑定丢失时拒读/拒启动符合可信绑定failclosed；规范不要求损坏E静默退普通。可改错误映射，但数据库行人工丢失不能证明正常功能回归。
 
-代码：[HandoffContextService.java:41](../../../../../backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java#L41)；[HandoffReadService.java:47](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L47)；[session-merge-architecture-v2.md:398](../../../../session-merge-architecture-v2.md#L398)
+代码：[HandoffContextService.java:41](../../../../../backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java#L41)；[HandoffReadService.java:47](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L47)；[session-merge-architecture-v2.md:398](../../../../session-merge-architecture-v2.md?plain=1#L398)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -2566,7 +2566,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-5 attempt反写终态造成迟到usage丢失** — 证据不足 / conditional / scope=new / 不入分；统一问题：late-usage-after-final-outcome；credit=None。
 
-[原文 L184–L184](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L184)
+[原文 L184–L184](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L184)
 
 ````text
 | P2-5 | `MergeProgressRepository.java:197-200` vs `:184` | **attempt 终态被覆写 + 迟到 usage 被丢弃**。`failAttempt` 会把已记为 `completed` 的 attempt 强制改写成 `error`（场景：流式成功但本地 schema 校验失败，`MergeSummaryService:231-233`）；随后到达的 usage 回调因 `finishAttempt` 只匹配 `outcome IN ('running','unknown')` 而被静默丢弃。违反规范第 232 行"迟到回调仅能幂等记录自己的 attempt usage"。方向安全（不会误改单元状态、不会重复计费），但**费用少计、终态失真**，与第 203 行"让失败/取消的调用仍可记账"的意图相悖。 |
@@ -2586,7 +2586,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-6 DTO宽松与运行时校验不足** — 成立 / engineering / scope=new / 不入分；统一问题：frontend-dto-validation；credit=None。
 
-[原文 L185–L185](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L185)
+[原文 L185–L185](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L185)
 
 ````text
 | P2-6 | `sessionMergeStore.ts:16-19` | **DTO 与规范不符且零运行时校验**。规范第 253-268 行要求**必填**的 `protocolVersion`/`runEpoch`/`snapshotSealed`/`lockedSourceSessionIds`/`progress`/`canResume`/`canCancel`/`targetAvailable` 全部被声明为可选（`?`）；`protocolVersion?: number` 而非 `1 \| 2` 联合类型；:185-187 只校验 `operationId` 与 `request`，`status` 联合、`progress` 形状、数组性均未校验。`protocolVersion` 在 `SessionMergePanel.tsx` 中**从未被引用** → 规范第 427 行"protocol=1 只读展示旧结果，不伪造 v2 绑定/恢复能力"完全依赖服务端 `canResume`/`canCancel` 标志，无客户端纵深防御。 |
@@ -2606,7 +2606,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-7幂等cancel空响应误报** — 范围外 / conditional / scope=new / 不入分；统一问题：cancel-empty-response；credit=None。
 
-[原文 L186–L186](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L186)
+[原文 L186–L186](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L186)
 
 ````text
 | P2-7 | `sessionMergeStore.ts:241` | **幂等 cancel 被误报为失败**。`control()` 无条件 `await response.json()`；规范第 244 行允许"已 cancelled 幂等返回"，若服务端返回 204/空体则 `json()` 抛错 → 被 catch → 向用户显示"操作失败，请重试"，尽管服务端已成功。 |
@@ -2626,7 +2626,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-8大量旧build测试与在线覆盖缺口** — 成立 / engineering / scope=new / 不入分；统一问题：legacy-helper-and-artifact-tests；credit=None。
 
-[原文 L187–L187](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L187)
+[原文 L187–L187](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L187)
 
 ````text
 | P2-8 | `MergePackageServiceTest.java` 约 13-16 处 | **大量测试跑在死代码上**。我已亲自确认 `build()`、`Bundle`、`packagePath(target,operation)`、`writeParts`、`PartWriter`、`exportRuns`、`renderBlock`、`MAX_RECORD_BYTES` 在 `backend/src/main` 下**零调用者**（符合文档第 5 行"旧 build/packagePath helper 仅为兼容已有夹具保留，在线入口不再调用"）。但 Unicode/二进制保真（:198）、checkpoint 去重（:317）、复制配额（:356/369/411）、磁盘余量、验证状态（:428/439）等断言全部跑在这条死路径上，**不能证明 v2 `seal()` 路径正确**。尤其：v2 替代守卫 `MERGE_COPY_INCOMPLETE`（`MergePackageService:576`，由 `:621` 触发）**无任何测试**；`exportSimpleRows("run_envelopes"…)`（:441）的产物导出路径**无断言**。存活路径为 `snapshotPath`（SessionMergeService:105）、`seal`/`validateSnapshot`/`recoverBlockedProjections`（:185-197）、`deleteUnreferenced`（:274）、`safeFile`/`projectionCatalogs`（HandoffReadService）。 |
@@ -2646,7 +2646,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-9每轮多次清单哈希** — 证据不足 / conditional / scope=new / 不入分；统一问题：repeated-handoff-integrity-io；credit=None。
 
-[原文 L188–L188](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L188)
+[原文 L188–L188](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L188)
 
 ````text
 | P2-9 | `QueryEngine.java:841` + `:1835` | **每轮两次完整包哈希校验**。`handoffProjection` 在主循环（:841）与 `prepareCompactionContext`（:1835，每轮由 :843 调用）各执行一次 → 两次绑定查询 + 两次 `reads.brief(root)`（内含 `verify(ledger,budget)` 整包哈希链）。压缩/413 重入时更多。规范第 362 行禁止全局缓存，但**同一轮内复用一次投影结果**不违反该约束。仅影响 E 的性能。 |
@@ -2666,7 +2666,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-10a提取聚合提示词不细** — 成立 / engineering / scope=new / 不入分；统一问题：extraction-aggregation-prompt-guidance；credit=None。
 
-[原文 L189–L189](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L189)
+[原文 L189–L189](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L189)
 
 ````text
 | P2-10 | `MergeSummaryService.java:33-42,90,97,139-146,162` | **提示词与降容标注不达规范要求**。(a) 提取与聚合**共用同一份提示词**，未包含 §6.1 表格（第 282-287 行）中 `state_conclusions` 的具体要求（各来源工作范围、已完成/未完成状态、关键决策、结论保留来源依据），也无聚合语义（有界 brief、详情入口、每来源覆盖）；(b) 降容兜底（:139-145）只打印单元/栏目计数，**没有规范第 321 行要求的"还有 N 项未展开"标注**，状态计数只进 `overview.json`（:146）不进可见 brief；(c) 单单元场景 `brief = readResult(...)`（:90）→ `handoff.md` 会嵌入机器 JSON `{"schemaVersion":2,"items":...}` 而非可读概览，违反第 317 行；(d) `pieces(...,"",content)`（:97）导致 `details.jsonl` 聚合行 `sourceId=""`（:130/134），**丢失来源归属**，与第 289 行"冲突双方保留来源"相悖；(e) `planAggregate` 的 `inputHash = sha256(encode(in))`（:162）**未绑定 snapshotHash/PROCESSOR_VERSION**（提取单元在 :79 有绑定），弱于第 313 行要求；(f) 聚合再分片 `pieces()` 按 4096 字符切且**零重叠**（:97,164-172），不符合第 313 行"保留相邻引用和少量上下文重叠"。 |
@@ -2678,7 +2678,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 判定理由：共用PROMPT有栏目和状态但不完全列明规范细节，属于提示和语义验收建议；不能单靠提示词字面证明模型必漏。
 
-代码：[MergeSummaryService.java:33](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L33)；[MergeSummaryService.java:222](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L222)；[session-merge-architecture-v2.md:317](../../../../session-merge-architecture-v2.md#L317)
+代码：[MergeSummaryService.java:33](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L33)；[MergeSummaryService.java:222](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L222)；[session-merge-architecture-v2.md:317](../../../../session-merge-architecture-v2.md?plain=1#L317)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -2686,7 +2686,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-10b降容未展开计数文案** — 成立 / engineering / scope=new / 不入分；统一问题：brief-unexpanded-count-guidance；credit=None。
 
-[原文 L189–L189](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L189)
+[原文 L189–L189](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L189)
 
 ````text
 | P2-10 | `MergeSummaryService.java:33-42,90,97,139-146,162` | **提示词与降容标注不达规范要求**。(a) 提取与聚合**共用同一份提示词**，未包含 §6.1 表格（第 282-287 行）中 `state_conclusions` 的具体要求（各来源工作范围、已完成/未完成状态、关键决策、结论保留来源依据），也无聚合语义（有界 brief、详情入口、每来源覆盖）；(b) 降容兜底（:139-145）只打印单元/栏目计数，**没有规范第 321 行要求的"还有 N 项未展开"标注**，状态计数只进 `overview.json`（:146）不进可见 brief；(c) 单单元场景 `brief = readResult(...)`（:90）→ `handoff.md` 会嵌入机器 JSON `{"schemaVersion":2,"items":...}` 而非可读概览，违反第 317 行；(d) `pieces(...,"",content)`（:97）导致 `details.jsonl` 聚合行 `sourceId=""`（:130/134），**丢失来源归属**，与第 289 行"冲突双方保留来源"相悖；(e) `planAggregate` 的 `inputHash = sha256(encode(in))`（:162）**未绑定 snapshotHash/PROCESSOR_VERSION**（提取单元在 :79 有绑定），弱于第 313 行要求；(f) 聚合再分片 `pieces()` 按 4096 字符切且**零重叠**（:97,164-172），不符合第 313 行"保留相邻引用和少量上下文重叠"。 |
@@ -2698,7 +2698,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 判定理由：header有单元/栏目数与需继续读取说明，但未明确还有N项未展开和可见状态计数；字面规范偏差，详情仍保留。
 
-代码：[MergeSummaryService.java:139](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L139)；[MergeSummaryService.java:145](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L145)；[session-merge-architecture-v2.md:321](../../../../session-merge-architecture-v2.md#L321)
+代码：[MergeSummaryService.java:139](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L139)；[MergeSummaryService.java:145](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L145)；[session-merge-architecture-v2.md:321](../../../../session-merge-architecture-v2.md?plain=1#L321)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -2706,7 +2706,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-10c brief嵌入JSON必不符合** — 规范歧义 / engineering / scope=new / 不入分；统一问题：brief-json-presentation；credit=None。
 
-[原文 L189–L189](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L189)
+[原文 L189–L189](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L189)
 
 ````text
 | P2-10 | `MergeSummaryService.java:33-42,90,97,139-146,162` | **提示词与降容标注不达规范要求**。(a) 提取与聚合**共用同一份提示词**，未包含 §6.1 表格（第 282-287 行）中 `state_conclusions` 的具体要求（各来源工作范围、已完成/未完成状态、关键决策、结论保留来源依据），也无聚合语义（有界 brief、详情入口、每来源覆盖）；(b) 降容兜底（:139-145）只打印单元/栏目计数，**没有规范第 321 行要求的"还有 N 项未展开"标注**，状态计数只进 `overview.json`（:146）不进可见 brief；(c) 单单元场景 `brief = readResult(...)`（:90）→ `handoff.md` 会嵌入机器 JSON `{"schemaVersion":2,"items":...}` 而非可读概览，违反第 317 行；(d) `pieces(...,"",content)`（:97）导致 `details.jsonl` 聚合行 `sourceId=""`（:130/134），**丢失来源归属**，与第 289 行"冲突双方保留来源"相悖；(e) `planAggregate` 的 `inputHash = sha256(encode(in))`（:162）**未绑定 snapshotHash/PROCESSOR_VERSION**（提取单元在 :79 有绑定），弱于第 313 行要求；(f) 聚合再分片 `pieces()` 按 4096 字符切且**零重叠**（:97,164-172），不符合第 313 行"保留相邻引用和少量上下文重叠"。 |
@@ -2718,7 +2718,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 判定理由：单个详细结果作为brief的确是JSON，但规范317要求有界概览未禁止结构化JSON；可读性可改，不能由格式认定功能不正确。
 
-代码：[MergeSummaryService.java:90](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L90)；[MergeSummaryService.java:144](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L144)；[session-merge-architecture-v2.md:317](../../../../session-merge-architecture-v2.md#L317)
+代码：[MergeSummaryService.java:90](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L90)；[MergeSummaryService.java:144](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L144)；[session-merge-architecture-v2.md:317](../../../../session-merge-architecture-v2.md?plain=1#L317)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -2726,7 +2726,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-10d聚合sourceId为空导致来源丢失** — 规范歧义 / engineering / scope=new / 不入分；统一问题：aggregate-empty-source-attribution；credit=None。
 
-[原文 L189–L189](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L189)
+[原文 L189–L189](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L189)
 
 ````text
 | P2-10 | `MergeSummaryService.java:33-42,90,97,139-146,162` | **提示词与降容标注不达规范要求**。(a) 提取与聚合**共用同一份提示词**，未包含 §6.1 表格（第 282-287 行）中 `state_conclusions` 的具体要求（各来源工作范围、已完成/未完成状态、关键决策、结论保留来源依据），也无聚合语义（有界 brief、详情入口、每来源覆盖）；(b) 降容兜底（:139-145）只打印单元/栏目计数，**没有规范第 321 行要求的"还有 N 项未展开"标注**，状态计数只进 `overview.json`（:146）不进可见 brief；(c) 单单元场景 `brief = readResult(...)`（:90）→ `handoff.md` 会嵌入机器 JSON `{"schemaVersion":2,"items":...}` 而非可读概览，违反第 317 行；(d) `pieces(...,"",content)`（:97）导致 `details.jsonl` 聚合行 `sourceId=""`（:130/134），**丢失来源归属**，与第 289 行"冲突双方保留来源"相悖；(e) `planAggregate` 的 `inputHash = sha256(encode(in))`（:162）**未绑定 snapshotHash/PROCESSOR_VERSION**（提取单元在 :79 有绑定），弱于第 313 行要求；(f) 聚合再分片 `pieces()` 按 4096 字符切且**零重叠**（:97,164-172），不符合第 313 行"保留相邻引用和少量上下文重叠"。 |
@@ -2738,7 +2738,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 判定理由：聚合输入跨来源，sourceId空不删除叶子来源；evidence保留detail:child@范围可逐层回溯，所有leaf详细条目仍按sourceId可搜索。不能把聚合多来源字段空等同冲突证据来源丢失。；统一复核：聚合sourceId空是事实，完整evidence链仍在；单行归属的规范含义不清，不罚资料丢失FP。
 
-代码：[MergeSummaryService.java:97](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L97)；[MergeSummaryService.java:130](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L130)；[MergeSummaryService.java:162](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L162)；[MergeSummaryService.java:284](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L284)；[session-merge-architecture-v2.md:319](../../../../session-merge-architecture-v2.md#L319)
+代码：[MergeSummaryService.java:97](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L97)；[MergeSummaryService.java:130](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L130)；[MergeSummaryService.java:162](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L162)；[MergeSummaryService.java:284](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L284)；[session-merge-architecture-v2.md:319](../../../../session-merge-architecture-v2.md?plain=1#L319)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -2746,7 +2746,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-10e聚合hash未含快照和处理器** — 规范歧义 / engineering / scope=new / 不入分；统一问题：aggregate-hash-binding；credit=None。
 
-[原文 L189–L189](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L189)
+[原文 L189–L189](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L189)
 
 ````text
 | P2-10 | `MergeSummaryService.java:33-42,90,97,139-146,162` | **提示词与降容标注不达规范要求**。(a) 提取与聚合**共用同一份提示词**，未包含 §6.1 表格（第 282-287 行）中 `state_conclusions` 的具体要求（各来源工作范围、已完成/未完成状态、关键决策、结论保留来源依据），也无聚合语义（有界 brief、详情入口、每来源覆盖）；(b) 降容兜底（:139-145）只打印单元/栏目计数，**没有规范第 321 行要求的"还有 N 项未展开"标注**，状态计数只进 `overview.json`（:146）不进可见 brief；(c) 单单元场景 `brief = readResult(...)`（:90）→ `handoff.md` 会嵌入机器 JSON `{"schemaVersion":2,"items":...}` 而非可读概览，违反第 317 行；(d) `pieces(...,"",content)`（:97）导致 `details.jsonl` 聚合行 `sourceId=""`（:130/134），**丢失来源归属**，与第 289 行"冲突双方保留来源"相悖；(e) `planAggregate` 的 `inputHash = sha256(encode(in))`（:162）**未绑定 snapshotHash/PROCESSOR_VERSION**（提取单元在 :79 有绑定），弱于第 313 行要求；(f) 聚合再分片 `pieces()` 按 4096 字符切且**零重叠**（:97,164-172），不符合第 313 行"保留相邻引用和少量上下文重叠"。 |
@@ -2766,7 +2766,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-10f聚合pieces无重叠** — 成立 / engineering / scope=new / 不入分；统一问题：aggregate-piece-overlap；credit=None。
 
-[原文 L189–L189](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L189)
+[原文 L189–L189](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L189)
 
 ````text
 | P2-10 | `MergeSummaryService.java:33-42,90,97,139-146,162` | **提示词与降容标注不达规范要求**。(a) 提取与聚合**共用同一份提示词**，未包含 §6.1 表格（第 282-287 行）中 `state_conclusions` 的具体要求（各来源工作范围、已完成/未完成状态、关键决策、结论保留来源依据），也无聚合语义（有界 brief、详情入口、每来源覆盖）；(b) 降容兜底（:139-145）只打印单元/栏目计数，**没有规范第 321 行要求的"还有 N 项未展开"标注**，状态计数只进 `overview.json`（:146）不进可见 brief；(c) 单单元场景 `brief = readResult(...)`（:90）→ `handoff.md` 会嵌入机器 JSON `{"schemaVersion":2,"items":...}` 而非可读概览，违反第 317 行；(d) `pieces(...,"",content)`（:97）导致 `details.jsonl` 聚合行 `sourceId=""`（:130/134），**丢失来源归属**，与第 289 行"冲突双方保留来源"相悖；(e) `planAggregate` 的 `inputHash = sha256(encode(in))`（:162）**未绑定 snapshotHash/PROCESSOR_VERSION**（提取单元在 :79 有绑定），弱于第 313 行要求；(f) 聚合再分片 `pieces()` 按 4096 字符切且**零重叠**（:97,164-172），不符合第 313 行"保留相邻引用和少量上下文重叠"。 |
@@ -2778,7 +2778,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 判定理由：pieces按4096字符不重叠；split失败缩小才带overlap，规范有少量重叠要求。完整片段均保留，未量化语义后果。
 
-代码：[MergeSummaryService.java:164](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L164)；[MergeSummaryService.java:272](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L272)；[session-merge-architecture-v2.md:313](../../../../session-merge-architecture-v2.md#L313)
+代码：[MergeSummaryService.java:164](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L164)；[MergeSummaryService.java:272](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L272)；[session-merge-architecture-v2.md:313](../../../../session-merge-architecture-v2.md?plain=1#L313)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -2786,7 +2786,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-11 context子串误判配置鉴权** — 证据不足 / conditional / scope=new / 不入分；统一问题：context-error-substring-classification；credit=None。
 
-[原文 L190–L190](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L190)
+[原文 L190–L190](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L190)
 
 ````text
 | P2-11 | `MergeSummaryService.java:237-238` | **按子串判定容量失败**。errorType 含 `"context"` 或 message 含 `"context length"` 即视为 `capacityFailure` → 走二分而非暂停。非可重试的配置/鉴权错误若文案恰含 "context" 会被误判，**白烧调用次数**（每次二分都是真实计费请求）。 |
@@ -2806,7 +2806,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-12a错误message绝对路径** — 证据不足 / conditional / scope=new / 不入分；统一问题：handoff-error-path-disclosure；credit=None。
 
-[原文 L191–L191](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L191)
+[原文 L191–L191](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L191)
 
 ````text
 | P2-12 | `HandoffReadTool.java:45`、`:35-38` | **错误信息泄漏绝对路径 + ImageIO 空流崩溃**。(a) :45 直接把 `e.getMessage()` 返回给模型，`NoSuchFileException`/`AccessDeniedException`（如哈希校验与打开之间文件被删）会把**包目录绝对路径**带入模型上下文；`AuthorizationException`（:208/:230 抛出）是 RuntimeException，越过 `call()` 的 IOException catch。(b) :35-38 当 `ImageIO.createImageInputStream` 返回 null 时 `getImageReaders(null)` 抛 `IllegalArgumentException`，同样越过 catch，未给出规范第 390 行要求的"不支持类型返回明确说明"。 |
@@ -2826,7 +2826,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-12b ImageIO空stream异常** — 证据不足 / conditional / scope=new / 不入分；统一问题：imageio-null-stream；credit=None。
 
-[原文 L191–L191](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L191)
+[原文 L191–L191](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L191)
 
 ````text
 | P2-12 | `HandoffReadTool.java:45`、`:35-38` | **错误信息泄漏绝对路径 + ImageIO 空流崩溃**。(a) :45 直接把 `e.getMessage()` 返回给模型，`NoSuchFileException`/`AccessDeniedException`（如哈希校验与打开之间文件被删）会把**包目录绝对路径**带入模型上下文；`AuthorizationException`（:208/:230 抛出）是 RuntimeException，越过 `call()` 的 IOException catch。(b) :35-38 当 `ImageIO.createImageInputStream` 返回 null 时 `getImageReaders(null)` 抛 `IllegalArgumentException`，同样越过 catch，未给出规范第 390 行要求的"不支持类型返回明确说明"。 |
@@ -2846,7 +2846,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-13包目录硬编码cwd** — 不成立 / engineering / scope=new / 不入分；统一问题：package-root-cwd；credit=None。
 
-[原文 L192–L192](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L192)
+[原文 L192–L192](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L192)
 
 ````text
 | P2-13 | `MergePackageService.java:89` | **包根路径由 `user.dir` 派生**。`packageRoot()` 调 `databaseResolver.getProjectDbPath(Path.of(System.getProperty("user.dir")))`，而 `DatabaseResolver:43-47` 在 `zhikuncode.database.project-root` 为空（该属性默认值确为空）时**回退到传入的 projectRoot**，即 JVM 启动目录。字面违反规范第 120 行"不硬编码 cwd"。**但需公允指出**：这是本仓库既有约定 —— `CheckpointService:50`、`ArtifactManifestService:48`、`RunControlService:53`、`PermissionGrantRepository:67`、`DurableInteractionService:70`、`WorkbenchRunLinkService:41`、`DataCleanupScheduler:30` 七处同样写法，且 `SqliteConfig:75` 的 DataSource 同源解析，故 DB 与包目录会一起移动，实际风险低于表面。真正稳健的做法是 `databaseResolver==null` 分支已使用的 `PRAGMA database_list`（:90-92）—— 建议生产分支也改用它。 |
@@ -2866,7 +2866,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-14非法UTF8中断seal** — 规范歧义 / functional / scope=new / 不入分；统一问题：malformed-db-utf8-raw-retention；credit=None。
 
-[原文 L193–L193](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L193)
+[原文 L193–L193](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L193)
 
 ````text
 | P2-14 | `MergePackageService.java:145-146,386-397` | **非法 UTF-8 终止整个合并**。REPORT 模式解码器遇畸形字节会在 `rawColumns` 中途抛出，**绕过 per-record blocked 路径**直接冒泡终止整次 seal。规范第 164 行要求"不能安全解析的记录先保存 raw 并记阻断原因，不为解决解析问题继续占用来源"。残留 `raw/tmp-*.json` 只能靠重做 staging 清理。 |
@@ -2878,7 +2878,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 判定理由：Decoder REPORT会在写raw过程中失败，完整原始字节无法按TEXT解析保存；支持范围接受已损坏材料暂停，是否必须逐字节归档损坏SQLite TEXT无明确协议。不是普通长文本故障。
 
-代码：[MergePackageService.java:145](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L145)；[MergePackageService.java:386](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L386)；[session-merge-architecture-v2.md:27](../../../../session-merge-architecture-v2.md#L27)
+代码：[MergePackageService.java:145](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L145)；[MergePackageService.java:386](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L386)；[session-merge-architecture-v2.md:27](../../../../session-merge-architecture-v2.md?plain=1#L27)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -2886,7 +2886,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-15 descendants全表读性能** — 范围外 / conditional / scope=retained / 不入分；统一问题：descendant-full-scan；credit=None。
 
-[原文 L194–L194](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L194)
+[原文 L194–L194](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L194)
 
 ````text
 | P2-15 | `MergePackageService.java:100-115` | **`descendants()` 无分页全表读取**。加载所有 session 的 `metadata_json` 并在每次不动点迭代中重新解析全部行，且**在持有合并 token 期间**执行 → 大会话库下延长来源占用时间，与规范第 160 行"不跨文件复制或 LLM 调用持有数据库写事务"的精神相悖（虽为只读）。 |
@@ -2906,7 +2906,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-16畸形warnings白屏** — 证据不足 / conditional / scope=new / 不入分；统一问题：malformed-operation-ui-payload；credit=None。
 
-[原文 L195–L195](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L195)
+[原文 L195–L195](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L195)
 
 ````text
 | P2-16 | `App.tsx:490` + P2-6 | **无错误边界，畸形 payload 可崩整个 App**。`<SessionMergePanel/>` 裸渲染，叠加 DTO 零校验：若 `result.warnings` 是 truthy 非数组但带 `.length`，`Panel:211 .map()` 会在渲染期抛错 → 整应用白屏。 |
@@ -2926,7 +2926,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-17通知同key重复** — 成立 / functional / scope=new / 入分；统一问题：D22；credit=1。
 
-[原文 L196–L196](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L196)
+[原文 L196–L196](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L196)
 
 ````text
 | P2-17 | `sessionMergeStore.ts:200-203` | **通知未按 key 去重**。`notificationStore.addNotification`（:32-42）只 push，store 未先 `removeNotification('merge-'+id)`；反复暂停/失败会堆叠同 key toast（React 重复 key 警告）。`changed` 守卫只覆盖了常见路径。规范第 426 行要求"通知去重"。焦点未被抢占（被动状态更新），该部分合规。 |
@@ -2948,7 +2948,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-18 manifest未直接含cutoff** — 成立 / engineering / scope=new / 不入分；统一问题：manifest-cutoff-placement；credit=None。
 
-[原文 L197–L197](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L197)
+[原文 L197–L197](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L197)
 
 ````text
 | P2-18 | `MergePackageService.java:160-169` | **`manifest.json` 缺截止边界**。规范第 122 行要求 manifest 含"版本、操作/来源 ID、**截止边界**、清单哈希/计数"。实际写入了 schemaVersion/operationId/snapshotVersion/sources/capturedAt/counts/catalog-hashes，但每来源的消息截止（lastSeq/count，:411 计算）只埋在 session raw 记录里（:413-415），未进 manifest。 |
@@ -2960,7 +2960,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 判定理由：cutoff在session raw且被目录哈希覆盖，manifest仅根sources；格式与规范树有差异，但截止资料并未丢失。
 
-代码：[MergePackageService.java:160](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L160)；[MergePackageService.java:413](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L413)；[session-merge-architecture-v2.md:126](../../../../session-merge-architecture-v2.md#L126)
+代码：[MergePackageService.java:160](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L160)；[MergePackageService.java:413](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L413)；[session-merge-architecture-v2.md:126](../../../../session-merge-architecture-v2.md?plain=1#L126)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -2968,7 +2968,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-19多completed绑定不确定** — 范围外 / conditional / scope=new / 不入分；统一问题：duplicate-target-binding-order；credit=None。
 
-[原文 L198–L198](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L198)
+[原文 L198–L198](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L198)
 
 ````text
 | P2-19 | `MergeProgressRepository.java:54-55` | **绑定查询 `findFirst()` 无 `ORDER BY`**。若某会话曾存在两条 completed 的 v2 合并记录（规范第 205 行以 `target_session_id` UNIQUE 防止，但旧行/异常数据下不能绝对排除），绑定结果不确定。 |
@@ -2988,7 +2988,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-20跨进程start500** — 范围外 / conditional / scope=out / 不入分；统一问题：cross-process-admission-error；credit=None。
 
-[原文 L199–L199](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L199)
+[原文 L199–L199](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L199)
 
 ````text
 | P2-20 | `SessionMergeService.java:90-105` | **跨进程并发 `start()` 返回 500 而非协议错误**。唯一索引 `uq_session_merges_active` 能守住"单一未结束名额"不变量（符合规范第 220 行"不能只用内存 semaphore 或 COUNT 后 INSERT"），但竞争失败方抛出裸 `DataIntegrityViolationException` → HTTP 500，而非规范第 272 行的 `MERGE_ACTIVE_EXISTS`。 |
@@ -3000,7 +3000,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 判定理由：同服务start synchronized，单机单进程支持场景串行返回Conflict。跨进程共享SQLite时确可能撞约束，但此变更不建设多进程调度，缺支持合同，不能按双浏览器故障计。
 
-代码：[SessionMergeService.java:81](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L81)；[SessionMergeService.java:105](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L105)；[session-merge-architecture-v2.md:18](../../../../session-merge-architecture-v2.md#L18)
+代码：[SessionMergeService.java:81](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L81)；[SessionMergeService.java:105](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L105)；[session-merge-architecture-v2.md:18](../../../../session-merge-architecture-v2.md?plain=1#L18)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -3008,7 +3008,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-21a读预算错误码压平** — 成立 / functional / scope=new / 入分；统一问题：D13；credit=1。
 
-[原文 L200–L200](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L200)
+[原文 L200–L200](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L200)
 
 ````text
 | P2-21 | `HandoffReadService.java:206-208`、`:310-311`、`:256` | (a) 校验阶段预算耗尽被重编码为 `HANDOFF_INVALID_RESOURCE`（仅 message 保留原字样），规范第 387 行要求显式 `HANDOFF_READ_BUDGET_EXCEEDED` 错误码；(b) `skip()` 在续页时**从文件头重读**，且跳过的字节不计入 8 MiB 正文预算 → 单页实际 I/O 可超 8 MiB，与第 387 行"搜索正文每页最多 8 MiB"及"不把 8 MiB 误称为含完整性校验的总 I/O 上限"的谨慎表述不符。 |
@@ -3030,7 +3030,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-21b续页skip未计正文预算** — 规范歧义 / conditional / scope=new / 不入分；统一问题：search-resume-skip-io；credit=None。
 
-[原文 L200–L200](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L200)
+[原文 L200–L200](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L200)
 
 ````text
 | P2-21 | `HandoffReadService.java:206-208`、`:310-311`、`:256` | (a) 校验阶段预算耗尽被重编码为 `HANDOFF_INVALID_RESOURCE`（仅 message 保留原字样），规范第 387 行要求显式 `HANDOFF_READ_BUDGET_EXCEEDED` 错误码；(b) `skip()` 在续页时**从文件头重读**，且跳过的字节不计入 8 MiB 正文预算 → 单页实际 I/O 可超 8 MiB，与第 387 行"搜索正文每页最多 8 MiB"及"不把 8 MiB 误称为含完整性校验的总 I/O 上限"的谨慎表述不符。 |
@@ -3042,7 +3042,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 判定理由：Reader.skip从头解码，跳过字节不计scanned，实际I/O会更大；规范387把8MiB称搜索正文预算并允许完整性I/O额外，是否含定位跳读未明确；15秒仍覆盖skip。
 
-代码：[HandoffReadService.java:250](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L250)；[HandoffReadService.java:256](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L256)；[HandoffReadService.java:310](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L310)；[session-merge-architecture-v2.md:387](../../../../session-merge-architecture-v2.md#L387)
+代码：[HandoffReadService.java:250](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L250)；[HandoffReadService.java:256](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L256)；[HandoffReadService.java:310](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L310)；[session-merge-architecture-v2.md:387](../../../../session-merge-architecture-v2.md?plain=1#L387)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -3050,7 +3050,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-22a缺sha256导致NPE** — 不成立 / functional / scope=new / 入分；统一问题：missing-hash-null-pointer；credit=0。
 
-[原文 L201–L201](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L201)
+[原文 L201–L201](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L201)
 
 ````text
 | P2-22 | `HandoffReadService.java:106`、`:275` | 目录条目缺 `sha256` 时 `expected.equals(...)` **NPE**；分片后缀 `Integer.parseInt` 可抛未捕获 `NumberFormatException`。两者均以 RuntimeException 形式逃逸到管线通用处理器。 |
@@ -3070,7 +3070,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P2-22b超大part后缀整数溢出** — 证据不足 / conditional / scope=new / 不入分；统一问题：part-index-overflow；credit=None。
 
-[原文 L201–L201](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L201)
+[原文 L201–L201](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L201)
 
 ````text
 | P2-22 | `HandoffReadService.java:106`、`:275` | 目录条目缺 `sha256` 时 `expected.equals(...)` **NPE**；分片后缀 `Integer.parseInt` 可抛未捕获 `NumberFormatException`。两者均以 RuntimeException 形式逃逸到管线通用处理器。 |
@@ -3090,7 +3090,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P3授权复核执行多次完整校验** — 证据不足 / conditional / scope=new / 不入分；统一问题：repeated-handoff-integrity-io；credit=None。
 
-[原文 L207–L207](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L207)
+[原文 L207–L207](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L207)
 
 ````text
 - **一次逻辑调用跑三遍完整完整性校验**：`analyze`（:50）、`recheck`（:111）、`execute`（:205）各带独立 15s 预算 → 最坏 ~45s。字面满足规范第 387 行"每次实际读取…共用 15 秒截止"，但成本三倍。
@@ -3110,7 +3110,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **P3未签名游标仍不可跨包** — 成立 / global / scope=new / 不入分；统一问题：cursor-binding-safety；credit=None。
 
-[原文 L208–L208](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L208)
+[原文 L208–L208](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L208)
 
 ````text
 - **游标未签名且 binding key 暴露给模型**：`nextCursor` 内含 `binding`（`sha256(operationId+handoffHash+params)`，:210）。我已追踪确认**无法越权** —— 偏移被 `catalog()`（:128-137，拒绝越 EOF 或前字符非 `\n`）与 `resolve` 的范围钳制（:233）限制在本包内，跨包/跨 action/跨 query 的游标在 :221 的 key 相等校验处失败。符合规范第 388 行"游标不是授权凭据，伪造偏移也不能访问其他包"。签名游标可作纵深防御。
@@ -3130,7 +3130,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **core名字登记多余** — 成立 / engineering / scope=new / 不入分；统一问题：redundant-core-name-registration；credit=None。
 
-[原文 L83–L83](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L83)
+[原文 L83–L83](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L83)
 
 ````text
 - 唯一可疑处：`isExplicitCoreTool("HandoffRead")`（:120）。该方法的**唯一消费者**是 `ToolRegistry:48` 的启动期断言（要求每个内部 Spring Bean 工具都有分析器）。而 `HandoffReadTool` 刻意**不注册为 Spring Bean**（符合规范第 379 行），因此这行**没有必要**，反而让未来任何名为 `HandoffRead` 的内部 Bean 免检，削弱 fail-fast 守卫。**不构成权限提升**，建议删除（P3）。
@@ -3142,7 +3142,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 判定理由：此处只影响未来同名bean启动自检，不赋权限；规范396明列core登记故属维护取舍。
 
-代码：[OperationAnalyzerRegistry.java:120](../../../../../backend/src/main/java/com/aicodeassistant/authorization/OperationAnalyzerRegistry.java#L120)；[session-merge-architecture-v2.md:396](../../../../session-merge-architecture-v2.md#L396)
+代码：[OperationAnalyzerRegistry.java:120](../../../../../backend/src/main/java/com/aicodeassistant/authorization/OperationAnalyzerRegistry.java#L120)；[session-merge-architecture-v2.md:396](../../../../session-merge-architecture-v2.md?plain=1#L396)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -3150,7 +3150,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **Component断言位置不贴切** — 成立 / engineering / scope=new / 不入分；统一问题：test-organization；credit=None。
 
-[原文 L210–L210](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L210)
+[原文 L210–L210](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L210)
 
 ````text
 - **`HandoffContextServiceTest:29`** 在名为 `ordinaryRequestRetainsTheExactConfiguration…` 的用例里断言 `HandoffReadTool` 无 `@Component`，与用例主题无关。
@@ -3170,7 +3170,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **聚合引用测试可能零断言** — 成立 / engineering / scope=new / 不入分；统一问题：aggregate-test-vacuity-risk；credit=None。
 
-[原文 L211–L211](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L211)
+[原文 L211–L211](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L211)
 
 ````text
 - **`HandoffReadServiceTest:121-128` 可能零断言通过**：循环对非 completed 单元 `continue`，循环体外无断言；若 `prepare()` 在单个小 extracting 单元处短路（`MergeSummaryService:89-91`），该用例形同空跑。
@@ -3190,7 +3190,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **Panel五来源测试与串行GET测试命名** — 成立 / engineering / scope=new / 不入分；统一问题：test-name-and-order-coverage；credit=None。
 
-[原文 L212–L213](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L212)
+[原文 L212–L213](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L212)
 
 ````text
 - **`SessionMergePanel.test.tsx:140,186`** 名为"limits selection to five…"，实际断言 `2 个来源会话正在复制`（因 mock 的 `lockedSourceSessionIds` 只有 A/B，而提交了 5 个来源），名实不符。
@@ -3211,7 +3211,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **合成响应/哈希断言/异步断言/迁移重复/超时测试建议** — 成立 / engineering / scope=new / 不入分；统一问题：test-hygiene-observations；credit=None。
 
-[原文 L214–L219](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L214)
+[原文 L214–L219](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L214)
 
 ````text
 - **`MergeSummaryServiceTest`** 合成响应用 4,500 字节，规范第 440 行要求 4,183 字节 —— 数值不精确但结论等价（我已确认 `backend/src` 内 `SUMMARY_EXCEEDS_BUDGET`/`3500`/`MAX_CALL` **零命中**，阈值已彻底移除）。用例已按第 455 行要求标为合成。
@@ -3236,7 +3236,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **发布meta未单列历史参考** — 规范歧义 / engineering / scope=new / 不入分；统一问题：handoff-meta-reference-tag；credit=None。
 
-[原文 L220–L220](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L220)
+[原文 L220–L220](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L220)
 
 ````text
 - **`SessionMergeService` 发布事务的消息 meta** 只带 `operationId`，规范第 410 行还要求标记"历史参考"——该语义目前只体现在消息正文里，未进 meta。
@@ -3248,7 +3248,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 判定理由：正文明确历史参考，meta仅sessionMergeOperationId；无具体schema字段要求，不证明执行时误当新授权。
 
-代码：[SessionMergeService.java:212](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L212)；[MergeSummaryService.java:139](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L139)；[session-merge-architecture-v2.md:410](../../../../session-merge-architecture-v2.md#L410)
+代码：[SessionMergeService.java:212](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L212)；[MergeSummaryService.java:139](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L139)；[session-merge-architecture-v2.md:410](../../../../session-merge-architecture-v2.md?plain=1#L410)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -3256,7 +3256,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **事故文档脱敏建议** — 成立 / engineering / scope=new / 不入分；统一问题：incident-document-redaction；credit=None。
 
-[原文 L221–L221](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L221)
+[原文 L221–L221](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L221)
 
 ````text
 - **`docs/session-merge-architecture-v2.md` 推送前需脱敏判断**：第 48-64 行含**真实会话 UUID**（`caf441d4-5ef8-44ea-b2ff-2b5425f749f9`、`82f4e5e2-…`、`f7c8e232-…`、`cb11ed96-…`）、**本地数据库路径**（`backend/.ai-code-assistant/data.db`）、**日志行号**（`log/app.log:19692`、`:19788`）以及真实 usage 数字。非凭据，但属内部事故细节，推公开仓库前建议评估。
@@ -3268,7 +3268,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 判定理由：含历史会话UUID/日志路径，非密钥；是否公开属仓库政策，不直接评产品正确性。
 
-代码：[session-merge-architecture-v2.md:48](../../../../session-merge-architecture-v2.md#L48)
+代码：[session-merge-architecture-v2.md:48](../../../../session-merge-architecture-v2.md?plain=1#L48)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -3276,7 +3276,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **前端876数字已过期** — 不成立 / engineering / scope=new / 不入分；统一问题：isolated-test-evidence-invalidated；credit=None。
 
-[原文 L16–L16](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L16)
+[原文 L16–L16](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L16)
 
 ````text
 | 前端全量 `npm run test:run -- --maxWorkers=2 --minWorkers=1` | **103 文件：894 通过、16 跳过** — 文档第 7 行写的是 876 通过，**该数字已过期** |
@@ -3288,7 +3288,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 判定理由：规范7明确独立副本排除其他UI改动；894多出的18项来自排除测试，不是同范围数字过期。不能以工作区全量替代原隔离证据。
 
-代码：[session-merge-architecture-v2.md:7](../../../../session-merge-architecture-v2.md#L7)
+代码：[session-merge-architecture-v2.md:7](../../../../session-merge-architecture-v2.md?plain=1#L7)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -3296,7 +3296,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **主要正向具体安全/隔离保证** — 成立 / global / scope=new / 不入分；统一问题：read-side-resource-boundary；credit=None。
 
-[原文 L232–L239](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L232)
+[原文 L232–L239](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L232)
 
 ````text
 - **迁移（附录 A）**：V026 SQL 与附录 A **逐行等价**（规范化后 diff 为 IDENTICAL）。`active_slot IS 1` 未被削弱为 NULL 可通过的形式（V026:37）；部分唯一索引 `uq_session_merges_active … WHERE active_slot=1`（:58）；两张新表的 FK `ON DELETE CASCADE`（:61/:84）；四个索引齐备；保留 V024 全部 12 个列名并**重新执行** `new V024_CreateSessionMerges(jdbc).validate()`（:113）；`execute()` 在 `protocol_version` 已存在时**只 validate 不重建**（:103-106，幂等）；旧行按 `protocol_version=1`/`active_slot=NULL`/`preparing→failed`+`LEGACY_INTERRUPTED`+stage `interrupted`+"旧版任务中断，请重新发起" 复制（:47-53）；整个 PROJECT 作用域包在 `MigrationRunner:87-111` 的单个 `TransactionTemplate` 内，失败 → `ApplicationContextException` 拒绝启动；旧 `target_session_id` 重复时由 UNIQUE 约束触发**整体回滚而非删行**（符合第 527 行）。
@@ -3323,7 +3323,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **覆盖表入口门控等欠缺** — 成立 / engineering / scope=new / 不入分；统一问题：merge-test-coverage-gaps；credit=None。
 
-[原文 L247–L265](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L247)
+[原文 L247–L265](../Qoder/qwen3.8max%E6%9E%81%E9%AB%98%E6%96%B0%E7%89%88%E6%9C%AC-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L247)
 
 ````text
 | 435 迁移与单一操作 | `V026ExtendSessionMergesTest:34,44,59`；`MergeProgressRepositoryTest:37-45`；`SessionMergeServiceTest:82,124,138` | **COVERED** | 两浏览器场景为顺序模拟，无并行线程准入竞争 |
@@ -3363,7 +3363,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 ### R06-normal_function
 
-**判断分：5/5**。[原文 L115–L126](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md#L115)。表格正确识别普通请求守卫、图片/授权原分支，未发现无关普通链路新增功能破坏。
+**判断分：5/5**。[原文 L115–L126](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md?plain=1#L115)。表格正确识别普通请求守卫、图片/授权原分支，未发现无关普通链路新增功能破坏。
 
 ````text
 | 公共符号 | 调用方 | 非合并链路是否触达 | 结论 |
@@ -3382,7 +3382,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 ### R06-boundary
 
-**判断分：5/5**。[原文 L117–L126](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md#L117)。虽126总结过满，但正文列出全局迁移和公共授权接点，249又限定被排除集成范围；按冻结规则结合全文给予边界分。
+**判断分：5/5**。[原文 L117–L126](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md?plain=1#L117)。虽126总结过满，但正文列出全局迁移和公共授权接点，249又限定被排除集成范围；按冻结规则结合全文给予边界分。
 
 ````text
 | `V026_ExtendSessionMerges` | `MigrationRunner` | 仅迁移期执行，不改 `sessions` 表、不改普通请求路径 | 无影响 |
@@ -3399,7 +3399,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 ### R06-release
 
-**判断分：0/5**。[原文 L226–L242](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md#L226)。有条件达标仅要求防御校验和CHANGELOG，宣称无Major且唯一正确性风险可消除，未区分阶段提交与功能完成版。
+**判断分：0/5**。[原文 L226–L242](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md?plain=1#L226)。有条件达标仅要求防御校验和CHANGELOG，宣称无Major且唯一正确性风险可消除，未区分阶段提交与功能完成版。
 
 ````text
 **有条件达标。**
@@ -3423,7 +3423,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 ### R06-semantic
 
-**判断分：0/5**。[原文 L246–L250](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md#L246)。全文未回答真实模型语义验收尚未完成及stub不可替代，属于未回答，不作为FP。
+**判断分：0/5**。[原文 L246–L250](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md?plain=1#L246)。全文未回答真实模型语义验收尚未完成及stub不可替代，属于未回答，不作为FP。
 
 ````text
 ## 七、风险与假设说明
@@ -3437,7 +3437,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **缺少currentRunId校验导致未来NPE** — 不成立 / conditional / scope=new / 不入分；统一问题：tool-null-run-context；credit=None。
 
-[原文 L187–L192](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md#L187)
+[原文 L187–L192](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md?plain=1#L187)
 
 ````text
 **M1. `HandoffReadTool.call` 对 `currentRunId` 缺少防御性校验（潜在 NPE）**
@@ -3462,7 +3462,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **测试构造器images为null可能使asset崩溃** — 成立 / conditional / scope=new / 不入分；统一问题：test-constructor-null-images；credit=None。
 
-[原文 L194–L198](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md#L194)
+[原文 L194–L198](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md?plain=1#L194)
 
 ````text
 **M2. `HandoffReadTool` 的 `asset` 分支对 `images == null` 无防护（测试易错点）**
@@ -3486,7 +3486,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **路径错误码可细分** — 成立 / engineering / scope=new / 不入分；统一问题：path-error-code-granularity；credit=None。
 
-[原文 L202–L205](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md#L202)
+[原文 L202–L205](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md?plain=1#L202)
 
 ````text
 **N1. `MergePackageService` 路径安全校验错误码复用**
@@ -3509,7 +3509,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **active轮询间隔应提为常量** — 成立 / engineering / scope=new / 不入分；统一问题：poll-interval-constant；credit=None。
 
-[原文 L207–L209](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md#L207)
+[原文 L207–L209](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md?plain=1#L207)
 
 ````text
 **N2. 前端轮询间隔硬编码**
@@ -3531,7 +3531,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **前端缺少resume/cancel专门单测** — 不成立 / engineering / scope=new / 不入分；统一问题：existing-resume-cancel-tests-denied；credit=None。
 
-[原文 L171–L171](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md#L171)
+[原文 L171–L171](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md?plain=1#L171)
 
 ````text
 - 前端缺少 `resume` / `cancel` 新行为的专门单测（暂停后换模型恢复、取消后通知与锁集合更新）。
@@ -3551,7 +3551,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **缺少磁盘不足与游标越界针对性测试** — 不成立 / engineering / scope=new / 不入分；统一问题：existing-disk-cursor-tests-denied；credit=None。
 
-[原文 L172–L172](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md#L172)
+[原文 L172–L172](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md?plain=1#L172)
 
 ````text
 - 后端缺少 `MERGE_DISK_SPACE_LOW`（磁盘不足）与 `HANDOFF_INVALID_CURSOR`（游标越界）的针对性用例。
@@ -3571,7 +3571,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **未跑浏览器E2E** — 成立 / engineering / scope=new / 不入分；统一问题：browser-e2e-unexecuted；credit=None。
 
-[原文 L173–L173](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md#L173)
+[原文 L173–L173](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md?plain=1#L173)
 
 ````text
 - 未运行 e2e（按要求不启动重型套件），浏览器端整体交互仅依赖单元测试。
@@ -3591,7 +3591,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **建议补CHANGELOG** — 证据不足 / engineering / scope=new / 不入分；统一问题：changelog-synchronization；credit=None。
 
-[原文 L222–L236](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md#L222)
+[原文 L222–L236](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md?plain=1#L222)
 
 ````text
 - 当前 diff 未包含 `CHANGELOG.md` / `README.md` 更新；按项目既往提交规范，重要特性需有变更记录。
@@ -3625,7 +3625,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **建议适度拆分复杂方法** — 成立 / engineering / scope=new / 不入分；统一问题：method-complexity-refactor；credit=None。
 
-[原文 L240–L240](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md#L240)
+[原文 L240–L240](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md?plain=1#L240)
 
 ````text
 - `MergePackageService.importPrevious` 与 `MergeSummaryService.processStage / split` 适度拆分以降低认知负担。
@@ -3645,7 +3645,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **错误日志增加来源及operation结构字段** — 成立 / engineering / scope=new / 不入分；统一问题：merge-error-diagnostics；credit=None。
 
-[原文 L241–L241](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md#L241)
+[原文 L241–L241](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md?plain=1#L241)
 
 ````text
 - 对 `MERGE_SNAPSHOT_CORRUPT`、`HANDOFF_HASH_MISMATCH`、`RECORD_REQUIRES_HANDLING` 等关键错误码输出结构化日志（operationId、sourceIds、原因）以便运维监控。
@@ -3665,7 +3665,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **增加恢复计费/目标缺失操作提示** — 成立 / engineering / scope=new / 不入分；统一问题：resume-and-deleted-target-ux；credit=None。
 
-[原文 L242–L242](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md#L242)
+[原文 L242–L242](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md?plain=1#L242)
 
 ````text
 - `SessionMergePanel` 在 `paused` 状态突出提示“恢复将重试未完成单元并可能再次计费”；对 `targetAvailable === false` 提供“重新合并”或“查看历史交接索引”入口。
@@ -3685,7 +3685,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **HandoffRead真实类型与binding安全保证** — 成立 / global / scope=new / 不入分；统一问题：builtin-tool-identity-isolation；credit=None。
 
-[原文 L104–L104](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md#L104)
+[原文 L104–L104](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md?plain=1#L104)
 
 ````text
 | HandoffRead 为内置只读工具，不注册为全局 Spring Bean，遵循授权框架 | 7.x | 符合 | `HandoffContextServiceTest` 断言 `HandoffReadTool` 无 `@Component`；`OperationAnalyzerRegistry` 专用 `handoff-read-v1` analyzer；binding 变更时 recheck 抛 `HANDOFF_BINDING_CHANGED`；`AuthorizationService` 将 `handoff-read-v1` 纳入 SAFE 读自动放行 |
@@ -3705,7 +3705,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **preparing状态门控符合真实锁集合规范** — 不成立 / global / scope=new / 不入分；统一问题：D15；credit=None。
 
-[原文 L105–L105](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md#L105)
+[原文 L105–L105](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md?plain=1#L105)
 
 ````text
 | 前端来源锁真实依赖服务端 gate、封存后释放、恢复/取消为独立操作 | 第 8 / 10 节 | 符合 | `selectMergeSourceIds` 仅在 `status === 'preparing'` 时返回 `lockedSourceSessionIds`；`resume`/`cancel` 映射后端接口；`dismiss` 仅在不可恢复/不可取消终态可用；面板文案明确“快照封存后可继续使用来源” |
@@ -3717,7 +3717,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 判定理由：代码确有preparing门控，但cancelled仍持锁的收尾窗口被过滤，与规范272仅真实gate权威不符；此为具体实现符合性错误保证。；统一复核：概括性UI符合保证只保留事实裁定，漏报由FN体现，不加整体判断FP。
 
-代码：[sessionMergeStore.ts:30](../../../../../frontend/src/store/sessionMergeStore.ts#L30)；[SessionMergeService.java:150](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L150)；[SessionMergeService.java:230](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L230)；[session-merge-architecture-v2.md:272](../../../../session-merge-architecture-v2.md#L272)
+代码：[sessionMergeStore.ts:30](../../../../../frontend/src/store/sessionMergeStore.ts#L30)；[SessionMergeService.java:150](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L150)；[SessionMergeService.java:230](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L230)；[session-merge-architecture-v2.md:272](../../../../session-merge-architecture-v2.md?plain=1#L272)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -3725,7 +3725,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **Summary测试覆盖JSON长度错误** — 证据不足 / engineering / scope=new / 不入分；统一问题：summary-length-test-coverage；credit=None。
 
-[原文 L150–L150](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md#L150)
+[原文 L150–L150](../QoderIDE/Cantus-zhikuncode-session-merge-v2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A-2026-09-22.md?plain=1#L150)
 
 ````text
 | `MergeSummaryServiceTest` | 分页提取、聚合、预算、失败路径（JSON 错误、长度错误、413、上下文错误） |
@@ -3747,7 +3747,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 ### R07-normal_function
 
-**判断分：5/5**。[原文 L319–L321](../QoderIDE/Sonus-session-merge-v2-review.md#L319)。明确未发现无关普通链路新增破坏，并准确限定来源取消窗口UI问题。
+**判断分：5/5**。[原文 L319–L321](../QoderIDE/Sonus-session-merge-v2-review.md?plain=1#L319)。明确未发现无关普通链路新增破坏，并准确限定来源取消窗口UI问题。
 
 ````text
 **综合判断：**
@@ -3757,7 +3757,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 ### R07-boundary
 
-**判断分：5/5**。[原文 L265–L321](../QoderIDE/Sonus-session-merge-v2-review.md#L265)。逐项列出共享引擎/迁移/后台轮询/验证未闭合，拒绝绝对零回归。
+**判断分：5/5**。[原文 L265–L321](../QoderIDE/Sonus-session-merge-v2-review.md?plain=1#L265)。逐项列出共享引擎/迁移/后台轮询/验证未闭合，拒绝绝对零回归。
 
 ````text
 ## 五、对非合并功能链路的影响
@@ -3821,7 +3821,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 ### R07-release
 
-**判断分：5/5**。[原文 L364–L380](../QoderIDE/Sonus-session-merge-v2-review.md#L364)。允许注明已知问题的阶段提交，禁止标记功能完成或发布就绪。
+**判断分：5/5**。[原文 L364–L380](../QoderIDE/Sonus-session-merge-v2-review.md?plain=1#L364)。允许注明已知问题的阶段提交，禁止标记功能完成或发布就绪。
 
 ````text
 ### 提交判断
@@ -3845,7 +3845,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 ### R07-semantic
 
-**判断分：5/5**。[原文 L374–L380](../QoderIDE/Sonus-session-merge-v2-review.md#L374)。明确真实模型样本不可由stub/结构校验替代，并说明尚未执行。
+**判断分：5/5**。[原文 L374–L380](../QoderIDE/Sonus-session-merge-v2-review.md?plain=1#L374)。明确真实模型样本不可由stub/结构校验替代，并说明尚未执行。
 
 ````text
 1. **修复3项 P2，并补齐对应回归测试。**
@@ -3861,7 +3861,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **恢复投影绕过归档字段和图片分类** — 成立 / functional / scope=new / 入分；统一问题：D01；credit=1。
 
-[原文 L106–L146](../QoderIDE/Sonus-session-merge-v2-review.md#L106)
+[原文 L106–L146](../QoderIDE/Sonus-session-merge-v2-review.md?plain=1#L106)
 
 ````text
 ### P2-1：阻断记录恢复时绕过材料分类，归档专用内容可能进入模型输入
@@ -3923,7 +3923,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **换模型后聚合提前退出遗留pending** — 成立 / functional / scope=new / 入分；统一问题：D06；credit=1。
 
-[原文 L150–L191](../QoderIDE/Sonus-session-merge-v2-review.md#L150)
+[原文 L150–L191](../QoderIDE/Sonus-session-merge-v2-review.md?plain=1#L150)
 
 ````text
 ### P2-2：换模型恢复可能跳过已有聚合计划，导致持续暂停、无法发布
@@ -3986,7 +3986,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **取消复制时UI提前解除来源占用** — 成立 / functional / scope=new / 入分；统一问题：D15；credit=1。
 
-[原文 L195–L236](../QoderIDE/Sonus-session-merge-v2-review.md#L195)
+[原文 L195–L236](../QoderIDE/Sonus-session-merge-v2-review.md?plain=1#L195)
 
 ````text
 ### P2-3：取消状态被提前等同于来源锁已释放，前后端可用性判断不一致
@@ -4049,7 +4049,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **跨表写入/来源树隔离尚需验证** — 证据不足 / conditional / scope=new / 不入分；统一问题：snapshot-cross-table-concurrency-boundary；credit=None。
 
-[原文 L247–L247](../QoderIDE/Sonus-session-merge-v2-review.md#L247)
+[原文 L247–L247](../QoderIDE/Sonus-session-merge-v2-review.md?plain=1#L247)
 
 ````text
 | 4.3：复制截止点与来源树写隔离 | 部分符合／待验证 | 有来源及后代 gate、集合与消息边界复核；尚不能证明所有写入口及跨表并发边界完全闭合。 |
@@ -4069,7 +4069,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **完整序列化字节/取消退出时效未验证** — 成立 / engineering / scope=new / 不入分；统一问题：serialized-request-and-cancel-verification-gap；credit=None。
 
-[原文 L255–L255](../QoderIDE/Sonus-session-merge-v2-review.md#L255)
+[原文 L255–L255](../QoderIDE/Sonus-session-merge-v2-review.md?plain=1#L255)
 
 ````text
 | 6.3：单请求预算、响应上限和有限重试 | 部分符合／待验证 | 已有估算预算及大小限制；完整 provider 序列化请求硬上限、取消后的实际退出时效未验证。 |
@@ -4089,7 +4089,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **可信根绑定和同名工具不继承权限** — 成立 / global / scope=new / 不入分；统一问题：builtin-tool-identity-isolation；credit=None。
 
-[原文 L257–L257](../QoderIDE/Sonus-session-merge-v2-review.md#L257)
+[原文 L257–L257](../QoderIDE/Sonus-session-merge-v2-review.md?plain=1#L257)
 
 ````text
 | 7.2/7.3：可信根绑定、只读工具、不继承同名权限 | 静态符合 | 按真实工具类型分派，分析及 recheck 校验绑定，没有发现普通同名工具自动取得权限的路径。 |
@@ -4109,7 +4109,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **读取校验目录正文覆盖截止预算** — 成立 / global / scope=new / 不入分；统一问题：read-operation-budget-enforcement；credit=None。
 
-[原文 L258–L258](../QoderIDE/Sonus-session-merge-v2-review.md#L258)
+[原文 L258–L258](../QoderIDE/Sonus-session-merge-v2-review.md?plain=1#L258)
 
 ````text
 | 7.2：读取分页、完整性、游标和硬限制 | 静态符合 | 15秒检查覆盖 hash 和正文；搜索正文8MiB，输出16KiB，游标绑定版本及参数。 |
@@ -4129,7 +4129,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **小模型连续压缩413完整链路未验证** — 成立 / engineering / scope=new / 不入分；统一问题：compaction-handoff-integration-test-gap；credit=None。
 
-[原文 L283–L283](../QoderIDE/Sonus-session-merge-v2-review.md#L283)
+[原文 L283–L283](../QoderIDE/Sonus-session-merge-v2-review.md?plain=1#L283)
 
 ````text
 已有测试断言覆盖普通分支零交接调用、预算差额和投影不写回历史；**小模型、连续压缩、413恢复的完整执行链仍未验证。**
@@ -4149,7 +4149,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **迁移是全局启动风险且需旧库启动验证** — 成立 / conditional / scope=new / 不入分；统一问题：migration-global-startup-boundary；credit=None。
 
-[原文 L299–L305](../QoderIDE/Sonus-session-merge-v2-review.md#L299)
+[原文 L299–L305](../QoderIDE/Sonus-session-merge-v2-review.md?plain=1#L299)
 
 ````text
 ### 5. 数据库迁移：影响所有会话，必须单独设发布门禁
@@ -4175,7 +4175,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **forkSwarm未改不等于所有派生行为已验证** — 成立 / engineering / scope=new / 不入分；统一问题：fork-swarm-validation-boundary；credit=None。
 
-[原文 L313–L317](../QoderIDE/Sonus-session-merge-v2-review.md#L313)
+[原文 L313–L317](../QoderIDE/Sonus-session-merge-v2-review.md?plain=1#L313)
 
 ````text
 ### 7. fork/Swarm：没有直接修改，不等于零回归
@@ -4199,7 +4199,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **恢复分类缺负向断言** — 成立 / engineering / scope=new / 不入分；统一问题：recovery-classification-test-gap；credit=None。
 
-[原文 L344–L344](../QoderIDE/Sonus-session-merge-v2-review.md#L344)
+[原文 L344–L344](../QoderIDE/Sonus-session-merge-v2-review.md?plain=1#L344)
 
 ````text
 | 恢复投影缺少负向断言 | `MergePackageServiceTest.java:35–49、75–93` 主要验证封存原件恢复 | 无法发现思考字段、续传状态或 base64 进入整理输入。 |
@@ -4219,7 +4219,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **换模型测试未改变估算阈值** — 成立 / engineering / scope=new / 不入分；统一问题：model-switch-threshold-test-gap；credit=None。
 
-[原文 L345–L345](../QoderIDE/Sonus-session-merge-v2-review.md#L345)
+[原文 L345–L345](../QoderIDE/Sonus-session-merge-v2-review.md?plain=1#L345)
 
 ````text
 | 换模型测试未覆盖聚合阈值变化 | `MergeSummaryServiceTest.java:23–25` 对不同模型采用相同估算 | 无法发现持久聚合计划与新模型终止条件冲突。 |
@@ -4239,7 +4239,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **取消测试未覆盖复制尚持锁窗口** — 成立 / engineering / scope=new / 不入分；统一问题：cancel-during-copy-test-gap；credit=None。
 
-[原文 L346–L346](../QoderIDE/Sonus-session-merge-v2-review.md#L346)
+[原文 L346–L346](../QoderIDE/Sonus-session-merge-v2-review.md?plain=1#L346)
 
 ````text
 | 取消测试没有复制阶段延迟解锁窗口 | `sessionMergeStore.test.ts:443` 直接返回空锁 | 无法发现 cancelled 与真实解锁之间的时间差。 |
@@ -4259,7 +4259,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **legacy build测试不能作为seal覆盖** — 成立 / engineering / scope=new / 不入分；统一问题：legacy-build-vs-seal-test-gap；credit=None。
 
-[原文 L347–L347](../QoderIDE/Sonus-session-merge-v2-review.md#L347)
+[原文 L347–L347](../QoderIDE/Sonus-session-merge-v2-review.md?plain=1#L347)
 
 ````text
 | 部分测试仍走旧封装路径 | `MergePackageServiceTest.java:212、247、259、278、293、309` 调用旧 `build`，线上使用 `seal` | 旧图片、checkpoint、路径及复制测试不能自动算作新链路覆盖。 |
@@ -4279,7 +4279,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **fixture未创建artifact表** — 成立 / engineering / scope=new / 不入分；统一问题：artifact-fixture-test-gap；credit=None。
 
-[原文 L348–L348](../QoderIDE/Sonus-session-merge-v2-review.md#L348)
+[原文 L348–L348](../QoderIDE/Sonus-session-merge-v2-review.md?plain=1#L348)
 
 ````text
 | artifact 导出分支未被夹具激活 | `MergeFixture.java:36–44` 未创建两张 artifact 表；生产代码按表存在与否进入分支 | 无法证明真实产物导出、复制及来源删除后的读取正确。 |
@@ -4299,7 +4299,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **fixture未代表生产串行器/外键环境** — 成立 / engineering / scope=new / 不入分；统一问题：service-fixture-production-concurrency-gap；credit=None。
 
-[原文 L349–L349](../QoderIDE/Sonus-session-merge-v2-review.md#L349)
+[原文 L349–L349](../QoderIDE/Sonus-session-merge-v2-review.md?plain=1#L349)
 
 ````text
 | 夹具弱化生产数据库接线 | `MergeFixture.java:45–47` 将写串行器模拟为直接执行，且未显式开启外键 | 不足以代表生产并发和约束环境。 |
@@ -4319,7 +4319,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **部分测试名强于实际断言** — 成立 / engineering / scope=new / 不入分；统一问题：test-name-vs-assertion-gap；credit=None。
 
-[原文 L350–L350](../QoderIDE/Sonus-session-merge-v2-review.md#L350)
+[原文 L350–L350](../QoderIDE/Sonus-session-merge-v2-review.md?plain=1#L350)
 
 ````text
 | 个别测试名称强于实际断言 | "待办隔离"未调用 TodoWrite；"聚合引用"未核对完整返回范围 | 不能据名称计算能力覆盖。 |
@@ -4339,7 +4339,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **发布回滚服务测试未进入发布事务** — 成立 / engineering / scope=new / 不入分；统一问题：publication-transaction-middle-fault-test-gap；credit=None。
 
-[原文 L351–L351](../QoderIDE/Sonus-session-merge-v2-review.md#L351)
+[原文 L351–L351](../QoderIDE/Sonus-session-merge-v2-review.md?plain=1#L351)
 
 ````text
 | 发布回滚服务用例故障发生较早 | `SessionMergeServiceTest.java:152–158` 在发布事务前失败 | 不能算服务层事务中段失败的完整覆盖。 |
@@ -4359,7 +4359,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **面板暂停恢复取消交互覆盖不足** — 成立 / engineering / scope=new / 不入分；统一问题：panel-control-interaction-test-gap；credit=None。
 
-[原文 L352–L352](../QoderIDE/Sonus-session-merge-v2-review.md#L352)
+[原文 L352–L352](../QoderIDE/Sonus-session-merge-v2-review.md?plain=1#L352)
 
 ````text
 | 新增面板交互覆盖不足 | paused/resume/cancel、目标可用性缺少完整专项覆盖 | 状态仓库单测不能替代真实交互验收。 |
@@ -4379,7 +4379,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **未跟踪文件须纳入实际提交组合** — 成立 / engineering / scope=out / 不入分；统一问题：selective-commit-completeness；credit=None。
 
-[原文 L368–L370](../QoderIDE/Sonus-session-merge-v2-review.md#L368)
+[原文 L368–L370](../QoderIDE/Sonus-session-merge-v2-review.md?plain=1#L368)
 
 ````text
 另一个提交完整性风险是：范围内有 **11个未跟踪文件**，包括6个生产文件、4个测试和1份规范。只提交已跟踪修改，会遗漏新服务、迁移等必要依赖。
@@ -4403,7 +4403,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 ### R08-normal_function
 
-**判断分：5/5**。[原文 L74–L90](../QoderIDE/%E6%9E%81%E8%87%B4%E6%A8%A1%E5%9E%8B-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L74)。正确识别普通请求/图片/工具池隔离，没有无关普通功能损坏指控。
+**判断分：5/5**。[原文 L74–L90](../QoderIDE/%E6%9E%81%E8%87%B4%E6%A8%A1%E5%9E%8B-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L74)。正确识别普通请求/图片/工具池隔离，没有无关普通功能损坏指控。
 
 ````text
 **结论：未发现对非合并分支功能链路的任何负面影响。**
@@ -4427,7 +4427,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 ### R08-boundary
 
-**判断分：0/5**。[原文 L197–L197](../QoderIDE/%E6%9E%81%E8%87%B4%E6%A8%A1%E5%9E%8B-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L197)。宣称所有新增路径均受metadata守卫且基础功能不受任何影响，未识别全局迁移等边界，也无运行验证限制消解。
+**判断分：0/5**。[原文 L197–L197](../QoderIDE/%E6%9E%81%E8%87%B4%E6%A8%A1%E5%9E%8B-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L197)。宣称所有新增路径均受metadata守卫且基础功能不受任何影响，未识别全局迁移等边界，也无运行验证限制消解。
 
 ````text
 **总结**：本次改动严格遵循 `session-merge-architecture-v2.md` 的架构规范，通过元数据开关（`sessionMergeOperationId`）实现了会话合并能力与既有功能链路的严格隔离。所有新增代码路径均在守卫条件之后，普通会话的创建、消息收发、权限控制、文件操作等基础功能不受任何影响。测试覆盖充分，代码质量达到 GitHub 发布标准。
@@ -4435,7 +4435,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 ### R08-release
 
-**判断分：0/5**。[原文 L186–L197](../QoderIDE/%E6%9E%81%E8%87%B4%E6%A8%A1%E5%9E%8B-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L186)。明确建议发布/达到发布标准，与尚存确认缺陷和未完成真实语义验收矛盾。
+**判断分：0/5**。[原文 L186–L197](../QoderIDE/%E6%9E%81%E8%87%B4%E6%A8%A1%E5%9E%8B-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L186)。明确建议发布/达到发布标准，与尚存确认缺陷和未完成真实语义验收矛盾。
 
 ````text
 ### 判定结果：**Pass — 建议发布**
@@ -4454,7 +4454,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 ### R08-semantic
 
-**判断分：0/5**。[原文 L184–L197](../QoderIDE/%E6%9E%81%E8%87%B4%E6%A8%A1%E5%9E%8B-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L184)。全文没有真实模型语义验收未完成/不可由stub替代的说明，属于未回答。
+**判断分：0/5**。[原文 L184–L197](../QoderIDE/%E6%9E%81%E8%87%B4%E6%A8%A1%E5%9E%8B-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L184)。全文没有真实模型语义验收未完成/不可由stub替代的说明，属于未回答。
 
 ````text
 ## 七、发布就绪度判定
@@ -4477,7 +4477,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **ScheduledExecutorService不可用于try-with-resources已撤回** — 不成立 / retracted / scope=new / 不入分；统一问题：executor-autocloseable-compilation；credit=None。
 
-[原文 L104–L104](../QoderIDE/%E6%9E%81%E8%87%B4%E6%A8%A1%E5%9E%8B-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L104)
+[原文 L104–L104](../QoderIDE/%E6%9E%81%E8%87%B4%E6%A8%A1%E5%9E%8B-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L104)
 
 ````text
 > **说明**：初步审查曾标记 `MergeSummaryService.call` 中 `ScheduledExecutorService` 用于 try-with-resources 为编译错误。经交叉验证确认为**误报**——项目使用 Java 21（pom.xml 配置 `<java.version>21</java.version>`，运行时为 OpenJDK 21.0.10 Corretto），而 `ExecutorService` 自 Java 19 起已实现 `AutoCloseable`。`mvnw compile` 验证编译通过，无任何错误。
@@ -4497,7 +4497,7 @@ if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(pr
 
 **缺HandoffContext Bean的未来入口应降级** — 证据不足 / conditional / scope=new / 不入分；统一问题：hypothetical-missing-handoff-bean；credit=None。
 
-[原文 L110–L123](../QoderIDE/%E6%9E%81%E8%87%B4%E6%A8%A1%E5%9E%8B-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L110)
+[原文 L110–L123](../QoderIDE/%E6%9E%81%E8%87%B4%E6%A8%A1%E5%9E%8B-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L110)
 
 ````text
 #### M1：HandoffContextService 依赖注入防御性边界
@@ -4530,7 +4530,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **暂停面板未直接展示errorCode** — 成立 / engineering / scope=new / 不入分；统一问题：panel-error-code-visibility；credit=None。
 
-[原文 L127–L133](../QoderIDE/%E6%9E%81%E8%87%B4%E6%A8%A1%E5%9E%8B-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L127)
+[原文 L127–L133](../QoderIDE/%E6%9E%81%E8%87%B4%E6%A8%A1%E5%9E%8B-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L127)
 
 ````text
 #### L1：前端合并面板 errorCode 展示不足
@@ -4556,7 +4556,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **删除E后应提示仍可HandoffRead读取** — 不成立 / engineering / scope=new / 不入分；统一问题：deleted-target-handoff-read-claim；credit=None。
 
-[原文 L135–L141](../QoderIDE/%E6%9E%81%E8%87%B4%E6%A8%A1%E5%9E%8B-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L135)
+[原文 L135–L141](../QoderIDE/%E6%9E%81%E8%87%B4%E6%A8%A1%E5%9E%8B-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L135)
 
 ````text
 #### L2：目标会话删除提示可优化
@@ -4582,7 +4582,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **selector直接依据真实锁集合符合规范** — 不成立 / global / scope=new / 不入分；统一问题：D15；credit=None。
 
-[原文 L66–L66](../QoderIDE/%E6%9E%81%E8%87%B4%E6%A8%A1%E5%9E%8B-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L66)
+[原文 L66–L66](../QoderIDE/%E6%9E%81%E8%87%B4%E6%A8%A1%E5%9E%8B-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L66)
 
 ````text
 | 前端 store 锁集合基于服务端 | **通过** | `selectMergeSourceIds` 直接基于 `lockedSourceSessionIds` |
@@ -4602,7 +4602,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **同名工具与普通图片权限保持隔离** — 成立 / global / scope=new / 不入分；统一问题：builtin-tool-identity-isolation；credit=None。
 
-[原文 L86–L90](../QoderIDE/%E6%9E%81%E8%87%B4%E6%A8%A1%E5%9E%8B-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L86)
+[原文 L86–L90](../QoderIDE/%E6%9E%81%E8%87%B4%E6%A8%A1%E5%9E%8B-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L86)
 
 ````text
 新增的 `SAFE_READ_AUTO` 放行逻辑仅适用于 `handoff-read-v1` analyzer，普通 MCP/动态工具仍走原有 `static-or-remote-v1`。`recheck` 时强制校验 binding 不变，否则抛 `HANDOFF_BINDING_CHANGED`，防止权限泄露。
@@ -4626,7 +4626,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **关键测试充分覆盖全部流程的总结** — 证据不足 / engineering / scope=new / 不入分；统一问题：test-sufficiency-overstatement；credit=None。
 
-[原文 L149–L155](../QoderIDE/%E6%9E%81%E8%87%B4%E6%A8%A1%E5%9E%8B-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L149)
+[原文 L149–L155](../QoderIDE/%E6%9E%81%E8%87%B4%E6%A8%A1%E5%9E%8B-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L149)
 
 ````text
 | 授权层 | `AuthorizationServiceProjectFileScopeTest` / `OperationAnalyzerRegistryTest` | **充分** — 验证了 handoff-read-v1 专用 analyzer 和同名工具走原有路径 |
@@ -4652,7 +4652,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **终态缓存及控制串行机制存在** — 成立 / global / scope=new / 不入分；统一问题：frontend-terminal-cache-mechanism；credit=None。
 
-[原文 L177–L180](../QoderIDE/%E6%9E%81%E8%87%B4%E6%A8%A1%E5%9E%8B-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L177)
+[原文 L177–L180](../QoderIDE/%E6%9E%81%E8%87%B4%E6%A8%A1%E5%9E%8B-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L177)
 
 ````text
 - `sessionMergeStore` 的 `refresh()` 通过 `/api/session-merges/active` 做轻量背景发现，`nextActiveCheck` 控制轮询频率
@@ -4677,7 +4677,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 ### R09-normal_function
 
-**判断分：5/5**。[原文 L63–L77](../TraeCode/Qwen3.8Max-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L63)。无关普通分支保持原工具和预算，结论符合本轮代码核验。
+**判断分：5/5**。[原文 L63–L77](../TraeCode/Qwen3.8Max-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L63)。无关普通分支保持原工具和预算，结论符合本轮代码核验。
 
 ````text
 ## 三、对非合并分支的影响评估
@@ -4699,7 +4699,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 ### R09-boundary
 
-**判断分：5/5**。[原文 L67–L77](../TraeCode/Qwen3.8Max-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L67)。列出全局迁移与所有页面后台请求并限定接受的开销，没有单凭守卫声称无任何共享变化。
+**判断分：5/5**。[原文 L67–L77](../TraeCode/Qwen3.8Max-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L67)。列出全局迁移与所有页面后台请求并限定接受的开销，没有单凭守卫声称无任何共享变化。
 
 ````text
 | 隔离点 | 证据 |
@@ -4717,7 +4717,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 ### R09-release
 
-**判断分：0/5**。[原文 L118–L137](../TraeCode/Qwen3.8Max-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L118)。未明确回答当前能否作为功能完成版合入发布；允许提交/推送和披露语义未验收本身并非错误，不据此捏造赞成正式发布。
+**判断分：0/5**。[原文 L118–L137](../TraeCode/Qwen3.8Max-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L118)。未明确回答当前能否作为功能完成版合入发布；允许提交/推送和披露语义未验收本身并非错误，不据此捏造赞成正式发布。
 
 ````text
 ### 发布标准结论
@@ -4744,7 +4744,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 ### R09-semantic
 
-**判断分：5/5**。[原文 L122–L124](../TraeCode/Qwen3.8Max-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L122)。明确真实模型语义未执行，mock不能代表真实模型验证。
+**判断分：5/5**。[原文 L122–L124](../TraeCode/Qwen3.8Max-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L122)。明确真实模型语义未执行，mock不能代表真实模型验证。
 
 ````text
 **两点必须在发布说明中明示**：
@@ -4756,7 +4756,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **E每轮重复投影校验缺少请求内复用** — 成立 / conditional / scope=new / 不入分；统一问题：repeated-turn-handoff-verification；credit=None。
 
-[原文 L92–L92](../TraeCode/Qwen3.8Max-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L92)
+[原文 L92–L92](../TraeCode/Qwen3.8Max-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L92)
 
 ````text
 | 1 | major | **合并会话 E 每 turn 重复执行昂贵投影**：`project()` 每轮被调 3 次（L779/L844 经 `prepareCompactionContext` 各一次 + L841 直调），反应式压缩路径（L1933/L1973）还会追加；每次均执行 DB 绑定查询 + 整包哈希校验 + brief 文件读取，无任何请求级缓存 | 在 `QueryLoopState` 或请求作用域内缓存投影结果（同一 turn 预算参数相同时复用），或将 `prepareCompactionContext` 两次调用合并为一次投影计算 | `backend/src/main/java/com/aicodeassistant/engine/QueryEngine.java` L779-L844；`HandoffContextService.java` L62-L79 |
@@ -4776,7 +4776,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **缺失v1包导致永久暂停** — 规范歧义 / functional / scope=new / 不入分；统一问题：missing-legacy-package-policy；credit=None。
 
-[原文 L93–L93](../TraeCode/Qwen3.8Max-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L93)
+[原文 L93–L93](../TraeCode/Qwen3.8Max-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L93)
 
 ````text
 | 2 | major | **缺失 legacy v1 包被记为阻塞缺口导致永久暂停**：`importPrevious` 对缺失旧包记 `gap(...,true)`（blocking），转暂停后恢复时 `validateSnapshot` 重读同一 blockedReason 必然再次暂停，不可自愈。违反规范"不依赖旧包存活"（第 19 行）与"仅收录现存旧包、说明去重局限"（第 216 行）——旧包可随目标删除被合法清理（第 187 行），阻塞会使此类来源永远无法再合并 | 将 `legacy_package_missing` 降为非阻塞缺口（`gap(...,false)`），以来源现有 DB 消息 + 新消息继续合并，并在结果警告中说明无法跨包精确去重；补充对应测试用例 | `backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java` L606-L611 |
@@ -4788,7 +4788,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 判定理由：行为属实，但旧协议资料完整性与非依赖旧包的规范边界有张力，不能直接降级历史完整性或当成其他恢复bug半命中。
 
-代码：[MergePackageService.java:606](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L606)；[SessionMergeService.java:195](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L195)；[session-merge-architecture-v2.md:216](../../../../session-merge-architecture-v2.md#L216)
+代码：[MergePackageService.java:606](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L606)；[SessionMergeService.java:195](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L195)；[session-merge-architecture-v2.md:216](../../../../session-merge-architecture-v2.md?plain=1#L216)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -4796,7 +4796,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **取消worker仍打印Merge paused** — 成立 / engineering / scope=new / 不入分；统一问题：cancel-log-says-paused；credit=None。
 
-[原文 L94–L94](../TraeCode/Qwen3.8Max-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L94)
+[原文 L94–L94](../TraeCode/Qwen3.8Max-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L94)
 
 ````text
 | 3 | minor | **取消路径误打"Merge paused"日志**：cancel 使工作线程抛 `MERGE_INTERRUPTED`（L176），catch 块（L218-219）对取消同样打 "Merge paused" warn。数据库状态正确（cancel 已原子置 cancelled 且后续 pause UPDATE 命中 0 行），仅日志误导排障 | 在 catch 中区分 `MERGE_INTERRUPTED` 与取消语义，按实际终态输出日志文案 | `backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java` L218-L219 |
@@ -4816,7 +4816,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **仓库自建与Spring实例重复** — 成立 / engineering / scope=new / 不入分；统一问题：repository-manual-construction；credit=None。
 
-[原文 L95–L95](../TraeCode/Qwen3.8Max-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L95)
+[原文 L95–L95](../TraeCode/Qwen3.8Max-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L95)
 
 ````text
 | 4 | minor | **自建仓储实例绕过 Spring 容器**：`MergeProgressRepository` 带 `@Repository` 注解，但 `SessionMergeService` 构造函数 `new` 自建实例，容器内存在双实例；与 `HandoffContextService`/`HandoffReadService` 的注入方式不一致。因共享同一 JdbcTemplate 且仓储无状态，功能等价、无事务风险，仅一致性问题 | 改为构造函数注入 `MergeProgressRepository` Bean，删除自建实例 | `backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java` L72 |
@@ -4836,7 +4836,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **validatedTerminal集合仅部分清理** — 成立 / conditional / scope=new / 不入分；统一问题：terminal-cache-id-retention；credit=None。
 
-[原文 L96–L96](../TraeCode/Qwen3.8Max-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L96)
+[原文 L96–L96](../TraeCode/Qwen3.8Max-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L96)
 
 ````text
 | 5 | minor | **`validatedTerminal` Set 缺少完整清理**（1/2 验证者确认，附注纳入）：终态操作 ID 只增，仅 `openDialog` 时 delete。因 active_slot 唯一且页面重载即清空，实际条目极少、影响可忽略 | 可在记录被 `removeSaved` 时同步 delete，或保持现状并加注释说明生命周期 | `frontend/src/store/sessionMergeStore.ts` L115 |
@@ -4856,7 +4856,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **小预算错误作为既定设计无需处理** — 证据不足 / global / scope=new / 不入分；统一问题：D09；credit=None。
 
-[原文 L81–L81](../TraeCode/Qwen3.8Max-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L81)
+[原文 L81–L81](../TraeCode/Qwen3.8Max-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L81)
 
 ````text
 1. `project()` 在预算极小/包不可读时抛 `IllegalStateException` 使 E 请求报错——规范 7.1/7.3 明确要求"连最小入口都放不下时返回正常容量错误""包损坏报明确错误"，且异常被 QueryEngine 捕获转为会话错误消息（非 500）。
@@ -4868,7 +4868,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 判定理由：QueryEngine外层确实捕获并转QueryResult/handler，不可因局部无catch推导HTTP500；但IllegalStateException没有走正常容量错误类型，报告称完全符合容量错误要求仍需沿入口响应核对。
 
-代码：[HandoffContextService.java:74](../../../../../backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java#L74)；[QueryEngine.java:364](../../../../../backend/src/main/java/com/aicodeassistant/engine/QueryEngine.java#L364)；[QueryController.java:180](../../../../../backend/src/main/java/com/aicodeassistant/controller/QueryController.java#L180)；[session-merge-architecture-v2.md:371](../../../../session-merge-architecture-v2.md#L371)
+代码：[HandoffContextService.java:74](../../../../../backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java#L74)；[QueryEngine.java:364](../../../../../backend/src/main/java/com/aicodeassistant/engine/QueryEngine.java#L364)；[QueryController.java:180](../../../../../backend/src/main/java/com/aicodeassistant/controller/QueryController.java#L180)；[session-merge-architecture-v2.md:371](../../../../session-merge-architecture-v2.md?plain=1#L371)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -4876,7 +4876,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **control等候inflight后赋值无JS并发窗口** — 成立 / global / scope=new / 不入分；统一问题：frontend-control-request-serialization；credit=None。
 
-[原文 L82–L82](../TraeCode/Qwen3.8Max-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L82)
+[原文 L82–L82](../TraeCode/Qwen3.8Max-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L82)
 
 ````text
 2. 前端 `control()` 的 inflight 串行在 while 退出至赋值间无 await 插入点，JS 单线程下无竞态，后端另有 epoch 围栏兜底。
@@ -4896,7 +4896,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **规范测试矩阵基本全覆盖** — 不成立 / engineering / scope=new / 不入分；统一问题：merge-test-matrix-complete-claim；credit=None。
 
-[原文 L104–L116](../TraeCode/Qwen3.8Max-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L104)
+[原文 L104–L116](../TraeCode/Qwen3.8Max-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L104)
 
 ````text
 规范第 9 节测试矩阵基本全覆盖：
@@ -4928,7 +4928,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **读取路径拒绝越界和symlink测试存在** — 成立 / global / scope=new / 不入分；统一问题：handoff-read-path-containment；credit=None。
 
-[原文 L109–L109](../TraeCode/Qwen3.8Max-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L109)
+[原文 L109–L109](../TraeCode/Qwen3.8Max-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L109)
 
 ````text
 - 跨包/路径穿越/symlink 拒绝、损坏目录
@@ -4948,7 +4948,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **4183字节等合成回归不是真实模型验收** — 成立 / engineering / scope=new / 不入分；统一问题：semantic-vs-synthetic-test-boundary；credit=None。
 
-[原文 L124–L124](../TraeCode/Qwen3.8Max-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L124)
+[原文 L124–L124](../TraeCode/Qwen3.8Max-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L124)
 
 ````text
 1. **真实模型语义验收尚未执行**（文档自述缺口）——摘要/提取/聚合的模型调用在测试中均为 mock，`MergeSummaryService.call()` 的真实行为（含 4183 字节分片回归）未经真实模型验证；
@@ -4970,7 +4970,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 ### R10-normal_function
 
-**判断分：5/5**。[原文 L49–L63](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L49)。普通工具/预算/保存机制判断与核验一致。
+**判断分：5/5**。[原文 L49–L63](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L49)。普通工具/预算/保存机制判断与核验一致。
 
 ````text
 ## 问题 1：对非合并分支的影响评估 —— ✅ 隔离性合格
@@ -4992,7 +4992,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 ### R10-boundary
 
-**判断分：5/5**。[原文 L55–L63](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L55)。列明公共授权/图片/全局V026迁移及测试证据，不按一般无负面影响表述机械扣分。
+**判断分：5/5**。[原文 L55–L63](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L55)。列明公共授权/图片/全局V026迁移及测试证据，不按一般无负面影响表述机械扣分。
 
 ````text
 | `QueryController`（3 个入口）/ `WebSocketController` | `isMerged(metadata)` 为 false 时不调用交接服务、不查合并表 | ✅ 测试验证 `verifyNoInteractions` |
@@ -5008,7 +5008,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 ### R10-release
 
-**判断分：0/5**。[原文 L92–L96](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L92)。未明确回答当前能否作为功能完成版合入发布；允许提交/推送和披露语义未验收本身并非错误，不据此捏造赞成正式发布。
+**判断分：0/5**。[原文 L92–L96](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L92)。未明确回答当前能否作为功能完成版合入发布；允许提交/推送和披露语义未验收本身并非错误，不据此捏造赞成正式发布。
 
 ````text
 ## 结论
@@ -5020,7 +5020,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 ### R10-semantic
 
-**判断分：5/5**。[原文 L88–L90](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L88)。准确说明真实模型语义验收未做，stub不应冒充通过。
+**判断分：5/5**。[原文 L88–L90](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L88)。准确说明真实模型语义验收未做，stub不应冒充通过。
 
 ````text
 ## 残留风险提示
@@ -5032,7 +5032,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **E每轮重复投影成本** — 成立 / conditional / scope=new / 不入分；统一问题：repeated-turn-handoff-verification；credit=None。
 
-[原文 L78–L78](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L78)
+[原文 L78–L78](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L78)
 
 ````text
 | 1 | **每轮最多 3 次重复交接投影**：`handoffProjection` 在预循环压缩（L779）、主流程（L841）、`prepareCompactionContext`（L1835）各执行一次，每次都做绑定查询 + 9 个文件全量哈希校验 + 读 brief。仅影响合并会话，无正确性问题（2/2 确认） | 每轮缓存一次 `Projection` 结果复用，或在 `QueryLoopState` 上暂存 | `QueryEngine.java` L779/L841/L1835；`HandoffContextService.java` L59-80 | minor |
@@ -5052,7 +5052,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **configure绑定错误落入泛型500并掩盖原因** — 规范歧义 / conditional / scope=new / 不入分；统一问题：handoff-binding-error-500；credit=None。
 
-[原文 L79–L79](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L79)
+[原文 L79–L79](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L79)
 
 ````text
 | 2 | **交接异常的用户可见形态不统一**：`HANDOFF_BINDING_MISMATCH`/`HANDOFF_NOT_BOUND` 在 controller 层抛出后落入泛型 500 且消息被掩盖；`HANDOFF_CONTEXT_BUDGET_TOO_SMALL` 在引擎内转为裸错误码文本，非文档 7.1 要求的"正常容量错误"。不会污染合并状态（2/2 确认） | 为绑定类异常注册明确的 4xx 响应；预算不足映射为现有容量错误码 | `HandoffContextService.java` L42/L74；`QueryController.java` L178 | minor |
@@ -5072,7 +5072,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **工具说明未含现状差异处理和复测指引** — 成立 / engineering / scope=new / 不入分；统一问题：handoff-tool-guidance-incomplete；credit=None。
 
-[原文 L80–L80](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L80)
+[原文 L80–L80](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L80)
 
 ````text
 | 3 | **工具说明缺少文档 7.1 要求的指引文案**：`HandoffRead.getDescription()` 未含"涉及代码修改时读取相关现有文件、历史与现状有差异则说明、必要时复测"。入口投影/header 文案仅覆盖"核对当前代码"，"必要时复测"两处均缺（2/2 确认） | 在工具说明末尾补一句差异处理与复测指引 | `HandoffReadTool.java` L16 | minor |
@@ -5084,7 +5084,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 判定理由：工具及最小入口缺完整373行指引，属可改的提示规范缺口；没有真实模型证据证明已导致错误代码。
 
-代码：[HandoffReadTool.java:16](../../../../../backend/src/main/java/com/aicodeassistant/tool/impl/HandoffReadTool.java#L16)；[HandoffContextService.java:68](../../../../../backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java#L68)；[session-merge-architecture-v2.md:373](../../../../session-merge-architecture-v2.md#L373)
+代码：[HandoffReadTool.java:16](../../../../../backend/src/main/java/com/aicodeassistant/tool/impl/HandoffReadTool.java#L16)；[HandoffContextService.java:68](../../../../../backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java#L68)；[session-merge-architecture-v2.md:373](../../../../session-merge-architecture-v2.md?plain=1#L373)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -5092,7 +5092,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **旧包缺失暂停属于设计确认点** — 规范歧义 / conditional / scope=new / 不入分；统一问题：missing-legacy-package-policy；credit=None。
 
-[原文 L81–L81](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L81)
+[原文 L81–L81](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L81)
 
 ````text
 | 4 | **v1 旧包缺失时整体暂停（设计确认点）**：`legacy_package_missing` 为阻断 gap。验证者存在分歧：一方认为与第 1 节"不依赖旧包存活"有字面张力；另一方认为 v1 目标自身无原始内容，缺包时继续会"冒充完整记录"，暂停属合理 fail-closed 且可恢复（1/2 确认） | 建议保留现状，在文档 4.4 节补一句"旧包缺失时暂停而非降级"以消除歧义 | `MergePackageService.java` L606-608 | low |
@@ -5104,7 +5104,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 判定理由：正确记录争议；但其“可恢复”字样在已封存blocking gap下并不成立，不能靠还原旧源目录使本包缺口消失。整体以设计确认点呈现，不给其他恢复缺陷半分。
 
-代码：[MergePackageService.java:608](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L608)；[SessionMergeService.java:195](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L195)；[session-merge-architecture-v2.md:216](../../../../session-merge-architecture-v2.md#L216)
+代码：[MergePackageService.java:608](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L608)；[SessionMergeService.java:195](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L195)；[session-merge-architecture-v2.md:216](../../../../session-merge-architecture-v2.md?plain=1#L216)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -5112,7 +5112,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **补记封存未校验来源集合** — 成立 / engineering / scope=new / 不入分；统一问题：sealed-ledger-source-set-check；credit=None。
 
-[原文 L82–L82](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L82)
+[原文 L82–L82](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L82)
 
 ````text
 | 5 | **补记路径未比对来源集合**：seal 已写盘但 DB 未记录时，`validateSnapshot` 校验了 operationId/版本/哈希，未按文档 4.3 字面要求比对 `manifest.sources`。包路径由 operationId(UUID) 派生，实际风险可忽略（2/2 确认） | 一行比对即可闭合纵深防御缺口 | `SessionMergeService.java` L184-186 | low |
@@ -5124,7 +5124,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 判定理由：validateSnapshot检查operation/version/hash未比对ledger请求sourceIds；现有路径由同操作生成，无支持内错配触发证据，属规范纵深防御缺口。
 
-代码：[SessionMergeService.java:184](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L184)；[MergePackageService.java:185](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L185)；[session-merge-architecture-v2.md:173](../../../../session-merge-architecture-v2.md#L173)
+代码：[SessionMergeService.java:184](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L184)；[MergePackageService.java:185](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L185)；[session-merge-architecture-v2.md:173](../../../../session-merge-architecture-v2.md?plain=1#L173)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -5132,7 +5132,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **history_storage_version无写入不构成现有故障** — 成立 / retracted / scope=new / 不入分；统一问题：history-storage-version-dead-condition；credit=None。
 
-[原文 L85–L85](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L85)
+[原文 L85–L85](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L85)
 
 ````text
 - `history_storage_version` 无写入方（0/2 确认误报）：无害保守分支，且文档明确禁止新增写入。
@@ -5152,7 +5152,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **attempt校验失败改outcome不会丢usage** — 成立 / retracted / scope=new / 不入分；统一问题：attempt-outcome-transport-vs-validation；credit=None。
 
-[原文 L86–L86](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L86)
+[原文 L86–L86](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L86)
 
 ````text
 - attempt 两段式 outcome 记账（0/2 确认误报）：崩溃窗口期 usage 汇总一致（聚合 SQL 不按 outcome 过滤），且文档已接受末次调用重复计费。
@@ -5172,7 +5172,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **普通同名工具不能继承交接权限** — 成立 / global / scope=new / 不入分；统一问题：builtin-tool-identity-isolation；credit=None。
 
-[原文 L58–L59](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L58)
+[原文 L58–L59](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L58)
 
 ````text
 | `AuthorizationService` | 仅新增 `handoff-read-v1` 分支；`instanceof` 分派使同名 MCP/动态工具无法继承权限 | ✅ 专项测试覆盖冒充者 |
@@ -5193,7 +5193,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **普通子代理不自动注入交接标记** — 成立 / global / scope=new / 不入分；统一问题：ordinary-agent-no-handoff-propagation；credit=None。
 
-[原文 L63–L63](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L63)
+[原文 L63–L63](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L63)
 
 ````text
 另核实：`SubAgentExecutor`、`AgentResumeService`、`SwarmWorkerRunner` 的 `queryEngine.execute` 调用点均使用独立 `QueryLoopState`，不携带交接标记，符合文档"普通/fork/Swarm 不自动注入交接入口"的要求。
@@ -5205,7 +5205,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 判定理由：原执行者独立构造state，本次没有增加传播，符合375既定边界；不等于E子任务天然拥有全部资料。
 
-代码：[HandoffContextService.java:43](../../../../../backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java#L43)；[session-merge-architecture-v2.md:375](../../../../session-merge-architecture-v2.md#L375)
+代码：[HandoffContextService.java:43](../../../../../backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java#L43)；[session-merge-architecture-v2.md:375](../../../../session-merge-architecture-v2.md?plain=1#L375)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -5213,7 +5213,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **列出的结构性回归断言存在** — 成立 / engineering / scope=new / 不入分；统一问题：existing-structural-regression-coverage；credit=None。
 
-[原文 L70–L70](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L70)
+[原文 L70–L70](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L70)
 
 ````text
 - 覆盖与文档第 9 节验收表逐行对应：封存即释放、中断恢复、取消围栏、不确定提交、损坏资料暂停、>16 单元、413 拆分、游标/穿越/symlink 拒绝、Unicode 搜索进位等均有断言。
@@ -5233,7 +5233,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **交接预算不足返回裸内部错误码而非正常容量分类** — 成立 / functional / scope=new / 入分；统一问题：D09；credit=1。
 
-[原文 L79–L79](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L79)
+[原文 L79–L79](../TraeCode/kimik3-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L79)
 
 ````text
 | 2 | **交接异常的用户可见形态不统一**：`HANDOFF_BINDING_MISMATCH`/`HANDOFF_NOT_BOUND` 在 controller 层抛出后落入泛型 500 且消息被掩盖；`HANDOFF_CONTEXT_BUDGET_TOO_SMALL` 在引擎内转为裸错误码文本，非文档 7.1 要求的"正常容量错误"。不会污染合并状态（2/2 确认） | 为绑定类异常注册明确的 4xx 响应；预算不足映射为现有容量错误码 | `HandoffContextService.java` L42/L74；`QueryController.java` L178 | minor |
@@ -5257,7 +5257,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 ### R11-normal_function
 
-**判断分：5/5**。[原文 L73–L83](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L73)。普通请求不触发合并读取/工具注入，未发现报告范围内新增功能回归。
+**判断分：5/5**。[原文 L73–L83](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L73)。普通请求不触发合并读取/工具注入，未发现报告范围内新增功能回归。
 
 ````text
 普通请求的隔离是成立的。
@@ -5275,7 +5275,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 ### R11-boundary
 
-**判断分：5/5**。[原文 L85–L89](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L85)。全文说明短路、小对象/标记检查或 E 专属范围及验证局限，没有把绿色测试当绝对安全证明。
+**判断分：5/5**。[原文 L85–L89](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L85)。全文说明短路、小对象/标记检查或 E 专属范围及验证局限，没有把绿色测试当绝对安全证明。
 
 ````text
 补充边界：
@@ -5287,7 +5287,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 ### R11-release
 
-**判断分：5/5**。[原文 L184–L188](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L184)。明确区分阶段提交与功能完成版合入发布。
+**判断分：5/5**。[原文 L184–L188](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L184)。明确区分阶段提交与功能完成版合入发布。
 
 ````text
 1. 先不要把当前工作区当作 v2 完成版推上去。若要保存进度，只提交合并相关文件，并在说明里写明语义验收未做、上述恢复缺陷仍在。被排除的前端文件应单独提交，不要混进这次合并变更。
@@ -5299,7 +5299,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 ### R11-semantic
 
-**判断分：5/5**。[原文 L106–L106](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L106)。明确真实模型语义验收未完成，stub 测试不能替代。
+**判断分：5/5**。[原文 L106–L106](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L106)。明确真实模型语义验收未完成，stub 测试不能替代。
 
 ````text
 第 7 节的预算接法与实现一致。尚未满足的是第 9 节后半：A/B 改字段后合并为 E、封存后代码再变化、E 更新待办不回写 A/B 的真实模型样本都还没跑。文档写明 stub 的数据、隔离和接线断言不能描述成真实模型接续开发验收。
@@ -5309,7 +5309,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **普通请求/工具/来源隔离与默认权限** — 成立 / global / scope=new / 不入分；统一问题：ordinary-path-isolation；credit=None。
 
-[原文 L75–L89](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L75)
+[原文 L75–L89](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L75)
 
 ````text
 - 三个 REST 入口和 WebSocket 都先看已加载的会话元数据。只有合并目标才会调用 `HandoffContextService.configure`。没有 `sessionMergeOperationId` 时，不查合并表、不读资料包、不携带 `HandoffRead`。
@@ -5343,7 +5343,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **聚合换小模型引起 input_hash 冲突** — 不成立 / functional / scope=new / 入分；统一问题：model-switch-aggregate-resume；credit=0。
 
-[原文 L112–L118](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L112)
+[原文 L112–L118](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L112)
 
 ````text
 ### [P2] 聚合开始后换模型会把未完成任务判成输入冲突
@@ -5369,7 +5369,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **缺口无法关联 blocked 记录导致恢复不尝试** — 成立 / functional / scope=new / 入分；统一问题：D04；credit=1。
 
-[原文 L120–L126](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L120)
+[原文 L120–L126](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L120)
 
 ````text
 ### [P2] 一部分阻断记录被写成永远无法恢复的缺口
@@ -5397,7 +5397,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **E 最小入口超预算走内部执行失败** — 成立 / functional / scope=new / 入分；统一问题：D09；credit=1。
 
-[原文 L128–L134](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L128)
+[原文 L128–L134](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L128)
 
 ````text
 ### [P2] 交接入口放不下时，合并会话的普通提问会变成内部错误
@@ -5425,7 +5425,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **全部提取返回空items仍发布** — 规范歧义 / conditional / scope=new / 不入分；统一问题：empty-items-publication；credit=None。
 
-[原文 L136–L142](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L136)
+[原文 L136–L142](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L136)
 
 ````text
 ### [P2] 所有分片都返回空条目时仍会创建目标会话
@@ -5443,7 +5443,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 判定理由：确实允许空items且无总非空门槛；但PROMPT明确允许无信息空数组，规范未明定至少一条。非空输入也未自动证明应产生某条语义，属发布门槛规范歧义。
 
-代码：[MergeSummaryService.java:41](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L41)；[MergeSummaryService.java:278](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L278)；[session-merge-architecture-v2.md:402](../../../../session-merge-architecture-v2.md#L402)
+代码：[MergeSummaryService.java:41](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L41)；[MergeSummaryService.java:278](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L278)；[session-merge-architecture-v2.md:402](../../../../session-merge-architecture-v2.md?plain=1#L402)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -5451,7 +5451,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **短暂 paused 仍有锁却前端忽略** — 成立 / functional / scope=new / 入分；统一问题：D15；credit=1。
 
-[原文 L144–L150](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L144)
+[原文 L144–L150](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L144)
 
 ````text
 ### [P3] 来源是否锁定仍先看 preparing
@@ -5479,7 +5479,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **同轮重复投影校验** — 成立 / engineering / scope=new / 不入分；统一问题：duplicate-handoff-projection；credit=None。
 
-[原文 L152–L156](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L152)
+[原文 L152–L156](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L152)
 
 ````text
 ### [P3] 合并会话每一轮都会把交接清单哈希算两遍
@@ -5503,7 +5503,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **暂停折叠按钮称合并结果** — 成立 / engineering / scope=new / 不入分；统一问题：paused-floating-label；credit=None。
 
-[原文 L160–L160](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L160)
+[原文 L160–L160](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L160)
 
 ````text
 - 折叠后的进度按钮在暂停时仍写“合并结果”。打开面板后的文案、恢复和取消是对的。
@@ -5523,7 +5523,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **暂停通知使用error级别** — 成立 / engineering / scope=new / 不入分；统一问题：merge-toast-severity；credit=None。
 
-[原文 L161–L161](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L161)
+[原文 L161–L161](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L161)
 
 ````text
 - 暂停通知和失败共用错误级别，文案是“合并暂停或失败”。没有本地合并任务时，后台发现错误不会弹“合并失败”，这一点已按复审要求处理。
@@ -5543,7 +5543,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **预算512与拆分下限256冲突** — 规范歧义 / conditional / scope=new / 不入分；统一问题：minimum-model-budget-512；credit=None。
 
-[原文 L162–L162](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L162)
+[原文 L162–L162](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L162)
 
 ````text
 - 单请求预算低于 512 估算 token 就直接拒绝模型，而分片缩小下限是 256。小模型可能在仍能装下 256 token 资料时被整次拒绝。
@@ -5563,7 +5563,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **history_storage_version死分支** — 成立 / engineering / scope=new / 不入分；统一问题：dead-history-storage-version；credit=None。
 
-[原文 L163–L163](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L163)
+[原文 L163–L163](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L163)
 
 ````text
 - `history_storage_version == 2` 会跳过 checkpoint。当前仓库里已经没有写入这个字段的生产代码，现有会话不会走到这条分支。
@@ -5583,7 +5583,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **恢复与真实模型验收缺测** — 成立 / engineering / scope=new / 不入分；统一问题：merge-test-gaps；credit=None。
 
-[原文 L171–L176](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L171)
+[原文 L171–L176](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L171)
 
 ````text
 还缺的是：
@@ -5600,7 +5600,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 判定理由：测试缺口与规格人工样本尚未执行属实，未执行不冒充产品已坏。
 
-代码：[session-merge-architecture-v2.md:440](../../../../session-merge-architecture-v2.md#L440)
+代码：[session-merge-architecture-v2.md:440](../../../../session-merge-architecture-v2.md?plain=1#L440)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -5608,7 +5608,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 **压缩单行风格影响维护** — 成立 / engineering / scope=new / 不入分；统一问题：compressed-code-style；credit=None。
 
-[原文 L180–L180](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L180)
+[原文 L180–L180](../cursor/Grok4.7-%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L180)
 
 ````text
 代码职责划分和文档第 10 节一致：14 个既有落点加 6 个新生产文件，测试落在规定的迁移、Repository、ReadService、Context 四个新测试文件，以及原有 merge 测试。实现写成了很长的单行方法，后续改恢复和预算时不容易看清事务边界。这不影响当前行为判断。
@@ -5630,7 +5630,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 ### R12-normal_function
 
-**判断分：5/5**。[原文 L39–L44](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L39)。普通请求不触发合并读取/工具注入，未发现报告范围内新增功能回归。
+**判断分：5/5**。[原文 L39–L44](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L39)。普通请求不触发合并读取/工具注入，未发现报告范围内新增功能回归。
 
 ````text
 | **非合并链路影响** | ✅ **无负面影响**。隔离设计严格，共享链路定向回归 160/160 通过，「保持不改」清单文件零改动 |
@@ -5643,7 +5643,7 @@ if (state.getHandoffOperationId() != null && handoffContext == null) {
 
 ### R12-boundary
 
-**判断分：5/5**。[原文 L54–L91](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L54)。全文说明短路、小对象/标记检查或 E 专属范围及验证局限，没有把绿色测试当绝对安全证明。
+**判断分：5/5**。[原文 L54–L91](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L54)。全文说明短路、小对象/标记检查或 E 专属范围及验证局限，没有把绿色测试当绝对安全证明。
 
 ````text
 **QueryEngine.java（4 处接点）— 隔离严格 ✅**
@@ -5688,7 +5688,7 @@ SessionManager、SessionMessagePersistence、SessionExecutionGate、SubAgentExec
 
 ### R12-release
 
-**判断分：0/5**。[原文 L218–L234](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L218)。原文234将语义验收是否属于发布标准条件化，未明确作出当前完成版暂不可发布结论。
+**判断分：0/5**。[原文 L218–L234](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L218)。原文234将语义验收是否属于发布标准条件化，未明确作出当前完成版暂不可发布结论。
 
 ````text
 ## 六、发布标准最终判定
@@ -5712,7 +5712,7 @@ SessionManager、SessionMessagePersistence、SessionExecutionGate、SubAgentExec
 
 ### R12-semantic
 
-**判断分：5/5**。[原文 L234–L234](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L234)。明确真实模型语义验收未完成，stub 测试不能替代。
+**判断分：5/5**。[原文 L234–L234](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L234)。明确真实模型语义验收未完成，stub 测试不能替代。
 
 ````text
 文档自身声明「**真实模型接续开发语义验收尚未执行**」——第 9 节要求的 A/B 合并为 E 后完成联调的语义样本（含「封存后共享代码又有变化」变体）均未跑过。当前所有验证均为 stub provider 层面。如果发布标准包含该语义验收，这一项尚未满足；这是文档自认的边界而非代码缺陷，但不应在发布说明中省略。
@@ -5722,7 +5722,7 @@ SessionManager、SessionMessagePersistence、SessionExecutionGate、SubAgentExec
 
 **共享链路隔离和回归覆盖** — 成立 / global / scope=new / 不入分；统一问题：ordinary-path-isolation；credit=None。
 
-[原文 L54–L91](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L54)
+[原文 L54–L91](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L54)
 
 ````text
 **QueryEngine.java（4 处接点）— 隔离严格 ✅**
@@ -5779,7 +5779,7 @@ SessionManager、SessionMessagePersistence、SessionExecutionGate、SubAgentExec
 
 **绑定缺失应降级普通聊天** — 规范歧义 / conditional / scope=new / 不入分；统一问题：handoff-binding-fail-closed；credit=None。
 
-[原文 L150–L154](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L150)
+[原文 L150–L154](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L150)
 
 ````text
 ### 中 1 ｜ HandoffContextService.java:50-52 — E 的绑定异常导致每条消息 500
@@ -5803,7 +5803,7 @@ SessionManager、SessionMessagePersistence、SessionExecutionGate、SubAgentExec
 
 **预算过小使用通用硬失败** — 成立 / functional / scope=new / 入分；统一问题：D09；credit=1。
 
-[原文 L156–L159](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L156)
+[原文 L156–L159](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L156)
 
 ````text
 ### 中 2 ｜ HandoffContextService.java:92-95 — brief 不可读/预算过小硬失败
@@ -5828,7 +5828,7 @@ SessionManager、SessionMessagePersistence、SessionExecutionGate、SubAgentExec
 
 **封存窗口新增子会话无token复制** — 证据不足 / conditional / scope=new / 不入分；统一问题：source-tree-after-lock-race；credit=None。
 
-[原文 L161–L165](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L161)
+[原文 L161–L165](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L161)
 
 ````text
 ### 中 3 ｜ 快照来源树集合未按文档复核
@@ -5852,7 +5852,7 @@ SessionManager、SessionMessagePersistence、SessionExecutionGate、SubAgentExec
 
 **跨实例resume条件失败返回500** — 范围外 / conditional / scope=out / 不入分；统一问题：multi-instance-resume-conflict；credit=None。
 
-[原文 L167–L170](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L167)
+[原文 L167–L170](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L167)
 
 ````text
 ### 中 4 ｜ MERGE_STALE_EXECUTION 未映射为 409
@@ -5875,7 +5875,7 @@ Repository `changed()`（MergeProgressRepository.java:60）抛 IllegalStateExcep
 
 **paused时仍持锁却被selector隐藏** — 成立 / functional / scope=new / 入分；统一问题：D15；credit=1。
 
-[原文 L172–L175](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L172)
+[原文 L172–L175](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L172)
 
 ````text
 ### 中 5 ｜ sessionMergeStore.ts:28-31 — 来源锁仍含状态推断
@@ -5900,7 +5900,7 @@ Repository `changed()`（MergeProgressRepository.java:60）抛 IllegalStateExcep
 
 **resume409与active错误采纳缺测** — 成立 / engineering / scope=new / 不入分；统一问题：store-conflict-test-gap；credit=None。
 
-[原文 L177–L179](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L177)
+[原文 L177–L179](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L177)
 
 ````text
 ### 中 6 ｜ 前端关键分支零测试
@@ -5922,7 +5922,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 **source线性扫catalog形成二次工作量** — 成立 / engineering / scope=new / 不入分；统一问题：summary-catalog-scan；credit=None。
 
-[原文 L183–L183](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L183)
+[原文 L183–L183](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L183)
 
 ````text
 1. `MergeSummaryService.source()`（:176-188）每个 InputRef 线性扫全清单，O(N²)；万级分片时明显变慢，建议一次构建 ref→entry 映射
@@ -5942,7 +5942,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 **强制崩溃残留tmp文件** — 成立 / engineering / scope=new / 不入分；统一问题：atomic-write-crash-orphans；credit=None。
 
-[原文 L184–L184](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L184)
+[原文 L184–L184](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L184)
 
 ````text
 2. `MergeTextBudget.atomicWrite` 崩溃残留 `.tmp-UUID` 文件（仅本次调用清理）
@@ -5962,7 +5962,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 **控制请求HTML错误页显示JSON解析异常** — 成立 / functional / scope=new / 入分；统一问题：D20；credit=1。
 
-[原文 L185–L185](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L185)
+[原文 L185–L185](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L185)
 
 ````text
 3. 前端 `control` 路径 `response.json()` 无 catch（代理返回 HTML 错误页时暴露解析错误；refresh 路径有 `.catch(()=>({}))`，不一致）
@@ -5984,7 +5984,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 **retryAt/errorCode展示可读性** — 成立 / engineering / scope=new / 不入分；统一问题：merge-diagnostic-display；credit=None。
 
-[原文 L186–L186](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L186)
+[原文 L186–L186](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L186)
 
 ````text
 4. panel:206-207 retryAt 直接渲染 ISO 字符串、errorCode 从不展示
@@ -6004,7 +6004,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 **相同操作重复暂停通知key叠加** — 成立 / functional / scope=new / 入分；统一问题：D22；credit=1。
 
-[原文 L187–L187](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L187)
+[原文 L187–L187](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L187)
 
 ````text
 5. 通知仅 push 不按 key 去重，paused→resume→再暂停会短暂叠两条同 key 通知
@@ -6026,7 +6026,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 **冷启动发现paused弹error** — 成立 / engineering / scope=new / 不入分；统一问题：merge-toast-severity；credit=None。
 
-[原文 L188–L188](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L188)
+[原文 L188–L188](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L188)
 
 ````text
 6. 冷启动采纳 active 的 paused 操作会立即弹 **error 级**通知（paused 可恢复，级别欠妥）
@@ -6046,7 +6046,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 **未知stage显示提交中** — 证据不足 / conditional / scope=new / 不入分；统一问题：unknown-stage-fallback；credit=None。
 
-[原文 L189–L189](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L189)
+[原文 L189–L189](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L189)
 
 ````text
 7. 未知 stage 回退文案「提交中…」对运行中的新阶段有误导
@@ -6066,7 +6066,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 **protocolVersion类型不收紧** — 成立 / engineering / scope=new / 不入分；统一问题：protocol-version-types；credit=None。
 
-[原文 L190–L190](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L190)
+[原文 L190–L190](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L190)
 
 ````text
 8. `protocolVersion?: number` 应为 `1|2`；v1 兼容靠可选字段成立但无显式守卫
@@ -6086,7 +6086,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 **SQL分号切分脆弱** — 成立 / engineering / scope=new / 不入分；统一问题：migration-sql-split；credit=None。
 
-[原文 L191–L191](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L191)
+[原文 L191–L191](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L191)
 
 ````text
 9. V026 `execute()` 用 `SQL.split(";")` 逐句执行——当前安全但脆弱，建议显式语句列表
@@ -6106,7 +6106,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 **补记快照不核对来源集合** — 证据不足 / conditional / scope=new / 不入分；统一问题：snapshot-source-set-revalidation；credit=None。
 
-[原文 L192–L192](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L192)
+[原文 L192–L192](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L192)
 
 ````text
 10. 补记路径只核对 version，未校验文档 §4.3 要求的「来源集合」
@@ -6126,7 +6126,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 **messageVersion没有剔除usage** — 证据不足 / conditional / scope=new / 不入分；统一问题：message-version-usage；credit=None。
 
-[原文 L193–L193](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L193)
+[原文 L193–L193](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L193)
 
 ````text
 11. `messageVersion` 只剔除 handoffOrigin，未按文档 §4.2 剔除 metadata 中的 usage，跨 checkpoint 去重精确性略降
@@ -6138,7 +6138,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 判定理由：只remove handoffOrigin属实，usage通常为message顶层/DB独立列，需证明进入semantic metadata而同一事件仅usage变化的生产路径；未证明实际去重回归。
 
-代码：[MergePackageService.java:337](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L337)；[session-merge-architecture-v2.md:152](../../../../session-merge-architecture-v2.md#L152)
+代码：[MergePackageService.java:337](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L337)；[session-merge-architecture-v2.md:152](../../../../session-merge-architecture-v2.md?plain=1#L152)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -6146,7 +6146,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 **取消后attempt可显示completed** — 规范歧义 / engineering / scope=new / 不入分；统一问题：attempt-cancel-outcome；credit=None。
 
-[原文 L194–L194](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L194)
+[原文 L194–L194](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L194)
 
 ````text
 12. cancel 中断路径下 attempt 可能停留在 `outcome='completed'`（记账轻微失真）
@@ -6166,7 +6166,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 **legacy摘要派生参考标记弱** — 成立 / engineering / scope=new / 不入分；统一问题：legacy-summary-label；credit=None。
 
-[原文 L195–L195](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L195)
+[原文 L195–L195](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L195)
 
 ````text
 13. v1 旧包 import 整目录 walk 复制，旧摘要未明确「标为派生参考」（已有 legacy gap 但提示弱）
@@ -6186,7 +6186,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 **Repository双实例与字段注入** — 成立 / engineering / scope=new / 不入分；统一问题：injection-style；credit=None。
 
-[原文 L196–L196](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L196)
+[原文 L196–L196](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L196)
 
 ````text
 14. 风格：SessionMergeService 内联 new MergeProgressRepository 与 Spring bean 重复实例、字段注入
@@ -6206,7 +6206,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 **isExplicitCoreTool额外登记当前无作用** — 成立 / engineering / scope=new / 不入分；统一问题：handoff-core-registration；credit=None。
 
-[原文 L197–L197](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L197)
+[原文 L197–L197](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L197)
 
 ````text
 15. `OperationAnalyzerRegistry` 的 `isExplicitCoreTool("HandoffRead")` 当前为无操作代码
@@ -6226,7 +6226,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 **连续UserMessage依赖normalize未测** — 成立 / engineering / scope=new / 不入分；统一问题：consecutive-user-normalization-test；credit=None。
 
-[原文 L198–L198](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L198)
+[原文 L198–L198](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L198)
 
 ````text
 16. 投影 UserMessage 置于历史头部，原首条为 UserMessage 时连续同角色消息依赖 normalizeTyped 合并（未测）
@@ -6246,7 +6246,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 **轮询竞态测试未实际构造** — 成立 / engineering / scope=new / 不入分；统一问题：store-serialization-test-gap；credit=None。
 
-[原文 L199–L199](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L199)
+[原文 L199–L199](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L199)
 
 ````text
 17. 测试名不符实：store.test 中「晚到 GET 不覆盖」竞态并未被真正构造（该竞态实际由 while(inflight) 串行化防住，设计正确）
@@ -6266,7 +6266,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 **其他准入/重试/磁盘/UI测试缺口** — 成立 / engineering / scope=new / 不入分；统一问题：merge-test-gaps；credit=None。
 
-[原文 L205–L214](../zhikuncode/GLM5.3-session-merge-v2-code-review.md#L205)
+[原文 L205–L214](../zhikuncode/GLM5.3-session-merge-v2-code-review.md?plain=1#L205)
 
 ````text
 1. resume 409 后采纳 + 刷新；MERGE_ACTIVE_EXISTS 的 body.operation 采纳
@@ -6287,7 +6287,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 判定理由：保留全部8类缺口，不把测试不足直接当产品错误。
 
-代码：[session-merge-architecture-v2.md:440](../../../../session-merge-architecture-v2.md#L440)
+代码：[session-merge-architecture-v2.md:440](../../../../session-merge-architecture-v2.md?plain=1#L440)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -6297,7 +6297,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 ### R13-normal_function
 
-**判断分：5/5**。[原文 L595–L595](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L595)。未发现普通主链路破坏这一功能判断与当前独立核验一致；不要因合并域缺陷倒推普通回归。
+**判断分：5/5**。[原文 L595–L595](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L595)。未发现普通主链路破坏这一功能判断与当前独立核验一致；不要因合并域缺陷倒推普通回归。
 
 ````text
 **第一个问题可以明确回答：非合并链路没有被破坏。** 这个结论有代码级（9 条链路逐条推演）、diff 级（文件清单核对）、运行时级（9 个回归类全绿 + HEAD 基线对照证明 11 个失败与本次无关）三重独立证据支撑。
@@ -6305,7 +6305,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 ### R13-boundary
 
-**判断分：5/5**。[原文 L461–L462](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L461)。尽管速览未造成任何影响措辞过满，正文明确合并清理查询可影响启动及关闭writer共享资源边界；按冻结规则结合全文，不机械扣分。
+**判断分：5/5**。[原文 L461–L462](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L461)。尽管速览未造成任何影响措辞过满，正文明确合并清理查询可影响启动及关闭writer共享资源边界；按冻结规则结合全文，不机械扣分。
 
 ````text
 - `SessionMergeService:272` `progress.cleanupCandidates()` 在 try **之外**：DB 不可读时会从 `execute()` 的 finally（可能掩盖原异常）与 `recover()`（`@PostConstruct`，**可阻断启动**）抛出，与 §4.4"数据库不可读则保留"意图不符。
@@ -6314,7 +6314,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 ### R13-release
 
-**判断分：5/5**。[原文 L597–L605](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L597)。原文597明确现在还不能发，602要求真实语义验收；允许阶段提交不扣分，缺陷漏审不在发布维重复罚。
+**判断分：5/5**。[原文 L597–L605](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L597)。原文597明确现在还不能发，602要求真实语义验收；允许阶段提交不扣分，缺陷漏审不在发布维重复罚。
 
 ````text
 **但第二个问题的答案是否定的：现在还不能发。** 障碍不在产品逻辑（**阻断级代码缺陷 0 项**），而在**验证的完整性与陈述的真实性**：
@@ -6330,7 +6330,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 ### R13-semantic
 
-**判断分：5/5**。[原文 L249–L255](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L249)。正确说明真实模型/人工样本未执行，stub不可替代；572也要求明确未完成前置验收。
+**判断分：5/5**。[原文 L249–L255](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L249)。正确说明真实模型/人工样本未执行，stub不可替代；572也要求明确未完成前置验收。
 
 ````text
 #### B5 规格第 9 节强制的真实模型语义验收未执行
@@ -6346,7 +6346,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 **B1有效测试删除与断言弱化** — 成立 / engineering / scope=new / 不入分；统一问题：admission-tool-id-hook-test-gaps；credit=None。
 
-[原文 L178–L210](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L178)
+[原文 L178–L210](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L178)
 
 ````text
 #### B1 测试覆盖率倒退：8 个测试被无规格依据地删除
@@ -6398,7 +6398,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 **文档未放宽断言不实** — 不成立 / engineering / scope=new / 不入分；统一问题：isolated-test-evidence-invalidated；credit=None。
 
-[原文 L212–L212](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L212)
+[原文 L212–L212](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L212)
 
 ````text
 **未发现以下放宽手段**（这一点是好的）：`@Disabled` / `@Ignore` / `assumeTrue` / 注释掉的断言 / `catch(Exception ignored)` **全部 0 命中**；`frontend/vitest.config`、`package.json` 未被修改，两个前端测试文件 diff 中无 timeout 调大（`advanceTimersByTime` 均为既有行）。因此文档"未放宽断言或超时"在**超时维度成立**，在**断言强度与覆盖广度维度不成立**。
@@ -6410,7 +6410,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 判定理由：规范7说该次隔离复跑失败后降低worker并按原超时，不是声称实现相对b98从未调整测试。报告以开发diff断言变化否认执行过程限定，混淆口径。
 
-代码：[session-merge-architecture-v2.md:7](../../../../session-merge-architecture-v2.md#L7)
+代码：[session-merge-architecture-v2.md:7](../../../../session-merge-architecture-v2.md?plain=1#L7)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -6418,7 +6418,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 **并发测试均无真实线程竞争** — 不成立 / engineering / scope=new / 不入分；统一问题：concurrency-test-no-threads-claim；credit=None。
 
-[原文 L214–L214](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L214)
+[原文 L214–L214](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L214)
 
 ````text
 **测试卫生（符合规格）**：全部使用 `@TempDir` + SQLite 临时库 + mock provider，**无写入运行库**，无提交真实会话/附件。但并发类测试均为 `CountDownLatch` 阻塞单线程或纯顺序调用，**未构造真实线程竞争**（见 I8-coverage）。
@@ -6438,7 +6438,7 @@ resume 的 epoch 拒绝（409 MERGE_STALE_OPERATION 携带 operation → 采纳�
 
 **B2缺精确冲突码测试** — 成立 / engineering / scope=new / 不入分；统一问题：conflict-code-tests；credit=None。
 
-[原文 L216–L231](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L216)
+[原文 L216–L231](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L216)
 
 ````text
 #### B2 规格要求的 6 个冲突错误码，5 个测试命中为 0
@@ -6473,7 +6473,7 @@ MERGE_CANCEL_CLEANUP        main=1  test=0
 
 **B3 occurrences缺显式断言** — 成立 / engineering / scope=new / 不入分；统一问题：occurrence-ledger-tests；credit=None。
 
-[原文 L233–L239](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L233)
+[原文 L233–L239](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L233)
 
 ````text
 #### B3 `occurrences.jsonl` 全仓测试零命中
@@ -6491,7 +6491,7 @@ MERGE_CANCEL_CLEANUP        main=1  test=0
 
 判定理由：当前正式merge测试无occurrences断言，机制确为规范要求；未给出证据证明1866位置是历史失败唯一直接根因，后者不沿用为产品结论。
 
-代码：[MergePackageService.java:370](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L370)；[session-merge-architecture-v2.md:150](../../../../session-merge-architecture-v2.md#L150)
+代码：[MergePackageService.java:370](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L370)；[session-merge-architecture-v2.md:150](../../../../session-merge-architecture-v2.md?plain=1#L150)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -6499,7 +6499,7 @@ MERGE_CANCEL_CLEANUP        main=1  test=0
 
 **B4独立缓存待办设置未直测** — 成立 / engineering / scope=new / 不入分；统一问题：session-state-isolation-tests；credit=None。
 
-[原文 L241–L247](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L241)
+[原文 L241–L247](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L241)
 
 ````text
 #### B4 E 的状态隔离零覆盖
@@ -6517,7 +6517,7 @@ MERGE_CANCEL_CLEANUP        main=1  test=0
 
 判定理由：新session与消息截断有覆盖，TodoWrite/FileStateCache不回写来源缺直接行为断言。
 
-代码：[SessionMergeService.java:209](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L209)；[SessionMergeServiceTest.java:100](../../../../../backend/src/test/java/com/aicodeassistant/session/merge/SessionMergeServiceTest.java#L100)；[session-merge-architecture-v2.md:417](../../../../session-merge-architecture-v2.md#L417)
+代码：[SessionMergeService.java:209](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L209)；[SessionMergeServiceTest.java:100](../../../../../backend/src/test/java/com/aicodeassistant/session/merge/SessionMergeServiceTest.java#L100)；[session-merge-architecture-v2.md:417](../../../../session-merge-architecture-v2.md?plain=1#L417)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -6525,7 +6525,7 @@ MERGE_CANCEL_CLEANUP        main=1  test=0
 
 **B5真实语义验收未执行** — 成立 / engineering / scope=new / 不入分；统一问题：semantic-acceptance-missing；credit=None。
 
-[原文 L249–L255](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L249)
+[原文 L249–L255](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L249)
 
 ````text
 #### B5 规格第 9 节强制的真实模型语义验收未执行
@@ -6543,7 +6543,7 @@ MERGE_CANCEL_CLEANUP        main=1  test=0
 
 判定理由：规范自认，报告正确要求与stub分开。
 
-代码：[session-merge-architecture-v2.md:3](../../../../session-merge-architecture-v2.md#L3)；[session-merge-architecture-v2.md:453](../../../../session-merge-architecture-v2.md#L453)
+代码：[session-merge-architecture-v2.md:3](../../../../session-merge-architecture-v2.md?plain=1#L3)；[session-merge-architecture-v2.md:453](../../../../session-merge-architecture-v2.md?plain=1#L453)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -6551,7 +6551,7 @@ MERGE_CANCEL_CLEANUP        main=1  test=0
 
 **B6文档验证不实需替换为环境失败** — 不成立 / engineering / scope=new / 不入分；统一问题：isolated-test-evidence-invalidated；credit=None。
 
-[原文 L257–L284](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L257)
+[原文 L257–L284](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L257)
 
 ````text
 #### B6 文档验证陈述不实（阻断文档发布，不阻断代码发布）
@@ -6590,7 +6590,7 @@ MERGE_CANCEL_CLEANUP        main=1  test=0
 
 判定理由：文档7明确clean副本只叠加本次改动，报告280自己确认前端+18来自排除变更。宿主env/ripgrep造成基线失败不能推翻另一隔离运行成功；建议补环境可以，强制把其11失败替换原实测不成立。
 
-代码：[session-merge-architecture-v2.md:7](../../../../session-merge-architecture-v2.md#L7)
+代码：[session-merge-architecture-v2.md:7](../../../../session-merge-architecture-v2.md?plain=1#L7)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -6598,7 +6598,7 @@ MERGE_CANCEL_CLEANUP        main=1  test=0
 
 **既有非密封测试及密钥片段风险** — 范围外 / conditional / scope=out / 不入分；统一问题：preexisting-environment-test-hygiene；credit=None。
 
-[原文 L286–L286](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L286)
+[原文 L286–L286](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L286)
 
 ````text
 > **顺带发现（既有问题，非本次引入，建议单独立项）**：`OneKeyRegistryIntegrationTest` 的失败信息会把开发者**真实 API key 片段打印进 surefire 报告**（`expected: <> but was: <sk-9...>`）。这 4 个非密封测试类直读宿主 env、依赖宿主安装 ripgrep，会持续给所有开发者制造假红，属既有安全隐患，应优先处理。
@@ -6618,7 +6618,7 @@ MERGE_CANCEL_CLEANUP        main=1  test=0
 
 **I1容量错误与HTTP500控制流** — 成立 / functional / scope=new / 入分；统一问题：D09；credit=0.5。
 
-[原文 L292–L310](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L292)
+[原文 L292–L310](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L292)
 
 ````text
 #### I1 E 会话可被未分类异常永久打死（头号功能风险，协调者亲自验证）
@@ -6658,7 +6658,7 @@ if(cost>limit) throw new IllegalStateException("HANDOFF_CONTEXT_BUDGET_TOO_SMALL
 
 **I1绑定丢失/损坏无普通降级** — 规范歧义 / conditional / scope=new / 不入分；统一问题：handoff-missing-binding-error；credit=None。
 
-[原文 L312–L316](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L312)
+[原文 L312–L316](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L312)
 
 ````text
 2. **`configure()` 的失败无法自愈。** `HandoffReadService:47` 在无绑定时抛 `AuthorizationException("HANDOFF_NOT_BOUND","当前根会话没有可用交接资料")`，`configure()` 在 ID 不符时抛 `IllegalStateException("HANDOFF_BINDING_MISMATCH")`；这两个调用点在 `QueryController:178/265/362` 与 `WebSocketController:959` 均**不在 try 内**（已亲自阅读 `QueryController:165-192` 确认无包裹）。合并记录消失或包损坏后，**E 的每个请求都 500，UI 无任何恢复入口**。
@@ -6674,7 +6674,7 @@ if(cost>limit) throw new IllegalStateException("HANDOFF_CONTEXT_BUDGET_TOO_SMALL
 
 判定理由：configure在QueryEngine前可能通用500；与project空绑定行为不统一。但损坏绑定不能默默当有资料普通会话，规范要求failclosed，不承诺自动修复删库。应改善错误说明不必普通降级。
 
-代码：[HandoffContextService.java:41](../../../../../backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java#L41)；[HandoffContextService.java:66](../../../../../backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java#L66)；[HandoffReadService.java:47](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L47)；[session-merge-architecture-v2.md:398](../../../../session-merge-architecture-v2.md#L398)
+代码：[HandoffContextService.java:41](../../../../../backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java#L41)；[HandoffContextService.java:66](../../../../../backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java#L66)；[HandoffReadService.java:47](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L47)；[session-merge-architecture-v2.md:398](../../../../session-merge-architecture-v2.md?plain=1#L398)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -6682,7 +6682,7 @@ if(cost>limit) throw new IllegalStateException("HANDOFF_CONTEXT_BUDGET_TOO_SMALL
 
 **I2并发resume/create直接500** — 不成立 / functional / scope=new / 入分；统一问题：local-admission-race-error；credit=0。
 
-[原文 L318–L324](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L318)
+[原文 L318–L324](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L318)
 
 ````text
 #### I2 resume/create 竞态退化为 500 而非 409
@@ -6708,7 +6708,7 @@ if(cost>limit) throw new IllegalStateException("HANDOFF_CONTEXT_BUDGET_TOO_SMALL
 
 **I3 header使brief回退浪费聚合** — 成立 / engineering / scope=new / 不入分；统一问题：brief-header-budget-efficiency；credit=None。
 
-[原文 L326–L334](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L326)
+[原文 L326–L334](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L326)
 
 ````text
 #### I3 brief 阈值未扣 header，可能整份丢弃聚合成果
@@ -6728,7 +6728,7 @@ header 含来源 ID 列表 + 栏目统计，可达数百 token：1500 token 的 
 
 判定理由：1536阈值未减动态header，body>2048可整体用目录；详情不丢且规范允许兜底。预算优化建议，无资料正确性故障。
 
-代码：[MergeSummaryService.java:91](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L91)；[MergeSummaryService.java:145](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L145)；[session-merge-architecture-v2.md:317](../../../../session-merge-architecture-v2.md#L317)
+代码：[MergeSummaryService.java:91](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L91)；[MergeSummaryService.java:145](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L145)；[session-merge-architecture-v2.md:317](../../../../session-merge-architecture-v2.md?plain=1#L317)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -6736,7 +6736,7 @@ header 含来源 ID 列表 + 栏目统计，可达数百 token：1500 token 的 
 
 **I4 import目的路径未复核** — 证据不足 / conditional / scope=new / 不入分；统一问题：ancestor-import-destination-containment；credit=None。
 
-[原文 L336–L344](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L336)
+[原文 L336–L344](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L336)
 
 ````text
 #### I4 `importPrevious` 目标路径缺包含性校验
@@ -6764,7 +6764,7 @@ header 含来源 ID 列表 + 栏目统计，可达数百 token：1500 token 的 
 
 **I5缺recordRef与恢复协议** — 成立 / functional / scope=new / 入分；统一问题：D04；credit=1。
 
-[原文 L346–L352](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L346)
+[原文 L346–L352](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L346)
 
 ````text
 #### I5 丢弃 recordRef 导致暂停后永久不可恢复
@@ -6784,7 +6784,7 @@ header 含来源 ID 列表 + 栏目统计，可达数百 token：1500 token 的 
 
 核实范围：已修正解析配置仍被gap/ref关联校验阻止；不等于所有坏原件应可恢复。
 
-代码：[MergePackageService.java:235](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L235)；[MergePackageService.java:436](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L436)；[MergePackageService.java:598](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L598)；[session-merge-architecture-v2.md:183](../../../../session-merge-architecture-v2.md#L183)
+代码：[MergePackageService.java:235](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L235)；[MergePackageService.java:436](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L436)；[MergePackageService.java:598](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L598)；[session-merge-architecture-v2.md:183](../../../../session-merge-architecture-v2.md?plain=1#L183)
 
 核验：[reproductions/RankingProtocolReproTest.java](reproductions/RankingProtocolReproTest.java)
 
@@ -6792,7 +6792,7 @@ header 含来源 ID 列表 + 栏目统计，可达数百 token：1500 token 的 
 
 **I6读取错误码压平** — 成立 / functional / scope=new / 入分；统一问题：D13；credit=1。
 
-[原文 L354–L360](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L354)
+[原文 L354–L360](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L354)
 
 ````text
 #### I6 HandoffRead 错误码归类错误
@@ -6812,7 +6812,7 @@ header 含来源 ID 列表 + 栏目统计，可达数百 token：1500 token 的 
 
 核实范围：授权/读取支路把预算错误码包成INVALID_RESOURCE等泛码；read入口中断反例正常重抛。
 
-代码：[HandoffReadService.java:43](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L43)；[HandoffReadService.java:55](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L55)；[HandoffReadService.java:208](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L208)；[session-merge-architecture-v2.md:387](../../../../session-merge-architecture-v2.md#L387)
+代码：[HandoffReadService.java:43](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L43)；[HandoffReadService.java:55](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L55)；[HandoffReadService.java:208](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L208)；[session-merge-architecture-v2.md:387](../../../../session-merge-architecture-v2.md?plain=1#L387)
 
 核验：[reproductions/RankingReadReproTest.java](reproductions/RankingReadReproTest.java)
 
@@ -6820,7 +6820,7 @@ header 含来源 ID 列表 + 栏目统计，可达数百 token：1500 token 的 
 
 **I7 descendants吞坏metadata** — 范围外 / functional / scope=retained / 不入分；统一问题：corrupt-descendant-metadata；credit=None。
 
-[原文 L362–L366](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L362)
+[原文 L362–L366](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L362)
 
 ````text
 #### I7 `descendants()` 静默吞 IOException
@@ -6844,7 +6844,7 @@ header 含来源 ID 列表 + 栏目统计，可达数百 token：1500 token 的 
 
 **I8非法外部路径导致整次暂停** — 成立 / functional / scope=new / 入分；统一问题：D10；credit=1。
 
-[原文 L368–L372](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L368)
+[原文 L368–L372](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L368)
 
 ````text
 #### I8 `Path.of(asset.originalPath())` 未捕获 `InvalidPathException`
@@ -6870,7 +6870,7 @@ header 含来源 ID 列表 + 栏目统计，可达数百 token：1500 token 的 
 
 **I9每轮重复project哈希** — 证据不足 / conditional / scope=new / 不入分；统一问题：repeated-handoff-integrity-io；credit=None。
 
-[原文 L374–L380](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L374)
+[原文 L374–L380](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L374)
 
 ````text
 #### I9 `project()` 非纯函数，E 每轮 ≥3 次全包完整性校验
@@ -6896,7 +6896,7 @@ header 含来源 ID 列表 + 栏目统计，可达数百 token：1500 token 的 
 
 **I10取消后仍持锁被前端忽略** — 成立 / functional / scope=new / 入分；统一问题：D15；credit=1。
 
-[原文 L382–L390](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L382)
+[原文 L382–L390](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L382)
 
 ````text
 #### I10 前端仍以 `preparing` 推断来源锁定
@@ -6926,7 +6926,7 @@ header 含来源 ID 列表 + 栏目统计，可达数百 token：1500 token 的 
 
 **I11可选DTO使undefined目标显示可打开** — 证据不足 / conditional / scope=new / 不入分；统一问题：frontend-dto-validation；credit=None。
 
-[原文 L392–L398](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L392)
+[原文 L392–L398](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L392)
 
 ````text
 #### I11 前端 DTO 可选性放宽导致门禁失效
@@ -6952,7 +6952,7 @@ header 含来源 ID 列表 + 栏目统计，可达数百 token：1500 token 的 
 
 **I11缺expectedEpoch导致防重放失效** — 不成立 / functional / scope=new / 入分；统一问题：missing-epoch-bypasses-fence；credit=0。
 
-[原文 L399–L401](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L399)
+[原文 L399–L401](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L399)
 
 ````text
 - `store:228` 的 `expectedEpoch: runEpoch` 若缺失会序列化成 `{}`，使 §5.3 的 epoch 防重放机制失效
@@ -6974,7 +6974,7 @@ header 含来源 ID 列表 + 栏目统计，可达数百 token：1500 token 的 
 
 **I12轮询禁用用户操作** — 成立 / functional / scope=new / 入分；统一问题：D08；credit=1。
 
-[原文 L403–L407](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L403)
+[原文 L403–L407](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L403)
 
 ````text
 #### I12 前端用 `submitting` 禁用恢复/取消按钮
@@ -7000,7 +7000,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **I13 Panel新功能与旧epoch冲突测试不足** — 成立 / engineering / scope=new / 不入分；统一问题：panel-v2-test-gaps；credit=None。
 
-[原文 L409–L413](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L409)
+[原文 L409–L413](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L409)
 
 ````text
 #### I13 前端 Panel 新增 UI 基本无测试覆盖
@@ -7024,7 +7024,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **I14双向类型依赖与双Repository实例** — 成立 / engineering / scope=new / 不入分；统一问题：repository-dependency-organization；credit=None。
 
-[原文 L415–L421](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L415)
+[原文 L415–L421](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L415)
 
 ````text
 #### I14 Repository 反向依赖 + 双实例
@@ -7050,7 +7050,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **I15暂停日志未打印原始异常栈** — 成立 / engineering / scope=new / 不入分；统一问题：pause-diagnostic-stack；credit=None。
 
-[原文 L423–L429](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L423)
+[原文 L423–L429](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L423)
 
 ````text
 #### I15 暂停日志丢弃异常栈，线上不可运维
@@ -7076,7 +7076,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **I16清单行无长度上限** — 证据不足 / conditional / scope=new / 不入分；统一问题：catalog-line-memory-budget；credit=None。
 
-[原文 L431–L433](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L431)
+[原文 L431–L433](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L431)
 
 ````text
 #### I16 清单单行无长度上限
@@ -7098,7 +7098,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **I17 Service.read(asset)空成功** — 成立 / engineering / scope=new / 不入分；统一问题：read-asset-internal-dead-branch；credit=None。
 
-[原文 L435–L437](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L435)
+[原文 L435–L437](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L435)
 
 ````text
 #### I17 `read()` 对 `action=asset` 返回假成功
@@ -7120,7 +7120,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **900KiB请求守卫和文档1MiB** — 成立 / engineering / scope=new / 不入分；统一问题：request-byte-limit-documentation；credit=None。
 
-[原文 L445–L445](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L445)
+[原文 L445–L445](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L445)
 
 ````text
 - **预算常量与文档不符**：`MergeSummaryService:212` 请求 bytes 保护是 **900 KiB**，规格 §6.3 表格写的是 **1 MiB**。更严格但与文档不符——改常量或改文档，二者取一。
@@ -7132,7 +7132,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 判定理由：代码更保守，可同步文档；只触发分片非拒绝总历史，未证明功能故障。
 
-代码：[MergeSummaryService.java:212](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L212)；[session-merge-architecture-v2.md:325](../../../../session-merge-architecture-v2.md#L325)
+代码：[MergeSummaryService.java:212](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeSummaryService.java#L212)；[session-merge-architecture-v2.md:325](../../../../session-merge-architecture-v2.md?plain=1#L325)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -7140,7 +7140,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **schema失败attempt仍completed** — 不成立 / functional / scope=new / 入分；统一问题：attempt-schema-failure-outcome；credit=0。
 
-[原文 L446–L446](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L446)
+[原文 L446–L446](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L446)
 
 ````text
 - **attempt 终态早于校验**：`:324` 的 `usageSink` 在 `call()` 的 finally 里就写 `finishAttempt(...,"completed")`，随后 `validate()` 若失败，attempts 表仍记 completed。建议改记 `error` 或新增 `rejected` 语义。
@@ -7160,7 +7160,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **preCleanImageHistory未先预留投影** — 成立 / engineering / scope=new / 不入分；统一问题：preclean-handoff-budget-consistency；credit=None。
 
-[原文 L447–L447](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L447)
+[原文 L447–L447](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L447)
 
 ````text
 - `QueryEngine:2698-2702` `preCleanImageHistory` 自算 `inputBudget` 并调 `enforcePhase1`，**未预留投影**。无正确性风险（循环内 `:847` 会用正确 `historyBudget` 重裁），但与 §7.1 第 4 条"使用同一规则"精神不一致。
@@ -7180,7 +7180,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **core名字登记多余** — 成立 / engineering / scope=new / 不入分；统一问题：redundant-core-name-registration；credit=None。
 
-[原文 L448–L448](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L448)
+[原文 L448–L448](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L448)
 
 ````text
 - **`isExplicitCoreTool` 的名字放行是多余的**：`OperationAnalyzerRegistry` 中新增 `"HandoffRead".equals(name)`，唯一调用点是 `ToolRegistry:48` 的 `AUTHORIZATION_ANALYZER_MISSING` 启动断言，而真实 `HandoffReadTool` 永不进该构造器。副作用是任何 `com.aicodeassistant.*` 且名为 HandoffRead 的工具可绕过该启动断言（其 `analyzerFor` 仍返回 `generic`，**不获得权限**——所以不是安全漏洞）。建议删除。
@@ -7192,7 +7192,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 判定理由：仅启动自检白名单，analyzer仍generic没有权限提升。规范396有core登记要求，属组织取舍。
 
-代码：[OperationAnalyzerRegistry.java:120](../../../../../backend/src/main/java/com/aicodeassistant/authorization/OperationAnalyzerRegistry.java#L120)；[session-merge-architecture-v2.md:396](../../../../session-merge-architecture-v2.md#L396)
+代码：[OperationAnalyzerRegistry.java:120](../../../../../backend/src/main/java/com/aicodeassistant/authorization/OperationAnalyzerRegistry.java#L120)；[session-merge-architecture-v2.md:396](../../../../session-merge-architecture-v2.md?plain=1#L396)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -7200,7 +7200,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **字段注入风格与手动构造测试null** — 成立 / engineering / scope=new / 不入分；统一问题：formatting-and-injection；credit=None。
 
-[原文 L449–L449](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L449)
+[原文 L449–L449](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L449)
 
 ````text
 - **风格倒退**：`QueryController:72-73`、`WebSocketController:92-93`、`QueryEngine:1808-1809` 使用内联全限定类名 + `@Autowired` 字段注入，插在 `private final` 之间，破坏两个 Controller 既有的显式构造器注入风格；测试须靠 `ReflectionTestUtils.setField`（`QueryEngineUnitTest:1956`）；且 `new QueryController(...)` 的测试中该字段为 null，将来若出现合并会话用例会 NPE。`QueryEngine` 用 `required=false` 而 Controller 用必需注入的不一致虽不构成启动风险（Bean 是 `@Service`，上下文已验证可加载），仍建议统一为构造器参数。
@@ -7220,7 +7220,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **类级produces改变严格Accept内容协商** — 成立 / engineering / scope=new / 不入分；统一问题：merge-controller-produces；credit=None。
 
-[原文 L450–L450](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L450)
+[原文 L450–L450](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L450)
 
 ````text
 - `SessionMergeController:8` 类级 `@RequestMapping(produces="application/json")` 给**既有两个端点**加了内容协商约束：严格 `Accept: text/html`（不含 `*/*`）会 406。实测无回归（自家前端 `sessionMergeStore.ts:150-155` 带 `Accept: application/json` 或不带，MockMvc 用 `*/*`），但**零收益**，建议删除或只标在新端点上。
@@ -7240,7 +7240,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **旧helper死代码与未使用构造参数** — 成立 / engineering / scope=new / 不入分；统一问题：legacy-helper-tests；credit=None。
 
-[原文 L451–L451](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L451)
+[原文 L451–L451](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L451)
 
 ````text
 - **死代码约 250 行**：`build()`(`:698`)、`packagePath()`(`:95`)、`MAX_RECORD_BYTES`(`:71`)、`exportRuns`、`renderBlock`、`PartWriter`、`writeParts`、`canonicalReference`、`Bundle`、`deleteUnreferenced` 的 scratchpad 分支，**仅被 `MergePackageServiceTest` 调用**（`:18/212/247/259/278/293/309/326/336`）。规格允许"仅为兼容已有夹具保留"，在线入口确实不再调用（已验证只走 seal / validateSnapshot / recoverBlockedProjections / snapshotPath / packageRoot），但把 250 行生产死代码推到 GitHub 是技术债。另：`SessionMergeService:67` 构造参数 `PermissionModeManager permissions` 已无字段接收，import 行 9 与 `java.time.Instant`（行 28）未使用。
@@ -7252,7 +7252,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 判定理由：文档5明确允许兼容夹具保留；规模估算不作事实严重度，移除需先迁移测试。
 
-代码：[MergePackageService.java:698](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L698)；[SessionMergeService.java:67](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L67)；[session-merge-architecture-v2.md:5](../../../../session-merge-architecture-v2.md#L5)
+代码：[MergePackageService.java:698](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L698)；[SessionMergeService.java:67](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L67)；[session-merge-architecture-v2.md:5](../../../../session-merge-architecture-v2.md?plain=1#L5)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -7260,7 +7260,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **atomicWrite无fsync和finally掩异常** — 规范歧义 / conditional / scope=new / 不入分；统一问题：snapshot-fsync；credit=None。
 
-[原文 L452–L452](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L452)
+[原文 L452–L452](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L452)
 
 ````text
 - `MergeTextBudget.atomicWrite` 缺 `force(true)` 与父目录 fsync → 断电后 `work/recovered/seal.json` 可能丢失；`finally` 中 `deleteIfExists` 自身异常会掩盖原始异常。（其余方面正确：临时文件 `resolveSibling` 同目录同文件系统；走 `output()`→`reserve()` 接入既有磁盘防护；move 成功后 deleteIfExists 为 no-op、失败时清垃圾。）
@@ -7272,7 +7272,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 判定理由：force/fsync未实现，删除tmp失败可能遮原异常；语言flush已做到，尚无断电耐久性合同或实际复现。
 
-代码：[MergeTextBudget.java:34](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeTextBudget.java#L34)；[session-merge-architecture-v2.md:166](../../../../session-merge-architecture-v2.md#L166)
+代码：[MergeTextBudget.java:34](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergeTextBudget.java#L34)；[session-merge-architecture-v2.md:166](../../../../session-merge-architecture-v2.md?plain=1#L166)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -7280,7 +7280,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **seal在rename前未全面复校** — 成立 / engineering / scope=new / 不入分；统一问题：preseal-self-validation；credit=None。
 
-[原文 L453–L453](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L453)
+[原文 L453–L453](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L453)
 
 ````text
 - `seal()` 在 rename 前未按 §4.3 步骤 5 复校 manifest/seal（依赖 `SessionMergeService:203`，而此时来源已释放）。建议在 staging 内先自检。
@@ -7292,7 +7292,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 判定理由：writer计算清单哈希后原子rename，Service发布前再validate；规范166先写并校验措辞较强。额外自检可加，未证明用户资料在此阶段可被改变后发布。
 
-代码：[MergePackageService.java:159](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L159)；[MergePackageService.java:173](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L173)；[SessionMergeService.java:203](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L203)；[session-merge-architecture-v2.md:166](../../../../session-merge-architecture-v2.md#L166)
+代码：[MergePackageService.java:159](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L159)；[MergePackageService.java:173](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L173)；[SessionMergeService.java:203](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L203)；[session-merge-architecture-v2.md:166](../../../../session-merge-architecture-v2.md?plain=1#L166)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -7300,7 +7300,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **图片解码失败残留未登记文件** — 不成立 / engineering / scope=new / 不入分；统一问题：invalid-image-orphan-file-claim；credit=None。
 
-[原文 L454–L454](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L454)
+[原文 L454–L454](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L454)
 
 ````text
 - **残留未登记文件**：内嵌图片解码失败留下的 `assets/<uuid>`（`:521-527`）、空 `assets/files/` 目录 → 与 §4.2"目录展示由清单生成"矛盾，建议清理。
@@ -7320,7 +7320,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **handoffOrigin无写入点** — 成立 / engineering / scope=new / 不入分；统一问题：handoff-origin-compatibility；credit=None。
 
-[原文 L455–L455](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L455)
+[原文 L455–L455](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L455)
 
 ````text
 - `handoffOrigin` 主代码**无写入点**（`:499` 仅读取）；跨包身份实际靠 records.jsonl 逐行导入 + origin 确定性哈希达成，建议补注释或写入点。
@@ -7340,7 +7340,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **工具说明未包含全部语义引导** — 成立 / engineering / scope=new / 不入分；统一问题：handoff-tool-guidance；credit=None。
 
-[原文 L456–L456](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L456)
+[原文 L456–L456](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L456)
 
 ````text
 - `HandoffReadTool:16` 工具说明缺 §7.1 要求的三句（继续来源工作前先读缺失的交接详情；目录/未展开计数不代表已了解详情；历史测试不代表当前测试；改代码前先读现有文件），目前部分由结果 warning(`:302`) 与投影文本承担。
@@ -7352,7 +7352,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 判定理由：固定工具description较短，部分提示由projection/warning承担；规格373同时要求两处，应统一但语义成效待验收。
 
-代码：[HandoffReadTool.java:16](../../../../../backend/src/main/java/com/aicodeassistant/tool/impl/HandoffReadTool.java#L16)；[HandoffContextService.java:68](../../../../../backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java#L68)；[session-merge-architecture-v2.md:373](../../../../session-merge-architecture-v2.md#L373)
+代码：[HandoffReadTool.java:16](../../../../../backend/src/main/java/com/aicodeassistant/tool/impl/HandoffReadTool.java#L16)；[HandoffContextService.java:68](../../../../../backend/src/main/java/com/aicodeassistant/engine/HandoffContextService.java#L68)；[session-merge-architecture-v2.md:373](../../../../session-merge-architecture-v2.md?plain=1#L373)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -7360,7 +7360,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **ImageIO null stream异常未捕获** — 证据不足 / conditional / scope=new / 不入分；统一问题：imageio-null-stream；credit=None。
 
-[原文 L457–L457](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L457)
+[原文 L457–L457](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L457)
 
 ````text
 - `HandoffReadTool:35-37`：`ImageIO.createImageInputStream` 返回 null 时 `getImageReaders(null)` 抛 `IllegalArgumentException`，**不被 `catch(IOException)` 捕获**。
@@ -7380,7 +7380,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **字符串limit退回5** — 不成立 / engineering / scope=new / 不入分；统一问题：string-limit-input；credit=None。
 
-[原文 L458–L458](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L458)
+[原文 L458–L458](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L458)
 
 ````text
 - `HandoffReadService:224`：`limit` 仅在为 `Number` 时生效，字符串 `"10"` 静默降级为 5。
@@ -7400,7 +7400,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **path substring缺startsWith** — 不成立 / engineering / scope=new / 不入分；统一问题：unguarded-snapshot-substring；credit=None。
 
-[原文 L459–L459](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L459)
+[原文 L459–L459](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L459)
 
 ````text
 - `HandoffReadService:270`：`e.path().substring("snapshot/".length())` 无 `startsWith` 守卫。
@@ -7420,7 +7420,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **promptVersion常量重复** — 成立 / engineering / scope=new / 不入分；统一问题：prompt-version-drift；credit=None。
 
-[原文 L460–L460](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L460)
+[原文 L460–L460](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L460)
 
 ````text
 - `SessionMergeService:106` promptVersion 硬编码 `"handoff-v2-1"`，与 `PROCESSOR_VERSION` 同值重复，提示词升级易漏改，建议提为常量。
@@ -7440,7 +7440,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **cleanup候选DB异常可传播到启动** — 成立 / conditional / scope=new / 不入分；统一问题：cleanup-db-startup-exception；credit=None。
 
-[原文 L461–L461](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L461)
+[原文 L461–L461](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L461)
 
 ````text
 - `SessionMergeService:272` `progress.cleanupCandidates()` 在 try **之外**：DB 不可读时会从 `execute()` 的 finally（可能掩盖原异常）与 `recover()`（`@PostConstruct`，**可阻断启动**）抛出，与 §4.4"数据库不可读则保留"意图不符。
@@ -7452,7 +7452,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 判定理由：cleanupCandidates在for迭代求值/try之外，失败可传播@PostConstruct；数据库本来是启动依赖，需注入仅合并查询失败证明增量影响。规范要求保留文件已满足未删除，但应避免阻断启动。
 
-代码：[SessionMergeService.java:272](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L272)；[SessionMergeService.java:74](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L74)；[session-merge-architecture-v2.md:187](../../../../session-merge-architecture-v2.md#L187)
+代码：[SessionMergeService.java:272](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L272)；[SessionMergeService.java:74](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L74)；[session-merge-architecture-v2.md:187](../../../../session-merge-architecture-v2.md?plain=1#L187)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -7460,7 +7460,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **shutdown未等待writer退出** — 成立 / conditional / scope=new / 不入分；统一问题：merge-shutdown-writer-lifecycle；credit=None。
 
-[原文 L462–L462](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L462)
+[原文 L462–L462](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L462)
 
 ````text
 - `SessionMergeService:287` `worker.shutdown()` 未 awaitTermination → `@PreDestroy` 返回后 writer 仍可能写文件/查库（DataSource 或已关闭）。
@@ -7480,7 +7480,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **规划每片独立事务** — 证据不足 / conditional / scope=new / 不入分；统一问题：planning-transaction-overhead；credit=None。
 
-[原文 L463–L463](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L463)
+[原文 L463–L463](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L463)
 
 ````text
 - 规划阶段每分片一次写事务（`MergeSummaryService:79` → `Repo.plan`）→ 大历史下上千次 SQLite 写事务，建议批量。
@@ -7500,7 +7500,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **服务关闭码与SQLite busy协议** — 证据不足 / conditional / scope=new / 不入分；统一问题：shutdown-and-db-busy-errors；credit=None。
 
-[原文 L464–L464](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L464)
+[原文 L464–L464](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L464)
 
 ````text
 - `MERGE_SERVICE_SHUTDOWN`（`SessionMergeService:82`）不在规格列举的错误码内，需确认前端按通用提示降级；cancel 与发布事务相撞时 SQLite busy 可能抛 500，可考虑一次重试。
@@ -7520,7 +7520,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **所有错误paused长期占active** — 规范歧义 / engineering / scope=new / 不入分；统一问题：unrecoverable-paused-state；credit=None。
 
-[原文 L465–L465](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L465)
+[原文 L465–L465](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L465)
 
 ````text
 - v2 无任何路径写 `status='failed'`（哈希不符也只 pause）→ 损坏包会**长期占用唯一名额**直到用户 cancel。符合规格（§5.1"failed：已确认不可恢复的损坏"），但建议在 `explain` 文案中明确"确认不可恢复请取消"。
@@ -7532,7 +7532,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 判定理由：不可恢复损坏也暂停，用户可cancel释放slot；规范把failed分开但本轮明确允许损坏暂停且保留原件，无自动判不可恢复标准。宜改善说明。
 
-代码：[SessionMergeService.java:226](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L226)；[session-merge-architecture-v2.md:25](../../../../session-merge-architecture-v2.md#L25)；[session-merge-architecture-v2.md:210](../../../../session-merge-architecture-v2.md#L210)
+代码：[SessionMergeService.java:226](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L226)；[session-merge-architecture-v2.md:25](../../../../session-merge-architecture-v2.md?plain=1#L25)；[session-merge-architecture-v2.md:210](../../../../session-merge-architecture-v2.md?plain=1#L210)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -7540,7 +7540,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **前端固定轮询无退避** — 成立 / conditional / scope=new / 不入分；统一问题：merge-polling-backoff；credit=None。
 
-[原文 L469–L469](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L469)
+[原文 L469–L469](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L469)
 
 ````text
 - **轮询无退避**：固定 2s（`panel:47`），`document.hidden` 时仍空转；无任务时每 5s 打 `/active`；`failed && canCancel` **永不进** `validatedTerminal`（`store:187-189`）→ 直到用户取消前一直 2s 轮询。建议 hidden 暂停 + 错误/终态退避。
@@ -7560,7 +7560,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **validatedTerminal集合只增不减** — 成立 / conditional / scope=new / 不入分；统一问题：terminal-cache-memory-growth；credit=None。
 
-[原文 L470–L470](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L470)
+[原文 L470–L470](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L470)
 
 ````text
 - `store.ts:113` `validatedTerminal` 模块级 Set 只增不减（仅 openDialog 删当前 id），轻微泄漏。
@@ -7580,7 +7580,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **errorCode不用专用分支** — 成立 / engineering / scope=new / 不入分；统一问题：frontend-error-code-guidance；credit=None。
 
-[原文 L471–L471](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L471)
+[原文 L471–L471](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L471)
 
 ````text
 - `errorCode` 已入类型但**从未使用**；建议对 `MERGE_CANCEL_CLEANUP`（稍后重试）、`MERGE_STALE_OPERATION`（自动刷新）做 code 分支——目前 6 个 code 中只有 `MERGE_OPERATION_NOT_FOUND` 有分支（`:161`）。
@@ -7600,7 +7600,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **控制响应HTML导致原始JSON错误文案** — 成立 / conditional / scope=new / 不入分；统一问题：control-nonjson-error-message；credit=None。
 
-[原文 L472–L472](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L472)
+[原文 L472–L472](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L472)
 
 ````text
 - `store.ts:241` `await response.json()` 无 `.catch`（对比 `:159` 有）→ 网关返回 HTML 时把 `Unexpected token <…` 当错误文案直接展示给用户。
@@ -7620,7 +7620,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **v2 warnings不再含缺口明细** — 成立 / functional / scope=new / 入分；统一问题：D19；credit=1。
 
-[原文 L473–L473](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L473)
+[原文 L473–L473](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L473)
 
 ````text
 - `panel:206` 直接渲染 ISO 时间戳；`panel:210-211` 的 `result.warnings` 在 v2 后端**已不产出**（`SessionMergeService:214` 只写 copiedCount/warningCount/model/title/indexPath）→ "未收录 N 项"永远无明细，建议改为指向 gaps 或移除该分支。
@@ -7642,7 +7642,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **retryAt直接ISO显示** — 成立 / engineering / scope=new / 不入分；统一问题：retry-time-format；credit=None。
 
-[原文 L473–L473](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L473)
+[原文 L473–L473](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L473)
 
 ````text
 - `panel:206` 直接渲染 ISO 时间戳；`panel:210-211` 的 `result.warnings` 在 v2 后端**已不产出**（`SessionMergeService:214` 只写 copiedCount/warningCount/model/title/indexPath）→ "未收录 N 项"永远无明细，建议改为指向 gaps 或移除该分支。
@@ -7662,7 +7662,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **v1客户端无显式只读fallback** — 成立 / engineering / scope=new / 不入分；统一问题：legacy-ui-protocol-defense；credit=None。
 
-[原文 L474–L474](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L474)
+[原文 L474–L474](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L474)
 
 ````text
 - 前端**从不读取 `protocolVersion`**，缺 v1 只读兜底与"旧版结果"文案（§8 要求 protocol=1 只读展示、不伪造 v2 绑定/恢复能力）。当前靠服务端 `canResume/canCancel/targetAvailable` 驱动（后端 v1 时 canCancel=false）间接达成，但没有显式兜底。
@@ -7682,7 +7682,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **404和冲突采用未dispatch列表更新** — 证据不足 / conditional / scope=new / 不入分；统一问题：conflict-lock-list-refresh；credit=None。
 
-[原文 L475–L475](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L475)
+[原文 L475–L475](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L475)
 
 ````text
 - 锁集合变化触发 `session-list-updated` **只在主轮询路径**（`:196-199`），冲突采用（`:171-176`）与 404（`:163-169`）路径缺失。
@@ -7702,7 +7702,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **v1文档归档与文件权限说明** — 成立 / engineering / scope=new / 不入分；统一问题：legacy-document-hygiene；credit=None。
 
-[原文 L480–L481](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L480)
+[原文 L480–L481](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L480)
 
 ````text
 - `docs/zhikun/` 下有 **7 份 09-20 的 v1 时代 Session-Merge 文档**（`Session-Merge-Five-Source-Acceptance`、`Session-Merge-Live-Acceptance`、`Session-Merge-Full-Acceptance`、`Session-Merge-and-Inject-Review`、`Session-Merge-and-Inject-Simplified-Review`、`Session-Merge-and-Inject-Implementation-Plan`、`Session-Merge-MVP-Implementation-Notes`），将与声称"本文替代此前更复杂的 v2 草案"的 v2 文档一起发布到 GitHub。建议标注 superseded 或移入归档目录。
@@ -7715,7 +7715,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 判定理由：归档是文档卫生，Git不追踪600/644差异只有可执行位的说明正确；不影响功能评估。
 
-代码：[session-merge-architecture-v2.md:3](../../../../session-merge-architecture-v2.md#L3)
+代码：[session-merge-architecture-v2.md:3](../../../../session-merge-architecture-v2.md?plain=1#L3)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -7723,7 +7723,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **具体保证复制symlink不可利用** — 不成立 / functional / scope=new / 入分；统一问题：D03；credit=0。
 
-[原文 L512–L512](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L512)
+[原文 L512–L512](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L512)
 
 ````text
 | symlink | **不可被利用** | `safeFile` 逐级查链接；`hash()`(`:105`) 与 `catalog()`(`:138`) 均 `NOFOLLOW_LINKS`；附件复制**不用** `Files.copy`，而是 `isRegularFile(NOFOLLOW)` + `newInputStream(NOFOLLOW)`(`:1058-1064`)；`copyTree` 对范围外链接只记 `external_reference`(`:1035-1041`)；legacy 包链接记阻断缺口(`:614`)。测试把已登记文件换成指向包外 secret 的 symlink，断言拒绝 |
@@ -7743,7 +7743,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **读ref路径穿越边界保证** — 成立 / global / scope=new / 不入分；统一问题：read-side-resource-boundary；credit=None。
 
-[原文 L511–L511](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L511)
+[原文 L511–L511](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L511)
 
 ````text
 | 路径穿越 | **不可被利用**（写侧存 1 处纵深缺口，见 I4） | 读侧 `ref` 仅作清单查找键、**从不拼路径**（`HandoffReadService:161-180` 全量扫 catalog 匹配后取清单内 `path`）；`safeFile`（`MergePackageService:304-316`）拒绝对路径 / `normalize().startsWith("..")` / NUL（`Path.of` 抛 InvalidPathException 被捕获）/ 逐级 `isSymbolicLink` / 非普通文件；写侧文件名仅 `r_<sha256>`(`:369`)、`a_<sha256>`(`:580`)、`UUID`(`:521`)、`:pN`(`:686`)，**无标题或模型输出参与**。测试 `HandoffReadServiceTest:66-73` 实测 `../../secret`、`/etc/passwd` 被拒 |
@@ -7763,7 +7763,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **游标绑定/局部工具/可信根/图片窄权限保证** — 成立 / global / scope=new / 不入分；统一问题：scoped-handoff-authorization；credit=None。
 
-[原文 L513–L519](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L513)
+[原文 L513–L519](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L513)
 
 ````text
 | 游标伪造 / 跨包越权 | **不可被利用** | key = `sha256(operationId + handoffHash + encode(action,query,ref,sourceId,section))`(`:213`)，不符即 `HANDOFF_INVALID_CURSOR`(`:222`)；`catalog:129-137` 校验索引范围、偏移前一字节必须 `\n`、不得超文件大小；游标不含路径，偏移只作用于 `binding()` 已解析的本包路径 |
@@ -7789,7 +7789,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **普通附件复制配额分类安全保证** — 成立 / global / scope=new / 不入分；统一问题：file-copy-quota-classification；credit=None。
 
-[原文 L528–L528](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L528)
+[原文 L528–L528](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L528)
 
 ````text
 - **托管产物**：`:441-450` 按 manifest_id/artifact_id 键集分页，`exportRow` 用 `PRAGMA table_info` 全列导出，**无验证调用**；`copyFile:1067-1071` 前后校验 size/mtime/双哈希（最多重读一次）；`CopyLimitException` → `copy_failed` → `exportAsset` 抛 `MERGE_COPY_INCOMPLETE`(`:576`)，**不降级为 external_reference**（符合 §9"旧 CopyLimit 测试不能继续要求托管原件复制失败后带警告发布"）。
@@ -7809,7 +7809,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **串行测试证明旧GET不覆盖epoch** — 成立 / engineering / scope=new / 不入分；统一问题：polling-test-order-coverage；credit=None。
 
-[原文 L555–L555](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L555)
+[原文 L555–L555](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L555)
 
 ````text
 - `inflight` 模块级串行化生效（测试 `store.test:487` 验证旧 GET 不覆盖 epoch=8）。
@@ -7829,7 +7829,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **通知已按key去重保证** — 不成立 / global / scope=retained / 不入分；统一问题：D22；credit=None。
 
-[原文 L559–L559](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md#L559)
+[原文 L559–L559](../zhikuncode/Qwen3.8max-session-merge-v2-code-review-report.md?plain=1#L559)
 
 ````text
 - 既有保护全部保留：多 tab(`:254-274`)、幂等键(`:150` + 每 key 独立记录 `:76-79`)、localStorage 写失败容错(`:91-100`)、404 恢复(`:161-169`)、通知去重(`removeNotification('merge-storage')` + `changed &&` 门 `:199`)、不抢焦点(`panel:86-88`，测试 `panel.test:45`)。
@@ -7851,7 +7851,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 ### R14-normal_function
 
-**判断分：5/5**。[原文 L18–L18](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L18)。普通请求不触发合并读取/工具注入，未发现报告范围内新增功能回归。
+**判断分：5/5**。[原文 L18–L18](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L18)。普通请求不触发合并读取/工具注入，未发现报告范围内新增功能回归。
 
 ````text
 **结论：无实际风险，未发现任何破坏。** 本次改动是强隔离型设计：普通会话在入口、预算、工具池、图片注入、授权五个层面均走基线分支，并有针对性单测（含"零交接调用"证明）与 HEAD 基线对照实验佐证（详见第三节）。
@@ -7859,7 +7859,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 ### R14-boundary
 
-**判断分：5/5**。[原文 L285–L288](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L285)。全文说明短路、小对象/标记检查或 E 专属范围及验证局限，没有把绿色测试当绝对安全证明。
+**判断分：5/5**。[原文 L285–L288](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L285)。全文说明短路、小对象/标记检查或 E 专属范围及验证局限，没有把绿色测试当绝对安全证明。
 
 ````text
 1. 按用户要求，12 类前端文件未纳入审查（其与合并 v2 的相互关系仅做"无调用关系"的粗判）；
@@ -7870,7 +7870,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 ### R14-release
 
-**判断分：5/5**。[原文 L22–L22](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L22)。明确区分阶段提交与功能完成版合入发布。
+**判断分：5/5**。[原文 L22–L22](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L22)。明确区分阶段提交与功能完成版合入发布。
 
 ````text
 **结论：代码质量与工程完备度整体达到"可安全提交"水平（0 Blocker、全量测试实证通过、无数据完整性/安全漏洞），但距"放心合并主干/对外发布"还差 4 条 Major 级问题的处理**——其中 2 条是后端功能缺陷（用户可能永久卡死、恢复协议部分不可达），2 条是前端规格强制验收项的测试缺口。规格文档自身亦声明"真实模型接续开发语义验收尚未执行"，该部分不能由本次 stub 测试替代。
@@ -7878,7 +7878,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 ### R14-semantic
 
-**判断分：5/5**。[原文 L22–L32](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L22)。明确真实模型语义验收未完成，stub 测试不能替代。
+**判断分：5/5**。[原文 L22–L32](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L22)。明确真实模型语义验收未完成，stub 测试不能替代。
 
 ````text
 **结论：代码质量与工程完备度整体达到"可安全提交"水平（0 Blocker、全量测试实证通过、无数据完整性/安全漏洞），但距"放心合并主干/对外发布"还差 4 条 Major 级问题的处理**——其中 2 条是后端功能缺陷（用户可能永久卡死、恢复协议部分不可达），2 条是前端规格强制验收项的测试缺口。规格文档自身亦声明"真实模型接续开发语义验收尚未执行"，该部分不能由本次 stub 测试替代。
@@ -7898,7 +7898,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **普通链路门控与授权隔离** — 成立 / global / scope=new / 不入分；统一问题：ordinary-path-isolation；credit=None。
 
-[原文 L72–L79](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L72)
+[原文 L72–L79](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L72)
 
 ````text
 | 1 | **QueryEngine 普通路径** | `QueryEngine.java:841-842 / 1813-1814`：`state.getHandoffOperationId()==null` 时直接返回空投影，`historyBudget==inputBudget`，零 DB/交接服务调用；`QueryEngineUnitTest.java:1950-1984` 参数化用例断言 merged=false 分支 payload 不含 "HandoffRead"、`verifyNoInteractions(handoff)`、`phase2-phase1==0`（不双扣） |
@@ -7925,7 +7925,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **忽略UI文件与合并无调用关系** — 不成立 / conditional / scope=new / 不入分；统一问题：excluded-ui-no-merge-dependency；credit=None。
 
-[原文 L82–L82](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L82)
+[原文 L82–L82](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L82)
 
 ````text
 **附加说明**：合并核心服务（`SessionMergeService` 等）全仓 grep 确认只被合并链路（`SessionMergeController`、`HandoffReadService`/`HandoffContextService`）引用，未挂入普通 SessionManager/SubAgent/Swarm 路径。被您指定忽略的 12 类前端文件与合并功能无调用关系，但属于**另一批独立改动混在同一工作区**——提交时建议与合并 v2 拆分 commit/PR，避免污染历史。
@@ -7945,7 +7945,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **全部不可恢复失败仍paused与恢复文案** — 规范歧义 / engineering / scope=new / 不入分；统一问题：paused-without-failed-state；credit=None。
 
-[原文 L128–L140](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L128)
+[原文 L128–L140](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L128)
 
 ````text
 ### 🔴 Major-1【后端·功能】不可恢复的阻断项被记为可恢复 `paused`，resume 永远空转（无 `failed` 状态使用，explain 文案误导）
@@ -7969,7 +7969,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 判定理由：确无failed运行期写入，但规格先暂停诊断、何谓确认不可恢复没有自动机制；cancel可结束。报告永久卡死过强；可作为恢复指引/状态语义建议，未把合法损坏暂停判成功能缺陷。
 
-代码：[SessionMergeService.java:218](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L218)；[SessionMergeService.java:237](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L237)；[session-merge-architecture-v2.md:352](../../../../session-merge-architecture-v2.md#L352)
+代码：[SessionMergeService.java:218](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L218)；[SessionMergeService.java:237](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L237)；[session-merge-architecture-v2.md:352](../../../../session-merge-architecture-v2.md?plain=1#L352)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -7977,7 +7977,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **阻断gap与record的恢复关联断裂** — 成立 / functional / scope=new / 入分；统一问题：D04；credit=1。
 
-[原文 L142–L151](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L142)
+[原文 L142–L151](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L142)
 
 ````text
 ### 🔴 Major-2【后端·功能】恢复投影协议对两类阻断记录不可达（gap 与 blocked 记录无法关联；asset 类阻断 ref 不属于 blocked 集合）
@@ -8008,7 +8008,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **epoch409采纳无前端测试** — 成立 / engineering / scope=new / 不入分；统一问题：store-conflict-test-gap；credit=None。
 
-[原文 L153–L159](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L153)
+[原文 L153–L159](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L153)
 
 ````text
 ### 🔴 Major-3【前端·测试缺口】规格强制验收项"旧 resume 不重放 / epoch 过期刷新状态"零断言
@@ -8034,7 +8034,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **v2面板新控件无组件测试** — 成立 / engineering / scope=new / 不入分；统一问题：panel-v2-test-gap；credit=None。
 
-[原文 L161–L167](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L161)
+[原文 L161–L167](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L161)
 
 ````text
 ### 🔴 Major-4【前端·测试缺口】面板 v2 全部新控件零覆盖
@@ -8060,7 +8060,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **lockedSourceIds未列descendants** — 规范歧义 / conditional / scope=new / 不入分；统一问题：descendant-lock-dto；credit=None。
 
-[原文 L177–L177](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L177)
+[原文 L177–L177](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L177)
 
 ````text
 | M-1 | `lockedSourceSessionIds` 只反映根来源，子会话（descendants）的锁不可见 | `SessionMergeService.java:264-266` 只对 `request.sourceSessionIds()` 过滤；`lockSources:114-119` 却对每个 descendant 取 token | 前端"来源是否锁住只看服务端字段"会低估锁范围；建议纳入 descendants 或明确 DTO 语义 |
@@ -8080,7 +8080,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **跨实例create冲突500** — 范围外 / conditional / scope=out / 不入分；统一问题：multi-instance-active-conflict；credit=None。
 
-[原文 L178–L178](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L178)
+[原文 L178–L178](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L178)
 
 ````text
 | M-2 | 跨进程/多实例抢名额时唯一索引冲突以 500（DataAccessException）暴露而非 `MERGE_ACTIVE_EXISTS` 409 | `SessionMergeService.start:95-97` 先 active() 再 create()；同一 JVM 有 synchronized 覆盖 | 单机部署不可达；建议 catch `DataIntegrityViolationException` 转 409 |
@@ -8100,7 +8100,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **来源集合不重取两次** — 成立 / engineering / scope=new / 不入分；统一问题：source-tree-retry-policy；credit=None。
 
-[原文 L179–L179](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L179)
+[原文 L179–L179](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L179)
 
 ````text
 | M-3 | 未实现规格 §4.3.1"集合变动最多重新取得两次" | `lockSources:121-122` 单次失败即 MERGE_SOURCE_BUSY | 低概率竞态下合并被误拒一次（fail-safe，可手动恢复）；建议按规格补重取 |
@@ -8120,7 +8120,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **非UTF8文本附件阻断** — 规范歧义 / conditional / scope=new / 不入分；统一问题：non-utf8-attachment-blocking；credit=None。
 
-[原文 L180–L180](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L180)
+[原文 L180–L180](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L180)
 
 ````text
 | M-4 | 损坏的文本类附件（非 UTF-8 的 .txt/.md/.log 等）即阻断整个合并 | `MergePackageService.java:588-598` 严格 UTF-8 读取，失败即 `blocking=true` | 与规格"非关键附件可标记保留原件"不一致，可能误伤；建议降级为非阻断 gap 或允许 resume 时跳过 |
@@ -8132,7 +8132,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 判定理由：编码错误触发blocking属实；规格允许关键附件不可理解暂停，未定义机器判断关键性；未提供已知非关键标志路径。可改进编码策略，不强行奖惩。
 
-代码：[MergePackageService.java:588](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L588)；[session-merge-architecture-v2.md:183](../../../../session-merge-architecture-v2.md#L183)
+代码：[MergePackageService.java:588](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/MergePackageService.java#L588)；[session-merge-architecture-v2.md:183](../../../../session-merge-architecture-v2.md?plain=1#L183)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -8140,7 +8140,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **不可恢复错误paused文案** — 规范歧义 / engineering / scope=new / 不入分；统一问题：paused-without-failed-state；credit=None。
 
-[原文 L181–L181](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L181)
+[原文 L181–L181](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L181)
 
 ````text
 | M-5 | `MERGE_UNIT_INPUT_CHANGED` / `MERGE_PROCESSOR_VERSION_CHANGED` / `MERGE_SNAPSHOT_CORRUPT` 等不可恢复错误同样进入 paused 循环，文案缺操作指引 | `MergeProgressRepository.plan:152-155`；`SessionMergeService.explain:237-247` default 分支 | 与 Major-1 同源体验问题；建议一并处理 |
@@ -8160,7 +8160,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **v2磁盘/复制/artifact测试缺口** — 成立 / engineering / scope=new / 不入分；统一问题：snapshot-artifact-test-gap；credit=None。
 
-[原文 L182–L182](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L182)
+[原文 L182–L182](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L182)
 
 ````text
 | M-6 | v2 `seal()` 路径的磁盘余量/复制配额/复制中途变化无直接测试；artifact_manifests/entries 分页导出（§4.2 明确要求）零覆盖 | `MergePackageServiceTest` 同类用例均走旧 `build()`；`MergeFixture:41-47` 未建两张表；`MergePackageService.java:442-451` 无测试触及 | 代码静态审阅正确（列名与 V017 实表一致），但上游建表变动/SQL 拼写错误无测试兜底；建议补 v2 用例 |
@@ -8180,7 +8180,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **导入旧包destination缺防御校验** — 证据不足 / conditional / scope=new / 不入分；统一问题：import-destination-check；credit=None。
 
-[原文 L183–L183](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L183)
+[原文 L183–L183](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L183)
 
 ````text
 | M-7 | `importPrevious` 的 destination 重映射缺少"目标仍在包内"的防御性校验 | `MergePackageService.java:648-657`：`root.resolve(Path.of("snapshot").relativize(relative))` 直接拼接 | 仅旧包 files.jsonl 被人工篡改时可能破坏布局（无法逃出包根）；建议写入前 `normalize().startsWith(root)` 校验 |
@@ -8200,7 +8200,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **E预算过小时错误类别通用** — 成立 / functional / scope=new / 入分；统一问题：D09；credit=0.5。
 
-[原文 L189–L189](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L189)
+[原文 L189–L189](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L189)
 
 ````text
 | I-1 | E 会话在绑定缺失/包损坏/预算过小时**整会话失败且 REST 落 500** | `HandoffContextService.java:41-43, 71-78` 抛 AuthorizationException/IllegalStateException；`GlobalExceptionHandler` 落 500 catch-all | 仅 E（普通不受影响）；库回滚/包丢失时 E 每条消息都失败。建议降级为"资料不可用"提示或结构化 4xx |
@@ -8222,7 +8222,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **每轮重复投影和哈希** — 成立 / engineering / scope=new / 不入分；统一问题：duplicate-handoff-projection；credit=None。
 
-[原文 L190–L190](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L190)
+[原文 L190–L190](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L190)
 
 ````text
 | I-2 | E 每轮最多 3 次全量投影（绑定查询 + 全目录哈希校验 + brief 读取），工具调用再 3 次校验 | `QueryEngine.java:779/841/844/1835`；`HandoffContextService.project:62-78`；`HandoffReadService.verifyPrepared:69-101` | E-only 性能开销（大包时单轮数 MB 哈希）；建议同轮复用一次投影 |
@@ -8242,7 +8242,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **HandoffRead超时code被包装** — 成立 / functional / scope=new / 入分；统一问题：D13；credit=1。
 
-[原文 L191–L191](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L191)
+[原文 L191–L191](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L191)
 
 ````text
 | I-3 | `HANDOFF_READ_BUDGET_EXCEEDED` 的 code 被包装替换 | 初始校验超时→`HANDOFF_INVALID_RESOURCE`（`HandoffReadService.java:205-208`）；扫描超时→`HANDOFF_READ_FAILED`（`HandoffReadTool.java:44`），仅 message 保留原 code | 规格要求明确透传；模型/前端难区分"越界"与"损坏"；建议透传 |
@@ -8256,7 +8256,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 核实范围：授权/读取支路把预算错误码包成INVALID_RESOURCE等泛码；read入口中断反例正常重抛。
 
-代码：[HandoffReadService.java:43](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L43)；[HandoffReadService.java:55](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L55)；[HandoffReadTool.java:45](../../../../../backend/src/main/java/com/aicodeassistant/tool/impl/HandoffReadTool.java#L45)；[session-merge-architecture-v2.md:387](../../../../session-merge-architecture-v2.md#L387)
+代码：[HandoffReadService.java:43](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L43)；[HandoffReadService.java:55](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/HandoffReadService.java#L55)；[HandoffReadTool.java:45](../../../../../backend/src/main/java/com/aicodeassistant/tool/impl/HandoffReadTool.java#L45)；[session-merge-architecture-v2.md:387](../../../../session-merge-architecture-v2.md?plain=1#L387)
 
 核验：[reproductions/RankingReadReproTest.java](reproductions/RankingReadReproTest.java)
 
@@ -8264,7 +8264,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **跨实例resume冲突500** — 范围外 / conditional / scope=out / 不入分；统一问题：multi-instance-resume-conflict；credit=None。
 
-[原文 L192–L192](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L192)
+[原文 L192–L192](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L192)
 
 ````text
 | I-4 | 跨进程并发 resume 败者返回 500 而非 409 `MERGE_STALE_OPERATION` | `MergeProgressRepository.java:108-118` 条件更新失败 → `IllegalStateException("MERGE_STALE_EXECUTION")`，Service 未转换 | 单 JVM 有 synchronized+writers 防护；多实例共享库时契约退化；建议映射为 Conflict |
@@ -8284,7 +8284,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **全量环境依赖既有失败** — 范围外 / engineering / scope=out / 不入分；统一问题：baseline-environment-tests；credit=None。
 
-[原文 L193–L193](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L193)
+[原文 L193–L193](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L193)
 
 ````text
 | I-5 | 本机默认环境全量 2,975 项有 11 个环境变量相关失败（HEAD 基线同样失败） | `ZHIKUN_COORDINATOR_MODE=1`（×3）、`ALLOW_PRIVATE_NETWORK=true`（×6）、真实 `LLM_PROVIDER_DASHSCOPE_API_KEY`（×1）；缺 ripgrep（×1） | 与本次改动无关，但影响"发布标准"叙事；建议测试侧隔离环境变量并在验收说明注明环境前提 |
@@ -8304,7 +8304,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **参数captor和异常分支测试薄弱** — 成立 / engineering / scope=new / 不入分；统一问题：handoff-context-test-gaps；credit=None。
 
-[原文 L194–L194](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L194)
+[原文 L194–L194](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L194)
 
 ````text
 | I-6 | 新增测试薄弱点 | `QueryEngineUnitTest.java:1950-1984` 未 captor 校验传给 `project()` 的是扣减前总预算（仅间接证明）；`HandoffContextServiceTest` 缺 `toolAvailable=true` 全量 brief / `HANDOFF_CONTEXT_BUDGET_TOO_SMALL` / brief IOException 三类用例；`AuthorizationServiceProjectFileScopeTest.java:41-43` 未断言 `PLAN_MODE_EFFECT_DENIED` | 边界回归证明力略低；建议补 captor/异常 code 断言与三类用例 |
@@ -8324,7 +8324,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **null ToolUseContext防御** — 证据不足 / conditional / scope=new / 不入分；统一问题：null-context-configure；credit=None。
 
-[原文 L195–L195](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L195)
+[原文 L195–L195](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L195)
 
 ````text
 | I-7 | `HandoffContextService.configure` 对 null ToolUseContext 无防护（E-only NPE 风险） | `HandoffContextService.java:41` 直接 `state.getToolUseContext().sessionId()` | 当前三个入口均先设置，但 API 未防御；建议 null 时明确降级或抛带 code 的异常 |
@@ -8344,7 +8344,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **paused/cancelled旧writer仍持锁时忽略** — 成立 / functional / scope=new / 入分；统一问题：D15；credit=1。
 
-[原文 L201–L201](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L201)
+[原文 L201–L201](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L201)
 
 ````text
 | F-1 | `selectMergeSourceIds` 仍从 `status==='preparing'` 反向推断锁定 | `sessionMergeStore.ts:28-31` | paused/cancelled 旧 writer 收尾期间服务端仍可能返回非空锁集合，此窗口内前端误判为未锁（gate 仍会拒绝，用户看到报错而非前置阻断）；建议去掉 status 条件，只取服务端字段 |
@@ -8366,7 +8366,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **本地终态遮蔽服务端新active** — 成立 / functional / scope=new / 入分；统一问题：D07；credit=1。
 
-[原文 L202–L202](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L202)
+[原文 L202–L202](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L202)
 
 ````text
 | F-2 | 本地存在陈旧终态记录时不会查询服务端 active | `sessionMergeStore.ts:140` `if (!pending && Date.now() < nextActiveCheck)`；`restore():66-71` 直接采用已保存记录 | 其他设备发起的新合并在本机不可见，须先 dismiss 旧结果；建议终态记录时仍查询一次 `/active` |
@@ -8380,7 +8380,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 核实范围：本地旧终态遮蔽服务端新active；关闭旧结果可绕过。
 
-代码：[sessionMergeStore.ts:139](../../../../../frontend/src/store/sessionMergeStore.ts#L139)；[sessionMergeStore.ts:149](../../../../../frontend/src/store/sessionMergeStore.ts#L149)；[session-merge-architecture-v2.md:422](../../../../session-merge-architecture-v2.md#L422)
+代码：[sessionMergeStore.ts:139](../../../../../frontend/src/store/sessionMergeStore.ts#L139)；[sessionMergeStore.ts:149](../../../../../frontend/src/store/sessionMergeStore.ts#L149)；[session-merge-architecture-v2.md:422](../../../../session-merge-architecture-v2.md?plain=1#L422)
 
 核验：[reproductions/sessionMergeReviewRepro.test.ts](reproductions/sessionMergeReviewRepro.test.ts)
 
@@ -8388,7 +8388,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **failed行显示旧stage** — 证据不足 / conditional / scope=new / 不入分；统一问题：failed-stage-label；credit=None。
 
-[原文 L203–L203](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L203)
+[原文 L203–L203](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L203)
 
 ````text
 | F-3 | failed(v2) 状态行展示最后一个工作阶段文案（如"整理详细交接"）；error 为空时渲染空 alert | `SessionMergePanel.tsx:198, 207` | 失败态可读性差；建议为 failed 增加专门文案 + error 非空条件渲染 |
@@ -8408,7 +8408,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **同key通知未去重** — 成立 / functional / scope=new / 入分；统一问题：D22；credit=1。
 
-[原文 L204–L204](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L204)
+[原文 L204–L204](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L204)
 
 ````text
 | F-4 | 通知去重依赖调用方 `changed &&`；notificationStore 不按 key 去重；paused/cancelled 一律 error 级别 | `sessionMergeStore.ts:200-203`；`notificationStore.ts:32-33` 无条件 push；`ToastContainer.tsx:41` `key={n.key}` | 5s 窗口内重复触发会产生重复 Toast 与 React duplicate-key 警告；cancelled 是用户主动操作却报 error。建议按 key 覆盖 + 分级 warning/info |
@@ -8430,7 +8430,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **control返回HTML暴露解析异常** — 成立 / functional / scope=new / 入分；统一问题：D20；credit=1。
 
-[原文 L205–L205](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L205)
+[原文 L205–L205](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L205)
 
 ````text
 | F-5 | `control()` 的 `response.json()` 无兜底、无 404 处理 | `sessionMergeStore.ts:241`（对比 `:159` 有 `.catch(() => ({}))`）；`:252` 解析异常原文当 UI 消息 | 代理返回 HTML 时用户看到 "Unexpected token …"；404 要等下一次轮询才释放；建议 json catch + 复用 refresh 404 释放逻辑 |
@@ -8452,7 +8452,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **轮询禁用恢复取消按钮** — 成立 / functional / scope=new / 入分；统一问题：D08；credit=1。
 
-[原文 L206–L206](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L206)
+[原文 L206–L206](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L206)
 
 ````text
 | F-6 | 轮询期间恢复/取消按钮被 `disabled={submitting}` 周期性禁用 | `sessionMergeStore.ts:145` 每次 refresh 开始 `set({submitting:true})`；`SessionMergePanel.tsx:222/225` | 每 2s 轮询反复禁用按钮，与"进度更新不阻挡取消"相悖（`control()` 已串行化，并不需要禁用）；建议拆出 `controlling` 标志或去掉 disabled |
@@ -8466,7 +8466,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 核实范围：轮询复用submitting禁用恢复/取消，程序cancel也等待GET结束；不表示后端永久不能取消。
 
-代码：[sessionMergeStore.ts:144](../../../../../frontend/src/store/sessionMergeStore.ts#L144)；[SessionMergePanel.tsx:222](../../../../../frontend/src/components/session/SessionMergePanel.tsx#L222)；[SessionMergePanel.tsx:225](../../../../../frontend/src/components/session/SessionMergePanel.tsx#L225)；[session-merge-architecture-v2.md:447](../../../../session-merge-architecture-v2.md#L447)
+代码：[sessionMergeStore.ts:144](../../../../../frontend/src/store/sessionMergeStore.ts#L144)；[SessionMergePanel.tsx:222](../../../../../frontend/src/components/session/SessionMergePanel.tsx#L222)；[SessionMergePanel.tsx:225](../../../../../frontend/src/components/session/SessionMergePanel.tsx#L225)；[session-merge-architecture-v2.md:447](../../../../session-merge-architecture-v2.md?plain=1#L447)
 
 核验：[reproductions/rankingProtocolRepro.test.ts](reproductions/rankingProtocolRepro.test.ts)
 
@@ -8474,7 +8474,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **暂停浮动按钮合并结果** — 成立 / engineering / scope=new / 不入分；统一问题：paused-floating-label；credit=None。
 
-[原文 L207–L207](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L207)
+[原文 L207–L207](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L207)
 
 ````text
 | F-7 | 收起态浮动按钮对 paused/failed 显示"合并结果" | `SessionMergePanel.tsx:34, 143`（`busy` 只含 preparing） | 暂停/失败没有"结果"可看，文案误导；建议按状态显示"合并已暂停 · 去恢复 / 合并失败 · 处理" |
@@ -8494,7 +8494,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **history_storage_version死条件** — 成立 / engineering / scope=new / 不入分；统一问题：dead-history-storage-version；credit=None。
 
-[原文 L213–L213](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L213)
+[原文 L213–L213](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L213)
 
 ````text
 **后端核心（7）**：`history_storage_version` 死条件（`MergePackageService.java:440`，全仓无生产者）；`MAX_RECORD_BYTES=16MiB` 常量残留易误读（`:71`，仅旧 build 引用）；聚合单元 `sourceId` 为空串（`MergeSummaryService.java:130-133`）；unit `state='failed'` 定义但从不写入（`MergeSummaryService.java:238`）；`SessionMergeService` 构造函数保留未用 `permissions` 参数（`:83-85`）；brief 兜底缺"还有 N 项未展开"数字（`MergeSummaryService.java:112`，overview 已有计数）；`retry_at` 崩溃残留且恢复不遵守（`MergeSummaryService.java:251-257`）。
@@ -8514,7 +8514,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **MAX_RECORD_BYTES旧helper常量** — 成立 / engineering / scope=new / 不入分；统一问题：legacy-record-limit-constant；credit=None。
 
-[原文 L213–L213](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L213)
+[原文 L213–L213](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L213)
 
 ````text
 **后端核心（7）**：`history_storage_version` 死条件（`MergePackageService.java:440`，全仓无生产者）；`MAX_RECORD_BYTES=16MiB` 常量残留易误读（`:71`，仅旧 build 引用）；聚合单元 `sourceId` 为空串（`MergeSummaryService.java:130-133`）；unit `state='failed'` 定义但从不写入（`MergeSummaryService.java:238`）；`SessionMergeService` 构造函数保留未用 `permissions` 参数（`:83-85`）；brief 兜底缺"还有 N 项未展开"数字（`MergeSummaryService.java:112`，overview 已有计数）；`retry_at` 崩溃残留且恢复不遵守（`MergeSummaryService.java:251-257`）。
@@ -8534,7 +8534,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **聚合sourceId为空** — 成立 / engineering / scope=new / 不入分；统一问题：aggregate-source-id；credit=None。
 
-[原文 L213–L213](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L213)
+[原文 L213–L213](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L213)
 
 ````text
 **后端核心（7）**：`history_storage_version` 死条件（`MergePackageService.java:440`，全仓无生产者）；`MAX_RECORD_BYTES=16MiB` 常量残留易误读（`:71`，仅旧 build 引用）；聚合单元 `sourceId` 为空串（`MergeSummaryService.java:130-133`）；unit `state='failed'` 定义但从不写入（`MergeSummaryService.java:238`）；`SessionMergeService` 构造函数保留未用 `permissions` 参数（`:83-85`）；brief 兜底缺"还有 N 项未展开"数字（`MergeSummaryService.java:112`，overview 已有计数）；`retry_at` 崩溃残留且恢复不遵守（`MergeSummaryService.java:251-257`）。
@@ -8554,7 +8554,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **unit failed未写** — 成立 / engineering / scope=new / 不入分；统一问题：unit-failed-unused；credit=None。
 
-[原文 L213–L213](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L213)
+[原文 L213–L213](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L213)
 
 ````text
 **后端核心（7）**：`history_storage_version` 死条件（`MergePackageService.java:440`，全仓无生产者）；`MAX_RECORD_BYTES=16MiB` 常量残留易误读（`:71`，仅旧 build 引用）；聚合单元 `sourceId` 为空串（`MergeSummaryService.java:130-133`）；unit `state='failed'` 定义但从不写入（`MergeSummaryService.java:238`）；`SessionMergeService` 构造函数保留未用 `permissions` 参数（`:83-85`）；brief 兜底缺"还有 N 项未展开"数字（`MergeSummaryService.java:112`，overview 已有计数）；`retry_at` 崩溃残留且恢复不遵守（`MergeSummaryService.java:251-257`）。
@@ -8574,7 +8574,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **未使用permissions构造参数** — 成立 / engineering / scope=new / 不入分；统一问题：unused-permissions-argument；credit=None。
 
-[原文 L213–L213](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L213)
+[原文 L213–L213](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L213)
 
 ````text
 **后端核心（7）**：`history_storage_version` 死条件（`MergePackageService.java:440`，全仓无生产者）；`MAX_RECORD_BYTES=16MiB` 常量残留易误读（`:71`，仅旧 build 引用）；聚合单元 `sourceId` 为空串（`MergeSummaryService.java:130-133`）；unit `state='failed'` 定义但从不写入（`MergeSummaryService.java:238`）；`SessionMergeService` 构造函数保留未用 `permissions` 参数（`:83-85`）；brief 兜底缺"还有 N 项未展开"数字（`MergeSummaryService.java:112`，overview 已有计数）；`retry_at` 崩溃残留且恢复不遵守（`MergeSummaryService.java:251-257`）。
@@ -8594,7 +8594,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **brief未展开数未明确** — 成立 / engineering / scope=new / 不入分；统一问题：brief-hidden-count；credit=None。
 
-[原文 L213–L213](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L213)
+[原文 L213–L213](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L213)
 
 ````text
 **后端核心（7）**：`history_storage_version` 死条件（`MergePackageService.java:440`，全仓无生产者）；`MAX_RECORD_BYTES=16MiB` 常量残留易误读（`:71`，仅旧 build 引用）；聚合单元 `sourceId` 为空串（`MergeSummaryService.java:130-133`）；unit `state='failed'` 定义但从不写入（`MergeSummaryService.java:238`）；`SessionMergeService` 构造函数保留未用 `permissions` 参数（`:83-85`）；brief 兜底缺"还有 N 项未展开"数字（`MergeSummaryService.java:112`，overview 已有计数）；`retry_at` 崩溃残留且恢复不遵守（`MergeSummaryService.java:251-257`）。
@@ -8614,7 +8614,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **retryAt崩溃残留** — 成立 / engineering / scope=new / 不入分；统一问题：retry-at-restart；credit=None。
 
-[原文 L213–L213](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L213)
+[原文 L213–L213](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L213)
 
 ````text
 **后端核心（7）**：`history_storage_version` 死条件（`MergePackageService.java:440`，全仓无生产者）；`MAX_RECORD_BYTES=16MiB` 常量残留易误读（`:71`，仅旧 build 引用）；聚合单元 `sourceId` 为空串（`MergeSummaryService.java:130-133`）；unit `state='failed'` 定义但从不写入（`MergeSummaryService.java:238`）；`SessionMergeService` 构造函数保留未用 `permissions` 参数（`:83-85`）；brief 兜底缺"还有 N 项未展开"数字（`MergeSummaryService.java:112`，overview 已有计数）；`retry_at` 崩溃残留且恢复不遵守（`MergeSummaryService.java:251-257`）。
@@ -8634,7 +8634,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **全限定名风格** — 成立 / engineering / scope=new / 不入分；统一问题：injection-style；credit=None。
 
-[原文 L215–L215](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L215)
+[原文 L215–L215](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L215)
 
 ````text
 **后端集成（8）**：内联全限定类名（`QueryEngine.java:1808-1818, 940`）；`@Autowired` 字段注入（`QueryController.java:72-74`、`WebSocketController.java:90-91`，与项目构造注入主体不一致）；`@Autowired(required=false)` 与"缺 bean 即抛 IllegalStateException"的语义矛盾（`QueryEngine.java:1808-1815`）；类级 `produces="application/json"` 波及既有 create/get 端点（`SessionMergeController.java:8`，非 JSON Accept 客户端可能 406）；HandoffReadService 魔法数字散落（`:204-306`，16384/8500/2048/1500/512/20）；asset 放行阈值 20MB > `ImageRefInjector.MAX_FILE_SIZE` 10MB（`HandoffReadTool.java:41-44`，10~20MB 图片会生成必然被静默拒绝的 ref）；`alwaysLoad()==true` 与 core 登记的将来风险点（`HandoffReadTool.java:16`，当前非 bean 安全，已有测试锁定非 @Component）；`preCleanImageHistory` 未预留 handoff 预算（`QueryEngine.java:2690-2706`，无功能影响）。
@@ -8654,7 +8654,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **字段注入风格** — 成立 / engineering / scope=new / 不入分；统一问题：injection-style；credit=None。
 
-[原文 L215–L215](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L215)
+[原文 L215–L215](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L215)
 
 ````text
 **后端集成（8）**：内联全限定类名（`QueryEngine.java:1808-1818, 940`）；`@Autowired` 字段注入（`QueryController.java:72-74`、`WebSocketController.java:90-91`，与项目构造注入主体不一致）；`@Autowired(required=false)` 与"缺 bean 即抛 IllegalStateException"的语义矛盾（`QueryEngine.java:1808-1815`）；类级 `produces="application/json"` 波及既有 create/get 端点（`SessionMergeController.java:8`，非 JSON Accept 客户端可能 406）；HandoffReadService 魔法数字散落（`:204-306`，16384/8500/2048/1500/512/20）；asset 放行阈值 20MB > `ImageRefInjector.MAX_FILE_SIZE` 10MB（`HandoffReadTool.java:41-44`，10~20MB 图片会生成必然被静默拒绝的 ref）；`alwaysLoad()==true` 与 core 登记的将来风险点（`HandoffReadTool.java:16`，当前非 bean 安全，已有测试锁定非 @Component）；`preCleanImageHistory` 未预留 handoff 预算（`QueryEngine.java:2690-2706`，无功能影响）。
@@ -8674,7 +8674,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **可选bean与E缺bean抛错** — 成立 / engineering / scope=new / 不入分；统一问题：optional-handoff-bean；credit=None。
 
-[原文 L215–L215](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L215)
+[原文 L215–L215](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L215)
 
 ````text
 **后端集成（8）**：内联全限定类名（`QueryEngine.java:1808-1818, 940`）；`@Autowired` 字段注入（`QueryController.java:72-74`、`WebSocketController.java:90-91`，与项目构造注入主体不一致）；`@Autowired(required=false)` 与"缺 bean 即抛 IllegalStateException"的语义矛盾（`QueryEngine.java:1808-1815`）；类级 `produces="application/json"` 波及既有 create/get 端点（`SessionMergeController.java:8`，非 JSON Accept 客户端可能 406）；HandoffReadService 魔法数字散落（`:204-306`，16384/8500/2048/1500/512/20）；asset 放行阈值 20MB > `ImageRefInjector.MAX_FILE_SIZE` 10MB（`HandoffReadTool.java:41-44`，10~20MB 图片会生成必然被静默拒绝的 ref）；`alwaysLoad()==true` 与 core 登记的将来风险点（`HandoffReadTool.java:16`，当前非 bean 安全，已有测试锁定非 @Component）；`preCleanImageHistory` 未预留 handoff 预算（`QueryEngine.java:2690-2706`，无功能影响）。
@@ -8694,7 +8694,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **JSON produces内容协商变化** — 成立 / engineering / scope=new / 不入分；统一问题：merge-produces-json；credit=None。
 
-[原文 L215–L215](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L215)
+[原文 L215–L215](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L215)
 
 ````text
 **后端集成（8）**：内联全限定类名（`QueryEngine.java:1808-1818, 940`）；`@Autowired` 字段注入（`QueryController.java:72-74`、`WebSocketController.java:90-91`，与项目构造注入主体不一致）；`@Autowired(required=false)` 与"缺 bean 即抛 IllegalStateException"的语义矛盾（`QueryEngine.java:1808-1815`）；类级 `produces="application/json"` 波及既有 create/get 端点（`SessionMergeController.java:8`，非 JSON Accept 客户端可能 406）；HandoffReadService 魔法数字散落（`:204-306`，16384/8500/2048/1500/512/20）；asset 放行阈值 20MB > `ImageRefInjector.MAX_FILE_SIZE` 10MB（`HandoffReadTool.java:41-44`，10~20MB 图片会生成必然被静默拒绝的 ref）；`alwaysLoad()==true` 与 core 登记的将来风险点（`HandoffReadTool.java:16`，当前非 bean 安全，已有测试锁定非 @Component）；`preCleanImageHistory` 未预留 handoff 预算（`QueryEngine.java:2690-2706`，无功能影响）。
@@ -8714,7 +8714,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **ReadService魔法数字** — 成立 / engineering / scope=new / 不入分；统一问题：read-service-constants；credit=None。
 
-[原文 L215–L215](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L215)
+[原文 L215–L215](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L215)
 
 ````text
 **后端集成（8）**：内联全限定类名（`QueryEngine.java:1808-1818, 940`）；`@Autowired` 字段注入（`QueryController.java:72-74`、`WebSocketController.java:90-91`，与项目构造注入主体不一致）；`@Autowired(required=false)` 与"缺 bean 即抛 IllegalStateException"的语义矛盾（`QueryEngine.java:1808-1815`）；类级 `produces="application/json"` 波及既有 create/get 端点（`SessionMergeController.java:8`，非 JSON Accept 客户端可能 406）；HandoffReadService 魔法数字散落（`:204-306`，16384/8500/2048/1500/512/20）；asset 放行阈值 20MB > `ImageRefInjector.MAX_FILE_SIZE` 10MB（`HandoffReadTool.java:41-44`，10~20MB 图片会生成必然被静默拒绝的 ref）；`alwaysLoad()==true` 与 core 登记的将来风险点（`HandoffReadTool.java:16`，当前非 bean 安全，已有测试锁定非 @Component）；`preCleanImageHistory` 未预留 handoff 预算（`QueryEngine.java:2690-2706`，无功能影响）。
@@ -8734,7 +8734,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **alwaysLoad/core未来风险** — 成立 / engineering / scope=new / 不入分；统一问题：hypothetical-handoff-global-bean；credit=None。
 
-[原文 L215–L215](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L215)
+[原文 L215–L215](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L215)
 
 ````text
 **后端集成（8）**：内联全限定类名（`QueryEngine.java:1808-1818, 940`）；`@Autowired` 字段注入（`QueryController.java:72-74`、`WebSocketController.java:90-91`，与项目构造注入主体不一致）；`@Autowired(required=false)` 与"缺 bean 即抛 IllegalStateException"的语义矛盾（`QueryEngine.java:1808-1815`）；类级 `produces="application/json"` 波及既有 create/get 端点（`SessionMergeController.java:8`，非 JSON Accept 客户端可能 406）；HandoffReadService 魔法数字散落（`:204-306`，16384/8500/2048/1500/512/20）；asset 放行阈值 20MB > `ImageRefInjector.MAX_FILE_SIZE` 10MB（`HandoffReadTool.java:41-44`，10~20MB 图片会生成必然被静默拒绝的 ref）；`alwaysLoad()==true` 与 core 登记的将来风险点（`HandoffReadTool.java:16`，当前非 bean 安全，已有测试锁定非 @Component）；`preCleanImageHistory` 未预留 handoff 预算（`QueryEngine.java:2690-2706`，无功能影响）。
@@ -8754,7 +8754,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **图片预清理未预留handoff** — 成立 / engineering / scope=new / 不入分；统一问题：image-preclean-budget；credit=None。
 
-[原文 L215–L215](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L215)
+[原文 L215–L215](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L215)
 
 ````text
 **后端集成（8）**：内联全限定类名（`QueryEngine.java:1808-1818, 940`）；`@Autowired` 字段注入（`QueryController.java:72-74`、`WebSocketController.java:90-91`，与项目构造注入主体不一致）；`@Autowired(required=false)` 与"缺 bean 即抛 IllegalStateException"的语义矛盾（`QueryEngine.java:1808-1815`）；类级 `produces="application/json"` 波及既有 create/get 端点（`SessionMergeController.java:8`，非 JSON Accept 客户端可能 406）；HandoffReadService 魔法数字散落（`:204-306`，16384/8500/2048/1500/512/20）；asset 放行阈值 20MB > `ImageRefInjector.MAX_FILE_SIZE` 10MB（`HandoffReadTool.java:41-44`，10~20MB 图片会生成必然被静默拒绝的 ref）；`alwaysLoad()==true` 与 core 登记的将来风险点（`HandoffReadTool.java:16`，当前非 bean 安全，已有测试锁定非 @Component）；`preCleanImageHistory` 未预留 handoff 预算（`QueryEngine.java:2690-2706`，无功能影响）。
@@ -8774,7 +8774,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **图片asset成功阈值高于注入限制** — 成立 / functional / scope=new / 入分；统一问题：D12；credit=1。
 
-[原文 L215–L215](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L215)
+[原文 L215–L215](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L215)
 
 ````text
 **后端集成（8）**：内联全限定类名（`QueryEngine.java:1808-1818, 940`）；`@Autowired` 字段注入（`QueryController.java:72-74`、`WebSocketController.java:90-91`，与项目构造注入主体不一致）；`@Autowired(required=false)` 与"缺 bean 即抛 IllegalStateException"的语义矛盾（`QueryEngine.java:1808-1815`）；类级 `produces="application/json"` 波及既有 create/get 端点（`SessionMergeController.java:8`，非 JSON Accept 客户端可能 406）；HandoffReadService 魔法数字散落（`:204-306`，16384/8500/2048/1500/512/20）；asset 放行阈值 20MB > `ImageRefInjector.MAX_FILE_SIZE` 10MB（`HandoffReadTool.java:41-44`，10~20MB 图片会生成必然被静默拒绝的 ref）；`alwaysLoad()==true` 与 core 登记的将来风险点（`HandoffReadTool.java:16`，当前非 bean 安全，已有测试锁定非 @Component）；`preCleanImageHistory` 未预留 handoff 预算（`QueryEngine.java:2690-2706`，无功能影响）。
@@ -8796,7 +8796,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **串行测试名与构造不符** — 成立 / engineering / scope=new / 不入分；统一问题：store-serialization-test-gap；credit=None。
 
-[原文 L217–L217](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L217)
+[原文 L217–L217](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L217)
 
 ````text
 **前端（8）**：串行化用例名不副实且 `finishPolling` 是死代码（`sessionMergeStore.test.ts:487-508`，真正"先轮询后 resume"顺序未覆盖）；"paused or completed"用例只构造 paused（`:410-415`）；restore/decode 异常路径无测试（`sessionMergeStore.ts:60-72`）；锁集合变化触发 `session-lists-updated` 无直接断言（`:197-199`）；`protocolVersion?: number` 未收紧为 `1|2` 且未被消费（`:16`）；错误体采用分支不校验 `request` 字段（`:171-175`）；"五来源"用例断言"2 个来源会话正在复制"可读性差（`SessionMergePanel.test.tsx:182`）；`retryAt` 直接展示原始时间串（`SessionMergePanel.tsx:206`）。
@@ -8816,7 +8816,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **paused-or-completed用例只测paused** — 成立 / engineering / scope=new / 不入分；统一问题：store-terminal-test-gap；credit=None。
 
-[原文 L217–L217](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L217)
+[原文 L217–L217](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L217)
 
 ````text
 **前端（8）**：串行化用例名不副实且 `finishPolling` 是死代码（`sessionMergeStore.test.ts:487-508`，真正"先轮询后 resume"顺序未覆盖）；"paused or completed"用例只构造 paused（`:410-415`）；restore/decode 异常路径无测试（`sessionMergeStore.ts:60-72`）；锁集合变化触发 `session-lists-updated` 无直接断言（`:197-199`）；`protocolVersion?: number` 未收紧为 `1|2` 且未被消费（`:16`）；错误体采用分支不校验 `request` 字段（`:171-175`）；"五来源"用例断言"2 个来源会话正在复制"可读性差（`SessionMergePanel.test.tsx:182`）；`retryAt` 直接展示原始时间串（`SessionMergePanel.tsx:206`）。
@@ -8836,7 +8836,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **restore/decode异常缺测** — 成立 / engineering / scope=new / 不入分；统一问题：store-restore-test-gap；credit=None。
 
-[原文 L217–L217](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L217)
+[原文 L217–L217](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L217)
 
 ````text
 **前端（8）**：串行化用例名不副实且 `finishPolling` 是死代码（`sessionMergeStore.test.ts:487-508`，真正"先轮询后 resume"顺序未覆盖）；"paused or completed"用例只构造 paused（`:410-415`）；restore/decode 异常路径无测试（`sessionMergeStore.ts:60-72`）；锁集合变化触发 `session-lists-updated` 无直接断言（`:197-199`）；`protocolVersion?: number` 未收紧为 `1|2` 且未被消费（`:16`）；错误体采用分支不校验 `request` 字段（`:171-175`）；"五来源"用例断言"2 个来源会话正在复制"可读性差（`SessionMergePanel.test.tsx:182`）；`retryAt` 直接展示原始时间串（`SessionMergePanel.tsx:206`）。
@@ -8856,7 +8856,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **锁变化列表事件缺测** — 成立 / engineering / scope=new / 不入分；统一问题：lock-event-test-gap；credit=None。
 
-[原文 L217–L217](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L217)
+[原文 L217–L217](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L217)
 
 ````text
 **前端（8）**：串行化用例名不副实且 `finishPolling` 是死代码（`sessionMergeStore.test.ts:487-508`，真正"先轮询后 resume"顺序未覆盖）；"paused or completed"用例只构造 paused（`:410-415`）；restore/decode 异常路径无测试（`sessionMergeStore.ts:60-72`）；锁集合变化触发 `session-lists-updated` 无直接断言（`:197-199`）；`protocolVersion?: number` 未收紧为 `1|2` 且未被消费（`:16`）；错误体采用分支不校验 `request` 字段（`:171-175`）；"五来源"用例断言"2 个来源会话正在复制"可读性差（`SessionMergePanel.test.tsx:182`）；`retryAt` 直接展示原始时间串（`SessionMergePanel.tsx:206`）。
@@ -8876,7 +8876,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **protocolVersion宽类型** — 成立 / engineering / scope=new / 不入分；统一问题：protocol-version-types；credit=None。
 
-[原文 L217–L217](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L217)
+[原文 L217–L217](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L217)
 
 ````text
 **前端（8）**：串行化用例名不副实且 `finishPolling` 是死代码（`sessionMergeStore.test.ts:487-508`，真正"先轮询后 resume"顺序未覆盖）；"paused or completed"用例只构造 paused（`:410-415`）；restore/decode 异常路径无测试（`sessionMergeStore.ts:60-72`）；锁集合变化触发 `session-lists-updated` 无直接断言（`:197-199`）；`protocolVersion?: number` 未收紧为 `1|2` 且未被消费（`:16`）；错误体采用分支不校验 `request` 字段（`:171-175`）；"五来源"用例断言"2 个来源会话正在复制"可读性差（`SessionMergePanel.test.tsx:182`）；`retryAt` 直接展示原始时间串（`SessionMergePanel.tsx:206`）。
@@ -8896,7 +8896,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **错误体operation未校验request** — 成立 / engineering / scope=new / 不入分；统一问题：unvalidated-operation-shape；credit=None。
 
-[原文 L217–L217](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L217)
+[原文 L217–L217](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L217)
 
 ````text
 **前端（8）**：串行化用例名不副实且 `finishPolling` 是死代码（`sessionMergeStore.test.ts:487-508`，真正"先轮询后 resume"顺序未覆盖）；"paused or completed"用例只构造 paused（`:410-415`）；restore/decode 异常路径无测试（`sessionMergeStore.ts:60-72`）；锁集合变化触发 `session-lists-updated` 无直接断言（`:197-199`）；`protocolVersion?: number` 未收紧为 `1|2` 且未被消费（`:16`）；错误体采用分支不校验 `request` 字段（`:171-175`）；"五来源"用例断言"2 个来源会话正在复制"可读性差（`SessionMergePanel.test.tsx:182`）；`retryAt` 直接展示原始时间串（`SessionMergePanel.tsx:206`）。
@@ -8916,7 +8916,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **五来源fixture显示两来源** — 成立 / engineering / scope=new / 不入分；统一问题：panel-fixture-wording；credit=None。
 
-[原文 L217–L217](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L217)
+[原文 L217–L217](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L217)
 
 ````text
 **前端（8）**：串行化用例名不副实且 `finishPolling` 是死代码（`sessionMergeStore.test.ts:487-508`，真正"先轮询后 resume"顺序未覆盖）；"paused or completed"用例只构造 paused（`:410-415`）；restore/decode 异常路径无测试（`sessionMergeStore.ts:60-72`）；锁集合变化触发 `session-lists-updated` 无直接断言（`:197-199`）；`protocolVersion?: number` 未收紧为 `1|2` 且未被消费（`:16`）；错误体采用分支不校验 `request` 字段（`:171-175`）；"五来源"用例断言"2 个来源会话正在复制"可读性差（`SessionMergePanel.test.tsx:182`）；`retryAt` 直接展示原始时间串（`SessionMergePanel.tsx:206`）。
@@ -8936,7 +8936,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **retryAt未本地化** — 成立 / engineering / scope=new / 不入分；统一问题：merge-diagnostic-display；credit=None。
 
-[原文 L217–L217](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L217)
+[原文 L217–L217](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L217)
 
 ````text
 **前端（8）**：串行化用例名不副实且 `finishPolling` 是死代码（`sessionMergeStore.test.ts:487-508`，真正"先轮询后 resume"顺序未覆盖）；"paused or completed"用例只构造 paused（`:410-415`）；restore/decode 异常路径无测试（`sessionMergeStore.ts:60-72`）；锁集合变化触发 `session-lists-updated` 无直接断言（`:197-199`）；`protocolVersion?: number` 未收紧为 `1|2` 且未被消费（`:16`）；错误体采用分支不校验 `request` 字段（`:171-175`）；"五来源"用例断言"2 个来源会话正在复制"可读性差（`SessionMergePanel.test.tsx:182`）；`retryAt` 直接展示原始时间串（`SessionMergePanel.tsx:206`）。
@@ -8956,7 +8956,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **其余artifact/usage/慢hook测试缺口** — 成立 / engineering / scope=new / 不入分；统一问题：merge-test-gaps；credit=None。
 
-[原文 L257–L257](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md#L257)
+[原文 L257–L257](../zhikuncode/deepseekV4.1flash-session-merge-v2-code-review-report.md?plain=1#L257)
 
 ````text
 **缺口**（除 Major-3/4）：v2 `seal()` 磁盘/配额路径无直接测试；artifact 导出零覆盖；v2 路径"重复位置不灌模型"无直接断言；4183 字节回归缺"provider output=13,370 已报告"的组合分支（旧阈值已整体删除，风险低）；慢 hook/双操作并发发布无测试；`MERGE_CANCEL_CLEANUP` 等错误码无前端契约断言；测试对 3 个宿主环境变量敏感。
@@ -8968,7 +8968,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 判定理由：独立记录验证不足，不把未测等同功能错。
 
-代码：[session-merge-architecture-v2.md:440](../../../../session-merge-architecture-v2.md#L440)
+代码：[session-merge-architecture-v2.md:440](../../../../session-merge-architecture-v2.md?plain=1#L440)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -8978,7 +8978,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 ### R15-normal_function
 
-**判断分：5/5**。[原文 L36–L61](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L36)。普通请求不触发合并读取/工具注入，未发现报告范围内新增功能回归。
+**判断分：5/5**。[原文 L36–L61](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L36)。普通请求不触发合并读取/工具注入，未发现报告范围内新增功能回归。
 
 ````text
 合并标记 `sessionMergeOperationId` 只由 `SessionMergeService` 在发布事务内写入目标会话 E 的 `metadata_json`（SessionMergeService.java:210-211）；`HandoffContextService.isMerged()` 只认这个键（HandoffContextService.java:33-35）。**普通会话该键不存在 → 所有合并分支对普通会话不可达。**
@@ -9011,7 +9011,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 ### R15-boundary
 
-**判断分：5/5**。[原文 L42–L59](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L42)。全文说明短路、小对象/标记检查或 E 专属范围及验证局限，没有把绿色测试当绝对安全证明。
+**判断分：5/5**。[原文 L42–L59](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L42)。全文说明短路、小对象/标记检查或 E 专属范围及验证局限，没有把绿色测试当绝对安全证明。
 
 ````text
 | `QueryEngine.java` | 主循环每轮计算交接投影并扣减历史预算（:841-842）；压缩预算同扣（:1835）；API 载荷前注入（:940） | `handoffProjection` 第一行判空即返回空投影（:1813-1814）；`historyBudget == inputBudget`，Phase1/Phase2 数值与旧代码**逐字节等价**；空投影时 `inject()` 返回原 list 引用，不进持久化历史；图片注入走旧 7 参重载。每轮开销仅一次 getter + 一个小 record 分配 | **低** |
@@ -9036,7 +9036,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 ### R15-release
 
-**判断分：0/5**。[原文 L203–L225](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L203)。未明确阻止功能完成版合入发布，或将已有缺陷/语义未验收仅作可跟进声明；按冻结规则不算正确完成版判断。
+**判断分：0/5**。[原文 L203–L225](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L203)。未明确阻止功能完成版合入发布，或将已有缺陷/语义未验收仅作可跟进声明；按冻结规则不算正确完成版判断。
 
 ````text
 ### 结论：达到可提交 GitHub 的标准 ✅
@@ -9066,7 +9066,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 ### R15-semantic
 
-**判断分：5/5**。[原文 L168–L168](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L168)。明确真实模型语义验收未完成，stub 测试不能替代。
+**判断分：5/5**。[原文 L168–L168](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L168)。明确真实模型语义验收未完成，stub 测试不能替代。
 
 ````text
 文档 §9 的 13 个必测用例族基本有自动化对应（含 4,183 bytes + 13,370 output 的本次失败条件合成回归）。文档自承"真实模型语义验收尚未执行"——审查结论同样只覆盖结构/接线/预算/持久化正确性，**不覆盖真实模型的语义质量**。
@@ -9076,7 +9076,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **普通请求严格隔离** — 成立 / global / scope=new / 不入分；统一问题：ordinary-path-isolation；credit=None。
 
-[原文 L36–L61](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L36)
+[原文 L36–L61](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L36)
 
 ````text
 合并标记 `sessionMergeOperationId` 只由 `SessionMergeService` 在发布事务内写入目标会话 E 的 `metadata_json`（SessionMergeService.java:210-211）；`HandoffContextService.isMerged()` 只认这个键（HandoffContextService.java:33-35）。**普通会话该键不存在 → 所有合并分支对普通会话不可达。**
@@ -9121,7 +9121,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **v2没有failed终态路径** — 规范歧义 / engineering / scope=new / 不入分；统一问题：paused-without-failed-state；credit=None。
 
-[原文 L91–L91](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L91)
+[原文 L91–L91](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L91)
 
 ````text
 - **D-1｜v2 操作不存在 `failed` 终态路径。** 文档 §5.1 定义 failed="已确认不可恢复的损坏；不能 resume，由用户 cancel 结束"，§6.3 要求"哈希不符/关键原件损坏……确认无法恢复才 failed"。实现中 execute 的异常出口一律 `progress.pause`（SessionMergeService.java:218-224），v2 行永远到不了 failed；Operation.canResume/canCancel 中 failed 分支为死代码（failed 仅来自 V026 旧行迁移）。实际后果可控（用户可 cancel），但状态机语义不完整。**建议二选一**：为哈希不符类不可恢复损坏补齐"重试 N 次后置 failed"路径并补测试；或修订文档明确 v2 一律 paused。
@@ -9133,7 +9133,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 判定理由：明确用户可cancel且建议修订文档，状态确认标准未定义；不据此认定核心合并必坏。
 
-代码：[SessionMergeService.java:226](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L226)；[session-merge-architecture-v2.md:352](../../../../session-merge-architecture-v2.md#L352)
+代码：[SessionMergeService.java:226](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L226)；[session-merge-architecture-v2.md:352](../../../../session-merge-architecture-v2.md?plain=1#L352)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -9141,7 +9141,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **其他任务文件混入工作区** — 范围外 / engineering / scope=out / 不入分；统一问题：unrelated-worktree-changes；credit=None。
 
-[原文 L92–L92](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L92)
+[原文 L92–L92](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L92)
 
 ````text
 - **D-8｜工作区混入不属于 v2 文件范围的前端改动**（即本次审查排除的 16 个文件）。文档 §10 明确前端只改 sessionMergeStore/SessionMergePanel 且"保持不改 Sidebar"等。这不是代码缺陷，而是**变更集卫生问题**：提交时必须拆分为独立 commit/PR，否则 v2 变更集不闭合、无法独立回滚。
@@ -9153,7 +9153,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 判定理由：范围卫生建议，已排除文件不计本改动缺陷。
 
-代码：[session-merge-architecture-v2.md:479](../../../../session-merge-architecture-v2.md#L479)
+代码：[session-merge-architecture-v2.md:479](../../../../session-merge-architecture-v2.md?plain=1#L479)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -9161,7 +9161,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **来源变化重试次数少** — 成立 / engineering / scope=new / 不入分；统一问题：source-tree-retry-policy；credit=None。
 
-[原文 L98–L98](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L98)
+[原文 L98–L98](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L98)
 
 ````text
 | D-2 | 来源集合复核只重新取一次（文档允许最多两次），start 路径直接拒绝而非暂停 | 拒绝同样释放 token 且用户可重试，影响轻微 |
@@ -9181,7 +9181,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **缺统一只读事务但gate替代** — 成立 / engineering / scope=new / 不入分；统一问题：snapshot-read-transaction；credit=None。
 
-[原文 L99–L99](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L99)
+[原文 L99–L99](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L99)
 
 ````text
 | D-3 | 无"全部来源统一短只读事务"记录截止边界；实际隔离靠 gate 排他 token | 等价安全性成立；仅外部直接篡改库（文档声明不支持）才有窗口 |
@@ -9201,7 +9201,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **多进程抢名额500** — 范围外 / conditional / scope=out / 不入分；统一问题：multi-instance-active-conflict；credit=None。
 
-[原文 L100–L100](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L100)
+[原文 L100–L100](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L100)
 
 ````text
 | D-4 | 占名额为"synchronized + 唯一索引兜底"两段式 | 单进程安全；多进程撞索引时用户得到未包装 500 而非 `MERGE_ACTIVE_EXISTS`，建议捕获 `DuplicateKeyException` 映射 |
@@ -9221,7 +9221,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **unitId不含snapshotHash但inputHash包含** — 成立 / engineering / scope=new / 不入分；统一问题：unit-id-spelling；credit=None。
 
-[原文 L101–L101](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L101)
+[原文 L101–L101](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L101)
 
 ````text
 | D-5 | unitId 字面值不含 snapshotHash/处理器版本（为 `e<ordinal>`/`aggregate-L-O`） | 这些要素全部进入 input_hash 列并做冲突校验，语义等价、字面不符 |
@@ -9241,7 +9241,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **读取超时错误码被包装** — 成立 / functional / scope=new / 入分；统一问题：D13；credit=1。
 
-[原文 L102–L102](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L102)
+[原文 L102–L102](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L102)
 
 ````text
 | D-6 | 读取预算超时错误码被包装为 `HANDOFF_INVALID_RESOURCE`/`HANDOFF_READ_FAILED` | 原始码 `HANDOFF_READ_BUDGET_EXCEEDED` 保留在 message 中，信息未丢失但顶层 code 不直接 |
@@ -9263,7 +9263,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **发布前缺真实读/最小入口自检** — 成立 / engineering / scope=new / 不入分；统一问题：publish-read-selfcheck-gap；credit=None。
 
-[原文 L103–L103](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L103)
+[原文 L103–L103](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L103)
 
 ````text
 | D-7 | 发布前缺"读接口/最小入口自检"的完整实现 | 以 verifyPrepared 全哈希链校验代替，影响低 |
@@ -9275,7 +9275,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 判定理由：verifyPrepared仅hash链未调用project/read，测试/自检缺口成立；没有具体额外失败输入，不单列功能TP。
 
-代码：[SessionMergeService.java:204](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L204)；[session-merge-architecture-v2.md:402](../../../../session-merge-architecture-v2.md#L402)
+代码：[SessionMergeService.java:204](../../../../../backend/src/main/java/com/aicodeassistant/session/merge/SessionMergeService.java#L204)；[session-merge-architecture-v2.md:402](../../../../session-merge-architecture-v2.md?plain=1#L402)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -9283,7 +9283,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **legacy标记名不同但语义等价** — 成立 / engineering / scope=new / 不入分；统一问题：legacy-import-tag；credit=None。
 
-[原文 L104–L104](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L104)
+[原文 L104–L104](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L104)
 
 ````text
 | D-9 | 旧包收录标记名与文档不同（`legacy_package_origin_inferred` vs `legacy_import`） | 语义等价 |
@@ -9303,7 +9303,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **恢复投影重复残片** — 证据不足 / conditional / scope=new / 不入分；统一问题：recovered-partial-projection-duplication；credit=None。
 
-[原文 L105–L105](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L105)
+[原文 L105–L105](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L105)
 
 ````text
 | D-10 | exportMessage 解析中途失败时同内容存在"部分投影+完整 raw"两份 | 恢复后投影可能与残留分片重复；去重按身份，语义无碍 |
@@ -9323,7 +9323,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **cancel清理扫描时机** — 成立 / engineering / scope=new / 不入分；统一问题：cleanup-scan；credit=None。
 
-[原文 L106–L106](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L106)
+[原文 L106–L106](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L106)
 
 ````text
 | D-11 | cancel 对已无 writer 的操作调用 cleanupFinished() 全量扫描 | 与"由新合并/启动清理"语义一致，无风险 |
@@ -9343,7 +9343,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **Repository两个无状态实例** — 成立 / engineering / scope=new / 不入分；统一问题：injection-style；credit=None。
 
-[原文 L123–L123](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L123)
+[原文 L123–L123](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L123)
 
 ````text
 1. `SessionMergeService` 构造器内 `new MergeProgressRepository(...)`（:71）绕过 Spring 注入产生双实例——无状态故无害，但削弱一致性。
@@ -9363,7 +9363,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **四参构造器把tool置null** — 不成立 / engineering / scope=new / 不入分；统一问题：handoff-test-constructor；credit=None。
 
-[原文 L124–L124](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L124)
+[原文 L124–L124](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L124)
 
 ````text
 2. `HandoffContextService` 4 参构造器将 tool 置 null（:22-24），误用于 configure 路径会 NPE——目前仅测试使用，建议私有化或加注释。
@@ -9383,7 +9383,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **databaseResolver注入回退隐式** — 成立 / engineering / scope=new / 不入分；统一问题：package-root-resolver；credit=None。
 
-[原文 L125–L125](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L125)
+[原文 L125–L125](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L125)
 
 ````text
 3. `MergePackageService.databaseResolver` 字段注入可空 + PRAGMA 回退（:84-92），生产/测试双路径隐式切换，建议显式化。
@@ -9403,7 +9403,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **重复全量哈希性能建议** — 成立 / engineering / scope=new / 不入分；统一问题：duplicate-handoff-projection；credit=None。
 
-[原文 L126–L126](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L126)
+[原文 L126–L126](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L126)
 
 ````text
 4. **性能注意（非缺陷）**：`HandoffContextService.project` 每轮对话对全部清单文件做全量 SHA-256 校验；QueryEngine 每轮因 prepareCompactionContext 再调一次 project（:1835），即每个用户请求约 2 次全包校验哈希。正确性优先的设计符合文档（"不引入全局缓存""读取前按绑定校验"），但包较大时每轮开销可观，建议后续在请求内复用一次校验结果。
@@ -9423,7 +9423,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **轮询禁用合并控制按钮** — 成立 / functional / scope=new / 入分；统一问题：D08；credit=1。
 
-[原文 L140–L140](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L140)
+[原文 L140–L140](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L140)
 
 ````text
 1. **`submitting` 被轮询与控制操作共用，造成按钮间歇性不可点**（store L141/L205/L230；panel L222/L225/L229）：活跃合并期间每 2s 轮询把 `submitting` 翻 true，"恢复合并"/"取消合并"/"重试查询"按钮随之出现几十~几百毫秒的不可点窗口，用户点击被静默吞掉。**这是前端最值得修的交互缺陷**，建议拆分 `polling`/`controlling` 两个标志，按钮仅跟随后者。
@@ -9445,7 +9445,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **全store订阅重渲染** — 成立 / engineering / scope=retained / 不入分；统一问题：panel-store-subscription；credit=None。
 
-[原文 L141–L141](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L141)
+[原文 L141–L141](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L141)
 
 ````text
 2. **全 store 订阅无 selector**（panel L17）：轮询驱动的 `submitting` 翻转引发整树重渲染。属既有模式，建议按 selector 分片订阅。
@@ -9465,7 +9465,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **v2新增面板测试缺口** — 成立 / engineering / scope=new / 不入分；统一问题：panel-v2-test-gap；credit=None。
 
-[原文 L142–L142](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L142)
+[原文 L142–L142](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L142)
 
 ````text
 3. **新增 UI 零组件级测试覆盖**：恢复合并区（模型下拉+默认路径）、取消按钮、整理单元行、retryAt 行、`targetAvailable=false` 禁用态、paused/cancelled 状态行均无组件测试。
@@ -9485,7 +9485,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **retryAt未本地化** — 成立 / engineering / scope=new / 不入分；统一问题：merge-diagnostic-display；credit=None。
 
-[原文 L144–L144](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L144)
+[原文 L144–L144](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L144)
 
 ````text
 **低级（节选）**：`retryAt` 原文输出 ISO-8601 未本地化；`validatedTerminal` 模块级 Set 只增不减；409 采纳分支 `body.operation` 无形状校验；`resume` 的 `expectedEpoch` 可选类型掩盖了"v2 服务端恒返回 runEpoch"的契约；串行化测试名与实际断言存在偏差；面板 fixture 仍用 v1 stage 值。
@@ -9505,7 +9505,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **validatedTerminal只增不减** — 成立 / engineering / scope=new / 不入分；统一问题：terminal-cache-growth；credit=None。
 
-[原文 L144–L144](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L144)
+[原文 L144–L144](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L144)
 
 ````text
 **低级（节选）**：`retryAt` 原文输出 ISO-8601 未本地化；`validatedTerminal` 模块级 Set 只增不减；409 采纳分支 `body.operation` 无形状校验；`resume` 的 `expectedEpoch` 可选类型掩盖了"v2 服务端恒返回 runEpoch"的契约；串行化测试名与实际断言存在偏差；面板 fixture 仍用 v1 stage 值。
@@ -9525,7 +9525,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **409operation形状不验** — 成立 / engineering / scope=new / 不入分；统一问题：unvalidated-operation-shape；credit=None。
 
-[原文 L144–L144](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L144)
+[原文 L144–L144](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L144)
 
 ````text
 **低级（节选）**：`retryAt` 原文输出 ISO-8601 未本地化；`validatedTerminal` 模块级 Set 只增不减；409 采纳分支 `body.operation` 无形状校验；`resume` 的 `expectedEpoch` 可选类型掩盖了"v2 服务端恒返回 runEpoch"的契约；串行化测试名与实际断言存在偏差；面板 fixture 仍用 v1 stage 值。
@@ -9545,7 +9545,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **epoch可选类型** — 成立 / engineering / scope=new / 不入分；统一问题：optional-epoch-type；credit=None。
 
-[原文 L144–L144](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L144)
+[原文 L144–L144](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L144)
 
 ````text
 **低级（节选）**：`retryAt` 原文输出 ISO-8601 未本地化；`validatedTerminal` 模块级 Set 只增不减；409 采纳分支 `body.operation` 无形状校验；`resume` 的 `expectedEpoch` 可选类型掩盖了"v2 服务端恒返回 runEpoch"的契约；串行化测试名与实际断言存在偏差；面板 fixture 仍用 v1 stage 值。
@@ -9565,7 +9565,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **串行测试不足** — 成立 / engineering / scope=new / 不入分；统一问题：store-serialization-test-gap；credit=None。
 
-[原文 L144–L144](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L144)
+[原文 L144–L144](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L144)
 
 ````text
 **低级（节选）**：`retryAt` 原文输出 ISO-8601 未本地化；`validatedTerminal` 模块级 Set 只增不减；409 采纳分支 `body.operation` 无形状校验；`resume` 的 `expectedEpoch` 可选类型掩盖了"v2 服务端恒返回 runEpoch"的契约；串行化测试名与实际断言存在偏差；面板 fixture 仍用 v1 stage 值。
@@ -9585,7 +9585,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **panel fixture仍v1stage** — 成立 / engineering / scope=new / 不入分；统一问题：panel-fixture-wording；credit=None。
 
-[原文 L144–L144](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L144)
+[原文 L144–L144](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L144)
 
 ````text
 **低级（节选）**：`retryAt` 原文输出 ISO-8601 未本地化；`validatedTerminal` 模块级 Set 只增不减；409 采纳分支 `body.operation` 无形状校验；`resume` 的 `expectedEpoch` 可选类型掩盖了"v2 服务端恒返回 runEpoch"的契约；串行化测试名与实际断言存在偏差；面板 fixture 仍用 v1 stage 值。
@@ -9605,7 +9605,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **后端10类测试缺口** — 成立 / engineering / scope=new / 不入分；统一问题：merge-test-gaps；credit=None。
 
-[原文 L172–L181](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L172)
+[原文 L172–L181](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L172)
 
 ````text
 1. 聚合多层不收缩的 header-only 兜底分支（G5），"还有 N 项未展开"语义未验证
@@ -9626,7 +9626,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 判定理由：含聚合兜底/asset/准入/并发/ref/漂移/入口/E状态/failed分支，全部保留为测试条目。
 
-代码：[session-merge-architecture-v2.md:440](../../../../session-merge-architecture-v2.md#L440)
+代码：[session-merge-architecture-v2.md:440](../../../../session-merge-architecture-v2.md?plain=1#L440)
 
 核验：代码静态核验及原文：见code_refs/lines
 
@@ -9634,7 +9634,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **最小入口放不下已走正常容量错误的保证** — 不成立 / global / scope=new / 不入分；统一问题：handoff-capacity-safety-assertion；credit=None。
 
-[原文 L79–L79](../zhikuncode/kimik3_session-merge-v2-code-review-report.md#L79)
+[原文 L79–L79](../zhikuncode/kimik3_session-merge-v2-code-review-report.md?plain=1#L79)
 
 ````text
 - **I. 运行时消费**：目标 E 事务内写标记；无标记不调用交接服务、不查合并表（`verifyNoInteractions` 用例）；入口≤min(2048, 总历史预算×10%)；连最小入口都放不下返回正常容量错误而非把合并改失败；REST 三入口+WS 入口仅 E 启用，普通/fork/Swarm 工具池不变。
@@ -9656,7 +9656,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 ### R16-normal_function
 
-**判断分：5/5**。[原文 L68–L81](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md#L68)。普通请求不触发合并读取/工具注入，未发现报告范围内新增功能回归。
+**判断分：5/5**。[原文 L68–L81](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md?plain=1#L68)。普通请求不触发合并读取/工具注入，未发现报告范围内新增功能回归。
 
 ````text
 ### 结论：**未发现对普通 / fork / Swarm 功能链路的破坏性影响。**
@@ -9677,7 +9677,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 ### R16-boundary
 
-**判断分：5/5**。[原文 L81–L81](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md#L81)。全文说明短路、小对象/标记检查或 E 专属范围及验证局限，没有把绿色测试当绝对安全证明。
+**判断分：5/5**。[原文 L81–L81](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md?plain=1#L81)。全文说明短路、小对象/标记检查或 E 专属范围及验证局限，没有把绿色测试当绝对安全证明。
 
 ````text
 **唯一对普通路径的新增成本**：`isMerged()` 一次 Map 查询、`handoffProjection` 一次空判断、字段注入一个可选 Bean。可忽略。
@@ -9685,7 +9685,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 ### R16-release
 
-**判断分：0/5**。[原文 L278–L286](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md#L278)。未明确回答当前能否作为功能完成版合入发布；允许提交/推送和披露语义未验收本身并非错误，不据此捏造赞成正式发布。
+**判断分：0/5**。[原文 L278–L286](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md?plain=1#L278)。未明确回答当前能否作为功能完成版合入发布；允许提交/推送和披露语义未验收本身并非错误，不据此捏造赞成正式发布。
 
 ````text
 ### 判断：**有条件可以提交 GitHub**（无 P0/P1 阻塞）
@@ -9701,7 +9701,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 ### R16-semantic
 
-**判断分：5/5**。[原文 L263–L263](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md#L263)。明确真实模型语义验收未完成，stub 测试不能替代。
+**判断分：5/5**。[原文 L263–L263](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md?plain=1#L263)。明确真实模型语义验收未完成，stub 测试不能替代。
 
 ````text
 4. **真实模型接续开发语义验收未执行**（规格首段/第 9 节明示为未完成项，不得用 stub 冒充）
@@ -9711,7 +9711,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **普通链路无破坏及轻量开销** — 成立 / global / scope=new / 不入分；统一问题：ordinary-path-isolation；credit=None。
 
-[原文 L68–L81](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md#L68)
+[原文 L68–L81](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md?plain=1#L68)
 
 ````text
 ### 结论：**未发现对普通 / fork / Swarm 功能链路的破坏性影响。**
@@ -9744,7 +9744,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **锁集合不含后代** — 规范歧义 / conditional / scope=new / 不入分；统一问题：descendant-lock-dto；credit=None。
 
-[原文 L184–L187](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md#L184)
+[原文 L184–L187](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md?plain=1#L184)
 
 ````text
 #### P2-1 锁集合不完整
@@ -9767,7 +9767,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **paused/failed锁被前端门控忽略** — 成立 / functional / scope=new / 入分；统一问题：D15；credit=1。
 
-[原文 L189–L192](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md#L189)
+[原文 L189–L192](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md?plain=1#L189)
 
 ````text
 #### P2-2 前端锁门控残留
@@ -9792,7 +9792,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **面板v2UI控制测试缺口** — 成立 / engineering / scope=new / 不入分；统一问题：panel-v2-test-gap；credit=None。
 
-[原文 L194–L197](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md#L194)
+[原文 L194–L197](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md?plain=1#L194)
 
 ````text
 #### P2-3 Panel 层 UI 测试缺口
@@ -9815,7 +9815,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **每轮重复投影IO** — 成立 / engineering / scope=new / 不入分；统一问题：duplicate-handoff-projection；credit=None。
 
-[原文 L199–L202](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md#L199)
+[原文 L199–L202](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md?plain=1#L199)
 
 ````text
 #### P2-4 合并路径投影重复计算
@@ -9838,7 +9838,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **迁移分号切分脆弱** — 成立 / engineering / scope=new / 不入分；统一问题：migration-sql-split；credit=None。
 
-[原文 L207–L207](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md#L207)
+[原文 L207–L207](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md?plain=1#L207)
 
 ````text
 | V026 `SQL.split(";")` | 脆弱；建议语句列表或 `ScriptUtils` |
@@ -9858,7 +9858,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **failAttempt completed覆盖error可疑** — 成立 / engineering / scope=new / 不入分；统一问题：attempt-outcome-semantics；credit=None。
 
-[原文 L208–L208](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md#L208)
+[原文 L208–L208](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md?plain=1#L208)
 
 ````text
 | `failAttempt` 改写 completed | 语义可疑 |
@@ -9878,7 +9878,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **Conflict message null导致Map.ofNPE** — 证据不足 / conditional / scope=new / 不入分；统一问题：null-conflict-message；credit=None。
 
-[原文 L209–L209](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md#L209)
+[原文 L209–L209](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md?plain=1#L209)
 
 ````text
 | `SessionMergeController` `Map.of` NPE | message 空值防御 |
@@ -9898,7 +9898,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **FQCN与匿名类风格** — 成立 / engineering / scope=new / 不入分；统一问题：injection-style；credit=None。
 
-[原文 L210–L210](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md#L210)
+[原文 L210–L210](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md?plain=1#L210)
 
 ````text
 | FQCN/匿名类风格 | 可读性 |
@@ -9918,7 +9918,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **合并通知同key可叠加** — 成立 / functional / scope=new / 入分；统一问题：D22；credit=1。
 
-[原文 L211–L211](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md#L211)
+[原文 L211–L211](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md?plain=1#L211)
 
 ````text
 | 通知 cancelled 用 error 级 + 「合并暂停或失败」文案 | UX 不一致；通知去重依赖 `changed &&` 门控，无 key 去重 |
@@ -9940,7 +9940,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **绑定授权与路径安全保证** — 成立 / global / scope=new / 不入分；统一问题：handoff-read-authority；credit=None。
 
-[原文 L215–L219](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md#L215)
+[原文 L215–L219](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md?plain=1#L215)
 
 ````text
 - `safeFile` 拒绝绝对路径 / `..` / 越界 normalize / symlink（`MergePackageService.java:304-321`）
@@ -9964,7 +9964,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **合成回归未具名** — 成立 / engineering / scope=new / 不入分；统一问题：synthetic-regression-name；credit=None。
 
-[原文 L261–L261](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md#L261)
+[原文 L261–L261](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md?plain=1#L261)
 
 ````text
 2. 规格 9「本次失败条件」的**合成 4,183 bytes / provider output=13,370** 专测未见具名用例（已有「无 3500 拒绝 / >16 单元」等价覆盖，但未按失败日志数字标注为合成回归）
@@ -9984,7 +9984,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **active路由优先级未集成测** — 成立 / engineering / scope=new / 不入分；统一问题：active-route-test-gap；credit=None。
 
-[原文 L262–L262](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md#L262)
+[原文 L262–L262](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md?plain=1#L262)
 
 ````text
 3. `GET /api/session-merges/active` 与 `GET /{operationId}` 路由优先级无集成测试
@@ -10004,7 +10004,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **遗留helper与风格建议** — 成立 / engineering / scope=new / 不入分；统一问题：compressed-code-style；credit=None。
 
-[原文 L235–L238](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md#L235)
+[原文 L235–L238](../%E5%B0%8F%E7%B1%B3mimo/session-merge-v2-code-review.md?plain=1#L235)
 
 ````text
 1. 大量 FQCN / 单行压缩风格（`handoffRead` 匿名类、`QueryController`/`QueryEngine` 字段注入），可读性与可维护性偏弱
@@ -10029,7 +10029,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 ### R17-normal_function
 
-**判断分：5/5**。[原文 L36–L54](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L36)。普通请求不触发合并读取/工具注入，未发现报告范围内新增功能回归。
+**判断分：5/5**。[原文 L36–L54](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L36)。普通请求不触发合并读取/工具注入，未发现报告范围内新增功能回归。
 
 ````text
 结论:**无负面影响**。证据逐条如下:
@@ -10055,7 +10055,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 ### R17-boundary
 
-**判断分：5/5**。[原文 L12–L17](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L12)。全文38—54门控与64全局迁移说明公共改动；与R03/R10同标准。零影响措辞过满，不当作绝对零风险证明。
+**判断分：5/5**。[原文 L12–L17](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L12)。全文38—54门控与64全局迁移说明公共改动；与R03/R10同标准。零影响措辞过满，不当作绝对零风险证明。
 
 ````text
 **达到发布标准,建议放行。**
@@ -10068,7 +10068,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 ### R17-release
 
-**判断分：0/5**。[原文 L12–L17](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L12)。明确建议发布/达到发布标准，与尚存确认缺陷和未完成真实语义验收矛盾。
+**判断分：0/5**。[原文 L12–L17](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L12)。明确建议发布/达到发布标准，与尚存确认缺陷和未完成真实语义验收矛盾。
 
 ````text
 **达到发布标准,建议放行。**
@@ -10081,7 +10081,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 ### R17-semantic
 
-**判断分：5/5**。[原文 L94–L94](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L94)。明确真实模型语义验收未完成，stub 测试不能替代。
+**判断分：5/5**。[原文 L94–L94](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L94)。明确真实模型语义验收未完成，stub 测试不能替代。
 
 ````text
 第 9 节要求的**真实模型接续开发语义样本尚未执行**(displayName 联调样本、封存后代码变化样本等)。当前全部通过的是 stub 数据/隔离/接线断言,按文档要求不得将其表述为"真实模型接续验收已通过"。
@@ -10091,7 +10091,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **普通链路隔离具体断言** — 成立 / global / scope=new / 不入分；统一问题：ordinary-path-isolation；credit=None。
 
-[原文 L38–L54](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L38)
+[原文 L38–L54](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L38)
 
 ````text
 1. **基线文件零改动**。`git status` 确认 `SessionManager`、`SessionMessagePersistence`、`SubAgentExecutor`、`SwarmWorkerRunner`、`SessionExecutionGate`、`ToolRegistry`、`FileRead/Grep`、`ImageResultExternalizer`、`SessionController` 均未修改,与规格第 10 节"保持不改"清单及文档声明一致。
@@ -10127,7 +10127,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **attempt completed改error语义困惑** — 成立 / engineering / scope=new / 不入分；统一问题：attempt-outcome-semantics；credit=None。
 
-[原文 L79–L79](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L79)
+[原文 L79–L79](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L79)
 
 ````text
 1. **`MergeProgressRepository.failAttempt` 的第二条 UPDATE**(MergeProgressRepository.java:199)会把已记为 `completed` 的 attempt 强制改写为 `error`。它只影响计费明细的语义表达,不改单元/操作状态,但这个"completed→error"覆写在语义上令人困惑,建议删除或注释说明触发场景。
@@ -10147,7 +10147,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **取消暂停通知error级别** — 成立 / engineering / scope=new / 不入分；统一问题：merge-toast-severity；credit=None。
 
-[原文 L80–L80](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L80)
+[原文 L80–L80](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L80)
 
 ````text
 2. **前端取消通知级别错误**:sessionMergeStore 中非 completed 终态统一映射 `level:'error'`,"合并已取消"/暂停也弹错误样式,语气不当。一行修复(cancelled → info/warning)。
@@ -10167,7 +10167,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **单元brief直接采用JSON** — 成立 / engineering / scope=new / 不入分；统一问题：single-unit-json-brief；credit=None。
 
-[原文 L81–L81](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L81)
+[原文 L81–L81](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L81)
 
 ````text
 3. **单摘要单元时 brief 是原始 JSON**:当提取单元只剩 1 个时,`handoff.md` 直接拼 Detail JSON 而非整理过的摘要文本(MergeSummaryService.prepare 聚合循环 `current.size()==1` 分支)。信息完整可读,但不符合"有界启动摘要"的体验预期,建议对最终层强制一次聚合或做可读渲染。
@@ -10187,7 +10187,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **复制变化不自动重读一次** — 规范歧义 / engineering / scope=retained / 不入分；统一问题：copy-change-retry；credit=None。
 
-[原文 L82–L82](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L82)
+[原文 L82–L82](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L82)
 
 ````text
 4. **`copyFile` 无"变化重读一次"**:规格 4.3 第 4 步要求托管文件复制变化"最多重读一次,仍变化则暂停";当前实现直接抛 SOURCE_CHANGED 暂停。是保守方向的偏差(更少重试、更易暂停),建议按规格补一次重读或记录该偏差。
@@ -10207,7 +10207,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **压缩式代码风格** — 成立 / engineering / scope=new / 不入分；统一问题：compressed-code-style；credit=None。
 
-[原文 L86–L86](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L86)
+[原文 L86–L86](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L86)
 
 ````text
 - 新增合并链路文件的压缩式代码风格(无空格、单字母变量)与仓库既有规范差异显著,影响可维护性,建议提交后做一次格式化统一。
@@ -10227,7 +10227,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **字段注入风格** — 成立 / engineering / scope=new / 不入分；统一问题：injection-style；credit=None。
 
-[原文 L87–L87](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L87)
+[原文 L87–L87](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L87)
 
 ````text
 - `QueryController`/`WebSocketController` 用字段 `@Autowired` 注入 `HandoffContextService`(其余依赖都是构造器注入),风格不一致。
@@ -10247,7 +10247,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **tiny入口走通用错误而非容量通道** — 成立 / functional / scope=new / 入分；统一问题：D09；credit=0.5。
 
-[原文 L88–L88](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L88)
+[原文 L88–L88](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L88)
 
 ````text
 - `handoffProjection` 抛出的 `HANDOFF_CONTEXT_BUDGET_TOO_SMALL`/`HANDOFF_UNAVAILABLE` 以 IllegalStateException 形式穿透到控制器,极端容量场景下 E 的请求会得到通用错误而非规格 7.1 期望的"正常容量错误"通道;触发条件苛刻(历史预算需 < 约 1,300 token,或包文件 I/O 损坏),且只影响 E 自身,建议后续映射到容量错误响应。
@@ -10269,7 +10269,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **大目录校验可能耗尽15秒** — 成立 / engineering / scope=new / 不入分；统一问题：handoff-large-catalog-performance；credit=None。
 
-[原文 L89–L89](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L89)
+[原文 L89–L89](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L89)
 
 ````text
 - `HandoffReadService` 每次调用都对全部清单/详情文件做全量 SHA-256(规格允许),包体增长到数百 MB 后 15 秒预算可能吃紧,目前无需处理,留意即可。
@@ -10289,7 +10289,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **SQL分号切分维护风险** — 成立 / engineering / scope=new / 不入分；统一问题：migration-sql-split；credit=None。
 
-[原文 L90–L90](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L90)
+[原文 L90–L90](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L90)
 
 ````text
 - V026 用 `SQL.split(";")` 切分语句——当前 SQL 无字面量分号所以安全,但这是脆弱模式。
@@ -10309,7 +10309,7 @@ store 已用模块级 `inflight` 串行化，应改用独立的 control-in-fligh
 
 **通知去重已全部落实的保证** — 不成立 / global / scope=new / 不入分；统一问题：merge-toast-dedup-safety-assertion；credit=None。
 
-[原文 L71–L71](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md#L71)
+[原文 L71–L71](../%E6%99%BA%E6%99%AEZCode/%E4%BC%9A%E8%AF%9D%E5%90%88%E5%B9%B6v2%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A.md?plain=1#L71)
 
 ````text
 | 8 前端 | active 接口恢复(204 语义)、`lockedSourceSessionIds` 作为唯一锁来源、不再把保存状态伪装成 preparing、epoch resume、无版本 cancel、终态校验缓存停止轮询、通知去重、`targetAvailable` 门控打开目标——全部落地且有 8 个新增 store 测试对应 |
