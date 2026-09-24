@@ -17,11 +17,11 @@ import { Kbd } from '@/components/ui';
 import { useTurnViewStore, type TurnDensity } from '@/store/turnViewStore';
 import { useSessionStore } from '@/store/sessionStore';
 
-/** 本地密度命令控制消息展示；简洁档默认折叠问题、过程与回复。 */
+/** 本地显示方式命令控制消息展示；精简档默认折叠问题、过程与回复。命名与 DensitySwitch / 手机导航三端统一。 */
 const VIEW_DENSITY_COMMANDS: Array<Command & { density: TurnDensity }> = [
-    { name: '视图：简洁', description: '问题、过程与回复默认折叠，可分别展开', group: '视图', density: 'compact' },
-    { name: '视图：均衡', description: '按任务分节展示过程，展开查看步骤摘要', group: '视图', density: 'balanced' },
-    { name: '视图：详细', description: '按任务分节展示完整过程与工具详情', group: '视图', density: 'detailed' },
+    { name: '视图：精简', description: '问题、过程与回复默认折叠，可分别展开', group: '视图', density: 'compact' },
+    { name: '视图：标准', description: '按任务分节展示过程，展开查看步骤摘要', group: '视图', density: 'balanced' },
+    { name: '视图：完整过程', description: '按任务分节展示完整过程与工具详情', group: '视图', density: 'detailed' },
 ];
 
 /** 命令名 → 目标密度（本地命令命中判定） */

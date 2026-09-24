@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { SidebarTabContent } from './Sidebar';
+import { SidebarTabContent, resetDeleteConfirmRequiredCacheForTest } from './Sidebar';
 import { activateSessionCandidate } from '@/services/sessionActivation';
 import { useSessionStore } from '@/store/sessionStore';
 import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
@@ -8,6 +8,7 @@ import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
 vi.mock('@/services/sessionActivation', () => ({ activateSessionCandidate: vi.fn() }));
 beforeEach(() => {
     localStorage.clear();
+    resetDeleteConfirmRequiredCacheForTest();
     vi.clearAllMocks();
     useSessionStore.setState({ sessionId: 'old' });
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({

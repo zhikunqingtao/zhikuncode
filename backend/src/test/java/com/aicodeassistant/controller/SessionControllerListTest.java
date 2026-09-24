@@ -80,6 +80,7 @@ class SessionControllerListTest {
                 mock(PermissionModeManager.class),
                 new PublicMessageProjection(),
                 runs,
-                mock(com.aicodeassistant.session.SessionExecutionGate.class));
+                mock(com.aicodeassistant.session.SessionExecutionGate.class),
+                "");
     }
 }

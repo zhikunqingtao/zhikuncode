@@ -10,6 +10,7 @@ import { LayoutGroup, motion, useReducedMotion } from 'framer-motion';
  */
 
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { 
     MessageSquare, 
     CheckCircle2, 
@@ -537,6 +538,67 @@ function ApiDocsTab() {
     );
 }
 
+// ═══ 删除会话二次确认验证码（ZHIKUN_DELETE_CONFIRM_CODE） ═══
+// 模块级缓存：是否要求删除验证码只需询问一次后端（GET /api/config/delete-confirm），
+// fetch 失败时按"不需要"处理（保持原有删除行为），但失败结果不缓存——
+// 下次组件挂载会重新请求，避免瞬时网络失败被永久缓存为"不需要验证码"。
+// 验证码值本身永不返回前端。
+let deleteConfirmRequiredPromise: Promise<boolean> | null = null;
+function fetchDeleteConfirmRequired(): Promise<boolean> {
+    if (!deleteConfirmRequiredPromise) {
+        const request = fetch('/api/config/delete-confirm')
+            .then(resp => {
+                // HTTP 错误（如 502/503）同样按失败处理：抛错走下方 catch 清缓存路径，
+                // 避免错误响应被当作"不需要验证码"永久缓存（用户将永远看不到验证码输入框）。
+                if (!resp.ok) {
+                    throw new Error('delete-confirm config HTTP ' + resp.status);
+                }
+                return resp.json() as { required?: unknown };
+            })
+            .then(data => Boolean(data?.required))
+            .catch(() => {
+                // 失败路径允许重试：仅当模块级缓存仍是本次请求时才清空，
+                // 避免误清后续调用方新发起的请求；成功路径的缓存语义不变。
+                if (deleteConfirmRequiredPromise === request) {
+                    deleteConfirmRequiredPromise = null;
+                }
+                return false;
+            });
+        deleteConfirmRequiredPromise = request;
+    }
+    return deleteConfirmRequiredPromise;
+}
+
+/** 仅供测试：清空模块级缓存，使下次挂载重新请求 delete-confirm 配置。 */
+export function resetDeleteConfirmRequiredCacheForTest(): void {
+    deleteConfirmRequiredPromise = null;
+}
+
+function useDeleteConfirmRequired(): boolean {
+    const [required, setRequired] = useState(false);
+    useEffect(() => {
+        let cancelled = false;
+        void fetchDeleteConfirmRequired().then(value => { if (!cancelled) setRequired(value); });
+        return () => { cancelled = true; };
+    }, []);
+    return required;
+}
+
+/** 删除确认气泡定位：优先显示在按钮上方，空间不足时放到下方；水平右对齐按钮右缘且不超出左右边缘（各留 8px）。 */
+function deletePopoverStyle(rect: DOMRect, withCodeInput: boolean): React.CSSProperties {
+    const estimatedHeight = withCodeInput ? 220 : 148;
+    const showAbove = rect.top >= estimatedHeight + 8;
+    // 气泡宽 256px：right ≤ innerWidth - 264 保证左缘 ≥ 8px；
+    // 视口极窄时 Math.min 结果可能小于 8，外层 Math.max(8, ...) 兜底防右溢出。
+    return {
+        width: 256,
+        right: Math.max(8, Math.min(window.innerWidth - rect.right, window.innerWidth - 264)),
+        ...(showAbove
+            ? { bottom: window.innerHeight - rect.top + 8 }
+            : { top: rect.bottom + 8 }),
+    };
+}
+
 // Session List Component — 从后端 API 获取会话列表
 function SessionList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: () => void; onSessionActivated?: () => void; onBack?: () => void }) {
     const mergeSourceIds = useSessionMergeStore(selectMergeSourceIds);
@@ -565,6 +627,27 @@ function SessionList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: 
     const reducedMotion = useReducedMotion();
     const simpleMode = useWorkbenchViewStore(s => s.enabled && s.viewMode === 'simple');
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    // ── 删除二次确认气泡：点击垃圾桶不再立即删除，先在按钮附近弹出确认气泡 ──
+    const deleteConfirmRequired = useDeleteConfirmRequired();
+    const [confirmingDelete, setConfirmingDelete] = useState<{ sessionId: string; rect: DOMRect } | null>(null);
+    const [deleteCode, setDeleteCode] = useState('');
+    const [deleteCodeError, setDeleteCodeError] = useState<string | null>(null);
+    // 删除请求 in-flight 标记：防止「确认删除」双击/Enter 连发重复 DELETE
+    const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+
+    // 气泡打开期间按 Escape 关闭
+    useEffect(() => {
+        if (!confirmingDelete) return;
+        const handler = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                event.stopPropagation();
+                setConfirmingDelete(null);
+            }
+        };
+        document.addEventListener('keydown', handler);
+        return () => document.removeEventListener('keydown', handler);
+    }, [confirmingDelete]);
 
     // §7.5 面板搜索框：搜索已下推服务端（GET /api/sessions?query=，匹配标题与首条用户消息全文），
     // 客户端不再二次过滤，避免把服务端匹配到的结果过滤掉。
@@ -680,14 +763,34 @@ function SessionList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: 
         dispatchNewAuthorizedSessionRequest();
     }, []);
 
-    // 删除会话
-    const handleDeleteSession = useCallback(async (e: React.MouseEvent, sessionId: string) => {
+    // 点击垃圾桶：不立即删除，弹出确认气泡（rect 用于气泡定位）
+    const openDeleteConfirm = useCallback((e: React.MouseEvent, sessionId: string) => {
         e.stopPropagation();
+        setConfirmingDelete({ sessionId, rect: e.currentTarget.getBoundingClientRect() });
+        setDeleteCode('');
+        setDeleteCodeError(null);
+    }, []);
+
+    // 删除会话（确认气泡中的「确认删除」/验证码 Enter 触发）
+    const executeDeleteSession = useCallback(async (sessionId: string, code?: string) => {
+        if (deleteSubmitting) return; // in-flight：忽略重复触发
+        setDeleteSubmitting(true);
+        const closePopover = () => setConfirmingDelete(null);
         try {
-            const response = await fetch(`/api/sessions/${sessionId}`, { method: 'DELETE' });
+            const response = await fetch(`/api/sessions/${sessionId}`, {
+                method: 'DELETE',
+                ...(deleteConfirmRequired ? { headers: { 'X-Delete-Confirm-Code': code ?? '' } } : {}),
+            });
+            if (response.status === 403 && deleteConfirmRequired) {
+                // 验证码错误：气泡保持打开，红字提示并等待重新输入
+                setDeleteCodeError('验证码错误，请重新输入');
+                setDeleteCode('');
+                return;
+            }
             if (!response.ok) {
                 useNotificationStore.getState().addNotification({ key: `delete-${sessionId}`, level: 'error',
                     message: response.status === 409 ? '会话正在执行或合并，暂不能删除。' : '删除失败，请稍后重试。' });
+                closePopover();
                 return;
             }
             setSessions(prev => prev.filter(s => s.id !== sessionId));
@@ -696,10 +799,15 @@ function SessionList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: 
                 useMessageStore.getState().clearMessages();
                 useSessionStore.getState().resumeSession('');
             }
+            closePopover();
         } catch (e) {
             console.error('[SessionList] Failed to delete session:', e);
+            closePopover();
+        } finally {
+            // 无论成功/403/409/异常都恢复可点击状态（403 重试路径依赖此复位）
+            setDeleteSubmitting(false);
         }
-    }, [currentSessionId]);
+    }, [currentSessionId, deleteConfirmRequired, deleteSubmitting]);
 
     // 格式化时间
     const formatTime = (isoStr: string) => {
@@ -864,7 +972,7 @@ function SessionList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: 
                                                         </button>
                                                         <button
                                                             disabled={merging}
-                                                            onClick={(e) => handleDeleteSession(e, session.id)}
+                                                            onClick={(e) => openDeleteConfirm(e, session.id)}
                                                             className="panel-control p-1 rounded
                                                                 hover:bg-errsoft text-t3 hover:text-err
                                                                 transition-interactive duration-fast"
@@ -896,6 +1004,67 @@ function SessionList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: 
                 )}
             </div>
             </LayoutGroup>
+
+            {/* 删除二次确认气泡（portal 到 body，按垃圾桶位置定位） */}
+            {confirmingDelete && createPortal(
+                <div
+                    className="fixed inset-0 z-40"
+                    onClick={(e) => { e.stopPropagation(); setConfirmingDelete(null); }}
+                >
+                    <div
+                        role="dialog"
+                        aria-label={simpleMode ? '确认删除任务' : '确认删除会话'}
+                        className="fixed z-50 rounded-[14px] border border-hairline bg-surfacev2 p-3 shadow-raised"
+                        style={deletePopoverStyle(confirmingDelete.rect, deleteConfirmRequired)}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <p className="text-sm font-medium text-t1">{simpleMode ? '确定删除该任务？' : '确定删除该会话？'}</p>
+                        <p className="mt-1 text-[13px] text-t3">删除后不可恢复</p>
+                        {deleteConfirmRequired && (
+                            <div className="mt-2">
+                                <input
+                                    autoFocus
+                                    type="text"
+                                    value={deleteCode}
+                                    onChange={(e) => { setDeleteCode(e.target.value); setDeleteCodeError(null); }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && deleteCode) {
+                                            e.preventDefault();
+                                            void executeDeleteSession(confirmingDelete.sessionId, deleteCode);
+                                        }
+                                    }}
+                                    placeholder="请输入验证码"
+                                    aria-label="删除验证码"
+                                    className="h-8 w-full rounded-[10px] border border-transparent bg-sunken2 px-2.5 text-sm text-t1 shadow-well
+                                        placeholder:text-t4 focus:outline-none focus:ring-[3px] focus:ring-accent2-ring"
+                                />
+                                {deleteCodeError && <p className="mt-1 text-[13px] text-err">{deleteCodeError}</p>}
+                            </div>
+                        )}
+                        <div className="mt-3 flex justify-end gap-2">
+                            <button
+                                type="button"
+                                disabled={deleteSubmitting}
+                                onClick={(e) => { e.stopPropagation(); setConfirmingDelete(null); }}
+                                className="panel-control rounded-[10px] px-3 py-1.5 text-[13px] text-t2
+                                    transition-interactive duration-fast hover:bg-hover2 hover:text-t1 disabled:opacity-40"
+                            >
+                                取消
+                            </button>
+                            <button
+                                type="button"
+                                disabled={deleteSubmitting || (deleteConfirmRequired && !deleteCode)}
+                                onClick={(e) => { e.stopPropagation(); void executeDeleteSession(confirmingDelete.sessionId, deleteCode); }}
+                                className="panel-control rounded-[10px] bg-err px-3 py-1.5 text-[13px] font-medium text-white shadow-e1
+                                    transition-interactive duration-fast dark:text-app2 disabled:opacity-40"
+                            >
+                                确认删除
+                            </button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
         </div>
     );
 }
@@ -921,6 +1090,7 @@ function SimpleTaskList({ onCollapse, onSessionActivated, onBack }: { onCollapse
     const currentSessionId = useSessionStore(state => state.sessionId);
     const reducedMotion = useReducedMotion();
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const deleteConfirmRequired = useDeleteConfirmRequired();
 
     const fetchTasks = useCallback(async (search = query) => {
         try {
@@ -956,7 +1126,20 @@ function SimpleTaskList({ onCollapse, onSessionActivated, onBack }: { onCollapse
     const deleteTask = async (event: React.MouseEvent, sessionId: string) => {
         event.stopPropagation();
         if (!window.confirm('确定删除这个任务及其本地记录吗？')) return;
-        const response = await fetch(`/api/sessions/${sessionId}`, { method: 'DELETE' });
+        let code = '';
+        if (deleteConfirmRequired) {
+            const input = window.prompt('请输入删除验证码');
+            if (input === null) return;
+            code = input;
+        }
+        const response = await fetch(`/api/sessions/${sessionId}`, {
+            method: 'DELETE',
+            ...(deleteConfirmRequired ? { headers: { 'X-Delete-Confirm-Code': code } } : {}),
+        });
+        if (response.status === 403 && deleteConfirmRequired) {
+            useNotificationStore.getState().addNotification({ key: `delete-${sessionId}`, level: 'error', message: '验证码错误，删除失败。' });
+            return;
+        }
         if (response.ok) void fetchTasks(query);
     };
     const iconFor = (status: WorkbenchTaskGroup) => status === 'ACTION_REQUIRED' ? XCircle

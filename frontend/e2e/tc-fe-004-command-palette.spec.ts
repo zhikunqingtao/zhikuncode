@@ -139,7 +139,7 @@ test.describe('TC-FE-004 命令面板与 Skill 触发', () => {
     const footerHint = page.getByTestId('command-palette-footer');
     await expect(footerHint).toBeVisible();
     // 选择确定的本地命令，避免受后端连接和会话授权状态影响。
-    const viewCommand = footerHint.locator('..').getByRole('option', { name: '/视图：详细', exact: false });
+    const viewCommand = footerHint.locator('..').getByRole('option', { name: '/视图：完整过程', exact: false });
     await expect(viewCommand).toBeVisible();
     await screenshot(page, 'tc-fe-004d-before-select');
     await viewCommand.click();

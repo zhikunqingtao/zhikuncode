@@ -20,7 +20,9 @@ import com.aicodeassistant.service.PublicMessageProjection;
 import com.aicodeassistant.websocket.WebSocketSessionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -63,6 +65,12 @@ public class SessionController {
     private final RunEnvelopeRepository runEnvelopes;
     private final SessionExecutionGate executionGate;
 
+    /**
+     * 删除会话二次确认验证码（环境变量 ZHIKUN_DELETE_CONFIRM_CODE）。
+     * 配置后删除会话必须携带匹配的 X-Delete-Confirm-Code 请求头；不配置则无需校验。
+     */
+    private final String deleteConfirmCode;
+
     public SessionController(SessionManager sessionManager,
                              CompactService compactService,
                              LlmProviderRegistry providerRegistry,
@@ -72,7 +80,8 @@ public class SessionController {
                              PermissionModeManager permissionModes,
                              PublicMessageProjection publicMessages,
                              RunEnvelopeRepository runEnvelopes,
-                             SessionExecutionGate executionGate) {
+                             SessionExecutionGate executionGate,
+                             @Value("${zhikun.delete-confirm-code:}") String deleteConfirmCode) {
         this.sessionManager = sessionManager;
         this.compactService = compactService;
         this.providerRegistry = providerRegistry;
@@ -83,6 +92,7 @@ public class SessionController {
         this.publicMessages = publicMessages;
         this.runEnvelopes = runEnvelopes;
         this.executionGate = executionGate;
+        this.deleteConfirmCode = deleteConfirmCode;
     }
 
     /**
@@ -203,9 +213,24 @@ public class SessionController {
 
     /**
      * 删除会话。
+     * <p>
+     * 配置了 zhikun.delete-confirm-code 时，必须携带匹配的
+     * X-Delete-Confirm-Code 请求头，否则返回 403。
+     * <p>
+     * 403 时返回 {@code {success:false}} 而非 GlobalExceptionHandler 的统一
+     * error 格式，是有意设计：与成功响应 {@code {success:true}} 保持对称，
+     * 前端按 status + success 判断即可，无需解析两套错误结构。
      */
     @DeleteMapping("/{sessionId}")
-    public ResponseEntity<Map<String, Boolean>> deleteSession(@PathVariable String sessionId) {
+    public ResponseEntity<Map<String, Boolean>> deleteSession(
+            @PathVariable String sessionId,
+            @RequestHeader(value = "X-Delete-Confirm-Code", required = false) String confirmCode) {
+        // 用 String.equals 比较验证码是有意为之：本功能是防误触（二次确认）而非
+        // 安全边界，验证码经内网/本地可信通道传输，无需常量时间比较。
+        if (deleteConfirmCode != null && !deleteConfirmCode.isBlank()
+                && !deleteConfirmCode.equals(confirmCode)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false));
+        }
         SessionExecutionGate.Token token = executionGate.tryAcquire(
                 sessionManager.dataSourceIdentity(), sessionId);
         if (token == null) throw new SessionExecutionBusyException(sessionId);

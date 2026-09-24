@@ -106,7 +106,9 @@ public class SecurityConfig {
         // MCP 服务管理使用 PATCH 切换启用状态。即使前端经 Vite 代理访问，
         // 浏览器仍会携带 Origin；漏掉 PATCH 会被 Spring CORS 直接拒绝为 403。
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Session-Id"));
+        // X-Delete-Confirm-Code：删除会话二次确认验证码请求头（DELETE /api/sessions/{id}），
+        // 缺失会导致跨域预检直接 403 Invalid CORS request。
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Session-Id", "X-Delete-Confirm-Code"));
         config.setAllowCredentials(true);
         config.setExposedHeaders(List.of("Set-Cookie", "X-Session-Id"));
         config.setMaxAge(3600L);

@@ -10,16 +10,16 @@ import { ACCENT_PRESETS, normalizeAccentHex } from '@/theme/accents';
 
 const action = 'min-h-11 rounded-[10px] px-1.5 text-sm text-t2 hover:bg-hover2 active:bg-hover2 transition-interactive duration-fast focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent2-ink';
 
-/** 消息密度三档（描述沿用原 MobileDensitySwitch 文案；选项面板为上下列表） */
+/** 显示方式三档（消息展示密度；描述沿用原 MobileDensitySwitch 文案；选项面板为上下列表） */
 const DENSITY_OPTIONS: { value: TurnDensity; label: string; description: string }[] = [
-    { value: 'compact', label: '简洁', description: '问题、过程与回复默认折叠' },
-    { value: 'balanced', label: '平衡', description: '按任务查看执行摘要' },
-    { value: 'detailed', label: '详细', description: '查看完整过程与任务导航' },
+    { value: 'compact', label: '精简', description: '问题、过程与回复默认折叠' },
+    { value: 'balanced', label: '标准', description: '按任务查看执行摘要' },
+    { value: 'detailed', label: '完整过程', description: '查看完整过程与任务导航' },
 ];
 
 export function MobileComposerNavigation() {
     // 工作台切换已从前台隐藏（默认开发工作台），一级入口改为模型切换；
-    // 紧凑裸排形态：顺序与桌面 composer-row 统一——状态（权限项前置）、权限、模型、密度；更多固定末尾。
+    // 紧凑裸排形态：顺序与桌面 composer-row 统一——状态（权限项前置）、权限、模型、显示方式；更多固定末尾。
     const [panel, setPanel] = useState<'more' | null>(null);
     const density = useTurnViewStore(s => s.density);
     const sessionId = useSessionStore(s => s.sessionId);
@@ -31,7 +31,7 @@ export function MobileComposerNavigation() {
         <nav aria-label="手机会话操作" className="mobile-composer-navigation flex shrink-0 items-center justify-between gap-0.5 overflow-x-auto px-2 pb-1">
             <PermissionModeChip mobile />
             <ModelChip mobile />
-            <MobileChoice label="密度" showCurrent value={density} options={DENSITY_OPTIONS} onChange={value => useTurnViewStore.getState().setDensity(value as TurnDensity, sessionId ?? undefined)} />
+            <MobileChoice label="显示方式" showCurrent value={density} options={DENSITY_OPTIONS} onChange={value => useTurnViewStore.getState().setDensity(value as TurnDensity, sessionId ?? undefined)} />
             <button type="button" className={action} aria-haspopup="dialog" aria-expanded={open} onClick={() => setPanel('more')}>更多</button>
         </nav>
         <SheetShell isOpen={open} onClose={() => setPanel(null)} ariaLabel="更多操作" header={<div className="flex items-center justify-between px-4"><h2 className="text-xl font-semibold">更多操作</h2><button className={action} aria-label="关闭更多操作" onClick={() => setPanel(null)}><X size={20} /></button></div>}>

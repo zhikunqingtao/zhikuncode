@@ -1,7 +1,8 @@
 import { GlassSelection } from '@/components/theme/GlassSelection';
 /**
- * 消息密度切换：桌面分段控件，移动端常驻卡片中的单按钮 + 底部 Sheet。
- * 切档沿用现有 setDensity，清除当前会话的手动展开偏好。
+ * 显示方式切换（消息展示密度）：桌面分段控件，移动端常驻卡片中的单按钮 + 底部 Sheet。
+ * 档位命名三端统一：精简 / 标准 / 完整过程；切档沿用现有 setDensity，
+ * 清除当前会话的手动展开偏好。
  */
 
 import React, { useCallback, useState, useId } from 'react';
@@ -12,9 +13,9 @@ import { useTurnViewStore, type TurnDensity } from '@/store/turnViewStore';
 import { cn } from '@/components/ui/cn';
 
 const DENSITY_OPTIONS: Array<{ value: TurnDensity; label: string }> = [
-    { value: 'compact', label: '简洁' },
-    { value: 'balanced', label: '平衡' },
-    { value: 'detailed', label: '详细' },
+    { value: 'compact', label: '精简' },
+    { value: 'balanced', label: '标准' },
+    { value: 'detailed', label: '完整过程' },
 ];
 
 function useDensitySelect(): (value: TurnDensity) => void {
@@ -34,7 +35,7 @@ export const DensitySwitch: React.FC = () => {
     return (
         <span
             role="tablist"
-            aria-label="消息密度"
+            aria-label="显示方式"
             data-testid="density-switch"
             className="glass-segments inline-flex h-7 shrink-0 items-center gap-0.5 rounded-full border border-hairline bg-sunken2 p-0.5 shadow-pressed"
         >
@@ -46,7 +47,7 @@ export const DensitySwitch: React.FC = () => {
                         type="button"
                         role="tab"
                         aria-selected={selected}
-                        title={`消息密度：${option.label}`}
+                        title={`显示方式：${option.label}`}
                         onClick={() => handleSelect(option.value)}
                         className={cn(
                             'h-6 rounded-full px-2.5 text-[13px] font-medium',
@@ -94,7 +95,7 @@ export const MobileDensitySwitch: React.FC = () => {
         <>
             <button
                 type="button"
-                aria-label={`消息密度：${current.label}`}
+                aria-label={`显示方式：${current.label}`}
                 aria-expanded={open}
                 aria-haspopup="dialog"
                 data-testid="mobile-density-chip"
@@ -104,9 +105,9 @@ export const MobileDensitySwitch: React.FC = () => {
                 <Rows3 size={14} aria-hidden="true" />
                 {current.label}
             </button>
-            <SheetShell isOpen={open} onClose={close} ariaLabel="消息密度" header={
-                <div className="flex items-center justify-between px-4 pb-2"><h3 className="text-t1 text-base font-semibold">消息密度</h3>
-                    <button type="button" aria-label="关闭消息密度" onClick={close} className="panel-control flex h-11 w-11 items-center justify-center rounded-full hover:bg-hover2"><X size={18} /></button>
+            <SheetShell isOpen={open} onClose={close} ariaLabel="显示方式" header={
+                <div className="flex items-center justify-between px-4 pb-2"><h3 className="text-t1 text-base font-semibold">显示方式</h3>
+                    <button type="button" aria-label="关闭显示方式" onClick={close} className="panel-control flex h-11 w-11 items-center justify-center rounded-full hover:bg-hover2"><X size={18} /></button>
                 </div>
             }>
                 <div data-testid="mobile-density-menu" className="px-2 pb-4">

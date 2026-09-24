@@ -28,7 +28,7 @@ it('运行中使用与桌面一致的指令提示', () => {
         '输入补充指令，将在本次操作完成后执行…',
     );
 });
-it('默认卡片的语音固定于文本区外，密度有独立入口', () => {
+it('默认卡片的语音固定于文本区外，显示方式有独立入口', () => {
     mount();
     const capsule = screen.getByTestId('mobile-prompt-text-area');
     const voice = screen.getByRole('button', { name: '语音输入' });
@@ -57,14 +57,14 @@ it('语音服务不可用时保留禁用入口及原因', () => {
 });
 it('不聚焦输入框也能打开三档选择并切换（上下列表）', () => {
     mount();
-    fireEvent.click(screen.getByRole('button', { name: /^密度：/ }));
-    expect(screen.getByRole('dialog', { name: '选择密度' })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /^详细/ }));
+    fireEvent.click(screen.getByRole('button', { name: /^显示方式：/ }));
+    expect(screen.getByRole('dialog', { name: '选择显示方式' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /^完整过程/ }));
     expect(useTurnViewStore.getState().density).toBe('detailed');
     expect(screen.getByTestId('mobile-persistent-actions')).toBeInTheDocument();
 });
 
-it('导航顺序统一为状态权限、模型、密度、更多（与桌面一致）', () => {
+it('导航顺序统一为状态权限、模型、显示方式、更多（与桌面一致）', () => {
     mount();
     const nav = document.querySelector('.mobile-composer-navigation');
     expect(nav).not.toBeNull();
@@ -72,12 +72,12 @@ it('导航顺序统一为状态权限、模型、密度、更多（与桌面一�
     expect(names).toEqual([
         expect.stringMatching(/^权限：/),
         expect.stringMatching(/^模型：/),
-        expect.stringMatching(/^密度：/),
+        expect.stringMatching(/^显示方式：/),
         '更多',
     ]);
 });
 
-it('导航提供模型切换入口，更多不再重复模型和密度', () => {
+it('导航提供模型切换入口，更多不再重复模型和显示方式', () => {
     mount();
     expect(screen.queryByRole('button', { name: /^工作台：/ })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /^模型：/ }));
@@ -86,7 +86,7 @@ it('导航提供模型切换入口，更多不再重复模型和密度', () => {
     fireEvent.click(screen.getByRole('button', { name: '更多' }));
     const moreDialog = screen.getByRole('dialog', { name: '更多操作' });
     expect(within(moreDialog).queryByRole('region', { name: '模型选择' })).not.toBeInTheDocument();
-    expect(within(moreDialog).queryByRole('tab', { name: /^详细/ })).not.toBeInTheDocument();
+    expect(within(moreDialog).queryByRole('tab', { name: /^完整过程/ })).not.toBeInTheDocument();
 });
 
 it('命令位于附件和语音之间，点击打开斜杠命令入口', () => {

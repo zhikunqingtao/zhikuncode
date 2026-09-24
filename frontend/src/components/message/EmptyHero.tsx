@@ -9,7 +9,7 @@
  * 4. 快捷 chips ×4：icon accent + text-t2，surface+hairline+shadow-e1，
  *    hover 上移 2px 升 e2；点击只「填入模板文本 + 聚焦输入框」，不提交
  *    （CustomEvent 桥，零跨组件耦合，见 services/promptTemplateFill）；
- * 5. kbd 提示条（ui Kbd，text-t4）。
+ * 5. kbd 提示条（ui Kbd，text-t4；仅 ≥768px 显示，手机触屏无快捷键意义）。
  * 移动端：标题固定 34px、上下留白减半（py-12 → py-6）。
  */
 
@@ -74,7 +74,7 @@ export function EmptyHero() {
                             {chip.label}
                         </Button>
                     ))}
-                    <div className="mt-3 flex basis-full flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-[13px] text-t2">
+                    <div className="mt-3 hidden basis-full flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-[13px] text-t2 md:flex">
                         <span className="flex items-center gap-1">
                             <Kbd>⌘</Kbd><Kbd>K</Kbd> 命令面板
                         </span>

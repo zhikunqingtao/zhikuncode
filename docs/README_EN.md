@@ -150,7 +150,7 @@ Two official rankings are reported: on the six-task equal-weight board ZhikunCod
 
 Appearance settings offer light, dark, and liquid-glass themes with eight accent presets: Celadon (青瓷, default), Ice Cyan (冰青), Azure (蔚蓝), Indigo (靛蓝), Wisteria (藤紫), Violet (紫罗兰), Magenta (品红), and Graphite (石墨). Changes apply immediately and are saved locally. The browser tab title shows the current session's running, compacting, or approval-pending state with a shortened title. Pending approvals take priority, multiple requests show a count, and idle tabs return to `zhikuncode`.
 
-New sessions start in the **development workbench with balanced message density**. Simple and development workbenches share the session; density can be concise, balanced, or detailed. Light, dark, and liquid-glass themes share business state. On phones, session navigation, file references, images/camera, commands, voice, and send controls remain accessible. Workbench, density, and permission controls show their current values; model selection is under More. Desktop and tablet selectors adapt to their available width.
+New sessions start in the **development workbench with the Standard display mode**. Simple and development workbenches share the session; the display mode can be Compact, Standard, or Full Process. Light, dark, and liquid-glass themes share business state. On phones, session navigation, file references, images/camera, commands, voice, and send controls remain accessible. Permission, model, and display-mode controls show their current values in the composer navigation bar; appearance, memory, MCP, and help are under More. Desktop and tablet selectors adapt to their available width.
 
 **Source capabilities added on 2026-09-16 (not a deployed-version claim):** On the home screen without a server session, model selection is stored locally for the first session creation. It does not change the configured default or send a switch request to a nonexistent session. Existing sessions still require the appropriate connection and binding state.
 
@@ -1531,6 +1531,7 @@ Specs and reasoning parameters verified on 2026-09-17. References: [Astra](https
 | Variable | Required | Default | Description |
 |----------|:---:|---------|-------------|
 | `ZHIKUN_COORDINATOR_MODE` | — | 0 | Feature flag, enable coordinator mode (0=off, 1=on) |
+| `ZHIKUN_DELETE_CONFIRM_CODE` | — | Empty | Optional session-deletion confirmation code; when set, deleting a session in Web requires entering this code |
 | `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.8-max-0902 | DashScope available models (comma-separated) |
 | `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` | — | qwen3.8-max,qwen3.8-flash,deepseek-v4-pro-0813,deepseek-v4-flash-0731,deepseek-v4.1-flash,bailian/glm-5.3 | Alibaba Cloud Bailian Token Plan models; independent from standard DashScope and direct DeepSeek settings |
 | `LLM_PROVIDER_DEEPSEEK_MODELS` | — | deepseek-flash | DeepSeek models; defaults to V4.1 Flash (comma-separated) |

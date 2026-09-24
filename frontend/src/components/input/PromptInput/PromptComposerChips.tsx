@@ -85,8 +85,8 @@ export const ModelChip: React.FC<{ mobile?: boolean; mobileRow?: boolean }> = ({
         );
     }
 
-    // 手机导航栏 4 项共存：模型名限宽截断，为密度/"更多"留足展示空间（完整名仍在 aria-label/选择面板中）
-    if (mobile) return <MobileChoice label="模型" row={mobileRow} showCurrent={!mobileRow} maxTextWidth="max-w-[104px]" value={model ?? ''} disabled={modelSelection.disabled} options={availableModels.map(m => ({ value: m.id, label: m.displayName }))} onChange={modelSelection.selectModel} title={modelSelection.disabledReason} />;
+    // 手机导航栏 4 项共存：模型名限宽截断（72px，为显示方式/"更多"留足展示空间；完整名仍在 aria-label/选择面板中）
+    if (mobile) return <MobileChoice label="模型" row={mobileRow} showCurrent={!mobileRow} maxTextWidth="max-w-[72px]" value={model ?? ''} disabled={modelSelection.disabled} options={availableModels.map(m => ({ value: m.id, label: m.displayName }))} onChange={modelSelection.selectModel} title={modelSelection.disabledReason} />;
 
     return (
         <span className={`${CHIP_SHELL} ${modelSelection.disabled ? 'opacity-50' : ''}`} title={modelSelection.disabledReason}>
@@ -129,9 +129,9 @@ export function MobileChoice({ label, value, options, onChange, title, disabled 
 }
 
 export function MobileSelectionLabel({ label, value, maxTextWidth }: { label: string; value: string; maxTextWidth?: string }) {
-    // 密度只显示当前档名（简洁/平衡/详细），省横向空间留给模型名
-    const text = label === '工作台' ? `${value}工作台`
-        : value === '完全访问' ? '完全访问权限' : value;
+    // 显示方式只显示当前档名（精简/标准/完整过程），省横向空间留给模型名；
+    // 权限各档统一 4 字标签（完全访问不再追加"权限"后缀），保证导航栏总宽可控。
+    const text = label === '工作台' ? `${value}工作台` : value;
     return <span className="inline-flex items-center justify-center gap-1 whitespace-nowrap text-sm font-medium text-t1">
         <span className={maxTextWidth ? `truncate ${maxTextWidth}` : undefined}>{text}</span><ChevronDown size={12} className="shrink-0 text-t3" aria-hidden="true" />
     </span>;

@@ -54,6 +54,8 @@ services:
       - LLM_MODELS=${LLM_MODELS:-}
       # ---- External MCP servers ----
       - ZHIKUN_MCP_SERVERS=${ZHIKUN_MCP_SERVERS:-}
+      # Delete-session confirmation code (empty = no code required)
+      - ZHIKUN_DELETE_CONFIRM_CODE=${ZHIKUN_DELETE_CONFIRM_CODE:-}
       - CONTEXT7_API_KEY=${CONTEXT7_API_KEY:-}
       - GITHUB_TOOLS=${GITHUB_TOOLS:-get_me,get_file_contents,search_code,list_branches,list_commits,list_pull_requests,pull_request_read}
       - GITHUB_READ_ONLY=${GITHUB_READ_ONLY:-1}

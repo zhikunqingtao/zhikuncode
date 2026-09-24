@@ -165,8 +165,8 @@ const PromptInput: React.FC<PromptInputProps> = (props) => {
                         />
                     </div>
 
-                    {/* composer-row：权限/模型 mini-chip + 消息密度分段控件 + 键盘提示
-                        （仅桌面分支渲染；密度切换自消息区工具条迁入） */}
+                    {/* composer-row：权限/模型 mini-chip + 显示方式分段控件 + 键盘提示
+                        （仅桌面分支渲染；显示方式切换自消息区工具条迁入） */}
                     <div className="mt-2 flex items-center gap-2">
                         {/* 会话状态胶囊：与 Header 右簇同款组件，独立于权限 chip 并排放置 */}
                         <SessionStatusCapsule />
