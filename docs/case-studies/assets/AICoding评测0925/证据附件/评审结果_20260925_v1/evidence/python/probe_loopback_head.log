@@ -1,0 +1,2 @@
+python_request_failed requestId=24592cb0-8d94-48f7-b392-e46278b7ee77 method=POST path=/api/browser/journey/run durationMs=144 errorType=RuntimeError
+{"revision": "source", "transport": "real_loopback_uvicorn", "work_budget_ms": 50, "completed_in_150ms": false, "watchers": [{"cancelling": 1, "line": 62}], "drained": true, "status": 500, "body": "Internal Server Error"}

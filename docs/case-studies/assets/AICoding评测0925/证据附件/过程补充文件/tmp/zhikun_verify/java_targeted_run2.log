@@ -1,0 +1,126 @@
+START:09:41:23
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------< com.aicode:ai-code-assistant-backend >----------------
+[INFO] Building AI Code Assistant Backend 1.0.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ ai-code-assistant-backend ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 26 resources from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ ai-code-assistant-backend ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ ai-code-assistant-backend ---
+[INFO] Copying 13 resources from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ ai-code-assistant-backend ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.4:test (default-test) @ ai-code-assistant-backend ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.aicodeassistant.verify.VerifyJourneyEdgeCaseTest
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-09-25 09:42:09.993 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - VerifyJourney failed: errorType=RuntimeException, errorLength=18, errorFingerprint=cc8aa6e073fd2da63608aeaeb117a39e49f9519a522f718bcdfbca4db5ca083e
+2026-09-25 09:42:10.042 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - Browser cleanup unconfirmed for resource rv-d6c642c7-c143-4d2c-937e-61f802f8539f; TTL remains a fallback
+2026-09-25 09:42:10.166 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - Failed to push verification_result via STOMP: STOMP broker disconnected
+2026-09-25 09:42:10.168 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - [RV-METRICS] verify_journey_passed session=session-edge steps=1 timestamp=2026-09-25T01:42:10.167588Z
+2026-09-25 09:42:10.209 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - Browser cleanup unconfirmed for resource rv-7bdf5fae-54bd-463c-9576-1ff662c71f18; TTL remains a fallback
+2026-09-25 09:42:10.257 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - VerifyJourney failed: errorType=RuntimeException, errorLength=70, errorFingerprint=5ab6289f07919414df304eb67ca9dc21e6ba888b621ac616f73b4795aad65398
+2026-09-25 09:42:10.263 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - Browser cleanup unconfirmed for resource rv-2eb2fb1e-79bc-4f56-a9be-6b084274a4fb; TTL remains a fallback
+2026-09-25 09:42:10.485 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - [RV-METRICS] verify_journey_failed session=session-edge step=-1/1 action=unknown category=TIMEOUT passed=0 timestamp=2026-09-25T01:42:10.485234Z errorLength=37 errorFingerprint=3482396bc76f64047f286a68cfafa407faf01799f6182ae5d70020ffada5c628
+2026-09-25 09:42:10.497 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - Browser cleanup unconfirmed for resource rv-0dcfb45d-08d0-4250-88bf-d61058a890ce; TTL remains a fallback
+2026-09-25 09:42:10.515 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - [RV-METRICS] verify_journey_failed session=session-edge step=-1/1 action=unknown category=TIMEOUT passed=0 timestamp=2026-09-25T01:42:10.515576Z errorLength=37 errorFingerprint=3482396bc76f64047f286a68cfafa407faf01799f6182ae5d70020ffada5c628
+2026-09-25 09:42:10.516 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - Browser cleanup unconfirmed for resource rv-2de14681-17b8-4da8-84c4-e652eba121e3; TTL remains a fallback
+2026-09-25 09:42:10.535 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - [RV-METRICS] verify_journey_passed session=session-edge steps=1 timestamp=2026-09-25T01:42:10.535633Z
+2026-09-25 09:42:10.541 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - Browser cleanup unconfirmed for resource rv-c154bc86-7c93-462f-8a6e-8f1661d07dc6; TTL remains a fallback
+2026-09-25 09:42:10.567 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - VerifyJourney failed: errorType=RuntimeException, errorLength=32, errorFingerprint=ef494c8da7df98ec2e50ceeeb6eecbee2ef6c30194339945b23a6b3903c36111
+2026-09-25 09:42:10.571 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - Browser cleanup unconfirmed for resource rv-ca2984ff-7d56-4a6c-98aa-a994f861d83a; TTL remains a fallback
+2026-09-25 09:42:10.584 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - [RV-METRICS] verify_journey_passed session=session-edge steps=1 timestamp=2026-09-25T01:42:10.584115Z
+2026-09-25 09:42:10.585 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - Failed to stop dev server pid=99999: kill -9 failed: permission denied
+2026-09-25 09:42:10.606 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - Browser cleanup unconfirmed for resource rv-ef77689a-9a4a-4ed6-a52c-a689f096e479; TTL remains a fallback
+2026-09-25 09:42:10.954 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - [RV-METRICS] verify_journey_passed session=session-large steps=1000 timestamp=2026-09-25T01:42:10.950840Z
+2026-09-25 09:42:11.013 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - VerifyJourney failed: errorType=RuntimeException, errorLength=72, errorFingerprint=0bbb87df359ca3b7b55c8ebbc290ed17a270ff2d43351c175ebe8f294153e754
+2026-09-25 09:42:11.014 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - Browser cleanup unconfirmed for resource rv-871a7dbb-806e-4aec-91ae-7d13e26772b8; TTL remains a fallback
+2026-09-25 09:42:11.035 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.verify.PreviewStackDetector - Failed to read package.json for stack detection: Unexpected character ('t' (code 116)): was expecting double-quote to start field name
+ at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 1, column: 3]
+2026-09-25 09:42:11.052 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - Browser cleanup unconfirmed for resource rv-30579f64-9b6f-4628-8cf3-21b9b785eaf1; TTL remains a fallback
+2026-09-25 09:42:11.468 INFO  [pool-3-thread-1] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - [RV-METRICS] verify_journey_failed session=session-edge step=-1/1 action=unknown category=OTHER passed=0 timestamp=2026-09-25T01:42:11.468051Z errorLength=14 errorFingerprint=a3f6d3a90dc275723d47a5034fa3e32d2b10ad443c57851970c183a0293e7e2b
+2026-09-25 09:42:11.471 INFO  [pool-3-thread-2] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - [RV-METRICS] verify_journey_failed session=session-edge step=-1/1 action=unknown category=OTHER passed=0 timestamp=2026-09-25T01:42:11.471496Z errorLength=14 errorFingerprint=a3f6d3a90dc275723d47a5034fa3e32d2b10ad443c57851970c183a0293e7e2b
+2026-09-25 09:42:11.641 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - Browser cleanup unconfirmed for resource rv-14fbdf58-f77f-4c02-b76d-d9ccc980d374; TTL remains a fallback
+2026-09-25 09:42:11.641 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - Browser cleanup unconfirmed for resource rv-de0ea06f-f98d-4f0c-b4f8-690a29ac9a73; TTL remains a fallback
+2026-09-25 09:42:11.642 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - Browser cleanup unconfirmed for resource rv-a431f43a-94ea-413d-973e-b69f35b15140; TTL remains a fallback
+2026-09-25 09:42:11.779 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - [RV-METRICS] verify_journey_failed session=session-edge step=-1/1 action=unknown category=TIMEOUT passed=0 timestamp=2026-09-25T01:42:11.779120Z errorLength=37 errorFingerprint=3482396bc76f64047f286a68cfafa407faf01799f6182ae5d70020ffada5c628
+2026-09-25 09:42:12.184 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.verify.VerifyJourneyTool - Browser cleanup unconfirmed for resource rv-9bc03cee-02a8-4f09-9085-44ee48dff6cd; TTL remains a fallback
+[INFO] Tests run: 21, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 18.24 s -- in com.aicodeassistant.verify.VerifyJourneyEdgeCaseTest
+[INFO] Running com.aicodeassistant.verify.DevServerLauncherTest
+2026-09-25 09:42:13.934 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.verify.DevServerLauncher - Dev server started: pid=64771, commandLength=18, commandFingerprint=f236bba8146522a12f209c8d4703668904692d3db4ca95e50caa641455042a51, port=64370
+2026-09-25 09:42:16.036 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.verify.DevServerLauncher - Dev server stopped: pid=64771
+2026-09-25 09:42:16.595 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.verify.DevServerLauncher - Dev server cleanup unconfirmed: pid=123
+2026-09-25 09:42:16.597 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.verify.DevServerLauncher - Dev server stopped: pid=123
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.069 s -- in com.aicodeassistant.verify.DevServerLauncherTest
+[INFO] Running com.aicodeassistant.verify.BrowserVerifierTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.681 s -- in com.aicodeassistant.verify.BrowserVerifierTest
+[INFO] Running com.aicodeassistant.service.PythonProcessManagerTest
+2026-09-25 09:42:17.427 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.service.PythonProcessManager - Python service health check failed, attempting restart (1/3)
+2026-09-25 09:42:17.453 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.service.PythonProcessManager - Python service startup failed, retrying (1/3)
+2026-09-25 09:42:17.459 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.service.PythonProcessManager - Stopping Python service...
+2026-09-25 09:42:17.460 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.service.PythonProcessManager - Python service cleanup unconfirmed; retaining process ownership: pid=0
+2026-09-25 09:42:17.460 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.service.PythonProcessManager - Stopping Python service...
+2026-09-25 09:42:17.461 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.service.PythonProcessManager - Python service cleanup unconfirmed; retaining process ownership: pid=0
+2026-09-25 09:42:17.461 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.service.PythonProcessManager - Python service cleanup unconfirmed; retaining process ownership: pid=0
+2026-09-25 09:42:17.919 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.service.PythonProcessManager - Python service health check failed, attempting restart (1/3)
+2026-09-25 09:42:17.921 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.service.PythonProcessManager - Python service health check failed, attempting restart (2/3)
+2026-09-25 09:42:17.921 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.service.PythonProcessManager - Python service health check failed, attempting restart (3/3)
+2026-09-25 09:42:17.927 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.service.PythonProcessManager - Python service startup failed, retrying (1/3)
+2026-09-25 09:42:17.927 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.service.PythonProcessManager - Python service startup failed, retrying (2/3)
+2026-09-25 09:42:17.927 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.service.PythonProcessManager - Python service startup failed, retrying (3/3)
+2026-09-25 09:42:17.929 ERROR [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.service.PythonProcessManager - Python service startup retry limit reached (3).
+2026-09-25 09:42:18.059 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.service.PythonProcessManager - Stopping Python service...
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.696 s -- in com.aicodeassistant.service.PythonProcessManagerTest
+[INFO] Running com.aicodeassistant.tool.impl.BashToolFailureClassificationTest
+2026-09-25 09:42:20.903 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.impl.BashTool - Executing command: category=command, commandLength=10, commandFingerprint=584a331fd6b02dcb1ecbe2eba731f609a2e1e3dac0bb73ae998dfad14c309a77
+2026-09-25 09:42:20.928 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.impl.BashTool - Executing command: category=command, commandLength=16, commandFingerprint=59210902f85ed1bba3911612abc9459c48f1e5f13aa41627fa0ab069959a773b
+2026-09-25 09:42:20.929 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.bash.BashErrorClassifier - Classifying bash error: exitCode=127, commandLength=16, commandFingerprint=59210902f85ed1bba3911612abc9459c48f1e5f13aa41627fa0ab069959a773b
+2026-09-25 09:42:20.929 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.bash.BashErrorClassifier - Classified as NON_RETRYABLE: command not found (commandFingerprint=59210902f85ed1bba3911612abc9459c48f1e5f13aa41627fa0ab069959a773b)
+2026-09-25 09:42:21.012 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.impl.BashTool - Executing command: category=command, commandLength=26, commandFingerprint=0ad306ef9e24744c03379807a73439607829e5e6f756ca4f016ccb2ae063572e
+2026-09-25 09:42:21.017 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.bash.BashErrorClassifier - Classifying bash error: exitCode=7, commandLength=26, commandFingerprint=0ad306ef9e24744c03379807a73439607829e5e6f756ca4f016ccb2ae063572e
+2026-09-25 09:42:21.017 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.bash.BashErrorClassifier - Classified as RETRYABLE: network error detected
+2026-09-25 09:42:21.029 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.impl.BashTool - Executing command: category=command, commandLength=9, commandFingerprint=16a60ff20e2f65e0ab71375af1cf7d1e9e09c428fc6c5dcc6c6edccc0b0cef50
+2026-09-25 09:42:21.043 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.impl.BashTool - Executing command: category=command, commandLength=16, commandFingerprint=59b5c07c39fb94eafb7717b2c1041d4ee6f749c22377a79455f30127134840b3
+2026-09-25 09:42:21.045 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.bash.BashErrorClassifier - Classifying bash error: exitCode=137, commandLength=16, commandFingerprint=59b5c07c39fb94eafb7717b2c1041d4ee6f749c22377a79455f30127134840b3
+2026-09-25 09:42:21.048 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.bash.BashErrorClassifier - Classified as TIMEOUT: process killed by signal (exitCode=137)
+2026-09-25 09:42:21.193 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.impl.BashTool - Executing command: category=command, commandLength=4, commandFingerprint=d05aa2a15fb3c40efeeb03bec445393f00074484cf01c8fb2da90ca6695a5531
+2026-09-25 09:42:21.201 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.bash.BashErrorClassifier - Classifying bash error: exitCode=1, commandLength=4, commandFingerprint=d05aa2a15fb3c40efeeb03bec445393f00074484cf01c8fb2da90ca6695a5531
+2026-09-25 09:42:21.201 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.bash.BashErrorClassifier - Classified as NON_RETRYABLE: unrecognized error (exitCode=1)
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.995 s -- in com.aicodeassistant.tool.impl.BashToolFailureClassificationTest
+[INFO] Running com.aicodeassistant.tool.bash.ProcessTreeManagerTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.668 s -- in com.aicodeassistant.tool.bash.ProcessTreeManagerTest
+[INFO] Running com.aicodeassistant.tool.process.ManagedProcessRunnerTest
+2026-09-25 09:42:22.607 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.process.ManagedProcessRunner - Foreground process cleanup unconfirmed: pid=64840
+2026-09-25 09:42:23.285 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.process.ManagedProcessRunner - Foreground process cleanup unconfirmed: pid=64842
+2026-09-25 09:42:35.683 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.process.ManagedProcessRunner - Foreground process cleanup unconfirmed: pid=64991
+2026-09-25 09:42:35.855 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.process.ManagedProcessRunner - Foreground process cleanup unconfirmed: pid=65015
+2026-09-25 09:42:36.090 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.process.ManagedProcessRunner - Foreground process cleanup unconfirmed: pid=65026
+[INFO] Tests run: 17, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 14.30 s -- in com.aicodeassistant.tool.process.ManagedProcessRunnerTest
+[INFO] Running com.aicodeassistant.tool.process.OwnedProcessTest
+[WARNING] Tests run: 15, Failures: 0, Errors: 0, Skipped: 6, Time elapsed: 0.627 s -- in com.aicodeassistant.tool.process.OwnedProcessTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[WARNING] Tests run: 87, Failures: 0, Errors: 0, Skipped: 6
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:00 min
+[INFO] Finished at: 2026-09-25T09:42:36+08:00
+[INFO] ------------------------------------------------------------------------
+MVN_EXIT=0
+END:09:42:37

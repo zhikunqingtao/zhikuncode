@@ -1,0 +1,140 @@
+# Changelog
+
+本文件记录 ZhikunCode 项目的所有重要变更。
+
+格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
+版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
+
+## [Unreleased]
+
+### Added
+- Web 新增独立快捷键帮助对话框；会话列表支持按文件夹分组。
+- 新增浏览器截图粘贴的固定 OSS 快速通道：无需 Skill 或额外 LLM 调用，上传后将可信 HTTPS 图片地址直接交给视觉模型；未配置 OSS 时给出明确提示。
+- OSS 凭证支持 ECS RAM Role/IMDSv2 与本地阿里云默认凭证链双模式，覆盖本地一键启动和 Docker Compose 透传。
+- 新增可浏览、持久且可撤销的 Project 文件夹授权；Project 作为信任范围和默认相对路径根，普通操作在其内免打扰，范围外操作进入常规授权，敏感路径和高风险操作仍需逐次确认。
+- 新增百炼 Token Plan 渠道 `qwen3.8-flash`（官方规格：1M 上下文、131072 最大输出、多模态输入、支持思考模式），接入方式与 `qwen3.8-max` 一致。
+- 新增百炼 Token Plan 渠道 `deepseek-v4-pro-0813` 与 `deepseek-v4-flash-0731`，并与 `qwen3.8-max` 统一标注“百炼”。
+- 新增 `deepseek-v4-flash-vision-exp` 图片理解模型，作为 DeepSeek 系列的专属视觉兜底。
+- 同一 LLM Provider 支持逗号分隔多 API Key（ZenMux 订阅 Key `sk-ss-v1-` 优先、按量 Key `sk-ai-v1-` 兜底），402 quote_exceeded / 404 model_not_available / 429 时自动冷却切换。
+- 新增 OpenRouter Provider：`stealth/union-alpha`（Union Alpha，当前免费预览）及强推理模型 `openrouter/openai/gpt-6-astra`、`openrouter/anthropic/claude-fable-5.1`（默认 `reasoning.effort=max`）；内部 `openrouter/` 前缀用于渠道隔离，复用 OpenAI 兼容链路与 Key 轮换。
+- 新增可选的删除会话二次确认验证码：配置 `ZHIKUN_DELETE_CONFIRM_CODE` 后，Web 删除会话须在确认气泡中输入该验证码（随 `X-Delete-Confirm-Code` 请求头由后端校验）；未配置时维持原确认流程，配置查询失败不缓存失败结果，下次挂载重试。
+
+### Changed
+- Web 设置面板精简为外观设置，顶栏主题入口改为打开选择面板；移除“跟随系统”、语言和努力程度设置入口。旧“跟随系统”偏好按升级时的系统外观迁移为浅色或深色。
+- Web 液态玻璃改用统一分层材质：连续导航、悬浮输入区、Chrome 背景边缘折射、局部高光与分段选择动效；正文使用清晰底色，支持浏览器与无障碍降级。
+- 对话按“用户指令 / 任务过程 / 回复”展示，显示方式三档（精简 / 标准 / 完整过程）：精简档三层默认折叠，标准与完整过程档保留完整问题与回复，运行中同样生效；含工具调用的流式段归入过程区。移动输入采用常驻卡片，本轮移除旧的全部展开/折叠、复制本轮与轮次大纲入口。
+- ZenMux 默认目录保留 `anthropic/claude-fable-5.1`，新增 GPT-6 Astra、Gemini 3.8 Flash 与 Grok 4.6，并清理已替换或下线的旧型号。
+- Web 新会话必须先选择 Project；Session、Query 和文件搜索统一由 `projectId` / `sessionId` 解析服务端工作目录。
+- 智谱主模型全量升级为 GLM-5.3，覆盖前后端默认配置与中英文文档。
+- 模型列表、默认模型、会话创建和恢复统一以当前已注册 Provider 为权威；无效或已下线模型不再显示为 `Unknown Model`，历史会话仅在当前连接中回退到可用默认模型。
+- Docker 运行时升级到 Python 3.12 并内置可选的受管 Python 服务；基础 Compose 保持默认不启动 Python，部署方须通过显式 override 启用。
+- **Breaking:** Query 不再接受客户端提供的 `workingDirectory`。CLI 本地连接会登记当前目录，远程连接应使用 `--project-id` 或服务端默认工作区。
+- 无 allowed roots 时，本机目录选择默认关闭；直连本机桌面服务须显式设置 `ZHIKUN_LOCAL_PICKER_ENABLED=true`，远程或反向代理部署须配置 `ZHIKUN_WORKSPACE_ALLOWED_ROOTS`。
+- 顶栏的模型选择器、模型重试与成本指示改为桌面端常驻（≥768px）。
+- 上下文压缩引擎重构为 ContextCompactor / CompactConfiguration / CompactionContext / CompactionHistory：摘要失败时按完整工具事务本地选择，用户原文永不省略且不再尾部截断，工具终止未确认不宣告成功。
+- `BACKGROUND_AGENT_WAIT` 默认开启：主 Run 等待本轮后台代理完成再汇总结果，默认预算 31 分钟，可用 `FEATURE_BACKGROUND_AGENT_WAIT=false` 关闭或 `AGENT_TIMEOUT_MAX_WAIT_MINUTES` 调整。
+- Web 侧边栏移除图标轨改为直接面板加收起展开条，会话搜索下推服务端（防抖 + 分页互斥），停止按钮三端统一，隐藏工作台切换；移除侧边栏“新窗口打开”导航入口（独立窗口渲染能力保留）。
+- 多 Provider 重复模型 ID 由“首个匹配”改为明确拒绝歧义路由；OpenRouter 列表中的官方原始 ID 启动时自动规范化去重。
+- 同一会话执行期间，REST 查询与会话管理操作返回 409 `SESSION_CONCURRENT_MODIFICATION`：WS / REST / SSE / Undo 及历史删除统一由每会话 `SessionExecutionGate` 非阻塞互斥，忙时明确拒绝而非排队。
+- 消息持久化改为落盘优先：assistant 消息先同步落库成功才进入工作集并允许本轮工具执行；落盘失败先取消已启动工具，再以 INCOMPLETE（`PERSISTENCE_FAILED`）终结 Run，取代原“失败后跳过后写、结尾按长度补偿补写”策略。
+- ZenMux 多 API Key 选择策略改为 `PRIORITY_FAILOVER`（配置顺序中首个健康 Key 优先，冷却时故障转移，恢复后重新优先）；其余 Provider 保持既有轮询。
+- 移除内部压缩标记（`[final]` / `[skeleton]` / `[collapsed]` 等）的正文剥离规则：用户可见正文原样保留，避免误伤 INI 段名等合法方括号内容；流式与历史展示同步不再过滤。整段最终答复仅为系统折叠占位符时仍按无可见正文处理，触发一次补请求恢复。
+
+### Fixed
+- 修复多批次后台代理等待共享运行级截止时间的问题：首个等待周期结束后，超过 `AGENT_TIMEOUT_MAX_WAIT_MINUTES` 的新批次会以 0 预算立即触发 `BACKGROUND_AGENT_WAIT_TIMEOUT` 并终结主 Run，已启动的后台代理结果无法交付。现每个等待周期独立获得完整预算（同一次等待内的唤醒不刷新预算），并新增两波次等待回归测试。
+- 修复 Kimi 视觉模型拒绝粘贴图片公网 URL 的问题：发送前临时转为 base64，历史保留引用；图片上下文按尺寸估算并独立限制传输大小。
+- 图片额度优先保留当前附件和新读取的工具图片；附件处理失败或历史图片省略的提示实时显示并随会话保存。
+- 修复旧主题配置导致的首屏白屏，统一校验本地及服务端主题；主题 E2E 增加真实切换、刷新持久化与旧配置迁移断言。
+- 完整过程档下新指令不再自动折叠前轮过程；自动压缩与命令执行提示在三档显示方式下均保持可见。
+- 接通首页模板填词和聚焦，修复移动端可视化自动跳转及隐藏“回到最新”按钮截获点击。
+- 修复历史 TodoWrite 任务状态/结果解析，统一切换调用的分节归属；实时工具按 assistant 段关联，任务边界以消息 UUID 合并实时与历史数据。
+- 系统消息用独立 JSON `kind` 保存后端分类，避免快照往返丢失压缩摘要标记；图片引用复制保留消息元数据。
+- 规范化远端 MCP Schema 中的非标准类型别名（如 `bool` → `boolean`），避免 Moonshot/Kimi 因任一工具 Schema 非法而拒绝包含智谱搜索在内的整批工具。
+- Python 健康恢复改为异步且防重入，避免异常重启阻塞 WebSocket 心跳、授权重投及其他定时任务。
+- 修复 Responses API 多轮对话中 assistant 历史文本被编码为 input_text 导致的跨模型 400 错误，现按规范编码为 output_text。
+
+### Security
+- 内置文件搜索、写入、Glob、Grep、LSP 与 Snip 以单一 Session 根解析相对路径；范围外绝对路径进入常规授权，并在执行前复检路径、符号链接和 Project 状态。
+- Python 文件、Git 与分析端点统一执行 canonical workspace allowlist 与请求 project-root 子路径边界校验，递归扫描跳过符号链接；文件树深度限制为 0–20，越界或不存在的分析路径统一拒绝。
+
+## [1.2.0] - 2026-05-07
+
+### Added
+- 新增 GitHub Actions CI 工作流与安全扫描
+- 新增 Dependabot 自动依赖更新配置
+- 新增 Moonshot/Kimi 作为第三方 LLM Provider
+- 新增代码路径追踪可视化（F40）三端实现
+- 新增代码转图表自动生成功能（F35）
+- 新增 6 项前端可视化功能（F3/F33/F25 等）及 E2E 验证
+- 新增侧边栏可拖拽调整宽度与独立窗口支持
+- 新增级联压缩 Phase1+Phase2 实现
+
+### Changed
+- 升级 Node.js 20 → 22
+- 建立综合单元测试体系（84 用例 / 277 方法）
+- 新增架构图 HTML 页面用于 GitHub Pages 部署
+
+### Fixed
+- 修复 Blame 视图列宽导致内容截断的问题
+
+### Removed
+- 移除无用代码 TokenAlertEvaluator 及所有引用
+
+## [1.1.0] - 2026-04-29
+
+### Added
+- 新增插件系统：支持动态加载、生命周期钩子和热重载
+- 新增 DeepSeek V4 Pro/Flash 模型支持（含完整思考模式）
+- 新增 WebSocket 推送替代会话列表轮询 + TTL 自动清理
+- 新增 Skill 系统端到端执行链路修复与完善
+- 新增局域网访问支持与移动端适配
+- 新增 P0P1 六项架构优化：安全黑名单 / 记忆统一存储 / API 语义化 / 依赖锁定 / 前端组件化 / 压缩增强
+
+### Fixed
+- 修复 WebSocket 断连后权限弹窗失效与工具执行可靠性问题
+- 修复 PROMPT 命令注入 LLM 路由 + WebSocket 会话映射问题
+- 修复 `crypto.randomUUID()` 在非安全上下文下的兼容性问题
+- 修复 aica CLI `--version` 和 `--continue` 会话 bug
+- 修复 stop.sh 自动清理 Agent 残留 git worktree 和临时分支
+- 禁用 DashScope MCP 服务器默认启动以避免日志刷屏
+
+## [1.0.1] - 2026-04-23
+
+### Added
+- 新增品牌目录统一：`.qoder` → `.zhikun`
+- 新增 CLI 工具文档章节（中英文 README）
+- 新增记忆系统、技能系统、多 Agent 协作文档章节
+- 新增质量保障章节与测试报告
+
+### Changed
+- 优化 Docker 部署体验，改善首次使用引导
+- 修正竞品对比表格数据（基于源码验证）
+
+### Fixed
+- 修复 Docker 构建缺少 MCP 注册表配置的问题
+- 修复 logo.png 缺失、统一工具数量描述
+
+## [1.0.0] - 2026-04-22
+
+### Added
+- 多模型 LLM 支持（通义千问、DeepSeek、OpenAI 兼容 API 等）
+- 多 Agent 协作模式（Team / Swarm）
+- 47 个内置工具（Bash、文件编辑、搜索、Git 等）
+- MCP（Model Context Protocol）集成，可扩展工具生态
+- 8 层 Bash 安全流水线与权限控制
+- WebSocket 实时通信架构
+- React + TailwindCSS 前端
+- Python FastAPI 分析服务
+- Docker 单容器部署方案
+- 完整的权限与路径安全体系
+
+### Security
+- 路径穿越防护
+- 敏感文件访问控制
+- 命令注入防护
+- 基于权限的工具执行机制
+
+[1.2.0]: https://github.com/zhikuncode/zhikuncode/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/zhikuncode/zhikuncode/compare/v1.0.1...v1.1.0
+[1.0.1]: https://github.com/zhikuncode/zhikuncode/compare/v1.0.0...v1.0.1
+[1.0.0]: https://github.com/zhikuncode/zhikuncode/releases/tag/v1.0.0

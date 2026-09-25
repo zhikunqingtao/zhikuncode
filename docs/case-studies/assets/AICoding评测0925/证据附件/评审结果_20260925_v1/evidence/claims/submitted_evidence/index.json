@@ -1,0 +1,211 @@
+{
+  "captured_at": "2026-09-25T10:28:11.075690+08:00",
+  "method": "read-only copy of named artifacts; existence does not authenticate all execution or causal claims",
+  "entries": [
+    {
+      "report_id": "E01",
+      "original_path": "/tmp/probe/Probe.java",
+      "preserved_path": "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/claims/submitted_evidence/E01/tmp/probe/Probe.java",
+      "sha256": "f3fb9e78b377dad9d3f6c61882d3517d9c0bd89ab3bff812574f8f1e7e5f5dfc",
+      "bytes": 5119,
+      "kind": "probe_source",
+      "report_citation": "E01.md:L331"
+    },
+    {
+      "report_id": "E01",
+      "original_path": "/tmp/probe3/LaunchWindowCancelProbe.java",
+      "preserved_path": "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/claims/submitted_evidence/E01/tmp/probe3/LaunchWindowCancelProbe.java",
+      "sha256": "3771f4f75aa754278fe1272deaa7c14e905ac12c7d17ebb70afb021d7a102ad1",
+      "bytes": 2692,
+      "kind": "probe_source",
+      "report_citation": "E01.md:L332"
+    },
+    {
+      "report_id": "E01",
+      "original_path": "/tmp/probe3/CancelTimelineProbe.java",
+      "preserved_path": "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/claims/submitted_evidence/E01/tmp/probe3/CancelTimelineProbe.java",
+      "sha256": "5a9d726095c296b9739a67404a35ef83bd958a22c4b16023f3dfcf975b17bafa",
+      "bytes": 2523,
+      "kind": "probe_source",
+      "report_citation": "E01.md:L117"
+    },
+    {
+      "report_id": "E01",
+      "original_path": "/tmp/zc-verify/target/surefire-reports/com.aicodeassistant.tool.process.ManagedProcessRunnerTest.txt",
+      "preserved_path": "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/claims/submitted_evidence/E01/tmp/zc-verify/target/surefire-reports/com.aicodeassistant.tool.process.ManagedProcessRunnerTest.txt",
+      "sha256": "1d0d97a10dd868d967eca406fe3fe9470ee2017e95c1242ec81883c3727caba5",
+      "bytes": 10877,
+      "kind": "derived_test_report",
+      "report_citation": "E01.md:L51"
+    },
+    {
+      "report_id": "E01",
+      "original_path": "/tmp/zc-parent/target/surefire-reports/com.aicodeassistant.tool.process.ManagedProcessRunnerTest.txt",
+      "preserved_path": "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/claims/submitted_evidence/E01/tmp/zc-parent/target/surefire-reports/com.aicodeassistant.tool.process.ManagedProcessRunnerTest.txt",
+      "sha256": "40f0429082d09463d898b81832ccca98204fbcaa48a2f2516de85e8dd11ee5e3",
+      "bytes": 10332,
+      "kind": "derived_test_report",
+      "report_citation": "E01.md:L51"
+    },
+    {
+      "report_id": "E03",
+      "original_path": "/tmp/zc_linux/Probe.java",
+      "preserved_path": "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/claims/submitted_evidence/E03/tmp/zc_linux/Probe.java",
+      "sha256": "5896d3a57ba76407ead9e7f975a24779f854cb97758145b90e7b7fd80f27b076",
+      "bytes": 3341,
+      "kind": "probe_source",
+      "report_citation": "E03.md:L353"
+    },
+    {
+      "report_id": "E03",
+      "original_path": "/tmp/zc_linux/Probe2.java",
+      "preserved_path": "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/claims/submitted_evidence/E03/tmp/zc_linux/Probe2.java",
+      "sha256": "ebbcbd814d185229ccea7c950259306bef0ea97f14e95f6bfa65a1c910191bf1",
+      "bytes": 1356,
+      "kind": "probe_source",
+      "report_citation": "E03.md:L353"
+    },
+    {
+      "report_id": "E03",
+      "original_path": "/tmp/zc_linux/Probe3.java",
+      "preserved_path": "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/claims/submitted_evidence/E03/tmp/zc_linux/Probe3.java",
+      "sha256": "20f9d06b149f57871c0531a818e871275c06566d385c1c15bf602935c2c10272",
+      "bytes": 518,
+      "kind": "probe_source",
+      "report_citation": "E03.md:L353"
+    },
+    {
+      "report_id": "E03",
+      "original_path": "/tmp/zc_repro/Repro.java",
+      "preserved_path": "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/claims/submitted_evidence/E03/tmp/zc_repro/Repro.java",
+      "sha256": "afb490d28f3cd322fc92305cb272015cfbe69e258f4e2e1960d02d8ba9e1d577",
+      "bytes": 1851,
+      "kind": "probe_source",
+      "report_citation": "E03.md:L358"
+    },
+    {
+      "report_id": "E03",
+      "original_path": "/tmp/zc_java_full.log",
+      "preserved_path": "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/claims/submitted_evidence/E03/tmp/zc_java_full.log",
+      "sha256": "452f7fa5afb76dc12b26e4ca22e1c176ed0cf8b5d967ba91f9f79a87b211788e",
+      "bytes": 2574040,
+      "kind": "test_log",
+      "report_citation": "E03.md:L364"
+    },
+    {
+      "report_id": "E03",
+      "original_path": "/tmp/zc_java_tests.log",
+      "preserved_path": "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/claims/submitted_evidence/E03/tmp/zc_java_tests.log",
+      "sha256": "1edf243d0a454ca4a8548c379a87efab21dadad9d803750394bdf74ca285e242",
+      "bytes": 16474,
+      "kind": "test_log",
+      "report_citation": "E03.md:L364"
+    },
+    {
+      "report_id": "E03",
+      "original_path": "/tmp/zc_py_tests.log",
+      "preserved_path": "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/claims/submitted_evidence/E03/tmp/zc_py_tests.log",
+      "sha256": "a10368bca80a70b194f3b784252030c5e11636e020adec95c9665ff6b5aa3dcf",
+      "bytes": 527,
+      "kind": "test_log",
+      "report_citation": "E03.md:L364"
+    },
+    {
+      "report_id": "E03",
+      "original_path": "/tmp/zc_cls_results.txt",
+      "preserved_path": "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/claims/submitted_evidence/E03/tmp/zc_cls_results.txt",
+      "sha256": "024e3cde2254c113d8e16c053b4ee0c4373f2604a847bb3446afa713ee627026",
+      "bytes": 102,
+      "kind": "repeat_log",
+      "report_citation": "E03.md:L364"
+    },
+    {
+      "report_id": "E05",
+      "original_path": "/tmp/zk-parent",
+      "status": "not_a_currently_visible_file",
+      "report_citation": "E05.md:L7"
+    },
+    {
+      "report_id": "E06",
+      "original_path": "/Users/reviewer/Desktop/dev/code/zhikuncode/backend/.zhikun/scratchpad/824e9ba4-7e97-4ead-9c30-7db8e486c098/java_review_findings.md",
+      "preserved_path": "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/claims/submitted_evidence/E06/Users/reviewer/Desktop/dev/code/zhikuncode/backend/.zhikun/scratchpad/824e9ba4-7e97-4ead-9c30-7db8e486c098/java_review_findings.md",
+      "sha256": "312090fae5cf92fe577fc250f529c6306cd33f05fd897207845188a3de2e4109",
+      "bytes": 33106,
+      "kind": "supporting_review",
+      "report_citation": "E06.md:L594"
+    },
+    {
+      "report_id": "E06",
+      "original_path": "/Users/reviewer/Desktop/dev/code/zhikuncode/backend/.zhikun/scratchpad/824e9ba4-7e97-4ead-9c30-7db8e486c098/python_review_findings.md",
+      "preserved_path": "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/claims/submitted_evidence/E06/Users/reviewer/Desktop/dev/code/zhikuncode/backend/.zhikun/scratchpad/824e9ba4-7e97-4ead-9c30-7db8e486c098/python_review_findings.md",
+      "sha256": "1358385c36c8d2ce649faff604d6cbdd4ee0322c1d3c1ecd65e2d9b39c8ad691",
+      "bytes": 27804,
+      "kind": "supporting_review",
+      "report_citation": "E06.md:L595"
+    },
+    {
+      "report_id": "E06",
+      "original_path": "/Users/reviewer/Desktop/dev/code/zhikuncode/backend/.zhikun/scratchpad/824e9ba4-7e97-4ead-9c30-7db8e486c098/test_execution_evidence.md",
+      "preserved_path": "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/claims/submitted_evidence/E06/Users/reviewer/Desktop/dev/code/zhikuncode/backend/.zhikun/scratchpad/824e9ba4-7e97-4ead-9c30-7db8e486c098/test_execution_evidence.md",
+      "sha256": "c8b3dcaa7cf7bba1a691b066dbbdfc38f5e7cd7458d76fc65024d3b9556333dd",
+      "bytes": 34478,
+      "kind": "test_evidence",
+      "report_citation": "E06.md:L596"
+    },
+    {
+      "report_id": "E06",
+      "original_path": "/tmp/zhikun_parent",
+      "status": "not_a_currently_visible_file",
+      "report_citation": "E06.md:L602"
+    },
+    {
+      "report_id": "E07",
+      "original_path": "/tmp/oprobe/Probe.java",
+      "preserved_path": "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/claims/submitted_evidence/E07/tmp/oprobe/Probe.java",
+      "sha256": "134fd69518221ebfbcb9480d03a91631c872e3858c42b62abe7453c8b4521a72",
+      "bytes": 3262,
+      "kind": "probe_source",
+      "report_citation": "E07.md:L245"
+    },
+    {
+      "report_id": "E07",
+      "original_path": "/tmp/oprobe/Probe2.java",
+      "preserved_path": "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/claims/submitted_evidence/E07/tmp/oprobe/Probe2.java",
+      "sha256": "b29a08cc4f02a78bd02ae308fe95909cd091a7915970a54116ced0fa19ab1e39",
+      "bytes": 2631,
+      "kind": "probe_source",
+      "report_citation": "E07.md:L245"
+    },
+    {
+      "report_id": "E07",
+      "original_path": "/tmp/oprobe/Probe3.java",
+      "preserved_path": "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/claims/submitted_evidence/E07/tmp/oprobe/Probe3.java",
+      "sha256": "e2d1e8f6f092ab319fc2769d1ce89d9bbea1857eed9565adb7bd24fa4e8c7f71",
+      "bytes": 1110,
+      "kind": "probe_source",
+      "report_citation": "E07.md:L245"
+    },
+    {
+      "report_id": "E07",
+      "original_path": "/tmp/oprobe/OwnedProcess.java",
+      "preserved_path": "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/claims/submitted_evidence/E07/tmp/oprobe/OwnedProcess.java",
+      "sha256": "82bdba7be84f534987ee2f3d7f9c16d23d2663a947db833c8f13b8992c8893ba",
+      "bytes": 12878,
+      "kind": "copied_source",
+      "report_citation": "E07.md:L245"
+    },
+    {
+      "report_id": "E08",
+      "original_path": "/tmp/jdelay.py",
+      "report_citation": "E08.md:L311",
+      "status": "not_currently_visible"
+    },
+    {
+      "report_id": "E08",
+      "original_path": "/tmp/mech.py",
+      "report_citation": "E08.md:L122",
+      "status": "not_currently_visible"
+    }
+  ],
+  "updated_at": "2026-09-25T10:30:46.111406+08:00"
+}

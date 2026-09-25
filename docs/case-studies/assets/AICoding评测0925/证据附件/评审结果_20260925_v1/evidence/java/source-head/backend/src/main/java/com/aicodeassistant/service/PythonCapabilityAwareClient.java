@@ -1,0 +1,425 @@
+package com.aicodeassistant.service;
+
+import com.aicodeassistant.observability.SafeLogValue;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Service;
+
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.regex.Pattern;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+
+/**
+ * Python 服务能力感知客户端 — §4.14 / §2.4.3
+ *
+ * <p>启动时探测 Python 服务的可用能力域，仅调用已安装的能力域。
+ * 缺少依赖的能力域自动降级（返回 Optional.empty()），不抛异常。</p>
+ *
+ * <p>能力清单缓存在内存中，每 5 分钟刷新。</p>
+ */
+@Service
+public class PythonCapabilityAwareClient {
+
+    private static final Logger log = LoggerFactory.getLogger(PythonCapabilityAwareClient.class);
+
+    private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(3);
+    private static final Duration READ_TIMEOUT = Duration.ofSeconds(30);
+    private static final Duration HEAVY_READ_TIMEOUT = Duration.ofSeconds(120);
+    private static final int MAX_RETRIES = 3;
+    private static final Duration RETRY_BASE_DELAY = Duration.ofMillis(500);
+    private static final Pattern SAFE_CORRELATION_HEADER =
+            Pattern.compile("^[A-Za-z0-9._:-]{1,128}$");
+    private static final Duration SUCCESS_CACHE_TTL = Duration.ofMinutes(5);
+    private static final Duration FAILURE_CACHE_TTL = Duration.ofSeconds(30);
+
+    private final HttpClient httpClient;
+    private final ObjectMapper objectMapper;
+    private final String baseUrl;
+    private volatile Map<String, CapabilityStatus> capabilities = new ConcurrentHashMap<>();
+    private volatile long lastRefreshTimestamp = 0;
+    private volatile boolean lastRefreshSuccess = false;
+
+    /**
+     * 能力域可用状态。
+     *
+     * @param name      能力域显示名称
+     * @param available 是否可用
+     * @param reason    不可用原因 (available=true 时为 null)
+     */
+    public record CapabilityStatus(String name, boolean available, String reason) {
+        public boolean isAvailable() {
+            return available;
+        }
+    }
+
+    @Autowired
+    public PythonCapabilityAwareClient(
+            @Value("http://${python.service.host:127.0.0.1}:${python.service.port:8000}") String baseUrl,
+            ObjectMapper objectMapper) {
+        this(baseUrl, objectMapper, HttpClient.newBuilder()
+                .connectTimeout(CONNECT_TIMEOUT)
+                .version(HttpClient.Version.HTTP_1_1)
+                .build());
+    }
+
+    PythonCapabilityAwareClient(String baseUrl, ObjectMapper objectMapper, HttpClient httpClient) {
+        this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+        this.objectMapper = objectMapper;
+        this.httpClient = httpClient;
+    }
+
+    // ═══ 启动时主动刷新 ═══
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void onApplicationReady() {
+        CompletableFuture.runAsync(() -> {
+            try {
+                Thread.sleep(5000);
+                refreshCapabilities();
+                log.info("Python 能力清单启动刷新完成");
+            } catch (Exception e) {
+                log.warn("Python capability startup refresh failed; retry deferred: errorType={}",
+                        SafeLogValue.errorType(e));
+            }
+        });
+    }
+
+    // ═══ 能力探测 ═══
+
+    /**
+     * 刷新能力清单 — GET /api/health/capabilities
+     * 启动时 + 定期自动刷新。成功缓存 5 分钟，失败缓存 30 秒。
+     */
+    public void refreshCapabilities() {
+        try {
+            var request = HttpRequest.newBuilder()
+                    .uri(URI.create(baseUrl + "/api/health/capabilities"))
+                    .timeout(Duration.ofSeconds(5))
+                    .GET()
+                    .build();
+            var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 200) {
+                this.capabilities = parseCapabilities(response.body());
+                this.lastRefreshTimestamp = System.currentTimeMillis();
+                this.lastRefreshSuccess = true;
+                log.info("Python 能力清单已刷新: {} 个域", capabilities.size());
+            } else {
+                this.lastRefreshTimestamp = System.currentTimeMillis();
+                this.lastRefreshSuccess = false;
+                log.warn("Python 能力探测返回 HTTP {}，使用短缓存", response.statusCode());
+            }
+        } catch (Exception e) {
+            this.lastRefreshTimestamp = System.currentTimeMillis();
+            this.lastRefreshSuccess = false;
+            log.warn("Python capability probe failed; short cache enabled: errorType={}",
+                    SafeLogValue.errorType(e));
+        }
+    }
+
+    /**
+     * 如果缓存已过期，自动刷新。
+     * 成功探测使用 SUCCESS_CACHE_TTL (5 分钟)，失败探测使用 FAILURE_CACHE_TTL (30 秒)。
+     */
+    public void refreshIfStale() {
+        long elapsed = System.currentTimeMillis() - lastRefreshTimestamp;
+        Duration ttl = lastRefreshSuccess ? SUCCESS_CACHE_TTL : FAILURE_CACHE_TTL;
+        if (elapsed > ttl.toMillis()) {
+            refreshCapabilities();
+        }
+    }
+
+    /**
+     * 检查某能力域是否可用。
+     * 缓存未命中时立即触发刷新后重试。
+     */
+    public boolean isCapabilityAvailable(String domain) {
+        refreshIfStale();
+        var status = capabilities.get(domain);
+        if (status != null) {
+            return status.isAvailable();
+        }
+
+        // 缓存未命中 → 立即刷新（而非返回 false）
+        refreshCapabilities();
+
+        // 刷新后再次检查
+        status = capabilities.get(domain);
+        return status != null && status.isAvailable();
+    }
+
+    /**
+     * 获取所有能力域状态。
+     */
+    public Map<String, CapabilityStatus> getCapabilities() {
+        return Map.copyOf(capabilities);
+    }
+
+    // ═══ 安全调用 ═══
+
+    /**
+     * 安全调用 — 能力不可用时返回 Optional.empty() 而非抛异常。
+     *
+     * @param domain     能力域名称 (如 "CODE_INTEL", "FILE_PROCESSING")
+     * @param endpoint   API 端点路径 (如 "/api/code-intel/parse")
+     * @param body       请求体 (将被序列化为 JSON)
+     * @param resultType 响应类型
+     * @return 结果，或 empty() 如果能力不可用
+     */
+    public <T> Optional<T> callIfAvailable(String domain, String endpoint,
+                                           Object body, Class<T> resultType) {
+        if (!isCapabilityAvailable(domain)) {
+            log.debug("Python 能力域 [{}] 不可用，跳过调用 {}", domain, endpoint);
+            return Optional.empty();
+        }
+        return callWithRetry(endpoint, body, resultType);
+    }
+
+    /**
+     * 带重试的 HTTP POST 调用（指数退避）。
+     */
+    public <T> Optional<T> callWithRetry(String endpoint, Object body,
+                                         Class<T> resultType) {
+        boolean retryAllowed = isReadOnlyEndpoint(endpoint);
+        String requestId = UUID.randomUUID().toString();
+        for (int attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+            try {
+                String jsonBody = objectMapper.writeValueAsString(body);
+                log.debug("Python POST request: endpoint={}, requestId={}, attempt={}, bodyLength={}, bodyFingerprint={}",
+                        endpoint, requestId, attempt + 1, jsonBody.length(), SafeLogValue.fingerprint(jsonBody));
+                var requestBuilder = HttpRequest.newBuilder()
+                        .uri(URI.create(baseUrl + endpoint))
+                        .timeout(READ_TIMEOUT)
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(jsonBody));
+                addCorrelationHeaders(requestBuilder, requestId, attempt + 1);
+                var request = requestBuilder.build();
+                var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                    T result = objectMapper.readValue(response.body(), resultType);
+                    return Optional.ofNullable(result);
+                }
+                log.warn("Python POST failed: endpoint={}, requestId={}, attempt={}, status={}, responseLength={}, responseFingerprint={}",
+                        endpoint, requestId, attempt + 1, response.statusCode(),
+                        SafeLogValue.length(response.body()), SafeLogValue.fingerprint(response.body()));
+                if (response.statusCode() >= 400 && response.statusCode() < 500) {
+                    log.info("Permanent Python client error is not retryable: endpoint={}, status={}",
+                            endpoint, response.statusCode());
+                    return Optional.empty();
+                }
+                if (!retryAllowed) {
+                    log.info("Python side-effecting/unknown endpoint is not retried: {}", endpoint);
+                    return Optional.empty();
+                }
+            } catch (Exception e) {
+                if (!retryAllowed) {
+                    log.warn("Python side-effecting/unknown endpoint failed without retry: endpoint={}, requestId={}, errorType={}",
+                            endpoint, requestId, SafeLogValue.errorType(e));
+                    return Optional.empty();
+                }
+                if (attempt < MAX_RETRIES) {
+                    long delayMs = RETRY_BASE_DELAY.toMillis() * (1L << attempt); // 指数退避: 500, 1000, 2000, 4000
+                    log.debug("Python POST retry: endpoint={}, requestId={}, attempt={}, maxRetries={}, delayMs={}, errorType={}",
+                            endpoint, requestId, attempt + 1, MAX_RETRIES, delayMs, SafeLogValue.errorType(e));
+                    try {
+                        Thread.sleep(delayMs);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                } else {
+                    log.error("Python POST exhausted: endpoint={}, requestId={}, retries={}, errorType={}",
+                            endpoint, requestId, MAX_RETRIES, SafeLogValue.errorType(e));
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * 带重试的 HTTP POST 调用（指数退避），使用自定义超时。
+     * 用于需要更长超时的场景（如 journey/run 端点）。
+     */
+    public <T> Optional<T> callWithRetry(String endpoint, Object body,
+                                         Class<T> resultType, Duration timeout) {
+        boolean retryAllowed = isReadOnlyEndpoint(endpoint);
+        String requestId = UUID.randomUUID().toString();
+        for (int attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+            try {
+                String jsonBody = objectMapper.writeValueAsString(body);
+                log.debug("Python POST request: endpoint={}, requestId={}, attempt={}, bodyLength={}, bodyFingerprint={}",
+                        endpoint, requestId, attempt + 1, jsonBody.length(), SafeLogValue.fingerprint(jsonBody));
+                var requestBuilder = HttpRequest.newBuilder()
+                        .uri(URI.create(baseUrl + endpoint))
+                        .timeout(timeout)
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(jsonBody));
+                addCorrelationHeaders(requestBuilder, requestId, attempt + 1);
+                var request = requestBuilder.build();
+                var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                    T result = objectMapper.readValue(response.body(), resultType);
+                    return Optional.ofNullable(result);
+                }
+                log.warn("Python POST failed: endpoint={}, requestId={}, attempt={}, status={}, responseLength={}, responseFingerprint={}",
+                        endpoint, requestId, attempt + 1, response.statusCode(),
+                        SafeLogValue.length(response.body()), SafeLogValue.fingerprint(response.body()));
+                if (response.statusCode() >= 400 && response.statusCode() < 500) {
+                    log.info("Permanent Python client error is not retryable: endpoint={}, status={}",
+                            endpoint, response.statusCode());
+                    return Optional.empty();
+                }
+                if (!retryAllowed) return Optional.empty();
+            } catch (Exception e) {
+                if (!retryAllowed) {
+                    log.warn("Python side-effecting/unknown endpoint failed without retry: endpoint={}, requestId={}, errorType={}",
+                            endpoint, requestId, SafeLogValue.errorType(e));
+                    return Optional.empty();
+                }
+                if (attempt < MAX_RETRIES) {
+                    long delayMs = RETRY_BASE_DELAY.toMillis() * (1L << attempt);
+                    log.debug("Python POST retry: endpoint={}, requestId={}, attempt={}, maxRetries={}, delayMs={}, errorType={}",
+                            endpoint, requestId, attempt + 1, MAX_RETRIES, delayMs, SafeLogValue.errorType(e));
+                    try {
+                        Thread.sleep(delayMs);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                } else {
+                    log.error("Python POST exhausted: endpoint={}, requestId={}, retries={}, errorType={}",
+                            endpoint, requestId, MAX_RETRIES, SafeLogValue.errorType(e));
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    /** Explicit conservative allow-list. Unknown POST endpoints are never retried. */
+    private static boolean isReadOnlyEndpoint(String endpoint) {
+        if (endpoint == null) return false;
+        return endpoint.startsWith("/api/analysis/")
+                || endpoint.startsWith("/api/code-intel/")
+                || endpoint.startsWith("/api/code-path/")
+                || endpoint.startsWith("/api/code-diagram/")
+                || endpoint.startsWith("/api/git/");
+    }
+
+    private static void addCorrelationHeaders(HttpRequest.Builder builder,
+                                              String requestId, int attempt) {
+        addHeaderIfPresent(builder, "X-Request-Id", requestId);
+        addHeaderIfPresent(builder, "X-Attempt", Integer.toString(attempt));
+        addHeaderIfPresent(builder, "X-Run-Id", safeMdc("runId"));
+        addHeaderIfPresent(builder, "X-Session-Id", safeMdc("sessionId"));
+    }
+
+    private static void addHeaderIfPresent(HttpRequest.Builder builder, String name, String value) {
+        try {
+            if (value != null && SAFE_CORRELATION_HEADER.matcher(value).matches()) {
+                builder.header(name, value);
+            }
+        } catch (Throwable ignored) {
+            // Diagnostic correlation must never make an otherwise valid request fail.
+        }
+    }
+
+    private static String safeMdc(String key) {
+        try { return MDC.get(key); }
+        catch (Throwable ignored) { return null; }
+    }
+
+    /**
+     * 安全调用（带自定义超时） — 能力不可用时返回 Optional.empty()。
+     * 用于需要更长超时的场景（如 UserJourneyVerifier 调用 journey/run）。
+     */
+    public <T> Optional<T> callIfAvailable(String domain, String endpoint,
+                                           Object body, Class<T> resultType, Duration timeout) {
+        if (!isCapabilityAvailable(domain)) {
+            log.debug("Python 能力域 [{}] 不可用，跳过调用 {}", domain, endpoint);
+            return Optional.empty();
+        }
+        return callWithRetry(endpoint, body, resultType, timeout);
+    }
+
+    /**
+     * 直接 POST 调用（不检查能力域）。
+     */
+    public <T> Optional<T> post(String endpoint, Object body, Class<T> resultType) {
+        return callWithRetry(endpoint, body, resultType);
+    }
+
+    /**
+     * 直接 GET 调用。
+     */
+    public Optional<String> get(String endpoint) {
+        try {
+            var request = HttpRequest.newBuilder()
+                    .uri(URI.create(baseUrl + endpoint))
+                    .timeout(READ_TIMEOUT)
+                    .GET()
+                    .build();
+            var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                return Optional.of(response.body());
+            }
+        } catch (Exception e) {
+            log.error("Python GET {} 失败", endpoint, e);
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * 健康检查 — GET /api/health
+     */
+    public boolean isHealthy() {
+        try {
+            var request = HttpRequest.newBuilder()
+                    .uri(URI.create(baseUrl + "/api/health"))
+                    .timeout(Duration.ofSeconds(3))
+                    .GET()
+                    .build();
+            var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            return response.statusCode() == 200;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    // ═══ 内部方法 ═══
+
+    private Map<String, CapabilityStatus> parseCapabilities(String json) {
+        Map<String, CapabilityStatus> result = new ConcurrentHashMap<>();
+        try {
+            JsonNode root = objectMapper.readTree(json);
+            var fields = root.fields();
+            while (fields.hasNext()) {
+                var entry = fields.next();
+                String domain = entry.getKey();
+                JsonNode value = entry.getValue();
+                result.put(domain, new CapabilityStatus(
+                        value.path("name").asText(""),
+                        value.path("available").asBoolean(false),
+                        value.path("reason").isNull() ? null : value.path("reason").asText()
+                ));
+            }
+        } catch (Exception e) {
+            log.error("解析 Python 能力清单失败", e);
+        }
+        return result;
+    }
+}

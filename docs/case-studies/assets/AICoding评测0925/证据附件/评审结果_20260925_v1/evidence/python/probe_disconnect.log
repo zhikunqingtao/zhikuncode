@@ -1,0 +1,3 @@
+{"variant": "bare_fastapi", "elapsed_seconds": 0.011, "closed_after_seconds": 0.01, "status": [499], "body": "{\"detail\":\"JOURNEY_CLIENT_DISCONNECTED\"}", "receive_disconnect_calls": 1, "close_calls": 1}
+{"variant": "production_main_middleware", "elapsed_seconds": 0.405, "closed_after_seconds": 0.402, "status": [504], "body": "{\"detail\":\"JOURNEY_DEADLINE_EXCEEDED\"}", "receive_disconnect_calls": 1, "close_calls": 1}
+REPRODUCED: production middleware loses http.disconnect observation until deadline.

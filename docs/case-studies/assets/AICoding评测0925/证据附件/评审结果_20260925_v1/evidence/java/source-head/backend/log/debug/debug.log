@@ -1,0 +1,1 @@
+2026-09-25 10:22:29.609 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.process.ManagedProcessRunner - Foreground process cleanup unconfirmed: pid=91614

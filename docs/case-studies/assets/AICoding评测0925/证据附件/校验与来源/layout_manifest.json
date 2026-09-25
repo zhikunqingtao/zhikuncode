@@ -1,0 +1,2343 @@
+{
+  "at": "2026-09-25T13:09:31.803282+08:00",
+  "files": [
+    {
+      "before_path": "usage_redaction_manifest.json",
+      "after_path": "证据附件/校验与来源/usage_redaction_manifest.json",
+      "before_sha256": "64f0bdd25ac1694ca5eb3da71a6070c0865825993c36d45ca43a445838cc434e",
+      "after_sha256_at_layout": "95a29a07de1c9e4453006513389037b03ed1dca37e149bdcb592d62b25560f33",
+      "frozen_markdown": false,
+      "content_unchanged": false,
+      "note": "导航/元数据/工具适配或晚到CSV脱敏"
+    },
+    {
+      "before_path": "评审汇总_八方评测结果入口.md",
+      "after_path": "证据附件/整理说明/评审汇总_八方评测结果入口.md",
+      "before_sha256": "ea1e8ac3f193a015a628c2827d20884a43dd1920c3b3556a118906d39d753b1c",
+      "after_sha256_at_layout": "ea1e8ac3f193a015a628c2827d20884a43dd1920c3b3556a118906d39d753b1c",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "缺失过程文件说明.md",
+      "after_path": "证据附件/整理说明/缺失过程文件说明.md",
+      "before_sha256": "49dc791978e1e670d2acaa6c8f9b7b1a266154a0aba20ca664676f1865125a52",
+      "after_sha256_at_layout": "4806e353e194e6b5a9e42908ce0a4f2fe69afd8f4b13f1ff130c658a72c95723",
+      "frozen_markdown": false,
+      "content_unchanged": false,
+      "note": "导航/元数据/工具适配或晚到CSV脱敏"
+    },
+    {
+      "before_path": "reference_map.json",
+      "after_path": "证据附件/校验与来源/reference_map.json",
+      "before_sha256": "203046150fd6bceee149b4595d3070bfb014c5ee2ca9cc6778d34eecd13cf7d3",
+      "after_sha256_at_layout": "019f032c202f533b93fb5be2c64b5948bdd064b30f091fe0c2686ae633d5a8a8",
+      "frozen_markdown": false,
+      "content_unchanged": false,
+      "note": "导航/元数据/工具适配或晚到CSV脱敏"
+    },
+    {
+      "before_path": "TraceCodeCn_0db4b04_lifecycle-fix-review.md",
+      "after_path": "TraceCodeCn_0db4b04_lifecycle-fix-review.md",
+      "before_sha256": "d45ddd6eee7bc8049b1f90d2bb394899605a0d61cea60cbe7f9b5cb4848099e0",
+      "after_sha256_at_layout": "d45ddd6eee7bc8049b1f90d2bb394899605a0d61cea60cbe7f9b5cb4848099e0",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "redaction_manifest.json",
+      "after_path": "证据附件/校验与来源/redaction_manifest.json",
+      "before_sha256": "4663e57b8eec4cfa590588e105afd7db1c3785da60db93ec66540d324f79b68d",
+      "after_sha256_at_layout": "d76c416099efe55c5d44638df79ffb0a39017e24ed87162fa4b59cbbbb5024dc",
+      "frozen_markdown": false,
+      "content_unchanged": false,
+      "note": "导航/元数据/工具适配或晚到CSV脱敏"
+    },
+    {
+      "before_path": "DeepSeekHarness_zhikuncode_commit-0db4b04_独立审查报告.md",
+      "after_path": "DeepSeekHarness_zhikuncode_commit-0db4b04_独立审查报告.md",
+      "before_sha256": "455b1b993ff132370d7ea96a6a66b1302b0b98c32c2f3d581ca4e8637c04cef0",
+      "after_sha256_at_layout": "455b1b993ff132370d7ea96a6a66b1302b0b98c32c2f3d581ca4e8637c04cef0",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "slimming_summary.json",
+      "after_path": "证据附件/校验与来源/slimming_summary.json",
+      "before_sha256": "a612ced2b0384722e86cc55a5916036b58d87f2d4ca09cc24eee32893288baa1",
+      "after_sha256_at_layout": "a612ced2b0384722e86cc55a5916036b58d87f2d4ca09cc24eee32893288baa1",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "restore_sources.py",
+      "after_path": "证据附件/校验与来源/restore_sources.py",
+      "before_sha256": "7928df6146486ee8566c732de05847d6b6b647a282bc55845ccf97a38f63ac0b",
+      "after_sha256_at_layout": "ca6bc78cb3005c91a6144d620c2964cf2bde0389c1b89f3231031cf1803d461f",
+      "frozen_markdown": false,
+      "content_unchanged": false,
+      "note": "导航/元数据/工具适配或晚到CSV脱敏"
+    },
+    {
+      "before_path": "restore_validation.json",
+      "after_path": "证据附件/校验与来源/restore_validation.json",
+      "before_sha256": "335adf694e1eb54bc6339e1a342e763aee4c9f3582d73a73fd03c07eb75c8b2f",
+      "after_sha256_at_layout": "177dd2338f9e4e661fbe03d51e9bc3eeefae09b8a81ce5889d466692939dcc5b",
+      "frozen_markdown": false,
+      "content_unchanged": false,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "冻结文档与过程文件导航.md",
+      "after_path": "证据附件/整理说明/冻结文档与过程文件导航.md",
+      "before_sha256": "45ad85667add34937238d539366152886cb92020177d55bb1f4cb1b1413261d9",
+      "after_sha256_at_layout": "0b136b1cd1d8bc18019e1b72a37df4193ca8326835f8d5229cf7796a51f242d3",
+      "frozen_markdown": false,
+      "content_unchanged": false,
+      "note": "导航/元数据/工具适配或晚到CSV脱敏"
+    },
+    {
+      "before_path": "QoderIDE_zhikuncode_commit-0db4b049_独立代码审查报告.md",
+      "after_path": "QoderIDE_zhikuncode_commit-0db4b049_独立代码审查报告.md",
+      "before_sha256": "48a6d17dc95d0e5ee2017656c0c04353336ea572f21efc1b069c9c9769489887",
+      "after_sha256_at_layout": "48a6d17dc95d0e5ee2017656c0c04353336ea572f21efc1b069c9c9769489887",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "deduplication_manifest.json",
+      "after_path": "证据附件/校验与来源/deduplication_manifest.json",
+      "before_sha256": "8b721628b8246997d890814bd9528e77c433db2b807d486834164cb945b56b8d",
+      "after_sha256_at_layout": "1c410c46b56c12ccbadf576fb74431ec1e2f8cb37a099ee5b35a4a3578af8aeb",
+      "frozen_markdown": false,
+      "content_unchanged": false,
+      "note": "导航/元数据/工具适配或晚到CSV脱敏"
+    },
+    {
+      "before_path": "ZCode_commit-0db4b04_进程与浏览器生命周期修复独立审查.md",
+      "after_path": "ZCode_commit-0db4b04_进程与浏览器生命周期修复独立审查.md",
+      "before_sha256": "4a6c3ee66e34f6fa4d1518a8dfdb7df6bf59ee142528d30eea12ee319078c5d0",
+      "after_sha256_at_layout": "4a6c3ee66e34f6fa4d1518a8dfdb7df6bf59ee142528d30eea12ee319078c5d0",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "opencode_commit_0db4b04_review.md",
+      "after_path": "opencode_commit_0db4b04_review.md",
+      "before_sha256": "d5741260dd808a2fccd2d4ac8d41f351e02afb40e965b24d47872a8ac74be2b6",
+      "after_sha256_at_layout": "d5741260dd808a2fccd2d4ac8d41f351e02afb40e965b24d47872a8ac74be2b6",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "README.md",
+      "after_path": "README.md",
+      "before_sha256": "39b1b7fd6424886dd59b7be5d1cb469ab456f6b235e9274c4401ea5959aa0929",
+      "after_sha256_at_layout": "f852e54913b397b0f06bede8abf0691b9f04112c5451b1e0591e38c78044c9e2",
+      "frozen_markdown": false,
+      "content_unchanged": false,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "usage_data_2026-09-25_2026-09-25.zip",
+      "after_path": "证据附件/用量数据/usage_data_2026-09-25_2026-09-25.zip",
+      "before_sha256": "931b4bd2a7a6d1e50489c56bcbc1e36db268b52eaf6176fe676123a0b79bbf1a",
+      "after_sha256_at_layout": "931b4bd2a7a6d1e50489c56bcbc1e36db268b52eaf6176fe676123a0b79bbf1a",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "publication_manifest.json",
+      "after_path": "证据附件/校验与来源/publication_manifest.json",
+      "before_sha256": "736747bc0746d14a8fc0be5c257c5999f16589f77c93acd7ba156af9200f7360",
+      "after_sha256_at_layout": "b2ecf7ba596c344d2731aca775a57643abecaba32efdd227f4b00dd9edb23361",
+      "frozen_markdown": false,
+      "content_unchanged": false,
+      "note": "导航/元数据/工具适配或晚到CSV脱敏"
+    },
+    {
+      "before_path": "精简移除清单.jsonl.gz",
+      "after_path": "证据附件/校验与来源/精简移除清单.jsonl.gz",
+      "before_sha256": "3766055c32734287ddfc32403f2906879e7d13fe0c07063fd1b7b9bd5ba4592c",
+      "after_sha256_at_layout": "3766055c32734287ddfc32403f2906879e7d13fe0c07063fd1b7b9bd5ba4592c",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "日志合并说明.md",
+      "after_path": "证据附件/整理说明/日志合并说明.md",
+      "before_sha256": "dc891e6b3a4775347867276903184f58bba9a9d44b6b039ac5b4bdbea53fa9bd",
+      "after_sha256_at_layout": "4859a3a303885c9a50e4c6a1543ea69cffa9f8d748886b9b0dd90061d3342ce6",
+      "frozen_markdown": false,
+      "content_unchanged": false,
+      "note": "导航/元数据/工具适配或晚到CSV脱敏"
+    },
+    {
+      "before_path": "精简说明.md",
+      "after_path": "证据附件/整理说明/精简说明.md",
+      "before_sha256": "815df7878f3dbf6480222b12f5c408345117e2a70884287644d464b236c901d0",
+      "after_sha256_at_layout": "1c74a3ce3dd9e055030f1c3cc920865f963010ad737b961bd6f27d5e9d72f89e",
+      "frozen_markdown": false,
+      "content_unchanged": false,
+      "note": "导航/元数据/工具适配或晚到CSV脱敏"
+    },
+    {
+      "before_path": "publication_validation.json",
+      "after_path": "证据附件/校验与来源/publication_validation.json",
+      "before_sha256": "f78bc5eee50e7f390fe7cb333816c89aeb85716fae87b4234d08824287c2fec5",
+      "after_sha256_at_layout": "f78bc5eee50e7f390fe7cb333816c89aeb85716fae87b4234d08824287c2fec5",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "校验结果为可重新生成的动态元数据；此哈希记录迁移时状态"
+    },
+    {
+      "before_path": "pi_zhikuncode_commit-0db4b04_review.md",
+      "after_path": "pi_zhikuncode_commit-0db4b04_review.md",
+      "before_sha256": "bafadba6fa32f0854d5bce5a209597bdfda71bc9b28521e9c4309cc98a28e064",
+      "after_sha256_at_layout": "bafadba6fa32f0854d5bce5a209597bdfda71bc9b28521e9c4309cc98a28e064",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "新增附件与上传说明.md",
+      "after_path": "证据附件/整理说明/新增附件与上传说明.md",
+      "before_sha256": "d6f14c2031a27be16b76b0bd2f4884c591fb53ff2d20c795df387d34fae39587",
+      "after_sha256_at_layout": "c8a9816bac6a77f7c584f2ad93ac0ad14be29c200e61aa6a566cfe1ddf476e0b",
+      "frozen_markdown": false,
+      "content_unchanged": false,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "QoderCN_commit-0db4b04-进程与浏览器生命周期修复审查.md",
+      "after_path": "QoderCN_commit-0db4b04-进程与浏览器生命周期修复审查.md",
+      "before_sha256": "68048e93aaff3d55b87dd1f5d5643b66e5edc673b7a445a7667954a561c6d3ed",
+      "after_sha256_at_layout": "68048e93aaff3d55b87dd1f5d5643b66e5edc673b7a445a7667954a561c6d3ed",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "zhikuncode_commit-0db4b049-独立审查报告.md",
+      "after_path": "zhikuncode_commit-0db4b049-独立审查报告.md",
+      "before_sha256": "c8cacdb4036994542b091c96fa6c78c7c569eca65ff9cc4a8af14fa9cd8432a3",
+      "after_sha256_at_layout": "c8cacdb4036994542b091c96fa6c78c7c569eca65ff9cc4a8af14fa9cd8432a3",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "validate_publication.py",
+      "after_path": "证据附件/校验与来源/validate_publication.py",
+      "before_sha256": "c1dcc91c2975884c5d9fa17ee42fa0d4c4e51637a060b2284bc5af3586be57ab",
+      "after_sha256_at_layout": "95ccad5bf9940bfabd2bd58b26d727f1eadc28d022505d538a4a303ac0785c1a",
+      "frozen_markdown": false,
+      "content_unchanged": false,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "usage_data_2026-09-25_2026-09-25/cost-2026-09-25_2026-09-25.csv",
+      "after_path": "证据附件/用量数据/展开副本/usage_data_2026-09-25_2026-09-25/cost-2026-09-25_2026-09-25.csv",
+      "before_sha256": "8b03fda4f816fe57da213530a47a9b7d06f87bb57edba2ec579200d1bc162d43",
+      "after_sha256_at_layout": "ffd00e0b68e1ba9a391e2b688fda603e132752c0b6ee101dbbea712673033934",
+      "frozen_markdown": false,
+      "content_unchanged": false,
+      "note": "导航/元数据/工具适配或晚到CSV脱敏"
+    },
+    {
+      "before_path": "usage_data_2026-09-25_2026-09-25/amount-2026-09-25_2026-09-25.csv",
+      "after_path": "证据附件/用量数据/展开副本/usage_data_2026-09-25_2026-09-25/amount-2026-09-25_2026-09-25.csv",
+      "before_sha256": "43cc6c33a7b6e0f8c8a8e37b54fa6a027d8e51228b68ab7c5085870f4d9b58a2",
+      "after_sha256_at_layout": "47f3787bb06e2358a7d2a9594344d55277815c36efb0fa33e4f4ae5fe3f00b4b",
+      "frozen_markdown": false,
+      "content_unchanged": false,
+      "note": "导航/元数据/工具适配或晚到CSV脱敏"
+    },
+    {
+      "before_path": "新增用量数据/cost-2026-09-25_2026-09-25.csv",
+      "after_path": "证据附件/用量数据/cost-2026-09-25_2026-09-25.csv",
+      "before_sha256": "ffd00e0b68e1ba9a391e2b688fda603e132752c0b6ee101dbbea712673033934",
+      "after_sha256_at_layout": "ffd00e0b68e1ba9a391e2b688fda603e132752c0b6ee101dbbea712673033934",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "新增用量数据/amount-2026-09-25_2026-09-25.csv",
+      "after_path": "证据附件/用量数据/amount-2026-09-25_2026-09-25.csv",
+      "before_sha256": "47f3787bb06e2358a7d2a9594344d55277815c36efb0fa33e4f4ae5fe3f00b4b",
+      "after_sha256_at_layout": "47f3787bb06e2358a7d2a9594344d55277815c36efb0fa33e4f4ae5fe3f00b4b",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/scratchpad/824e9ba4-7e97-4ead-9c30-7db8e486c098/python_review_findings.md",
+      "after_path": "证据附件/过程补充文件/scratchpad/824e9ba4-7e97-4ead-9c30-7db8e486c098/python_review_findings.md",
+      "before_sha256": "1358385c36c8d2ce649faff604d6cbdd4ee0322c1d3c1ecd65e2d9b39c8ad691",
+      "after_sha256_at_layout": "1358385c36c8d2ce649faff604d6cbdd4ee0322c1d3c1ecd65e2d9b39c8ad691",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "过程补充文件/scratchpad/824e9ba4-7e97-4ead-9c30-7db8e486c098/test_execution_evidence.md",
+      "after_path": "证据附件/过程补充文件/scratchpad/824e9ba4-7e97-4ead-9c30-7db8e486c098/test_execution_evidence.md",
+      "before_sha256": "c8b3dcaa7cf7bba1a691b066dbbdfc38f5e7cd7458d76fc65024d3b9556333dd",
+      "after_sha256_at_layout": "c8b3dcaa7cf7bba1a691b066dbbdfc38f5e7cd7458d76fc65024d3b9556333dd",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "过程补充文件/scratchpad/824e9ba4-7e97-4ead-9c30-7db8e486c098/java_review_findings.md",
+      "after_path": "证据附件/过程补充文件/scratchpad/824e9ba4-7e97-4ead-9c30-7db8e486c098/java_review_findings.md",
+      "before_sha256": "312090fae5cf92fe577fc250f529c6306cd33f05fd897207845188a3de2e4109",
+      "after_sha256_at_layout": "312090fae5cf92fe577fc250f529c6306cd33f05fd897207845188a3de2e4109",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc_cls_results.txt",
+      "after_path": "证据附件/过程补充文件/tmp/zc_cls_results.txt",
+      "before_sha256": "024e3cde2254c113d8e16c053b4ee0c4373f2604a847bb3446afa713ee627026",
+      "after_sha256_at_layout": "024e3cde2254c113d8e16c053b4ee0c4373f2604a847bb3446afa713ee627026",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc_java_tests.log",
+      "after_path": "证据附件/过程补充文件/tmp/zc_java_tests.log",
+      "before_sha256": "1edf243d0a454ca4a8548c379a87efab21dadad9d803750394bdf74ca285e242",
+      "after_sha256_at_layout": "1edf243d0a454ca4a8548c379a87efab21dadad9d803750394bdf74ca285e242",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc_cp.txt",
+      "after_path": "证据附件/过程补充文件/tmp/zc_cp.txt",
+      "before_sha256": "a6fc63cc306b20afacd1d18bcc4df60f8ad288a6aaf1e53eb5bf132ea22e198d",
+      "after_sha256_at_layout": "a6fc63cc306b20afacd1d18bcc4df60f8ad288a6aaf1e53eb5bf132ea22e198d",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc_py_tests.log",
+      "after_path": "证据附件/过程补充文件/tmp/zc_py_tests.log",
+      "before_sha256": "a10368bca80a70b194f3b784252030c5e11636e020adec95c9665ff6b5aa3dcf",
+      "after_sha256_at_layout": "a10368bca80a70b194f3b784252030c5e11636e020adec95c9665ff6b5aa3dcf",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc_repro/Repro.java",
+      "after_path": "证据附件/过程补充文件/tmp/zc_repro/Repro.java",
+      "before_sha256": "afb490d28f3cd322fc92305cb272015cfbe69e258f4e2e1960d02d8ba9e1d577",
+      "after_sha256_at_layout": "afb490d28f3cd322fc92305cb272015cfbe69e258f4e2e1960d02d8ba9e1d577",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc_repro/log/security-audit.log",
+      "after_path": "证据附件/过程补充文件/tmp/zc_repro/log/security-audit.log",
+      "before_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "after_sha256_at_layout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc_repro/log/error.log",
+      "after_path": "证据附件/过程补充文件/tmp/zc_repro/log/error.log",
+      "before_sha256": "dc87e659327fd16dc375daeaccaf46b08587d49363407a0d9468631a657cce82",
+      "after_sha256_at_layout": "dc87e659327fd16dc375daeaccaf46b08587d49363407a0d9468631a657cce82",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc_repro/log/observability-events.log",
+      "after_path": "证据附件/过程补充文件/tmp/zc_repro/log/observability-events.log",
+      "before_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "after_sha256_at_layout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc_repro/log/app.log",
+      "after_path": "证据附件/过程补充文件/tmp/zc_repro/log/app.log",
+      "before_sha256": "dc87e659327fd16dc375daeaccaf46b08587d49363407a0d9468631a657cce82",
+      "after_sha256_at_layout": "dc87e659327fd16dc375daeaccaf46b08587d49363407a0d9468631a657cce82",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc_repro/log/debug/debug.log",
+      "after_path": "证据附件/过程补充文件/tmp/zc_repro/log/debug/debug.log",
+      "before_sha256": "dc87e659327fd16dc375daeaccaf46b08587d49363407a0d9468631a657cce82",
+      "after_sha256_at_layout": "dc87e659327fd16dc375daeaccaf46b08587d49363407a0d9468631a657cce82",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc_linux/Probe3.java",
+      "after_path": "证据附件/过程补充文件/tmp/zc_linux/Probe3.java",
+      "before_sha256": "20f9d06b149f57871c0531a818e871275c06566d385c1c15bf602935c2c10272",
+      "after_sha256_at_layout": "20f9d06b149f57871c0531a818e871275c06566d385c1c15bf602935c2c10272",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc_linux/Probe.java",
+      "after_path": "证据附件/过程补充文件/tmp/zc_linux/Probe.java",
+      "before_sha256": "5896d3a57ba76407ead9e7f975a24779f854cb97758145b90e7b7fd80f27b076",
+      "after_sha256_at_layout": "5896d3a57ba76407ead9e7f975a24779f854cb97758145b90e7b7fd80f27b076",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc_linux/Probe2.java",
+      "after_path": "证据附件/过程补充文件/tmp/zc_linux/Probe2.java",
+      "before_sha256": "ebbcbd814d185229ccea7c950259306bef0ea97f14e95f6bfa65a1c910191bf1",
+      "after_sha256_at_layout": "ebbcbd814d185229ccea7c950259306bef0ea97f14e95f6bfa65a1c910191bf1",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc-parent/target/surefire-reports/TEST-com.aicodeassistant.tool.process.ManagedProcessRunnerTest.xml",
+      "after_path": "证据附件/过程补充文件/tmp/zc-parent/target/surefire-reports/TEST-com.aicodeassistant.tool.process.ManagedProcessRunnerTest.xml",
+      "before_sha256": "fb0e4ef8a0f470d3f488e24886e218357f16bfb4942180fbc7ecaa432061df66",
+      "after_sha256_at_layout": "fb0e4ef8a0f470d3f488e24886e218357f16bfb4942180fbc7ecaa432061df66",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc-parent/target/surefire-reports/com.aicodeassistant.tool.process.ManagedProcessRunnerTest.txt",
+      "after_path": "证据附件/过程补充文件/tmp/zc-parent/target/surefire-reports/com.aicodeassistant.tool.process.ManagedProcessRunnerTest.txt",
+      "before_sha256": "40f0429082d09463d898b81832ccca98204fbcaa48a2f2516de85e8dd11ee5e3",
+      "after_sha256_at_layout": "40f0429082d09463d898b81832ccca98204fbcaa48a2f2516de85e8dd11ee5e3",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc-parent/log/error.log",
+      "after_path": "证据附件/过程补充文件/tmp/zc-parent/log/error.log",
+      "before_sha256": "528183273d865d958af71eabc5b950b7af3ae5575753254b73359bb6a3e94d71",
+      "after_sha256_at_layout": "528183273d865d958af71eabc5b950b7af3ae5575753254b73359bb6a3e94d71",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc-parent/log/app.log",
+      "after_path": "证据附件/过程补充文件/tmp/zc-parent/log/app.log",
+      "before_sha256": "528183273d865d958af71eabc5b950b7af3ae5575753254b73359bb6a3e94d71",
+      "after_sha256_at_layout": "528183273d865d958af71eabc5b950b7af3ae5575753254b73359bb6a3e94d71",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc-parent/log/debug/debug.log",
+      "after_path": "证据附件/过程补充文件/tmp/zc-parent/log/debug/debug.log",
+      "before_sha256": "528183273d865d958af71eabc5b950b7af3ae5575753254b73359bb6a3e94d71",
+      "after_sha256_at_layout": "528183273d865d958af71eabc5b950b7af3ae5575753254b73359bb6a3e94d71",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/probe3/LaunchWindowCancelProbe.java",
+      "after_path": "证据附件/过程补充文件/tmp/probe3/LaunchWindowCancelProbe.java",
+      "before_sha256": "3771f4f75aa754278fe1272deaa7c14e905ac12c7d17ebb70afb021d7a102ad1",
+      "after_sha256_at_layout": "3771f4f75aa754278fe1272deaa7c14e905ac12c7d17ebb70afb021d7a102ad1",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/probe3/CancelTimelineProbe.java",
+      "after_path": "证据附件/过程补充文件/tmp/probe3/CancelTimelineProbe.java",
+      "before_sha256": "5a9d726095c296b9739a67404a35ef83bd958a22c4b16023f3dfcf975b17bafa",
+      "after_sha256_at_layout": "5a9d726095c296b9739a67404a35ef83bd958a22c4b16023f3dfcf975b17bafa",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/probe3/CancelProbe.java",
+      "after_path": "证据附件/过程补充文件/tmp/probe3/CancelProbe.java",
+      "before_sha256": "779594e69fecad17db7908dc346e21d9bb3bf92f25479163f7cca1b8c91ace51",
+      "after_sha256_at_layout": "779594e69fecad17db7908dc346e21d9bb3bf92f25479163f7cca1b8c91ace51",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/oprobe/OwnedProcess.java",
+      "after_path": "证据附件/过程补充文件/tmp/oprobe/OwnedProcess.java",
+      "before_sha256": "82bdba7be84f534987ee2f3d7f9c16d23d2663a947db833c8f13b8992c8893ba",
+      "after_sha256_at_layout": "82bdba7be84f534987ee2f3d7f9c16d23d2663a947db833c8f13b8992c8893ba",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/oprobe/Probe3.java",
+      "after_path": "证据附件/过程补充文件/tmp/oprobe/Probe3.java",
+      "before_sha256": "e2d1e8f6f092ab319fc2769d1ce89d9bbea1857eed9565adb7bd24fa4e8c7f71",
+      "after_sha256_at_layout": "e2d1e8f6f092ab319fc2769d1ce89d9bbea1857eed9565adb7bd24fa4e8c7f71",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/oprobe/Probe.java",
+      "after_path": "证据附件/过程补充文件/tmp/oprobe/Probe.java",
+      "before_sha256": "134fd69518221ebfbcb9480d03a91631c872e3858c42b62abe7453c8b4521a72",
+      "after_sha256_at_layout": "134fd69518221ebfbcb9480d03a91631c872e3858c42b62abe7453c8b4521a72",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/oprobe/Probe2.java",
+      "after_path": "证据附件/过程补充文件/tmp/oprobe/Probe2.java",
+      "before_sha256": "b29a08cc4f02a78bd02ae308fe95909cd091a7915970a54116ced0fa19ab1e39",
+      "after_sha256_at_layout": "b29a08cc4f02a78bd02ae308fe95909cd091a7915970a54116ced0fa19ab1e39",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc-verify/target/surefire-reports/com.aicodeassistant.verify.DevServerLauncherTest.txt",
+      "after_path": "证据附件/过程补充文件/tmp/zc-verify/target/surefire-reports/com.aicodeassistant.verify.DevServerLauncherTest.txt",
+      "before_sha256": "b63fd24c0681ca268ef895dbc18e432474768430e6c31b28013e0effeae5132c",
+      "after_sha256_at_layout": "b63fd24c0681ca268ef895dbc18e432474768430e6c31b28013e0effeae5132c",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc-verify/target/surefire-reports/TEST-com.aicodeassistant.tool.process.ManagedProcessRunnerTest.xml",
+      "after_path": "证据附件/过程补充文件/tmp/zc-verify/target/surefire-reports/TEST-com.aicodeassistant.tool.process.ManagedProcessRunnerTest.xml",
+      "before_sha256": "e1f1a0eaeeb7d2183789046de7192c8a08c0334b1db936cfc20cd878ad7d280e",
+      "after_sha256_at_layout": "e1f1a0eaeeb7d2183789046de7192c8a08c0334b1db936cfc20cd878ad7d280e",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc-verify/target/surefire-reports/com.aicodeassistant.tool.bash.ProcessTreeManagerTest.txt",
+      "after_path": "证据附件/过程补充文件/tmp/zc-verify/target/surefire-reports/com.aicodeassistant.tool.bash.ProcessTreeManagerTest.txt",
+      "before_sha256": "7a664bc0b6c9b162d119c9e473879308526fa22afc1c619d5f530bafe09b236c",
+      "after_sha256_at_layout": "7a664bc0b6c9b162d119c9e473879308526fa22afc1c619d5f530bafe09b236c",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc-verify/target/surefire-reports/TEST-com.aicodeassistant.verify.BrowserVerifierTest.xml",
+      "after_path": "证据附件/过程补充文件/tmp/zc-verify/target/surefire-reports/TEST-com.aicodeassistant.verify.BrowserVerifierTest.xml",
+      "before_sha256": "94f8e6b95e2c90506716d38a4481a7a0c2cf32d764633531f49949abd6cbdb2c",
+      "after_sha256_at_layout": "94f8e6b95e2c90506716d38a4481a7a0c2cf32d764633531f49949abd6cbdb2c",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc-verify/target/surefire-reports/com.aicodeassistant.tool.process.ManagedProcessRunnerTest.txt",
+      "after_path": "证据附件/过程补充文件/tmp/zc-verify/target/surefire-reports/com.aicodeassistant.tool.process.ManagedProcessRunnerTest.txt",
+      "before_sha256": "1d0d97a10dd868d967eca406fe3fe9470ee2017e95c1242ec81883c3727caba5",
+      "after_sha256_at_layout": "1d0d97a10dd868d967eca406fe3fe9470ee2017e95c1242ec81883c3727caba5",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc-verify/target/surefire-reports/TEST-com.aicodeassistant.tool.bash.ProcessTreeManagerTest.xml",
+      "after_path": "证据附件/过程补充文件/tmp/zc-verify/target/surefire-reports/TEST-com.aicodeassistant.tool.bash.ProcessTreeManagerTest.xml",
+      "before_sha256": "adb4bfeecc0444c450710ff049ba21642e840969d6ea13ac069cd9b1b885d0e6",
+      "after_sha256_at_layout": "adb4bfeecc0444c450710ff049ba21642e840969d6ea13ac069cd9b1b885d0e6",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc-verify/target/surefire-reports/com.aicodeassistant.service.PythonProcessManagerTest.txt",
+      "after_path": "证据附件/过程补充文件/tmp/zc-verify/target/surefire-reports/com.aicodeassistant.service.PythonProcessManagerTest.txt",
+      "before_sha256": "11decce16fc166bab5aed52b48b2680ed71bd4df02f3b47a87b776178856f920",
+      "after_sha256_at_layout": "11decce16fc166bab5aed52b48b2680ed71bd4df02f3b47a87b776178856f920",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc-verify/target/surefire-reports/com.aicodeassistant.verify.VerifyJourneyEdgeCaseTest.txt",
+      "after_path": "证据附件/过程补充文件/tmp/zc-verify/target/surefire-reports/com.aicodeassistant.verify.VerifyJourneyEdgeCaseTest.txt",
+      "before_sha256": "7fe9766bdb7ade9ddbde6c3fd403e9699aafb27a075e8002a884c31907ff983a",
+      "after_sha256_at_layout": "7fe9766bdb7ade9ddbde6c3fd403e9699aafb27a075e8002a884c31907ff983a",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc-verify/target/surefire-reports/com.aicodeassistant.verify.BrowserVerifierTest.txt",
+      "after_path": "证据附件/过程补充文件/tmp/zc-verify/target/surefire-reports/com.aicodeassistant.verify.BrowserVerifierTest.txt",
+      "before_sha256": "a85b7281ce68721876a3f180486b6a809395ba75d46ee3d96209623c32ebca46",
+      "after_sha256_at_layout": "a85b7281ce68721876a3f180486b6a809395ba75d46ee3d96209623c32ebca46",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc-verify/target/surefire-reports/com.aicodeassistant.tool.impl.BashToolFailureClassificationTest.txt",
+      "after_path": "证据附件/过程补充文件/tmp/zc-verify/target/surefire-reports/com.aicodeassistant.tool.impl.BashToolFailureClassificationTest.txt",
+      "before_sha256": "cfcefc08ac73fded61d1a343ed90ebbc15b2c23c3a6bbc3c95e0e431f23da135",
+      "after_sha256_at_layout": "cfcefc08ac73fded61d1a343ed90ebbc15b2c23c3a6bbc3c95e0e431f23da135",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc-verify/target/surefire-reports/com.aicodeassistant.tool.process.OwnedProcessTest.txt",
+      "after_path": "证据附件/过程补充文件/tmp/zc-verify/target/surefire-reports/com.aicodeassistant.tool.process.OwnedProcessTest.txt",
+      "before_sha256": "482345618db863312ae88c272fc430dd87008aacee85772432cd2acb83279336",
+      "after_sha256_at_layout": "482345618db863312ae88c272fc430dd87008aacee85772432cd2acb83279336",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc-verify/target/surefire-reports/TEST-com.aicodeassistant.tool.process.OwnedProcessTest.xml",
+      "after_path": "证据附件/过程补充文件/tmp/zc-verify/target/surefire-reports/TEST-com.aicodeassistant.tool.process.OwnedProcessTest.xml",
+      "before_sha256": "6cb4133801e0bd596964bc80c0bbe5f24cb54dbfe7ca6bbbba2d5c65987ce460",
+      "after_sha256_at_layout": "6cb4133801e0bd596964bc80c0bbe5f24cb54dbfe7ca6bbbba2d5c65987ce460",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc-verify/target/surefire-reports/TEST-com.aicodeassistant.service.PythonProcessManagerTest.xml",
+      "after_path": "证据附件/过程补充文件/tmp/zc-verify/target/surefire-reports/TEST-com.aicodeassistant.service.PythonProcessManagerTest.xml",
+      "before_sha256": "4adbcc343ec6838258668bc553ff1c82a0ec7013e5add17f61071acb5dc0551b",
+      "after_sha256_at_layout": "4adbcc343ec6838258668bc553ff1c82a0ec7013e5add17f61071acb5dc0551b",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc-verify/target/surefire-reports/TEST-com.aicodeassistant.verify.VerifyJourneyEdgeCaseTest.xml",
+      "after_path": "证据附件/过程补充文件/tmp/zc-verify/target/surefire-reports/TEST-com.aicodeassistant.verify.VerifyJourneyEdgeCaseTest.xml",
+      "before_sha256": "b83dab2c8c2fe4530c7821f3478d852986b7a70dc157b316a6ce2e6198837965",
+      "after_sha256_at_layout": "b83dab2c8c2fe4530c7821f3478d852986b7a70dc157b316a6ce2e6198837965",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc-verify/target/surefire-reports/TEST-com.aicodeassistant.tool.impl.BashToolFailureClassificationTest.xml",
+      "after_path": "证据附件/过程补充文件/tmp/zc-verify/target/surefire-reports/TEST-com.aicodeassistant.tool.impl.BashToolFailureClassificationTest.xml",
+      "before_sha256": "a78d7c795bea01435ce39ad921cf00677392a3ffb8a6bd8c83743fc8df9aa6b9",
+      "after_sha256_at_layout": "a78d7c795bea01435ce39ad921cf00677392a3ffb8a6bd8c83743fc8df9aa6b9",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc-verify/target/surefire-reports/TEST-com.aicodeassistant.verify.DevServerLauncherTest.xml",
+      "after_path": "证据附件/过程补充文件/tmp/zc-verify/target/surefire-reports/TEST-com.aicodeassistant.verify.DevServerLauncherTest.xml",
+      "before_sha256": "053dcaec31f7c630bed08e3b33f36df3c3b37f7fd2ef8e49918df9b94ce76eb1",
+      "after_sha256_at_layout": "053dcaec31f7c630bed08e3b33f36df3c3b37f7fd2ef8e49918df9b94ce76eb1",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc-verify/log/error.log",
+      "after_path": "证据附件/过程补充文件/tmp/zc-verify/log/error.log",
+      "before_sha256": "93842efee795036906cac031de3e143ca60570a58ae47c50060094e199143c7e",
+      "after_sha256_at_layout": "93842efee795036906cac031de3e143ca60570a58ae47c50060094e199143c7e",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc-verify/log/app.log",
+      "after_path": "证据附件/过程补充文件/tmp/zc-verify/log/app.log",
+      "before_sha256": "ce25deb59951fc21b6eaf8c8c1fd415c500c7d969eb992d4b9acef658e242b9d",
+      "after_sha256_at_layout": "ce25deb59951fc21b6eaf8c8c1fd415c500c7d969eb992d4b9acef658e242b9d",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zc-verify/log/debug/debug.log",
+      "after_path": "证据附件/过程补充文件/tmp/zc-verify/log/debug/debug.log",
+      "before_sha256": "ce25deb59951fc21b6eaf8c8c1fd415c500c7d969eb992d4b9acef658e242b9d",
+      "after_sha256_at_layout": "ce25deb59951fc21b6eaf8c8c1fd415c500c7d969eb992d4b9acef658e242b9d",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/probe/Probe.java",
+      "after_path": "证据附件/过程补充文件/tmp/probe/Probe.java",
+      "before_sha256": "f3fb9e78b377dad9d3f6c61882d3517d9c0bd89ab3bff812574f8f1e7e5f5dfc",
+      "after_sha256_at_layout": "f3fb9e78b377dad9d3f6c61882d3517d9c0bd89ab3bff812574f8f1e7e5f5dfc",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zhikun_verify/java_targeted_run2.log",
+      "after_path": "证据附件/过程补充文件/tmp/zhikun_verify/java_targeted_run2.log",
+      "before_sha256": "653d3bcc943203c70bceec42779d1812403519a7ffb969ba476dcb4b1517ffca",
+      "after_sha256_at_layout": "653d3bcc943203c70bceec42779d1812403519a7ffb969ba476dcb4b1517ffca",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zhikun_verify/java_managed_rerun1.log",
+      "after_path": "证据附件/过程补充文件/tmp/zhikun_verify/java_managed_rerun1.log",
+      "before_sha256": "58a31660acadfb3f862feeed82087d1ac60a9d03567c40d2ee414f22c66a05ce",
+      "after_sha256_at_layout": "58a31660acadfb3f862feeed82087d1ac60a9d03567c40d2ee414f22c66a05ce",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zhikun_verify/java_full.log",
+      "after_path": "证据附件/过程补充文件/tmp/zhikun_verify/java_full.log",
+      "before_sha256": "64441f9e260a111b3de839c938efc55c1fca7c1c8cefeb54c19dc4a0bcd78959",
+      "after_sha256_at_layout": "64441f9e260a111b3de839c938efc55c1fca7c1c8cefeb54c19dc4a0bcd78959",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zhikun_verify/python_full.log",
+      "after_path": "证据附件/过程补充文件/tmp/zhikun_verify/python_full.log",
+      "before_sha256": "39a69e9a992c4dba323018a3ab3694570a523f0bc4ea20ae7da5b8b9190643bd",
+      "after_sha256_at_layout": "39a69e9a992c4dba323018a3ab3694570a523f0bc4ea20ae7da5b8b9190643bd",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zhikun_verify/java_parent_run.log",
+      "after_path": "证据附件/过程补充文件/tmp/zhikun_verify/java_parent_run.log",
+      "before_sha256": "645fc09cab18ed5346c96205dfc3574e238cf77ba5f410c3aeb40c9401465b8b",
+      "after_sha256_at_layout": "645fc09cab18ed5346c96205dfc3574e238cf77ba5f410c3aeb40c9401465b8b",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zhikun_verify/java_targeted.log",
+      "after_path": "证据附件/过程补充文件/tmp/zhikun_verify/java_targeted.log",
+      "before_sha256": "54ccf4db98639d94c56e8689d69c68056809aae6fe44e3716cdf129d0f1298f6",
+      "after_sha256_at_layout": "54ccf4db98639d94c56e8689d69c68056809aae6fe44e3716cdf129d0f1298f6",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zhikun_verify/python_targeted_run2.log",
+      "after_path": "证据附件/过程补充文件/tmp/zhikun_verify/python_targeted_run2.log",
+      "before_sha256": "c4b4e4753a8214ab929f62f6140fd4afaf47fc136a28c9519a7da5814406fef1",
+      "after_sha256_at_layout": "c4b4e4753a8214ab929f62f6140fd4afaf47fc136a28c9519a7da5814406fef1",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zhikun_verify/python_targeted_run1.log",
+      "after_path": "证据附件/过程补充文件/tmp/zhikun_verify/python_targeted_run1.log",
+      "before_sha256": "55470a0cc59bba824b336a3130c366bb61c419b1557d83d17790272f9cebb81d",
+      "after_sha256_at_layout": "55470a0cc59bba824b336a3130c366bb61c419b1557d83d17790272f9cebb81d",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "过程补充文件/tmp/zhikun_verify/java_isolation_rerun.log",
+      "after_path": "证据附件/过程补充文件/tmp/zhikun_verify/java_isolation_rerun.log",
+      "before_sha256": "e1a25f192da07a9a1edc37f269a0ec301f53ed72aace4dd739648df345f62082",
+      "after_sha256_at_layout": "e1a25f192da07a9a1edc37f269a0ec301f53ed72aace4dd739648df345f62082",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "提交前检查/目录扫描结果.json",
+      "after_path": "证据附件/提交前检查/目录扫描结果.json",
+      "before_sha256": "77e5f3f969e5ef35b20b6f2552a1bcc9c28f242a109297a2f70dde0b1f6cf22d",
+      "after_sha256_at_layout": "77e5f3f969e5ef35b20b6f2552a1bcc9c28f242a109297a2f70dde0b1f6cf22d",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "提交前检查/prepare_frozen_copy.py",
+      "after_path": "证据附件/提交前检查/prepare_frozen_copy.py",
+      "before_sha256": "16117589152fc534a9f7453455ac2ba44ae16b2f955feb149548ae015ad6c97a",
+      "after_sha256_at_layout": "16117589152fc534a9f7453455ac2ba44ae16b2f955feb149548ae015ad6c97a",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "提交前检查/敏感信息复核.md",
+      "after_path": "证据附件/提交前检查/敏感信息复核.md",
+      "before_sha256": "eee49b414bac757d3e5dc9bd2da9ff076e06dc883c3ee166920ac315d2b40238",
+      "after_sha256_at_layout": "eee49b414bac757d3e5dc9bd2da9ff076e06dc883c3ee166920ac315d2b40238",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "提交前检查/inspect_tree.py",
+      "after_path": "证据附件/提交前检查/inspect_tree.py",
+      "before_sha256": "f391441f057ced961448897f2eba33571dfd1e269e1462419d5b6d11da5c25ca",
+      "after_sha256_at_layout": "f391441f057ced961448897f2eba33571dfd1e269e1462419d5b6d11da5c25ca",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "提交前检查/全部文件清单_SHA256.json",
+      "after_path": "证据附件/提交前检查/全部文件清单_SHA256.json",
+      "before_sha256": "4609cac54faee85acb052ab312a172ba504774045f65c5b4d7694e7960f9d5d7",
+      "after_sha256_at_layout": "4609cac54faee85acb052ab312a172ba504774045f65c5b4d7694e7960f9d5d7",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "提交前检查/敏感信息扫描索引.json",
+      "after_path": "证据附件/提交前检查/敏感信息扫描索引.json",
+      "before_sha256": "c4fb4c67e28101eb3c0db25515ccb7acbd3528343602b942706f400e3e15db23",
+      "after_sha256_at_layout": "c4fb4c67e28101eb3c0db25515ccb7acbd3528343602b942706f400e3e15db23",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "提交前检查/prepare_local_copy.py",
+      "after_path": "证据附件/提交前检查/prepare_local_copy.py",
+      "before_sha256": "f8a36911ad92dbd1dbf0aa632d8d1ab194a41d6a7ad85b0753f2b44d8f7cbf65",
+      "after_sha256_at_layout": "f8a36911ad92dbd1dbf0aa632d8d1ab194a41d6a7ad85b0753f2b44d8f7cbf65",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "提交前检查/目录与复现复核.md",
+      "after_path": "证据附件/提交前检查/目录与复现复核.md",
+      "before_sha256": "2c23316314fd3c8edefc9604c9fe02ea4b9e42dde74f3ee12d989b2cf16e1eab",
+      "after_sha256_at_layout": "2c23316314fd3c8edefc9604c9fe02ea4b9e42dde74f3ee12d989b2cf16e1eab",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "提交前检查/镜像模式命中复核.json",
+      "after_path": "证据附件/提交前检查/镜像模式命中复核.json",
+      "before_sha256": "7d90ac2dfab171cf415ef683ad363e9c263928cd074b9d76cd247a197b662e80",
+      "after_sha256_at_layout": "7d90ac2dfab171cf415ef683ad363e9c263928cd074b9d76cd247a197b662e80",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "提交前检查/全部内容GitHub提交检查.md",
+      "after_path": "证据附件/提交前检查/全部内容GitHub提交检查.md",
+      "before_sha256": "ed36c4a0b57feed6a5a4ed7f3f49b6218704e2600d9d728c68ab7716d740fe29",
+      "after_sha256_at_layout": "ed36c4a0b57feed6a5a4ed7f3f49b6218704e2600d9d728c68ab7716d740fe29",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "提交前检查/脱敏预览/变更记录.json",
+      "after_path": "证据附件/提交前检查/脱敏预览/变更记录.json",
+      "before_sha256": "4aa91fb8dd35f05b43eef93926bd7feae3c0bf3f053a7bbed9f0d04cddd5b2b0",
+      "after_sha256_at_layout": "4aa91fb8dd35f05b43eef93926bd7feae3c0bf3f053a7bbed9f0d04cddd5b2b0",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/finish_delivery.py",
+      "after_path": "证据附件/评审结果_20260925_v1/finish_delivery.py",
+      "before_sha256": "36178e6f8d94414d7a7552904065cc57418af723fcf20c6c27a6f9ce46ac3176",
+      "after_sha256_at_layout": "36178e6f8d94414d7a7552904065cc57418af723fcf20c6c27a6f9ce46ac3176",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/AICoding八方评测_综合排名与证据审计.md",
+      "after_path": "AICoding八方评测_综合排名与证据审计.md",
+      "before_sha256": "479ceea104bc87dafadadac4b859e91d5dbacca7d4a396978ac195d5f40b0cba",
+      "after_sha256_at_layout": "479ceea104bc87dafadadac4b859e91d5dbacca7d4a396978ac195d5f40b0cba",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/rubric_frozen.json",
+      "after_path": "证据附件/评审结果_20260925_v1/rubric_frozen.json",
+      "before_sha256": "e63d208fb6fca0c8ef08f42741537c231fd5165957f04709dd46145a7668b84d",
+      "after_sha256_at_layout": "e63d208fb6fca0c8ef08f42741537c231fd5165957f04709dd46145a7668b84d",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/方法与规则_v1.md",
+      "after_path": "证据附件/评审结果_20260925_v1/方法与规则_v1.md",
+      "before_sha256": "379170e050ca9dcf8268b65df8eec8726a2c483f85b92caf934429f846f1ffc5",
+      "after_sha256_at_layout": "379170e050ca9dcf8268b65df8eec8726a2c483f85b92caf934429f846f1ffc5",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/评分明细_机会矩阵与事实裁决.md",
+      "after_path": "证据附件/评审结果_20260925_v1/评分明细_机会矩阵与事实裁决.md",
+      "before_sha256": "13ef65d29a5d0a0e769396611d3bb08cc3234796a39cb2a66f605b3c04cf2cac",
+      "after_sha256_at_layout": "13ef65d29a5d0a0e769396611d3bb08cc3234796a39cb2a66f605b3c04cf2cac",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/scores_computed.json",
+      "after_path": "证据附件/评审结果_20260925_v1/scores_computed.json",
+      "before_sha256": "3993f7051c3695cacffb216c6a21d25b735b984a6fc5beff53624f050b9850fb",
+      "after_sha256_at_layout": "3993f7051c3695cacffb216c6a21d25b735b984a6fc5beff53624f050b9850fb",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/render_reports.py",
+      "after_path": "证据附件/评审结果_20260925_v1/render_reports.py",
+      "before_sha256": "4a9bedae03669d5e9815cb20106a8c4699cd169d7eb2422124dc83e778edc371",
+      "after_sha256_at_layout": "4a9bedae03669d5e9815cb20106a8c4699cd169d7eb2422124dc83e778edc371",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/复核说明_方法修订与重算.md",
+      "after_path": "证据附件/评审结果_20260925_v1/复核说明_方法修订与重算.md",
+      "before_sha256": "876d72edf901b831ae4aa13ad139a6ce3034edf22243be5e2f44c5a4a1a6887e",
+      "after_sha256_at_layout": "876d72edf901b831ae4aa13ad139a6ce3034edf22243be5e2f44c5a4a1a6887e",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evaluation_data.json",
+      "after_path": "证据附件/评审结果_20260925_v1/evaluation_data.json",
+      "before_sha256": "52f0cbb868618d4d116b27126dfdad8865d927d4441998a372095fad047facc6",
+      "after_sha256_at_layout": "52f0cbb868618d4d116b27126dfdad8865d927d4441998a372095fad047facc6",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/manifest.json",
+      "after_path": "证据附件/评审结果_20260925_v1/manifest.json",
+      "before_sha256": "e06e022436b3f2ae44f87ea70397adcf6dfc47e0ff41237a321b1c46d592b302",
+      "after_sha256_at_layout": "e06e022436b3f2ae44f87ea70397adcf6dfc47e0ff41237a321b1c46d592b302",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/build_evaluation.py",
+      "after_path": "证据附件/评审结果_20260925_v1/build_evaluation.py",
+      "before_sha256": "0d992e64f82cb14c454bfe401de4d2fb3ec5b6461920dd4437d768ed6f318888",
+      "after_sha256_at_layout": "0d992e64f82cb14c454bfe401de4d2fb3ec5b6461920dd4437d768ed6f318888",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/integrity_check.json",
+      "after_path": "证据附件/评审结果_20260925_v1/integrity_check.json",
+      "before_sha256": "3111f3c6a34a41298ac4be603e3d2d5d97076b86f3297da8486e050e257a7c56",
+      "after_sha256_at_layout": "3111f3c6a34a41298ac4be603e3d2d5d97076b86f3297da8486e050e257a7c56",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/normalize_families.py",
+      "after_path": "证据附件/评审结果_20260925_v1/normalize_families.py",
+      "before_sha256": "1abed598cb0e127b0529d6e96a4a09b090cd8e067f1552d976f5c7a81ebff375",
+      "after_sha256_at_layout": "1abed598cb0e127b0529d6e96a4a09b090cd8e067f1552d976f5c7a81ebff375",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/recompute_scores.py",
+      "after_path": "证据附件/评审结果_20260925_v1/recompute_scores.py",
+      "before_sha256": "6128bfa5f808fe8190345cf8cf7b1e3bad4e3d972fdc26a875d8ba6489342526",
+      "after_sha256_at_layout": "6128bfa5f808fe8190345cf8cf7b1e3bad4e3d972fdc26a875d8ba6489342526",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/独立验证_真值与误报证据索引.md",
+      "after_path": "证据附件/评审结果_20260925_v1/独立验证_真值与误报证据索引.md",
+      "before_sha256": "b4b21b52d75461198a00a0823eace73e2eddab1793d102a637a098cac1a18cd2",
+      "after_sha256_at_layout": "b4b21b52d75461198a00a0823eace73e2eddab1793d102a637a098cac1a18cd2",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/scoring_peer_python.md",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/scoring_peer_python.md",
+      "before_sha256": "d34ac7817ec0e42897f31a450e0dd7c3045494f20329eef831c63a958d005d87",
+      "after_sha256_at_layout": "d34ac7817ec0e42897f31a450e0dd7c3045494f20329eef831c63a958d005d87",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/scoring_peer_java.md",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/scoring_peer_java.md",
+      "before_sha256": "35e6cba863f439ca14728da604374dc16a7201cf567e92a2c3d0ffd42d457e86",
+      "after_sha256_at_layout": "35e6cba863f439ca14728da604374dc16a7201cf567e92a2c3d0ffd42d457e86",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/scoring_peer_final_claims.md",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/scoring_peer_final_claims.md",
+      "before_sha256": "38114122f3fc0e419289cca629644b8bce97c3582a0db28ea09132a94477dbc9",
+      "after_sha256_at_layout": "38114122f3fc0e419289cca629644b8bce97c3582a0db28ea09132a94477dbc9",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/python/probe_hang_debug.py",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/python/probe_hang_debug.py",
+      "before_sha256": "d7e7e6f38f855319c4944cafa9e731f321a91d6e260df41e8882565dabf14d6f",
+      "after_sha256_at_layout": "d7e7e6f38f855319c4944cafa9e731f321a91d6e260df41e8882565dabf14d6f",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/python/probe_contracts_head.log",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/python/probe_contracts_head.log",
+      "before_sha256": "72ba8ba4e9ba1cc2263839279acb0dcf66882d96cf1cfe4cfa8560e90536adf6",
+      "after_sha256_at_layout": "72ba8ba4e9ba1cc2263839279acb0dcf66882d96cf1cfe4cfa8560e90536adf6",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/python/probe_watcher_cancel_head.log",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/python/probe_watcher_cancel_head.log",
+      "before_sha256": "d02daa24eb5b6bef1f70c0ac00b17a64ed969cd0eaeed19026636057cf1bd5cf",
+      "after_sha256_at_layout": "d02daa24eb5b6bef1f70c0ac00b17a64ed969cd0eaeed19026636057cf1bd5cf",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/python/probe_watcher_cancel_parent.log",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/python/probe_watcher_cancel_parent.log",
+      "before_sha256": "be7b846e6cce95b009ecc6d6b9d7d1866b9b4478de1cd2f10f35d9e4befff638",
+      "after_sha256_at_layout": "be7b846e6cce95b009ecc6d6b9d7d1866b9b4478de1cd2f10f35d9e4befff638",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/python/probe_loopback_head.log",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/python/probe_loopback_head.log",
+      "before_sha256": "19db00173b07dd05042186e540d2a5151ff9dd105a44517384b541007c751313",
+      "after_sha256_at_layout": "19db00173b07dd05042186e540d2a5151ff9dd105a44517384b541007c751313",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/python/probe_contracts.py",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/python/probe_contracts.py",
+      "before_sha256": "44ea3f3abbb45de5efead7f8631932817c9ea3b497b52f6e7e2f42d05beec05f",
+      "after_sha256_at_layout": "44ea3f3abbb45de5efead7f8631932817c9ea3b497b52f6e7e2f42d05beec05f",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/python/probe_watcher_cancel.py",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/python/probe_watcher_cancel.py",
+      "before_sha256": "0e6fa2da8b65244391881a4cbde7bf2203a0498b7c7dfd0675bdec144268ae22",
+      "after_sha256_at_layout": "0e6fa2da8b65244391881a4cbde7bf2203a0498b7c7dfd0675bdec144268ae22",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/python/E08_python_adjudication.md",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/python/E08_python_adjudication.md",
+      "before_sha256": "399bac839fba40ed4b56419c554e14c12726a6ef32920b4495ca45d0b41d2780",
+      "after_sha256_at_layout": "399bac839fba40ed4b56419c554e14c12726a6ef32920b4495ca45d0b41d2780",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/python/probe_loopback_parent.log",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/python/probe_loopback_parent.log",
+      "before_sha256": "fb2518e30f7a5235cc5fca00054555f70ed2f1b2da2163dcc19acf11cc9c38fa",
+      "after_sha256_at_layout": "fb2518e30f7a5235cc5fca00054555f70ed2f1b2da2163dcc19acf11cc9c38fa",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/python/ground_truth_python.md",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/python/ground_truth_python.md",
+      "before_sha256": "024a1e7922feb4c0d3abe508a778a5bf0babd77cbd4795ffa0e13e2e496dfd5e",
+      "after_sha256_at_layout": "024a1e7922feb4c0d3abe508a778a5bf0babd77cbd4795ffa0e13e2e496dfd5e",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/python/probe_external_actual.log",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/python/probe_external_actual.log",
+      "before_sha256": "d33b7883048e5129404209262acdae70989c7857ffeef98dacf3807d31e62e61",
+      "after_sha256_at_layout": "d33b7883048e5129404209262acdae70989c7857ffeef98dacf3807d31e62e61",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/python/probe_loopback.py",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/python/probe_loopback.py",
+      "before_sha256": "2f4dc1e2f7bf53c35502fed7dd1dde862503c7289e3c2a2677da5db0523232e4",
+      "after_sha256_at_layout": "2f4dc1e2f7bf53c35502fed7dd1dde862503c7289e3c2a2677da5db0523232e4",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/python/focused.junit.xml",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/python/focused.junit.xml",
+      "before_sha256": "e4b7e565a03b03009933e844f1f1019859a9f8397c178da6baf46c6dcb64a9dc",
+      "after_sha256_at_layout": "e4b7e565a03b03009933e844f1f1019859a9f8397c178da6baf46c6dcb64a9dc",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/python/probe_request_annotation.log",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/python/probe_request_annotation.log",
+      "before_sha256": "63a584e25f7f58a06bfbfe018452c495ffd9fdace1c362df646dd83ad97436fa",
+      "after_sha256_at_layout": "63a584e25f7f58a06bfbfe018452c495ffd9fdace1c362df646dd83ad97436fa",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/python/probe_hang_debug.log",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/python/probe_hang_debug.log",
+      "before_sha256": "e71848ba5faf7369c65ed59a565d507437b349164d42a66d38e24b127caa387f",
+      "after_sha256_at_layout": "e71848ba5faf7369c65ed59a565d507437b349164d42a66d38e24b127caa387f",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/python/environment.json",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/python/environment.json",
+      "before_sha256": "3bcc9c3ec9290427bc7ba79c4947d3d92f40b83d33f9f1b707e717864d7efc5f",
+      "after_sha256_at_layout": "3bcc9c3ec9290427bc7ba79c4947d3d92f40b83d33f9f1b707e717864d7efc5f",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/python/probe_disconnect.log",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/python/probe_disconnect.log",
+      "before_sha256": "62fa4276a32507b02bce05c917c3453c1b13e2043272a885a6e17c24a93b2531",
+      "after_sha256_at_layout": "62fa4276a32507b02bce05c917c3453c1b13e2043272a885a6e17c24a93b2531",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/python/probe_disconnect.py",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/python/probe_disconnect.py",
+      "before_sha256": "057efce49bdad1cdc36b7caca1aef32737cd6da57f4679904a062639e3fa7076",
+      "after_sha256_at_layout": "057efce49bdad1cdc36b7caca1aef32737cd6da57f4679904a062639e3fa7076",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/python/focused.log",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/python/focused.log",
+      "before_sha256": "bcbe365b4b033974e00c7f88f258a0631c7319d074e0f469b041c9b88c50a32a",
+      "after_sha256_at_layout": "bcbe365b4b033974e00c7f88f258a0631c7319d074e0f469b041c9b88c50a32a",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/python/probe_contracts_parent.log",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/python/probe_contracts_parent.log",
+      "before_sha256": "200efd576afeb50746097ad36da058c236008691cb4d167577e7fdc21ce2a5d0",
+      "after_sha256_at_layout": "200efd576afeb50746097ad36da058c236008691cb4d167577e7fdc21ce2a5d0",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/advice_audit.md",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/advice_audit.md",
+      "before_sha256": "138436800b53e3c2d164043cff233fa67b21a5709ab2258a6f1d6a3ea07b913e",
+      "after_sha256_at_layout": "138436800b53e3c2d164043cff233fa67b21a5709ab2258a6f1d6a3ea07b913e",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/reproduce.md",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/reproduce.md",
+      "before_sha256": "a3ba1da207e81abc76c858e99715c32060daae37501ed129058ca7822b72f7fd",
+      "after_sha256_at_layout": "a3ba1da207e81abc76c858e99715c32060daae37501ed129058ca7822b72f7fd",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/ground_truth_java.md",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/ground_truth_java.md",
+      "before_sha256": "8b4c69656ce4ff58d57da3ea4b7eb31b063a74fee6e8f7089a2e92d99d9f4792",
+      "after_sha256_at_layout": "8b4c69656ce4ff58d57da3ea4b7eb31b063a74fee6e8f7089a2e92d99d9f4792",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/probes/GroundTruthLifecycleProbeTest.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/probes/GroundTruthLifecycleProbeTest.java",
+      "before_sha256": "f2a14a736fd34b6e3f2ccf31dc85c453a6be3f42cda2c51b57314660ee9084c6",
+      "after_sha256_at_layout": "f2a14a736fd34b6e3f2ccf31dc85c453a6be3f42cda2c51b57314660ee9084c6",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/probes/GroundTruthParentWindowTest.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/probes/GroundTruthParentWindowTest.java",
+      "before_sha256": "15a11aa35d203ad7ba0eb5191f5bad935f6dd1c97adc203c85cb52de332c1b30",
+      "after_sha256_at_layout": "15a11aa35d203ad7ba0eb5191f5bad935f6dd1c97adc203c85cb52de332c1b30",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/probes/GroundTruthLifecycleProbeTest.executed.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/probes/GroundTruthLifecycleProbeTest.executed.java",
+      "before_sha256": "c7a9911aab64fc06d630dc2fc3443ad38ae68830a783172850f0a1cca3d82cbc",
+      "after_sha256_at_layout": "c7a9911aab64fc06d630dc2fc3443ad38ae68830a783172850f0a1cca3d82cbc",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/probes/OwnedProcessPortableProbe.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/probes/OwnedProcessPortableProbe.java",
+      "before_sha256": "8f2d7d38c7b4b9e5233793d7984316ee4a105319814504e1514a34578f410938",
+      "after_sha256_at_layout": "8f2d7d38c7b4b9e5233793d7984316ee4a105319814504e1514a34578f410938",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/CHANGELOG.md",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/CHANGELOG.md",
+      "before_sha256": "8baff6ed21827c8b40af9cbebb699d7e1e32e78f15fe6e077855c36e0f36b4af",
+      "after_sha256_at_layout": "8baff6ed21827c8b40af9cbebb699d7e1e32e78f15fe6e077855c36e0f36b4af",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/Dockerfile",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/Dockerfile",
+      "before_sha256": "9375cd3c3a46865f2468c0d0972bc24372eecbd5985e5b440090088bf08fd94d",
+      "after_sha256_at_layout": "9375cd3c3a46865f2468c0d0972bc24372eecbd5985e5b440090088bf08fd94d",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/README.md",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/README.md",
+      "before_sha256": "5ada71f70e8f938a5839f97fc5188865f8bfc9969d15e53f570cb4b8fb637cdb",
+      "after_sha256_at_layout": "5ada71f70e8f938a5839f97fc5188865f8bfc9969d15e53f570cb4b8fb637cdb",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/docker-entrypoint.sh",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/docker-entrypoint.sh",
+      "before_sha256": "5800dc80e4681300ca6ba6f9f3ea44be0cb645c26a2a841a32c615031a985187",
+      "after_sha256_at_layout": "5800dc80e4681300ca6ba6f9f3ea44be0cb645c26a2a841a32c615031a985187",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/docker-compose.yml",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/docker-compose.yml",
+      "before_sha256": "5ffa214e58c957e067966e8f9c49437ed0d27c17939caf4b03881d4b62ab459a",
+      "after_sha256_at_layout": "5ffa214e58c957e067966e8f9c49437ed0d27c17939caf4b03881d4b62ab459a",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/.env.example",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/.env.example",
+      "before_sha256": "b707d1b9d140a7f0761139b54b519dba64dc378d5dba06666a98e75b0e42280f",
+      "after_sha256_at_layout": "b707d1b9d140a7f0761139b54b519dba64dc378d5dba06666a98e75b0e42280f",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/python-service/pyproject.toml",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/python-service/pyproject.toml",
+      "before_sha256": "a1fbc73acadb15b3d4049b6238e2633669a63bca1a53e665671c29ba3398818d",
+      "after_sha256_at_layout": "a1fbc73acadb15b3d4049b6238e2633669a63bca1a53e665671c29ba3398818d",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/python-service/requirements.lock",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/python-service/requirements.lock",
+      "before_sha256": "2bb75572f82f008621258c45ff0674d1d7b412b5e42b6363bc04ebda72b1553d",
+      "after_sha256_at_layout": "2bb75572f82f008621258c45ff0674d1d7b412b5e42b6363bc04ebda72b1553d",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/python-service/tests/test_journey_lifecycle.py",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/python-service/tests/test_journey_lifecycle.py",
+      "before_sha256": "75cf0eb147b74eac1bf7c265f9716b2a2f345e771e2efff8aaf8e29e12d11fe5",
+      "after_sha256_at_layout": "75cf0eb147b74eac1bf7c265f9716b2a2f345e771e2efff8aaf8e29e12d11fe5",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/python-service/tests/test_browser_service_lifecycle.py",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/python-service/tests/test_browser_service_lifecycle.py",
+      "before_sha256": "3cafa897445e70c9f906b25cae85d853aa87386945809323569c7ab919c0fc79",
+      "after_sha256_at_layout": "3cafa897445e70c9f906b25cae85d853aa87386945809323569c7ab919c0fc79",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/python-service/tests/test_journey_publication.py",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/python-service/tests/test_journey_publication.py",
+      "before_sha256": "b488cda4a000cd5633720ad8690bc8cc5de18f9f5da2afa09ebea81c4ad802fc",
+      "after_sha256_at_layout": "b488cda4a000cd5633720ad8690bc8cc5de18f9f5da2afa09ebea81c4ad802fc",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/python-service/tests/test_browser_resource_container.py",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/python-service/tests/test_browser_resource_container.py",
+      "before_sha256": "7f3185af2a7617f74f82a851daef405a8f57a86074859b06080bf84153c52ca8",
+      "after_sha256_at_layout": "7f3185af2a7617f74f82a851daef405a8f57a86074859b06080bf84153c52ca8",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/python-service/src/routers/browser.py",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/python-service/src/routers/browser.py",
+      "before_sha256": "cab93efc04212379e79f9098b8d48832befc8226bf534e69b1051784d6774f51",
+      "after_sha256_at_layout": "cab93efc04212379e79f9098b8d48832befc8226bf534e69b1051784d6774f51",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/python-service/src/routers/journey.py",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/python-service/src/routers/journey.py",
+      "before_sha256": "ce714fef95c733fd83e43073ee425268f9a1fe379b98e2884dbc2fad92308b5c",
+      "after_sha256_at_layout": "ce714fef95c733fd83e43073ee425268f9a1fe379b98e2884dbc2fad92308b5c",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/python-service/src/services/browser_service.py",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/python-service/src/services/browser_service.py",
+      "before_sha256": "03351d4f189caaced90eafc433fe03873b60f028a4ffebe839be77e1e513b04a",
+      "after_sha256_at_layout": "03351d4f189caaced90eafc433fe03873b60f028a4ffebe839be77e1e513b04a",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/python-service/src/services/journey_models.py",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/python-service/src/services/journey_models.py",
+      "before_sha256": "14c0e6dac21310da7abd44c78e428d4c10f224848b8593461f6f015d36f9f799",
+      "after_sha256_at_layout": "14c0e6dac21310da7abd44c78e428d4c10f224848b8593461f6f015d36f9f799",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/target/surefire-reports/TEST-com.aicodeassistant.tool.process.GroundTruthLifecycleProbeTest.xml",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/target/surefire-reports/TEST-com.aicodeassistant.tool.process.GroundTruthLifecycleProbeTest.xml",
+      "before_sha256": "7a32d44e520b35ad22753133b4316b0111989dd8ea908f18b07a22b773c36540",
+      "after_sha256_at_layout": "7a32d44e520b35ad22753133b4316b0111989dd8ea908f18b07a22b773c36540",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/target/surefire-reports/com.aicodeassistant.tool.process.GroundTruthLifecycleProbeTest.txt",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/target/surefire-reports/com.aicodeassistant.tool.process.GroundTruthLifecycleProbeTest.txt",
+      "before_sha256": "f30bae8db23b05226e73f4989fe8d931a97741271fcb27b5a568db5a7e939630",
+      "after_sha256_at_layout": "f30bae8db23b05226e73f4989fe8d931a97741271fcb27b5a568db5a7e939630",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/log/error.log",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/log/error.log",
+      "before_sha256": "4ee01c5e7b7b8fc0b1c10dfe86c94472b848bad46e326e15d9c6fc479bd2d8c2",
+      "after_sha256_at_layout": "4ee01c5e7b7b8fc0b1c10dfe86c94472b848bad46e326e15d9c6fc479bd2d8c2",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/log/app.log",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/log/app.log",
+      "before_sha256": "4ee01c5e7b7b8fc0b1c10dfe86c94472b848bad46e326e15d9c6fc479bd2d8c2",
+      "after_sha256_at_layout": "4ee01c5e7b7b8fc0b1c10dfe86c94472b848bad46e326e15d9c6fc479bd2d8c2",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/log/debug/debug.log",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/log/debug/debug.log",
+      "before_sha256": "4ee01c5e7b7b8fc0b1c10dfe86c94472b848bad46e326e15d9c6fc479bd2d8c2",
+      "after_sha256_at_layout": "4ee01c5e7b7b8fc0b1c10dfe86c94472b848bad46e326e15d9c6fc479bd2d8c2",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/verify/DevServerLauncherTest.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/verify/DevServerLauncherTest.java",
+      "before_sha256": "39059ad29ad041a6c68cbff0e7251cfd065d4955d5724516656a142e137d0781",
+      "after_sha256_at_layout": "39059ad29ad041a6c68cbff0e7251cfd065d4955d5724516656a142e137d0781",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/tool/impl/BashToolFailureClassificationTest.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/tool/impl/BashToolFailureClassificationTest.java",
+      "before_sha256": "d091b6b99deac35276c6e36c3870c9b61ab6944d2e31aac0395331454371fa78",
+      "after_sha256_at_layout": "d091b6b99deac35276c6e36c3870c9b61ab6944d2e31aac0395331454371fa78",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/tool/process/GroundTruthLifecycleProbeTest.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/tool/process/GroundTruthLifecycleProbeTest.java",
+      "before_sha256": "f2a14a736fd34b6e3f2ccf31dc85c453a6be3f42cda2c51b57314660ee9084c6",
+      "after_sha256_at_layout": "f2a14a736fd34b6e3f2ccf31dc85c453a6be3f42cda2c51b57314660ee9084c6",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/tool/process/ManagedProcessRunnerTest.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/tool/process/ManagedProcessRunnerTest.java",
+      "before_sha256": "a692cf8a7b5e9366d5d518531cc550ee2058b0865cbc4e7cc61c21629b599a11",
+      "after_sha256_at_layout": "a692cf8a7b5e9366d5d518531cc550ee2058b0865cbc4e7cc61c21629b599a11",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/tool/process/OwnedProcessTest.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/tool/process/OwnedProcessTest.java",
+      "before_sha256": "f0ca5b9064932285eaf6323714b29824d12fb004d7a344a929f1308e8c1c5059",
+      "after_sha256_at_layout": "f0ca5b9064932285eaf6323714b29824d12fb004d7a344a929f1308e8c1c5059",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/verify/VerifierFactory.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/verify/VerifierFactory.java",
+      "before_sha256": "3cbe93aba75472a3c30df9199d1ffea1acb639144aeb6fb9d65f61f6a3a03413",
+      "after_sha256_at_layout": "3cbe93aba75472a3c30df9199d1ffea1acb639144aeb6fb9d65f61f6a3a03413",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/verify/BrowserVerifier.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/verify/BrowserVerifier.java",
+      "before_sha256": "8a51a70d0ea173b6be65b70fa084c0cfbe460f3642bfcb6d29c93bbe350745cd",
+      "after_sha256_at_layout": "8a51a70d0ea173b6be65b70fa084c0cfbe460f3642bfcb6d29c93bbe350745cd",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/verify/DevServerLauncher.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/verify/DevServerLauncher.java",
+      "before_sha256": "539e9922c3863a3ef6c2603af8a0592bffc41f34cc473dcdceae87ed69881a32",
+      "after_sha256_at_layout": "539e9922c3863a3ef6c2603af8a0592bffc41f34cc473dcdceae87ed69881a32",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/verify/UserJourneyVerifier.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/verify/UserJourneyVerifier.java",
+      "before_sha256": "20672e9c56f25bc18bf253df3334e29c7e3e9b7fcf674a01c0fd82b81b0f2e10",
+      "after_sha256_at_layout": "20672e9c56f25bc18bf253df3334e29c7e3e9b7fcf674a01c0fd82b81b0f2e10",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/verify/JourneyRequest.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/verify/JourneyRequest.java",
+      "before_sha256": "da649d0397cc6f75a621cca8c05e5a3ffcc75520ebdf7498c7bd65565bb5d3d8",
+      "after_sha256_at_layout": "da649d0397cc6f75a621cca8c05e5a3ffcc75520ebdf7498c7bd65565bb5d3d8",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/run/RunExecutionRegistry.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/run/RunExecutionRegistry.java",
+      "before_sha256": "1803467520f26625d0717dcc2c6ec2ce1730b83a28bad54c4ded27788c48b98b",
+      "after_sha256_at_layout": "1803467520f26625d0717dcc2c6ec2ce1730b83a28bad54c4ded27788c48b98b",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/run/RunEnvelope.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/run/RunEnvelope.java",
+      "before_sha256": "3ff62b6dc7c716b8b1422870bd5dca8c096295a0f49add5ded5dddde453422c0",
+      "after_sha256_at_layout": "3ff62b6dc7c716b8b1422870bd5dca8c096295a0f49add5ded5dddde453422c0",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/run/RunTerminationCoordinator.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/run/RunTerminationCoordinator.java",
+      "before_sha256": "24da4b535bfb55e88126cf6656285f0c93059b438b0eb2bfd2a0d3ef62c35447",
+      "after_sha256_at_layout": "24da4b535bfb55e88126cf6656285f0c93059b438b0eb2bfd2a0d3ef62c35447",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/run/RunTracker.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/run/RunTracker.java",
+      "before_sha256": "25e7fd714b2a4587f2a4154ae5e675e01721992100a0fae5606d21c8a2cb1725",
+      "after_sha256_at_layout": "25e7fd714b2a4587f2a4154ae5e675e01721992100a0fae5606d21c8a2cb1725",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/service/PythonProcessManager.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/service/PythonProcessManager.java",
+      "before_sha256": "2256872cb62dddd52ab04d295090bde0c24d5cc92ffadb6c22bfb4b7129a52ea",
+      "after_sha256_at_layout": "2256872cb62dddd52ab04d295090bde0c24d5cc92ffadb6c22bfb4b7129a52ea",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/service/PythonCapabilityAwareClient.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/service/PythonCapabilityAwareClient.java",
+      "before_sha256": "aa5daa2eeeabece977bb397a8fae56ee6f693b16b140c212df9048621e3b7be8",
+      "after_sha256_at_layout": "aa5daa2eeeabece977bb397a8fae56ee6f693b16b140c212df9048621e3b7be8",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/engine/QueryEngine.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/engine/QueryEngine.java",
+      "before_sha256": "269a9c6125d46c505a521649c3d69198a5a17e422a33d9a52906b0f8c02163a8",
+      "after_sha256_at_layout": "269a9c6125d46c505a521649c3d69198a5a17e422a33d9a52906b0f8c02163a8",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/tool/ToolResult.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/tool/ToolResult.java",
+      "before_sha256": "5cbd57932b7c025a62bdf6de39c6e64ecfbad4891460f79dbab77eaa9a03b46c",
+      "after_sha256_at_layout": "5cbd57932b7c025a62bdf6de39c6e64ecfbad4891460f79dbab77eaa9a03b46c",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/tool/ToolExecutionPipeline.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/tool/ToolExecutionPipeline.java",
+      "before_sha256": "0f8bcd527dd9d45cf1afa33878cfdafe58125152f88dbccea8b2b14b82b0fe38",
+      "after_sha256_at_layout": "0f8bcd527dd9d45cf1afa33878cfdafe58125152f88dbccea8b2b14b82b0fe38",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/tool/impl/BashTool.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/tool/impl/BashTool.java",
+      "before_sha256": "592c607996c8b441b83dadd054902c23319c7ba68a2580f78dcff1a4c23eab91",
+      "after_sha256_at_layout": "592c607996c8b441b83dadd054902c23319c7ba68a2580f78dcff1a4c23eab91",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/tool/verify/VerifyJourneyTool.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/tool/verify/VerifyJourneyTool.java",
+      "before_sha256": "2e670d439a93aa12e7298951fc746ad0d7e0d7933624eec28ed6036de6d61b87",
+      "after_sha256_at_layout": "2e670d439a93aa12e7298951fc746ad0d7e0d7933624eec28ed6036de6d61b87",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/tool/bash/ShellStateManager.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/tool/bash/ShellStateManager.java",
+      "before_sha256": "32865310b8c37e2fb8af197aff1c9a2aae8d0c86f2a38059a082e4bb2d2d4dea",
+      "after_sha256_at_layout": "32865310b8c37e2fb8af197aff1c9a2aae8d0c86f2a38059a082e4bb2d2d4dea",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/tool/bash/ProcessTreeManager.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/tool/bash/ProcessTreeManager.java",
+      "before_sha256": "f25c392bf18ea158c0d104d0c69aa31431dfeb07656c1a04fa3c9813149619f7",
+      "after_sha256_at_layout": "f25c392bf18ea158c0d104d0c69aa31431dfeb07656c1a04fa3c9813149619f7",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/tool/process/OwnedProcess.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/tool/process/OwnedProcess.java",
+      "before_sha256": "82bdba7be84f534987ee2f3d7f9c16d23d2663a947db833c8f13b8992c8893ba",
+      "after_sha256_at_layout": "82bdba7be84f534987ee2f3d7f9c16d23d2663a947db833c8f13b8992c8893ba",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/tool/process/ManagedProcessRunner.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/src/main/java/com/aicodeassistant/tool/process/ManagedProcessRunner.java",
+      "before_sha256": "09f9acaa9fd4122272e4326e9375588415d872b0dbe897eff7ce48e40a4e6dc2",
+      "after_sha256_at_layout": "09f9acaa9fd4122272e4326e9375588415d872b0dbe897eff7ce48e40a4e6dc2",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/docs/ZhikunCode-Architecture.html",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/docs/ZhikunCode-Architecture.html",
+      "before_sha256": "fd7a20cce757774edfa40537db9ce2d472a5b966968b892f031202d6eed33d5a",
+      "after_sha256_at_layout": "fd7a20cce757774edfa40537db9ce2d472a5b966968b892f031202d6eed33d5a",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/docs/README_EN.md",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/docs/README_EN.md",
+      "before_sha256": "d41c60141a35a9a0f8dd9f25ed6494fae7e5366ed4b6aacd776de10429bdd82c",
+      "after_sha256_at_layout": "d41c60141a35a9a0f8dd9f25ed6494fae7e5366ed4b6aacd776de10429bdd82c",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/.github/workflows/security.yml",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/.github/workflows/security.yml",
+      "before_sha256": "aee2dd385ae3ed4ba7202fa8916f0235b571614a410132f3373f7252df4458fe",
+      "after_sha256_at_layout": "aee2dd385ae3ed4ba7202fa8916f0235b571614a410132f3373f7252df4458fe",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/.github/workflows/task3-5-regression.yml",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/.github/workflows/task3-5-regression.yml",
+      "before_sha256": "f8f5c5319999ad70154baec59eb16132c66811a94ffbe462ebf1361357150a29",
+      "after_sha256_at_layout": "f8f5c5319999ad70154baec59eb16132c66811a94ffbe462ebf1361357150a29",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-head/.github/workflows/ci.yml",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/.github/workflows/ci.yml",
+      "before_sha256": "862392af9926c6e2e8d58abb35aac3d3a8b8c07aa89157f89cb488e8115a36cf",
+      "after_sha256_at_layout": "862392af9926c6e2e8d58abb35aac3d3a8b8c07aa89157f89cb488e8115a36cf",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/logs/lifecycle-maven-initial-syntax-error.log",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/logs/lifecycle-maven-initial-syntax-error.log",
+      "before_sha256": "011410356637b0fac3c6a238cbcff04b3b4ed7888d3d05a9a001bb7435d4cb5e",
+      "after_sha256_at_layout": "011410356637b0fac3c6a238cbcff04b3b4ed7888d3d05a9a001bb7435d4cb5e",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/logs/lifecycle-maven.log",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/logs/lifecycle-maven.log",
+      "before_sha256": "079c00d0618407d77d4a7aa0408ca6f93217f52b5b38aff91695aa93f7638c75",
+      "after_sha256_at_layout": "079c00d0618407d77d4a7aa0408ca6f93217f52b5b38aff91695aa93f7638c75",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/logs/parent-window-maven.log",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/logs/parent-window-maven.log",
+      "before_sha256": "1576560fb2f693c319ef8f107aedcd055ce09fa75ee931a4dee75df99ebbb9f4",
+      "after_sha256_at_layout": "1576560fb2f693c319ef8f107aedcd055ce09fa75ee931a4dee75df99ebbb9f4",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/logs/portable-mac.log",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/logs/portable-mac.log",
+      "before_sha256": "a98fa9bda110c3fed4bee6780df742117f8ff49c86746de5810beb28d4acdec2",
+      "after_sha256_at_layout": "a98fa9bda110c3fed4bee6780df742117f8ff49c86746de5810beb28d4acdec2",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/logs/portable-linux.log",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/logs/portable-linux.log",
+      "before_sha256": "1422c9a95e66ed214aa74b0eea56b63282f1f34b5ae631f74822a50962a00638",
+      "after_sha256_at_layout": "1422c9a95e66ed214aa74b0eea56b63282f1f34b5ae631f74822a50962a00638",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/logs/surefire-head/TEST-com.aicodeassistant.tool.process.GroundTruthLifecycleProbeTest.xml",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/logs/surefire-head/TEST-com.aicodeassistant.tool.process.GroundTruthLifecycleProbeTest.xml",
+      "before_sha256": "7a32d44e520b35ad22753133b4316b0111989dd8ea908f18b07a22b773c36540",
+      "after_sha256_at_layout": "7a32d44e520b35ad22753133b4316b0111989dd8ea908f18b07a22b773c36540",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/logs/surefire-head/com.aicodeassistant.tool.process.GroundTruthLifecycleProbeTest.txt",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/logs/surefire-head/com.aicodeassistant.tool.process.GroundTruthLifecycleProbeTest.txt",
+      "before_sha256": "f30bae8db23b05226e73f4989fe8d931a97741271fcb27b5a568db5a7e939630",
+      "after_sha256_at_layout": "f30bae8db23b05226e73f4989fe8d931a97741271fcb27b5a568db5a7e939630",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/logs/surefire-parent/TEST-com.aicodeassistant.tool.process.GroundTruthParentWindowTest.xml",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/logs/surefire-parent/TEST-com.aicodeassistant.tool.process.GroundTruthParentWindowTest.xml",
+      "before_sha256": "6ccac3c76ed5962ec28f7782c09b0fce9caffb14b81447a9e433e366e77081f7",
+      "after_sha256_at_layout": "6ccac3c76ed5962ec28f7782c09b0fce9caffb14b81447a9e433e366e77081f7",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/logs/surefire-parent/com.aicodeassistant.tool.process.GroundTruthParentWindowTest.txt",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/logs/surefire-parent/com.aicodeassistant.tool.process.GroundTruthParentWindowTest.txt",
+      "before_sha256": "05579c3499aa9aaa33df5c97d20bec4b9ab2bd032ffde2c68bd9f78dd20483e1",
+      "after_sha256_at_layout": "05579c3499aa9aaa33df5c97d20bec4b9ab2bd032ffde2c68bd9f78dd20483e1",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-parent/backend/target/surefire-reports/TEST-com.aicodeassistant.tool.process.GroundTruthParentWindowTest.xml",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-parent/backend/target/surefire-reports/TEST-com.aicodeassistant.tool.process.GroundTruthParentWindowTest.xml",
+      "before_sha256": "6ccac3c76ed5962ec28f7782c09b0fce9caffb14b81447a9e433e366e77081f7",
+      "after_sha256_at_layout": "6ccac3c76ed5962ec28f7782c09b0fce9caffb14b81447a9e433e366e77081f7",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-parent/backend/target/surefire-reports/com.aicodeassistant.tool.process.GroundTruthParentWindowTest.txt",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-parent/backend/target/surefire-reports/com.aicodeassistant.tool.process.GroundTruthParentWindowTest.txt",
+      "before_sha256": "05579c3499aa9aaa33df5c97d20bec4b9ab2bd032ffde2c68bd9f78dd20483e1",
+      "after_sha256_at_layout": "05579c3499aa9aaa33df5c97d20bec4b9ab2bd032ffde2c68bd9f78dd20483e1",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/source-parent/backend/src/test/java/com/aicodeassistant/tool/process/GroundTruthParentWindowTest.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/source-parent/backend/src/test/java/com/aicodeassistant/tool/process/GroundTruthParentWindowTest.java",
+      "before_sha256": "15a11aa35d203ad7ba0eb5191f5bad935f6dd1c97adc203c85cb52de332c1b30",
+      "after_sha256_at_layout": "15a11aa35d203ad7ba0eb5191f5bad935f6dd1c97adc203c85cb52de332c1b30",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/tmp/portable-linux/child.pid",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/tmp/portable-linux/child.pid",
+      "before_sha256": "932ab0a0e4191d32c0af7b3f565b7b180dbe9869378abc5816f9add54b806e7f",
+      "after_sha256_at_layout": "932ab0a0e4191d32c0af7b3f565b7b180dbe9869378abc5816f9add54b806e7f",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/java/tmp/portable-mac/child.pid",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/java/tmp/portable-mac/child.pid",
+      "before_sha256": "f2996da390e399ea8f3633aea634078a5d3e24996a63ea764ad70b9826af0fb4",
+      "after_sha256_at_layout": "f2996da390e399ea8f3633aea634078a5d3e24996a63ea764ad70b9826af0fb4",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/root/probe_optional_request.py",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/root/probe_optional_request.py",
+      "before_sha256": "49256a7173fd0e830517673c9bba567379ccdf158db80503ea7dbed9e8387b86",
+      "after_sha256_at_layout": "49256a7173fd0e830517673c9bba567379ccdf158db80503ea7dbed9e8387b86",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/root/OwnedProcess.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/root/OwnedProcess.java",
+      "before_sha256": "82bdba7be84f534987ee2f3d7f9c16d23d2663a947db833c8f13b8992c8893ba",
+      "after_sha256_at_layout": "82bdba7be84f534987ee2f3d7f9c16d23d2663a947db833c8f13b8992c8893ba",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/root/optional_request.log",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/root/optional_request.log",
+      "before_sha256": "cf28290a24a3f0252fb280a98b2d4b5dd58a7ba8453f716435fa1e9b26ed1d2c",
+      "after_sha256_at_layout": "cf28290a24a3f0252fb280a98b2d4b5dd58a7ba8453f716435fa1e9b26ed1d2c",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/root/watcher_head_independent.log",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/root/watcher_head_independent.log",
+      "before_sha256": "2e0ea06f2fc48fcdd36d6ea50e204a54f4feb501c346958148148de0cd7041d1",
+      "after_sha256_at_layout": "2e0ea06f2fc48fcdd36d6ea50e204a54f4feb501c346958148148de0cd7041d1",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/root/linux_probe.log",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/root/linux_probe.log",
+      "before_sha256": "fa698f329b5b851ff4437aab6f41a6081861e9722134c603ea5654b0109ccb9c",
+      "after_sha256_at_layout": "fa698f329b5b851ff4437aab6f41a6081861e9722134c603ea5654b0109ccb9c",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/root/commit.diff",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/root/commit.diff",
+      "before_sha256": "8690ae989d345a8ab5dee81ef5b8ffbf37f95ac064ba1b59518a4340051f26e1",
+      "after_sha256_at_layout": "8690ae989d345a8ab5dee81ef5b8ffbf37f95ac064ba1b59518a4340051f26e1",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/root/watcher_parent_independent.log",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/root/watcher_parent_independent.log",
+      "before_sha256": "c2a779e99bb6ea004bd978a951e7e01787bdc2cdc024829bedb92a097acc3010",
+      "after_sha256_at_layout": "c2a779e99bb6ea004bd978a951e7e01787bdc2cdc024829bedb92a097acc3010",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/root/LinuxProbe.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/root/LinuxProbe.java",
+      "before_sha256": "8b6058cdd016fd592b8bde65bd62b51c76c99dc85a8e7fcf172087b60156699d",
+      "after_sha256_at_layout": "8b6058cdd016fd592b8bde65bd62b51c76c99dc85a8e7fcf172087b60156699d",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/root/disconnect_independent.log",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/root/disconnect_independent.log",
+      "before_sha256": "7d96b1d21f4c0a1dcb19f75eedf2d676bacb86b213fa162046282704a8c18efd",
+      "after_sha256_at_layout": "7d96b1d21f4c0a1dcb19f75eedf2d676bacb86b213fa162046282704a8c18efd",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/root/ci.yml",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/root/ci.yml",
+      "before_sha256": "862392af9926c6e2e8d58abb35aac3d3a8b8c07aa89157f89cb488e8115a36cf",
+      "after_sha256_at_layout": "862392af9926c6e2e8d58abb35aac3d3a8b8c07aa89157f89cb488e8115a36cf",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/claims/append_e08.py",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/claims/append_e08.py",
+      "before_sha256": "0d9e00eaa49f5f748a56f8896e1962f183617a11196f0de825c2c07505841e2a",
+      "after_sha256_at_layout": "0d9e00eaa49f5f748a56f8896e1962f183617a11196f0de825c2c07505841e2a",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/claims/claim_audit.md",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/claims/claim_audit.md",
+      "before_sha256": "e3dcc7cf4c717dee4d36cebe26cf90f99b6ff31daeafd0ebbbf892149613613a",
+      "after_sha256_at_layout": "e3dcc7cf4c717dee4d36cebe26cf90f99b6ff31daeafd0ebbbf892149613613a",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/claims/claims.json",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/claims/claims.json",
+      "before_sha256": "ca973da45ebb23149610ee5281eeca454f463dae6e29965701c96da997b7c85f",
+      "after_sha256_at_layout": "ca973da45ebb23149610ee5281eeca454f463dae6e29965701c96da997b7c85f",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/claims/build_claims.py",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/claims/build_claims.py",
+      "before_sha256": "382e43e8e0b3b0bfd06dd9ffa786cc205f1986bad05587aaa1a124c0c0e32cd6",
+      "after_sha256_at_layout": "382e43e8e0b3b0bfd06dd9ffa786cc205f1986bad05587aaa1a124c0c0e32cd6",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/claims/submitted_evidence/index.json",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/claims/submitted_evidence/index.json",
+      "before_sha256": "99fc23b87ef2f42189fe659477e0fe9e63c946863f6802489a70e74c42f0160a",
+      "after_sha256_at_layout": "99fc23b87ef2f42189fe659477e0fe9e63c946863f6802489a70e74c42f0160a",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/claims/submitted_evidence/E03/tmp/zc_java_full.log",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/claims/submitted_evidence/E03/tmp/zc_java_full.log",
+      "before_sha256": "711ef527522542748325f2923498783ddbc3a31dd03b895ffbd62a168a6cd8ff",
+      "after_sha256_at_layout": "711ef527522542748325f2923498783ddbc3a31dd03b895ffbd62a168a6cd8ff",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/claims/submitted_evidence/E03/tmp/zc_cls_results.txt",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/claims/submitted_evidence/E03/tmp/zc_cls_results.txt",
+      "before_sha256": "024e3cde2254c113d8e16c053b4ee0c4373f2604a847bb3446afa713ee627026",
+      "after_sha256_at_layout": "024e3cde2254c113d8e16c053b4ee0c4373f2604a847bb3446afa713ee627026",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/claims/submitted_evidence/E03/tmp/zc_java_tests.log",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/claims/submitted_evidence/E03/tmp/zc_java_tests.log",
+      "before_sha256": "1edf243d0a454ca4a8548c379a87efab21dadad9d803750394bdf74ca285e242",
+      "after_sha256_at_layout": "1edf243d0a454ca4a8548c379a87efab21dadad9d803750394bdf74ca285e242",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/claims/submitted_evidence/E03/tmp/zc_py_tests.log",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/claims/submitted_evidence/E03/tmp/zc_py_tests.log",
+      "before_sha256": "a10368bca80a70b194f3b784252030c5e11636e020adec95c9665ff6b5aa3dcf",
+      "after_sha256_at_layout": "a10368bca80a70b194f3b784252030c5e11636e020adec95c9665ff6b5aa3dcf",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/claims/submitted_evidence/E03/tmp/zc_repro/Repro.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/claims/submitted_evidence/E03/tmp/zc_repro/Repro.java",
+      "before_sha256": "afb490d28f3cd322fc92305cb272015cfbe69e258f4e2e1960d02d8ba9e1d577",
+      "after_sha256_at_layout": "afb490d28f3cd322fc92305cb272015cfbe69e258f4e2e1960d02d8ba9e1d577",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/claims/submitted_evidence/E03/tmp/zc_linux/Probe3.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/claims/submitted_evidence/E03/tmp/zc_linux/Probe3.java",
+      "before_sha256": "20f9d06b149f57871c0531a818e871275c06566d385c1c15bf602935c2c10272",
+      "after_sha256_at_layout": "20f9d06b149f57871c0531a818e871275c06566d385c1c15bf602935c2c10272",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/claims/submitted_evidence/E03/tmp/zc_linux/Probe.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/claims/submitted_evidence/E03/tmp/zc_linux/Probe.java",
+      "before_sha256": "5896d3a57ba76407ead9e7f975a24779f854cb97758145b90e7b7fd80f27b076",
+      "after_sha256_at_layout": "5896d3a57ba76407ead9e7f975a24779f854cb97758145b90e7b7fd80f27b076",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/claims/submitted_evidence/E03/tmp/zc_linux/Probe2.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/claims/submitted_evidence/E03/tmp/zc_linux/Probe2.java",
+      "before_sha256": "ebbcbd814d185229ccea7c950259306bef0ea97f14e95f6bfa65a1c910191bf1",
+      "after_sha256_at_layout": "ebbcbd814d185229ccea7c950259306bef0ea97f14e95f6bfa65a1c910191bf1",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/claims/submitted_evidence/E07/tmp/oprobe/OwnedProcess.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/claims/submitted_evidence/E07/tmp/oprobe/OwnedProcess.java",
+      "before_sha256": "82bdba7be84f534987ee2f3d7f9c16d23d2663a947db833c8f13b8992c8893ba",
+      "after_sha256_at_layout": "82bdba7be84f534987ee2f3d7f9c16d23d2663a947db833c8f13b8992c8893ba",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/claims/submitted_evidence/E07/tmp/oprobe/Probe3.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/claims/submitted_evidence/E07/tmp/oprobe/Probe3.java",
+      "before_sha256": "e2d1e8f6f092ab319fc2769d1ce89d9bbea1857eed9565adb7bd24fa4e8c7f71",
+      "after_sha256_at_layout": "e2d1e8f6f092ab319fc2769d1ce89d9bbea1857eed9565adb7bd24fa4e8c7f71",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/claims/submitted_evidence/E07/tmp/oprobe/Probe.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/claims/submitted_evidence/E07/tmp/oprobe/Probe.java",
+      "before_sha256": "134fd69518221ebfbcb9480d03a91631c872e3858c42b62abe7453c8b4521a72",
+      "after_sha256_at_layout": "134fd69518221ebfbcb9480d03a91631c872e3858c42b62abe7453c8b4521a72",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/claims/submitted_evidence/E07/tmp/oprobe/Probe2.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/claims/submitted_evidence/E07/tmp/oprobe/Probe2.java",
+      "before_sha256": "b29a08cc4f02a78bd02ae308fe95909cd091a7915970a54116ced0fa19ab1e39",
+      "after_sha256_at_layout": "b29a08cc4f02a78bd02ae308fe95909cd091a7915970a54116ced0fa19ab1e39",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/claims/submitted_evidence/E01/tmp/zc-parent/target/surefire-reports/com.aicodeassistant.tool.process.ManagedProcessRunnerTest.txt",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/claims/submitted_evidence/E01/tmp/zc-parent/target/surefire-reports/com.aicodeassistant.tool.process.ManagedProcessRunnerTest.txt",
+      "before_sha256": "40f0429082d09463d898b81832ccca98204fbcaa48a2f2516de85e8dd11ee5e3",
+      "after_sha256_at_layout": "40f0429082d09463d898b81832ccca98204fbcaa48a2f2516de85e8dd11ee5e3",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/claims/submitted_evidence/E01/tmp/probe3/LaunchWindowCancelProbe.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/claims/submitted_evidence/E01/tmp/probe3/LaunchWindowCancelProbe.java",
+      "before_sha256": "3771f4f75aa754278fe1272deaa7c14e905ac12c7d17ebb70afb021d7a102ad1",
+      "after_sha256_at_layout": "3771f4f75aa754278fe1272deaa7c14e905ac12c7d17ebb70afb021d7a102ad1",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/claims/submitted_evidence/E01/tmp/probe3/CancelTimelineProbe.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/claims/submitted_evidence/E01/tmp/probe3/CancelTimelineProbe.java",
+      "before_sha256": "5a9d726095c296b9739a67404a35ef83bd958a22c4b16023f3dfcf975b17bafa",
+      "after_sha256_at_layout": "5a9d726095c296b9739a67404a35ef83bd958a22c4b16023f3dfcf975b17bafa",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/claims/submitted_evidence/E01/tmp/zc-verify/target/surefire-reports/com.aicodeassistant.tool.process.ManagedProcessRunnerTest.txt",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/claims/submitted_evidence/E01/tmp/zc-verify/target/surefire-reports/com.aicodeassistant.tool.process.ManagedProcessRunnerTest.txt",
+      "before_sha256": "1d0d97a10dd868d967eca406fe3fe9470ee2017e95c1242ec81883c3727caba5",
+      "after_sha256_at_layout": "1d0d97a10dd868d967eca406fe3fe9470ee2017e95c1242ec81883c3727caba5",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/claims/submitted_evidence/E01/tmp/probe/Probe.java",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/claims/submitted_evidence/E01/tmp/probe/Probe.java",
+      "before_sha256": "f3fb9e78b377dad9d3f6c61882d3517d9c0bd89ab3bff812574f8f1e7e5f5dfc",
+      "after_sha256_at_layout": "f3fb9e78b377dad9d3f6c61882d3517d9c0bd89ab3bff812574f8f1e7e5f5dfc",
+      "frozen_markdown": false,
+      "content_unchanged": true,
+      "note": "只移动或保持原位"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/claims/submitted_evidence/E06/Users/guoqingtao/Desktop/dev/code/zhikuncode/backend/.zhikun/scratchpad/824e9ba4-7e97-4ead-9c30-7db8e486c098/python_review_findings.md",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/claims/submitted_evidence/E06/Users/guoqingtao/Desktop/dev/code/zhikuncode/backend/.zhikun/scratchpad/824e9ba4-7e97-4ead-9c30-7db8e486c098/python_review_findings.md",
+      "before_sha256": "1358385c36c8d2ce649faff604d6cbdd4ee0322c1d3c1ecd65e2d9b39c8ad691",
+      "after_sha256_at_layout": "1358385c36c8d2ce649faff604d6cbdd4ee0322c1d3c1ecd65e2d9b39c8ad691",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/claims/submitted_evidence/E06/Users/guoqingtao/Desktop/dev/code/zhikuncode/backend/.zhikun/scratchpad/824e9ba4-7e97-4ead-9c30-7db8e486c098/test_execution_evidence.md",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/claims/submitted_evidence/E06/Users/guoqingtao/Desktop/dev/code/zhikuncode/backend/.zhikun/scratchpad/824e9ba4-7e97-4ead-9c30-7db8e486c098/test_execution_evidence.md",
+      "before_sha256": "c8b3dcaa7cf7bba1a691b066dbbdfc38f5e7cd7458d76fc65024d3b9556333dd",
+      "after_sha256_at_layout": "c8b3dcaa7cf7bba1a691b066dbbdfc38f5e7cd7458d76fc65024d3b9556333dd",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/evidence/claims/submitted_evidence/E06/Users/guoqingtao/Desktop/dev/code/zhikuncode/backend/.zhikun/scratchpad/824e9ba4-7e97-4ead-9c30-7db8e486c098/java_review_findings.md",
+      "after_path": "证据附件/评审结果_20260925_v1/evidence/claims/submitted_evidence/E06/Users/guoqingtao/Desktop/dev/code/zhikuncode/backend/.zhikun/scratchpad/824e9ba4-7e97-4ead-9c30-7db8e486c098/java_review_findings.md",
+      "before_sha256": "312090fae5cf92fe577fc250f529c6306cd33f05fd897207845188a3de2e4109",
+      "after_sha256_at_layout": "312090fae5cf92fe577fc250f529c6306cd33f05fd897207845188a3de2e4109",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/inputs/E03.md",
+      "after_path": "证据附件/评审结果_20260925_v1/inputs/E03.md",
+      "before_sha256": "4a6c3ee66e34f6fa4d1518a8dfdb7df6bf59ee142528d30eea12ee319078c5d0",
+      "after_sha256_at_layout": "4a6c3ee66e34f6fa4d1518a8dfdb7df6bf59ee142528d30eea12ee319078c5d0",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/inputs/E07.md",
+      "after_path": "证据附件/评审结果_20260925_v1/inputs/E07.md",
+      "before_sha256": "d45ddd6eee7bc8049b1f90d2bb394899605a0d61cea60cbe7f9b5cb4848099e0",
+      "after_sha256_at_layout": "d45ddd6eee7bc8049b1f90d2bb394899605a0d61cea60cbe7f9b5cb4848099e0",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/inputs/E06.md",
+      "after_path": "证据附件/评审结果_20260925_v1/inputs/E06.md",
+      "before_sha256": "c8cacdb4036994542b091c96fa6c78c7c569eca65ff9cc4a8af14fa9cd8432a3",
+      "after_sha256_at_layout": "c8cacdb4036994542b091c96fa6c78c7c569eca65ff9cc4a8af14fa9cd8432a3",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/inputs/E02.md",
+      "after_path": "证据附件/评审结果_20260925_v1/inputs/E02.md",
+      "before_sha256": "48a6d17dc95d0e5ee2017656c0c04353336ea572f21efc1b069c9c9769489887",
+      "after_sha256_at_layout": "48a6d17dc95d0e5ee2017656c0c04353336ea572f21efc1b069c9c9769489887",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/inputs/E08.md",
+      "after_path": "证据附件/评审结果_20260925_v1/inputs/E08.md",
+      "before_sha256": "d5741260dd808a2fccd2d4ac8d41f351e02afb40e965b24d47872a8ac74be2b6",
+      "after_sha256_at_layout": "d5741260dd808a2fccd2d4ac8d41f351e02afb40e965b24d47872a8ac74be2b6",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/inputs/E05.md",
+      "after_path": "证据附件/评审结果_20260925_v1/inputs/E05.md",
+      "before_sha256": "bafadba6fa32f0854d5bce5a209597bdfda71bc9b28521e9c4309cc98a28e064",
+      "after_sha256_at_layout": "bafadba6fa32f0854d5bce5a209597bdfda71bc9b28521e9c4309cc98a28e064",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/inputs/E01.md",
+      "after_path": "证据附件/评审结果_20260925_v1/inputs/E01.md",
+      "before_sha256": "455b1b993ff132370d7ea96a6a66b1302b0b98c32c2f3d581ca4e8637c04cef0",
+      "after_sha256_at_layout": "455b1b993ff132370d7ea96a6a66b1302b0b98c32c2f3d581ca4e8637c04cef0",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "评审结果_20260925_v1/inputs/E04.md",
+      "after_path": "证据附件/评审结果_20260925_v1/inputs/E04.md",
+      "before_sha256": "68048e93aaff3d55b87dd1f5d5643b66e5edc673b7a445a7667954a561c6d3ed",
+      "after_sha256_at_layout": "68048e93aaff3d55b87dd1f5d5643b66e5edc673b7a445a7667954a561c6d3ed",
+      "frozen_markdown": true,
+      "content_unchanged": true,
+      "note": "冻结原文不改"
+    },
+    {
+      "before_path": "usage_data_2026-09-25_2026-09-25 2/cost-2026-09-25_2026-09-25.csv",
+      "after_path": "证据附件/用量数据/展开副本/usage_data_2026-09-25_2026-09-25 2/cost-2026-09-25_2026-09-25.csv",
+      "before_sha256": "8b03fda4f816fe57da213530a47a9b7d06f87bb57edba2ec579200d1bc162d43",
+      "after_sha256_at_layout": "ffd00e0b68e1ba9a391e2b688fda603e132752c0b6ee101dbbea712673033934",
+      "frozen_markdown": false,
+      "content_unchanged": false,
+      "note": "导航/元数据/工具适配或晚到CSV脱敏"
+    },
+    {
+      "before_path": "usage_data_2026-09-25_2026-09-25 2/amount-2026-09-25_2026-09-25.csv",
+      "after_path": "证据附件/用量数据/展开副本/usage_data_2026-09-25_2026-09-25 2/amount-2026-09-25_2026-09-25.csv",
+      "before_sha256": "43cc6c33a7b6e0f8c8a8e37b54fa6a027d8e51228b68ab7c5085870f4d9b58a2",
+      "after_sha256_at_layout": "47f3787bb06e2358a7d2a9594344d55277815c36efb0fa33e4f4ae5fe3f00b4b",
+      "frozen_markdown": false,
+      "content_unchanged": false,
+      "note": "导航/元数据/工具适配或晚到CSV脱敏"
+    }
+  ],
+  "frozen_markdown_count": 43,
+  "all_frozen_markdown_unchanged": true,
+  "late_csv_redactions": [
+    {
+      "path": "证据附件/用量数据/展开副本/usage_data_2026-09-25_2026-09-25/cost-2026-09-25_2026-09-25.csv",
+      "original_sha256": "8b03fda4f816fe57da213530a47a9b7d06f87bb57edba2ec579200d1bc162d43",
+      "published_sha256": "ffd00e0b68e1ba9a391e2b688fda603e132752c0b6ee101dbbea712673033934",
+      "fields_redacted": {
+        "user_id": 3
+      },
+      "rows": 3,
+      "note": "后续加入的CSV展开副本；不改变数值或原排名"
+    },
+    {
+      "path": "证据附件/用量数据/展开副本/usage_data_2026-09-25_2026-09-25/amount-2026-09-25_2026-09-25.csv",
+      "original_sha256": "43cc6c33a7b6e0f8c8a8e37b54fa6a027d8e51228b68ab7c5085870f4d9b58a2",
+      "published_sha256": "47f3787bb06e2358a7d2a9594344d55277815c36efb0fa33e4f4ae5fe3f00b4b",
+      "fields_redacted": {
+        "user_id": 12,
+        "api_key": 12
+      },
+      "rows": 12,
+      "note": "后续加入的CSV展开副本；不改变数值或原排名"
+    },
+    {
+      "path": "证据附件/用量数据/展开副本/usage_data_2026-09-25_2026-09-25 2/cost-2026-09-25_2026-09-25.csv",
+      "original_sha256": "8b03fda4f816fe57da213530a47a9b7d06f87bb57edba2ec579200d1bc162d43",
+      "published_sha256": "ffd00e0b68e1ba9a391e2b688fda603e132752c0b6ee101dbbea712673033934",
+      "fields_redacted": {
+        "user_id": 3
+      },
+      "rows": 3,
+      "note": "后续加入的CSV展开副本；不改变数值或原排名"
+    },
+    {
+      "path": "证据附件/用量数据/展开副本/usage_data_2026-09-25_2026-09-25 2/amount-2026-09-25_2026-09-25.csv",
+      "original_sha256": "43cc6c33a7b6e0f8c8a8e37b54fa6a027d8e51228b68ab7c5085870f4d9b58a2",
+      "published_sha256": "47f3787bb06e2358a7d2a9594344d55277815c36efb0fa33e4f4ae5fe3f00b4b",
+      "fields_redacted": {
+        "user_id": 12,
+        "api_key": 12
+      },
+      "rows": 12,
+      "note": "后续加入的CSV展开副本；不改变数值或原排名"
+    }
+  ],
+  "paths_are_relative_to": "资料包根目录",
+  "added_reading_documents": [
+    "证据附件/README.md",
+    "证据附件/证据阅读指南.md"
+  ],
+  "finalized_at": "2026-09-25T13:14:08.138525+08:00"
+}

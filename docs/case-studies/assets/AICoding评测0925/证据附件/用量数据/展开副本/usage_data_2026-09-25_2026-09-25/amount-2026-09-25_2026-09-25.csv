@@ -1,0 +1,13 @@
+user_id,start_time_iso,end_time_iso,model,api_key_name,api_key,type,price,amount
+[REDACTED_USER_ID],2026-09-25T08:00:00+08:00,2026-09-25T09:00:00+08:00,deepseek-flash,zhikuncode,[REDACTED_API_KEY],input_cache_miss_tokens,0.000001,653
+[REDACTED_USER_ID],2026-09-25T08:00:00+08:00,2026-09-25T09:00:00+08:00,deepseek-flash,zhikuncode,[REDACTED_API_KEY],input_cache_hit_tokens,0.00000002,7808
+[REDACTED_USER_ID],2026-09-25T08:00:00+08:00,2026-09-25T09:00:00+08:00,deepseek-flash,zhikuncode,[REDACTED_API_KEY],request_count,,2
+[REDACTED_USER_ID],2026-09-25T08:00:00+08:00,2026-09-25T09:00:00+08:00,deepseek-flash,zhikuncode,[REDACTED_API_KEY],output_tokens,0.000004,200
+[REDACTED_USER_ID],2026-09-25T09:00:00+08:00,2026-09-25T10:00:00+08:00,deepseek-flash,zhikuncode,[REDACTED_API_KEY],input_cache_hit_tokens,0.00000002,58281344
+[REDACTED_USER_ID],2026-09-25T09:00:00+08:00,2026-09-25T10:00:00+08:00,deepseek-flash,zhikuncode,[REDACTED_API_KEY],request_count,,527
+[REDACTED_USER_ID],2026-09-25T09:00:00+08:00,2026-09-25T10:00:00+08:00,deepseek-flash,zhikuncode,[REDACTED_API_KEY],input_cache_miss_tokens,0.000001,2008508
+[REDACTED_USER_ID],2026-09-25T09:00:00+08:00,2026-09-25T10:00:00+08:00,deepseek-flash,zhikuncode,[REDACTED_API_KEY],output_tokens,0.000004,646273
+[REDACTED_USER_ID],2026-09-25T10:00:00+08:00,2026-09-25T11:00:00+08:00,deepseek-flash,zhikuncode,[REDACTED_API_KEY],request_count,,57
+[REDACTED_USER_ID],2026-09-25T10:00:00+08:00,2026-09-25T11:00:00+08:00,deepseek-flash,zhikuncode,[REDACTED_API_KEY],input_cache_hit_tokens,0.00000002,10895232
+[REDACTED_USER_ID],2026-09-25T10:00:00+08:00,2026-09-25T11:00:00+08:00,deepseek-flash,zhikuncode,[REDACTED_API_KEY],input_cache_miss_tokens,0.000001,223848
+[REDACTED_USER_ID],2026-09-25T10:00:00+08:00,2026-09-25T11:00:00+08:00,deepseek-flash,zhikuncode,[REDACTED_API_KEY],output_tokens,0.000004,163871

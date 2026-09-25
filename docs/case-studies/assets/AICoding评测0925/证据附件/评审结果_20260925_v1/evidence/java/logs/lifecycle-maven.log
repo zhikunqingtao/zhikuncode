@@ -1,0 +1,7 @@
+2026-09-25 10:22:29.609 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.process.ManagedProcessRunner - Foreground process cleanup unconfirmed: pid=91614
+PROBE retained: attemptsBeforeRecovery=4 attemptsAfterRepeatedRegistryCancellation=4 registered=true permits=0 nextRun=SESSION_EXECUTION_ALREADY_REGISTERED
+PROBE retained manual-runner-retry: registered=false permits=1
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+PROBE descendants-unavailable-recovery: confirmed=true elapsedMs=16
+PROBE cwd: skippedUpdate=true nextCommandCwd=/var/folders/g_/cgkxr_w91xg7tx8n84hjt9zm0000gn/T/cwd-probe-15701294774116680577/child
+PROBE launch-summary: quiescent=true activeNow=0 cached=CancelSummary[activeCount=1, confirmedCount=0, unconfirmedCount=1] terminalReason=PROCESS_TERMINATION_UNCONFIRMED

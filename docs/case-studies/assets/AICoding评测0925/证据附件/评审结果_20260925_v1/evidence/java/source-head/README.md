@@ -59,9 +59,6 @@
 > 🔍 **AI Coding 代码审查对比：17 份报告**
 > [Claude Opus5.5：排名分析、方法与证据 →](https://github.com/zhikunqingtao/zhikuncode/blob/aicoding-eval-0923/docs/case-studies/assets/aicoding%E8%AF%84%E6%B5%8B/Claude%20Opus5.5-17%E4%BB%BD%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A%E6%8E%92%E5%90%8D%E5%88%86%E6%9E%90%E6%96%B9%E6%B3%95%E8%BF%87%E7%A8%8B%E8%AF%81%E6%8D%AE%E4%B8%8E%E7%BB%93%E8%AE%BA.md) · [GPT-6 Astra Ultra：公平排名与可复核证据 →](https://github.com/zhikunqingtao/zhikuncode/blob/aicoding-eval-0923/docs/case-studies/assets/aicoding%E8%AF%84%E6%B5%8B/GPT-6%20Astra%20Ultra-17%E4%BB%BD%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A%E5%85%AC%E5%B9%B3%E6%8E%92%E5%90%8D%E4%B8%8E%E5%8F%AF%E5%A4%8D%E6%A0%B8%E8%AF%81%E6%8D%AE.md)
 
-> 🔬 **[八款 AI Coding 同题代码审查（2026-09-25） →](docs/case-studies/assets/AICoding%E8%AF%84%E6%B5%8B0925/README.md)**
-> 八份原报告 · 六维评分 · 可复核证据与约1小时57分钟过程录屏
-
 > 🏆 **[SWE-bench Lite 技术报告 →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html)**  
 > 提交命名空间 `20260525_zhikuncode` · 官方 harness 评测 Resolve **168 / 300 (56.0%)** · Patch 生成率 284 / 300 (94.7%)
 
@@ -121,14 +118,6 @@ ZhikunCode 使用 Kimi K3 在 2026-08-09 凌晨一次性完成了一个纯静态
 
 **[Claude Opus5.5：排名分析方法、过程、证据与结论 →](https://github.com/zhikunqingtao/zhikuncode/blob/aicoding-eval-0923/docs/case-studies/assets/aicoding%E8%AF%84%E6%B5%8B/Claude%20Opus5.5-17%E4%BB%BD%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A%E6%8E%92%E5%90%8D%E5%88%86%E6%9E%90%E6%96%B9%E6%B3%95%E8%BF%87%E7%A8%8B%E8%AF%81%E6%8D%AE%E4%B8%8E%E7%BB%93%E8%AE%BA.md)** ·
 **[GPT-6 Astra Ultra：公平排名与可复核证据 →](https://github.com/zhikunqingtao/zhikuncode/blob/aicoding-eval-0923/docs/case-studies/assets/aicoding%E8%AF%84%E6%B5%8B/GPT-6%20Astra%20Ultra-17%E4%BB%BD%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A%E5%85%AC%E5%B9%B3%E6%8E%92%E5%90%8D%E4%B8%8E%E5%8F%AF%E5%A4%8D%E6%A0%B8%E8%AF%81%E6%8D%AE.md)**
-
-### 八款 AI Coding 同题代码审查（2026-09-25）
-
-八款 AI Coding 工具审查同一代码提交，从有效发现、准确性、归因、证据、工程覆盖及建议交付六个维度比较最终报告。公开八份原报告、逐项评分、独立复核证据、重算脚本与约1小时57分钟的过程录屏。本次为单任务产物评测，不代表产品总体能力排名。
-
-**[评测首页 →](docs/case-studies/assets/AICoding%E8%AF%84%E6%B5%8B0925/README.md)** ·
-**[证据与复算 →](docs/case-studies/assets/AICoding%E8%AF%84%E6%B5%8B0925/%E8%AF%81%E6%8D%AE%E9%99%84%E4%BB%B6/README.md)** ·
-**[过程录屏与时间索引 →](docs/case-studies/assets/AICoding%E8%AF%84%E6%B5%8B0925/%E8%AF%81%E6%8D%AE%E9%99%84%E4%BB%B6/%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B%E5%BD%95%E5%B1%8F/%E5%BD%95%E5%B1%8F%E6%97%B6%E9%97%B4%E7%B4%A2%E5%BC%95%E4%B8%8E%E8%BF%87%E7%A8%8B%E6%A0%B8%E9%AA%8C.md)**
 
 > 以上案例均为单次任务实测记录，详细方法与数据见各案例报告页。
 

@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.aicodeassistant.tool.process.OwnedProcessTest
+-------------------------------------------------------------------------------
+Tests run: 15, Failures: 0, Errors: 0, Skipped: 6, Time elapsed: 1.391 s -- in com.aicodeassistant.tool.process.OwnedProcessTest

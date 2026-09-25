@@ -1,0 +1,255 @@
+{
+  "policy": "所有旧Markdown不脱敏、不改路径，按用户明确要求保留；只处理非Markdown派生副本；原值不写记录",
+  "files": [
+    {
+      "path": "证据附件/评审结果_20260925_v1/evidence/claims/claims.json",
+      "changes": {
+        "运行环境用户名路径（Markdown除外）": 141
+      }
+    },
+    {
+      "path": "证据附件/评审结果_20260925_v1/evidence/claims/submitted_evidence/E03/tmp/zc_java_full.log",
+      "changes": {
+        "已知运行时凭据或完整访问URL": 15,
+        "运行环境用户名路径（Markdown除外）": 78
+      }
+    },
+    {
+      "path": "证据附件/评审结果_20260925_v1/evidence/claims/submitted_evidence/index.json",
+      "changes": {
+        "运行环境用户名路径（Markdown除外）": 26
+      }
+    },
+    {
+      "path": "证据附件/评审结果_20260925_v1/evidence/java/logs/lifecycle-maven-initial-syntax-error.log",
+      "changes": {
+        "运行环境用户名路径（Markdown除外）": 2
+      }
+    },
+    {
+      "path": "证据附件/评审结果_20260925_v1/evidence/java/logs/surefire-head/TEST-com.aicodeassistant.tool.process.GroundTruthLifecycleProbeTest.xml",
+      "changes": {
+        "运行环境用户名路径（Markdown除外）": 301
+      }
+    },
+    {
+      "path": "证据附件/评审结果_20260925_v1/evidence/java/logs/surefire-parent/TEST-com.aicodeassistant.tool.process.GroundTruthParentWindowTest.xml",
+      "changes": {
+        "运行环境用户名路径（Markdown除外）": 301
+      }
+    },
+    {
+      "path": "证据附件/评审结果_20260925_v1/evidence/java/source-head/backend/target/surefire-reports/TEST-com.aicodeassistant.tool.process.GroundTruthLifecycleProbeTest.xml",
+      "changes": {
+        "运行环境用户名路径（Markdown除外）": 301
+      }
+    },
+    {
+      "path": "证据附件/评审结果_20260925_v1/evidence/java/source-parent/backend/target/surefire-reports/TEST-com.aicodeassistant.tool.process.GroundTruthParentWindowTest.xml",
+      "changes": {
+        "运行环境用户名路径（Markdown除外）": 301
+      }
+    },
+    {
+      "path": "证据附件/评审结果_20260925_v1/evidence/python/focused.log",
+      "changes": {
+        "运行环境用户名路径（Markdown除外）": 1
+      }
+    },
+    {
+      "path": "证据附件/评审结果_20260925_v1/evidence/python/probe_hang_debug.log",
+      "changes": {
+        "运行环境用户名路径（Markdown除外）": 20
+      }
+    },
+    {
+      "path": "证据附件/评审结果_20260925_v1/evidence/root/commit.diff",
+      "changes": {
+        "作者邮箱（Markdown除外）": 61
+      }
+    },
+    {
+      "path": "证据附件/评审结果_20260925_v1/manifest.json",
+      "changes": {
+        "运行环境用户名路径（Markdown除外）": 16
+      }
+    },
+    {
+      "path": "证据附件/过程补充文件/tmp/zc-parent/target/surefire-reports/TEST-com.aicodeassistant.tool.process.ManagedProcessRunnerTest.xml",
+      "changes": {
+        "运行环境用户名路径（Markdown除外）": 291
+      }
+    },
+    {
+      "path": "证据附件/过程补充文件/tmp/zc-verify/target/surefire-reports/TEST-com.aicodeassistant.service.PythonProcessManagerTest.xml",
+      "changes": {
+        "运行环境用户名路径（Markdown除外）": 291
+      }
+    },
+    {
+      "path": "证据附件/过程补充文件/tmp/zc-verify/target/surefire-reports/TEST-com.aicodeassistant.tool.bash.ProcessTreeManagerTest.xml",
+      "changes": {
+        "运行环境用户名路径（Markdown除外）": 291
+      }
+    },
+    {
+      "path": "证据附件/过程补充文件/tmp/zc-verify/target/surefire-reports/TEST-com.aicodeassistant.tool.impl.BashToolFailureClassificationTest.xml",
+      "changes": {
+        "运行环境用户名路径（Markdown除外）": 291
+      }
+    },
+    {
+      "path": "证据附件/过程补充文件/tmp/zc-verify/target/surefire-reports/TEST-com.aicodeassistant.tool.process.ManagedProcessRunnerTest.xml",
+      "changes": {
+        "运行环境用户名路径（Markdown除外）": 291
+      }
+    },
+    {
+      "path": "证据附件/过程补充文件/tmp/zc-verify/target/surefire-reports/TEST-com.aicodeassistant.tool.process.OwnedProcessTest.xml",
+      "changes": {
+        "运行环境用户名路径（Markdown除外）": 291
+      }
+    },
+    {
+      "path": "证据附件/过程补充文件/tmp/zc-verify/target/surefire-reports/TEST-com.aicodeassistant.verify.BrowserVerifierTest.xml",
+      "changes": {
+        "运行环境用户名路径（Markdown除外）": 291
+      }
+    },
+    {
+      "path": "证据附件/过程补充文件/tmp/zc-verify/target/surefire-reports/TEST-com.aicodeassistant.verify.DevServerLauncherTest.xml",
+      "changes": {
+        "运行环境用户名路径（Markdown除外）": 291
+      }
+    },
+    {
+      "path": "证据附件/过程补充文件/tmp/zc-verify/target/surefire-reports/TEST-com.aicodeassistant.verify.VerifyJourneyEdgeCaseTest.xml",
+      "changes": {
+        "运行环境用户名路径（Markdown除外）": 291
+      }
+    },
+    {
+      "path": "证据附件/过程补充文件/tmp/zhikun_verify/java_full.log",
+      "changes": {
+        "已知运行时凭据或完整访问URL": 10,
+        "其他Spring生成密码": 5,
+        "运行环境用户名路径（Markdown除外）": 76
+      }
+    },
+    {
+      "path": "证据附件/过程补充文件/tmp/zhikun_verify/java_isolation_rerun.log",
+      "changes": {
+        "已知运行时凭据或完整访问URL": 2,
+        "其他Spring生成密码": 1,
+        "运行环境用户名路径（Markdown除外）": 25
+      }
+    },
+    {
+      "path": "证据附件/过程补充文件/tmp/zhikun_verify/java_parent_run.log",
+      "changes": {
+        "已知运行时凭据或完整访问URL": 2,
+        "其他Spring生成密码": 1,
+        "运行环境用户名路径（Markdown除外）": 11
+      }
+    },
+    {
+      "path": "证据附件/过程补充文件/tmp/zhikun_verify/java_targeted.log",
+      "changes": {
+        "运行环境用户名路径（Markdown除外）": 1
+      }
+    },
+    {
+      "path": "证据附件/过程补充文件/tmp/zc_cp.txt",
+      "changes": {
+        "运行环境用户名路径（Markdown除外）": 143
+      }
+    },
+    {
+      "path": "证据附件/提交前检查/prepare_frozen_copy.py",
+      "changes": {
+        "其他Spring生成密码": 2
+      }
+    },
+    {
+      "path": "证据附件/提交前检查/prepare_local_copy.py",
+      "changes": {
+        "其他Spring生成密码": 2
+      }
+    },
+    {
+      "path": "证据附件/提交前检查/全部文件清单_SHA256.json",
+      "changes": {
+        "运行环境用户名路径（Markdown除外）": 3
+      }
+    },
+    {
+      "path": "证据附件/提交前检查/敏感信息扫描索引.json",
+      "changes": {
+        "运行环境用户名路径（Markdown除外）": 9
+      }
+    },
+    {
+      "path": "证据附件/提交前检查/目录扫描结果.json",
+      "changes": {
+        "运行环境用户名路径（Markdown除外）": 1
+      }
+    },
+    {
+      "path": "证据附件/用量数据/usage_data_2026-09-25_2026-09-25.zip",
+      "changes": {
+        "user_id_nonempty_cells": 15,
+        "api_key_nonempty_cells": 12
+      },
+      "detail": "See usage_redaction_manifest.json; values not included"
+    }
+  ],
+  "binary_sensitive_candidates": [],
+  "explicit_unreviewed_media": [],
+  "recording_excluded_by_user": "钉钉录屏_2026-09-25 092622.mp4",
+  "removed_entries_provenance": "已移除副本的原始/派生哈希在精简移除清单.jsonl.gz中保留。",
+  "retired_preview_and_duplicate_records": "deduplication_manifest.json",
+  "late_csv_redactions": [
+    {
+      "path": "证据附件/用量数据/展开副本/usage_data_2026-09-25_2026-09-25/cost-2026-09-25_2026-09-25.csv",
+      "original_sha256": "8b03fda4f816fe57da213530a47a9b7d06f87bb57edba2ec579200d1bc162d43",
+      "published_sha256": "ffd00e0b68e1ba9a391e2b688fda603e132752c0b6ee101dbbea712673033934",
+      "fields_redacted": {
+        "user_id": 3
+      },
+      "rows": 3,
+      "note": "后续加入的CSV展开副本；不改变数值或原排名"
+    },
+    {
+      "path": "证据附件/用量数据/展开副本/usage_data_2026-09-25_2026-09-25/amount-2026-09-25_2026-09-25.csv",
+      "original_sha256": "43cc6c33a7b6e0f8c8a8e37b54fa6a027d8e51228b68ab7c5085870f4d9b58a2",
+      "published_sha256": "47f3787bb06e2358a7d2a9594344d55277815c36efb0fa33e4f4ae5fe3f00b4b",
+      "fields_redacted": {
+        "user_id": 12,
+        "api_key": 12
+      },
+      "rows": 12,
+      "note": "后续加入的CSV展开副本；不改变数值或原排名"
+    },
+    {
+      "path": "证据附件/用量数据/展开副本/usage_data_2026-09-25_2026-09-25 2/cost-2026-09-25_2026-09-25.csv",
+      "original_sha256": "8b03fda4f816fe57da213530a47a9b7d06f87bb57edba2ec579200d1bc162d43",
+      "published_sha256": "ffd00e0b68e1ba9a391e2b688fda603e132752c0b6ee101dbbea712673033934",
+      "fields_redacted": {
+        "user_id": 3
+      },
+      "rows": 3,
+      "note": "后续加入的CSV展开副本；不改变数值或原排名"
+    },
+    {
+      "path": "证据附件/用量数据/展开副本/usage_data_2026-09-25_2026-09-25 2/amount-2026-09-25_2026-09-25.csv",
+      "original_sha256": "43cc6c33a7b6e0f8c8a8e37b54fa6a027d8e51228b68ab7c5085870f4d9b58a2",
+      "published_sha256": "47f3787bb06e2358a7d2a9594344d55277815c36efb0fa33e4f4ae5fe3f00b4b",
+      "fields_redacted": {
+        "user_id": 12,
+        "api_key": 12
+      },
+      "rows": 12,
+      "note": "后续加入的CSV展开副本；不改变数值或原排名"
+    }
+  ]
+}

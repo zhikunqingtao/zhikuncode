@@ -1,0 +1,42 @@
+{
+  "at": "2026-09-25T12:51:59.002569+08:00",
+  "records": [
+    {
+      "retired_path": "过程补充文件/tmp/zc_java_full.log",
+      "retired_record": {
+        "source": "/tmp/zc_java_full.log",
+        "path": "过程补充文件/tmp/zc_java_full.log",
+        "original_sha256": "452f7fa5afb76dc12b26e4ca22e1c176ed0cf8b5d967ba91f9f79a87b211788e",
+        "original_bytes": 2574040,
+        "markdown_frozen": false,
+        "published_sha256": "711ef527522542748325f2923498783ddbc3a31dd03b895ffbd62a168a6cd8ff",
+        "published_bytes": 2573709,
+        "byte_identical": false
+      },
+      "canonical_path": "证据附件/评审结果_20260925_v1/evidence/claims/submitted_evidence/E03/tmp/zc_java_full.log",
+      "canonical_sha256": "711ef527522542748325f2923498783ddbc3a31dd03b895ffbd62a168a6cd8ff",
+      "verification": "byte_identical",
+      "reason": "保留正式脱敏日志；新导航维持原引用入口，评测原Markdown不改"
+    },
+    {
+      "retired_path": "提交前检查/脱敏预览/zc_java_full.log",
+      "retired_record": {
+        "source": "EVALUATION_GitHub提交检查/脱敏预览/zc_java_full.log",
+        "path": "提交前检查/脱敏预览/zc_java_full.log",
+        "original_sha256": "c2eef8aa0d7d05cda8f988d4e31de0a6a4fa1fadd1b0445b3e2b41d8043298da",
+        "original_bytes": 2573955,
+        "markdown_frozen": false,
+        "published_sha256": "5b8b287e3c18bd150fc54876411056645c927ab6ec524933e780f3bb66457d3a",
+        "published_bytes": 2573799,
+        "byte_identical": false
+      },
+      "canonical_path": "证据附件/评审结果_20260925_v1/evidence/claims/submitted_evidence/E03/tmp/zc_java_full.log",
+      "canonical_sha256": "711ef527522542748325f2923498783ddbc3a31dd03b895ffbd62a168a6cd8ff",
+      "verification": "identical_after_normalizing_redaction_markers",
+      "reason": "保留正式脱敏日志；新导航维持原引用入口，评测原Markdown不改"
+    }
+  ],
+  "full_file_inventory": "证据附件/提交前检查/全部文件清单_SHA256.json",
+  "full_file_inventory_sha256": "4609cac54faee85acb052ab312a172ba504774045f65c5b4d7694e7960f9d5d7",
+  "inventory_policy": "全文件清单保持JSON原格式，不压缩、不改内容"
+}

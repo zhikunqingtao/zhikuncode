@@ -1,0 +1,24 @@
+2026-09-25 09:52:59.096 WARN  [background-group-80454] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.process.BackgroundProcessGroup - Cannot confirm background group exit: 80454
+java.io.IOException: PROCESS_GROUP_INSPECTION_FAILED
+	at com.aicodeassistant.tool.process.BackgroundProcessGroup.command(BackgroundProcessGroup.java:121) ~[classes/:?]
+	at com.aicodeassistant.tool.process.BackgroundProcessGroup.isAlive(BackgroundProcessGroup.java:107) ~[classes/:?]
+	at com.aicodeassistant.tool.process.BackgroundProcessGroup.lambda$new$1(BackgroundProcessGroup.java:61) ~[classes/:?]
+	at java.base/java.lang.VirtualThread.run(VirtualThread.java:329) ~[?:?]
+2026-09-25 09:52:59.635 WARN  [background-group-80484] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.process.BackgroundProcessGroup - Cannot confirm background group exit: 80484
+java.io.IOException: PROCESS_GROUP_INSPECTION_FAILED
+	at com.aicodeassistant.tool.process.BackgroundProcessGroup.command(BackgroundProcessGroup.java:121) ~[classes/:?]
+	at com.aicodeassistant.tool.process.BackgroundProcessGroup.isAlive(BackgroundProcessGroup.java:107) ~[classes/:?]
+	at com.aicodeassistant.tool.process.BackgroundProcessGroup.lambda$new$1(BackgroundProcessGroup.java:61) ~[classes/:?]
+	at java.base/java.lang.VirtualThread.run(VirtualThread.java:329) ~[?:?]
+2026-09-25 09:53:00.448 WARN  [background-group-80526] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.process.BackgroundProcessGroup - Cannot confirm background group exit: 80526
+java.io.IOException: PROCESS_GROUP_INSPECTION_FAILED
+	at com.aicodeassistant.tool.process.BackgroundProcessGroup.command(BackgroundProcessGroup.java:121) ~[classes/:?]
+	at com.aicodeassistant.tool.process.BackgroundProcessGroup.isAlive(BackgroundProcessGroup.java:107) ~[classes/:?]
+	at com.aicodeassistant.tool.process.BackgroundProcessGroup.lambda$new$1(BackgroundProcessGroup.java:61) ~[classes/:?]
+	at java.base/java.lang.VirtualThread.run(VirtualThread.java:329) ~[?:?]
+2026-09-25 09:53:00.547 WARN  [background-group-80544] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.process.BackgroundProcessGroup - Cannot confirm background group exit: 80544
+java.io.IOException: PROCESS_GROUP_INSPECTION_FAILED
+	at com.aicodeassistant.tool.process.BackgroundProcessGroup.command(BackgroundProcessGroup.java:121) ~[classes/:?]
+	at com.aicodeassistant.tool.process.BackgroundProcessGroup.isAlive(BackgroundProcessGroup.java:107) ~[classes/:?]
+	at com.aicodeassistant.tool.process.BackgroundProcessGroup.lambda$new$1(BackgroundProcessGroup.java:61) ~[classes/:?]
+	at java.base/java.lang.VirtualThread.run(VirtualThread.java:329) ~[?:?]

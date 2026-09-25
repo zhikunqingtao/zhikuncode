@@ -54,9 +54,6 @@
 > 🔍 **AI Coding Review Comparison: 17 Reports**
 > [Claude Opus5.5: Ranking Methodology and Evidence (Chinese) →](https://github.com/zhikunqingtao/zhikuncode/blob/aicoding-eval-0923/docs/case-studies/assets/aicoding%E8%AF%84%E6%B5%8B/Claude%20Opus5.5-17%E4%BB%BD%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A%E6%8E%92%E5%90%8D%E5%88%86%E6%9E%90%E6%96%B9%E6%B3%95%E8%BF%87%E7%A8%8B%E8%AF%81%E6%8D%AE%E4%B8%8E%E7%BB%93%E8%AE%BA.md) · [GPT-6 Astra Ultra: Fair Ranking and Verifiable Evidence (Chinese) →](https://github.com/zhikunqingtao/zhikuncode/blob/aicoding-eval-0923/docs/case-studies/assets/aicoding%E8%AF%84%E6%B5%8B/GPT-6%20Astra%20Ultra-17%E4%BB%BD%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A%E5%85%AC%E5%B9%B3%E6%8E%92%E5%90%8D%E4%B8%8E%E5%8F%AF%E5%A4%8D%E6%A0%B8%E8%AF%81%E6%8D%AE.md)
 
-> 🔬 **[Eight AI Coding Tools Reviewing One Commit (2026-09-25) →](case-studies/assets/AICoding%E8%AF%84%E6%B5%8B0925/README.md)**
-> Eight reports · Six scoring dimensions · Verifiable evidence and a 1h57m process recording · Materials primarily in Chinese
-
 > 🏆 **[SWE-bench Lite Technical Report →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html)**  
 > Submission namespace `20260525_zhikuncode` · Official harness Resolve **168 / 300 (56.0%)** · Patch generation 284 / 300 (94.7%)
 
@@ -116,14 +113,6 @@ Two official rankings are reported: on the six-task equal-weight board ZhikunCod
 
 **[Claude Opus5.5: Ranking Methodology, Evidence and Conclusions (Chinese) →](https://github.com/zhikunqingtao/zhikuncode/blob/aicoding-eval-0923/docs/case-studies/assets/aicoding%E8%AF%84%E6%B5%8B/Claude%20Opus5.5-17%E4%BB%BD%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A%E6%8E%92%E5%90%8D%E5%88%86%E6%9E%90%E6%96%B9%E6%B3%95%E8%BF%87%E7%A8%8B%E8%AF%81%E6%8D%AE%E4%B8%8E%E7%BB%93%E8%AE%BA.md)** ·
 **[GPT-6 Astra Ultra: Fair Ranking and Verifiable Evidence (Chinese) →](https://github.com/zhikunqingtao/zhikuncode/blob/aicoding-eval-0923/docs/case-studies/assets/aicoding%E8%AF%84%E6%B5%8B/GPT-6%20Astra%20Ultra-17%E4%BB%BD%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A%E5%85%AC%E5%B9%B3%E6%8E%92%E5%90%8D%E4%B8%8E%E5%8F%AF%E5%A4%8D%E6%A0%B8%E8%AF%81%E6%8D%AE.md)**
-
-### Eight AI Coding Tools Reviewing One Commit (2026-09-25)
-
-Eight AI coding tools reviewed the same commit. Their final reports were compared across effective findings, accuracy, causal attribution, evidence, engineering coverage, and recommendations and delivery. The materials include all eight original reports, itemized scores, verification evidence, recalculation scripts, and a 1h57m process recording. This is a single-task evaluation of delivered reports, not a general ranking of product capabilities. Materials are primarily in Chinese.
-
-**[Evaluation overview →](case-studies/assets/AICoding%E8%AF%84%E6%B5%8B0925/README.md)** ·
-**[Evidence and recalculation →](case-studies/assets/AICoding%E8%AF%84%E6%B5%8B0925/%E8%AF%81%E6%8D%AE%E9%99%84%E4%BB%B6/README.md)** ·
-**[Recording and timeline →](case-studies/assets/AICoding%E8%AF%84%E6%B5%8B0925/%E8%AF%81%E6%8D%AE%E9%99%84%E4%BB%B6/%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B%E5%BD%95%E5%B1%8F/%E5%BD%95%E5%B1%8F%E6%97%B6%E9%97%B4%E7%B4%A2%E5%BC%95%E4%B8%8E%E8%BF%87%E7%A8%8B%E6%A0%B8%E9%AA%8C.md)**
 
 > All cases above are single-task test records. See each case report page for detailed methodology and data.
 

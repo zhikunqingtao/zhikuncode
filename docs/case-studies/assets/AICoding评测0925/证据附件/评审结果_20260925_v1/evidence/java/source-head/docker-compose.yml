@@ -1,0 +1,127 @@
+# =============================================================================
+# ZhikunCode — Docker Compose (Production)
+# =============================================================================
+# Usage:
+#   docker compose up -d          # Start in background
+#   docker compose logs -f        # Follow logs
+#   docker compose down           # Stop and remove
+#   docker compose up --build     # Rebuild and start
+# =============================================================================
+
+services:
+  zhikuncode:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    image: zhikuncode:latest
+    container_name: zhikuncode
+    ports:
+      - "${ZHIKUN_PORT:-8080}:8080"
+    environment:
+      # ---- Required ----
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-production}
+      - "JAVA_OPTS=${JAVA_OPTS:--Xms256m -Xmx1024m --enable-preview}"
+      # ---- Multi-Provider LLM (Recommended) ----
+      - LLM_PROVIDER_DASHSCOPE_API_KEY=${LLM_PROVIDER_DASHSCOPE_API_KEY:-}
+      - LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY=${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY:-}
+      - LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS=${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS:-qwen3.8-max,qwen3.8-flash,deepseek-v4-pro-0813,deepseek-v4-flash-0731,deepseek-v4.1-flash,bailian/glm-5.3}
+      - LLM_PROVIDER_DEEPSEEK_API_KEY=${LLM_PROVIDER_DEEPSEEK_API_KEY:-}
+      - LLM_PROVIDER_DEEPSEEK_MODELS=${LLM_PROVIDER_DEEPSEEK_MODELS:-deepseek-flash}
+      - LLM_PROVIDER_MOONSHOT_API_KEY=${LLM_PROVIDER_MOONSHOT_API_KEY:-}
+      - LLM_PROVIDER_KIMI_CODE_API_KEY=${LLM_PROVIDER_KIMI_CODE_API_KEY:-}
+      - LLM_PROVIDER_KIMI_CODE_MODELS=${LLM_PROVIDER_KIMI_CODE_MODELS:-k3,kimi-for-coding}
+      - LLM_PROVIDER_ZHIPU_API_KEY=${LLM_PROVIDER_ZHIPU_API_KEY:-}
+      - LLM_PROVIDER_ZHIPU_MODELS=${LLM_PROVIDER_ZHIPU_MODELS:-glm-5.3,glm-5.3-flash}
+      - LLM_PROVIDER_MINIMAX_API_KEY=${LLM_PROVIDER_MINIMAX_API_KEY:-}
+      - LLM_PROVIDER_ZENMUX_API_KEY=${LLM_PROVIDER_ZENMUX_API_KEY:-}
+      - LLM_PROVIDER_OPENROUTER_API_KEY=${LLM_PROVIDER_OPENROUTER_API_KEY:-}
+      - LLM_PROVIDER_OPENROUTER_MODELS=${LLM_PROVIDER_OPENROUTER_MODELS:-stealth/union-alpha,openrouter/openai/gpt-6-astra,openrouter/anthropic/claude-fable-5.1}
+      - LLM_FAST_MODEL=${LLM_FAST_MODEL:-deepseek-v4.1-flash}
+      - LLM_COMPACT_MODEL=${LLM_COMPACT_MODEL:-deepseek-v4.1-flash}
+      - LLM_COMPACT_LLM_ENABLED=${LLM_COMPACT_LLM_ENABLED:-true}
+      - LLM_COMPACT_PROVIDER=${LLM_COMPACT_PROVIDER:-dashscope-token-plan}
+      - LLM_COMPACT_THINKING_MODE=${LLM_COMPACT_THINKING_MODE:-max}
+      - LLM_COMPACT_MAX_COMPLETION_TOKENS=${LLM_COMPACT_MAX_COMPLETION_TOKENS:-8192}
+      - LLM_COMPACT_MAX_SUMMARY_TOKENS=${LLM_COMPACT_MAX_SUMMARY_TOKENS:-4096}
+      - LLM_COMPACT_TIMEOUT_MS=${LLM_COMPACT_TIMEOUT_MS:-90000}
+      - LLM_VISION_FALLBACK_MODEL=${LLM_VISION_FALLBACK_MODEL:-deepseek-v4.1-flash}
+      - ASR_CORRECTIONS=${ASR_CORRECTIONS:-zhikuncode:zhi kun code,zkun code,智坤code,志鲲Code,智kuncode,zhi坤code}
+      # ---- Legacy Single-Provider (Backward Compatible) ----
+      - LLM_API_KEY=${LLM_API_KEY:-}
+      - LLM_BASE_URL=${LLM_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
+      - LLM_DEFAULT_MODEL=${LLM_DEFAULT_MODEL:-deepseek-v4.1-flash}
+      - LLM_MODELS=${LLM_MODELS:-}
+      # ---- External MCP servers ----
+      - ZHIKUN_MCP_SERVERS=${ZHIKUN_MCP_SERVERS:-}
+      # Delete-session confirmation code (empty = no code required)
+      - ZHIKUN_DELETE_CONFIRM_CODE=${ZHIKUN_DELETE_CONFIRM_CODE:-}
+      - CONTEXT7_API_KEY=${CONTEXT7_API_KEY:-}
+      - GITHUB_TOOLS=${GITHUB_TOOLS:-get_me,get_file_contents,search_code,list_branches,list_commits,list_pull_requests,pull_request_read}
+      - GITHUB_READ_ONLY=${GITHUB_READ_ONLY:-1}
+      - GITHUB_LOCKDOWN_MODE=${GITHUB_LOCKDOWN_MODE:-1}
+      - ALIBABA_CLOUD_ACCESS_KEY_ID=${ALIBABA_CLOUD_ACCESS_KEY_ID:-}
+      - ALIBABA_CLOUD_ACCESS_KEY_SECRET=${ALIBABA_CLOUD_ACCESS_KEY_SECRET:-}
+      - ALIBABA_CLOUD_SECURITY_TOKEN=${ALIBABA_CLOUD_SECURITY_TOKEN:-}
+      - ALIBABA_CLOUD_OPS_VISIBLE_TOOLS=${ALIBABA_CLOUD_OPS_VISIBLE_TOOLS:-ECS_DescribeInstances,ECS_DescribeRegions,ECS_DescribeSecurityGroups,OSS_ListBuckets,OSS_ListObjects}
+      # ---- Optional (Docker Advanced) — has Dockerfile defaults, override if needed ----
+      # Private network access: allows Docker bridge network IPs to bypass auth
+      # - ALLOW_PRIVATE_NETWORK=${ALLOW_PRIVATE_NETWORK:-true}
+      # Container log directory
+      # - LOG_DIR=${LOG_DIR:-/app/log}
+      # MCP capability registry path
+      # - MCP_REGISTRY_PATH=${MCP_REGISTRY_PATH:-/app/configuration/mcp/mcp_capability_registry.json}
+      # Persist user MCP enable/disable choices in the existing data volume.
+      - MCP_SERVICE_STATE_PATH=/app/data/mcp-service-states.json
+      # ---- Internal ----
+      - SPRING_WEB_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/app/static/
+      - ZHIKUN_DEFAULT_WORKSPACE=/app/workspace
+      - ZHIKUN_WORKSPACE_ALLOWED_ROOTS=/app/workspace
+      - ZHIKUN_GLOBAL_DB_PATH=/app/data/global.db
+      - ZHIKUNCODE_DATABASE_PROJECT_ROOT=/app/data
+      # ---- Optional Meoo publishing (credentials file is read by the backend only) ----
+      - ZHIKUN_MEOO_ENABLED=${ZHIKUN_MEOO_ENABLED:-false}
+      - ZHIKUN_MEOO_CREDENTIALS_FILE=${ZHIKUN_MEOO_CREDENTIALS_FILE:-/run/secrets/meoo-credentials.json}
+      - ZHIKUN_MEOO_TIMEOUT_SECONDS=${ZHIKUN_MEOO_TIMEOUT_SECONDS:-1200}
+      # ---- Optional OSS publishing + clipboard image paste (disabled by default) ----
+      # auto prefers local ALIBABA_CLOUD_* credentials, then a named ECS RAM Role.
+      - ZHIKUN_OSS_ENABLED=${ZHIKUN_OSS_ENABLED:-false}
+      - ZHIKUN_OSS_ENDPOINT=${ZHIKUN_OSS_ENDPOINT:-}
+      - ZHIKUN_OSS_REGION=${ZHIKUN_OSS_REGION:-}
+      - ZHIKUN_OSS_BUCKET=${ZHIKUN_OSS_BUCKET:-}
+      - ZHIKUN_OSS_PREFIX=${ZHIKUN_OSS_PREFIX:-zhikuncode-artifacts}
+      - ZHIKUN_OSS_ECS_ROLE_NAME=${ZHIKUN_OSS_ECS_ROLE_NAME:-}
+      - ZHIKUN_OSS_CREDENTIAL_MODE=${ZHIKUN_OSS_CREDENTIAL_MODE:-auto}
+      - ZHIKUN_OSS_MAX_FILE_BYTES=${ZHIKUN_OSS_MAX_FILE_BYTES:-104857600}
+      - ZHIKUN_OSS_CONNECT_TIMEOUT_MS=${ZHIKUN_OSS_CONNECT_TIMEOUT_MS:-10000}
+      - ZHIKUN_OSS_REQUEST_TIMEOUT_MS=${ZHIKUN_OSS_REQUEST_TIMEOUT_MS:-120000}
+      - ALIBABA_CLOUD_ACCESS_KEY_ID=${ALIBABA_CLOUD_ACCESS_KEY_ID:-}
+      - ALIBABA_CLOUD_ACCESS_KEY_SECRET=${ALIBABA_CLOUD_ACCESS_KEY_SECRET:-}
+      - ALIBABA_CLOUD_SECURITY_TOKEN=${ALIBABA_CLOUD_SECURITY_TOKEN:-}
+    volumes:
+      # Persistent data (SQLite DB, session data, memories)
+      - zhikun-data:/app/data
+      # User workspace mount (the code project to work on)
+      - ${WORKSPACE_PATH:-./workspace}:/app/workspace
+      # When enabling Meoo, add a read-only secret mount in a compose override:
+      # - /absolute/private/meoo-credentials.json:/run/secrets/meoo-credentials.json:ro
+      # Optional: persist logs to host
+      # - ./logs:/app/log
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+    # Resource limits (adjust based on your server)
+    deploy:
+      resources:
+        limits:
+          memory: 4g
+        reservations:
+          memory: 1g
+
+volumes:
+  zhikun-data:
+    driver: local

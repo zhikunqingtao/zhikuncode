@@ -1,0 +1,2 @@
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+PROBE parent launch-summary: quiescent=true cached=CancelSummary[activeCount=0, confirmedCount=0, unconfirmedCount=0] terminal=CANCELLED confirmation=true

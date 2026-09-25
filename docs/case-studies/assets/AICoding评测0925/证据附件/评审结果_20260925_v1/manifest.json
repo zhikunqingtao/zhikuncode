@@ -1,0 +1,81 @@
+{
+  "snapshot_at": "2026-09-25T10:16:40.752580+08:00",
+  "commit": "0db4b0498f6cf886f862fe293883256b1c52e049",
+  "git_status_before": "",
+  "entries": [
+    {
+      "id": "E01",
+      "name": "DeepSeekHarness",
+      "source": "/Users/reviewer/Desktop/AICoding评测0925/DeepSeekHarness_zhikuncode_commit-0db4b04_独立审查报告.md",
+      "snapshot": "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/inputs/E01.md",
+      "bytes": 33545,
+      "sha256": "455b1b993ff132370d7ea96a6a66b1302b0b98c32c2f3d581ca4e8637c04cef0",
+      "mtime_ns": 1790301361629469349
+    },
+    {
+      "id": "E02",
+      "name": "QoderIDE",
+      "source": "/Users/reviewer/Desktop/AICoding评测0925/QoderIDE_zhikuncode_commit-0db4b049_独立代码审查报告.md",
+      "snapshot": "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/inputs/E02.md",
+      "bytes": 32377,
+      "sha256": "48a6d17dc95d0e5ee2017656c0c04353336ea572f21efc1b069c9c9769489887",
+      "mtime_ns": 1790301044886459141
+    },
+    {
+      "id": "E03",
+      "name": "ZCode",
+      "source": "/Users/reviewer/Desktop/AICoding评测0925/ZCode_commit-0db4b04_进程与浏览器生命周期修复独立审查.md",
+      "snapshot": "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/inputs/E03.md",
+      "bytes": 42337,
+      "sha256": "4a6c3ee66e34f6fa4d1518a8dfdb7df6bf59ee142528d30eea12ee319078c5d0",
+      "mtime_ns": 1790301413498514080
+    },
+    {
+      "id": "E04",
+      "name": "QoderCN",
+      "source": "/Users/reviewer/Desktop/AICoding评测0925/QoderCN_commit-0db4b04-进程与浏览器生命周期修复审查.md",
+      "snapshot": "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/inputs/E04.md",
+      "bytes": 15879,
+      "sha256": "68048e93aaff3d55b87dd1f5d5643b66e5edc673b7a445a7667954a561c6d3ed",
+      "mtime_ns": 1790300410642195432
+    },
+    {
+      "id": "E05",
+      "name": "pi",
+      "source": "/Users/reviewer/Desktop/AICoding评测0925/pi_zhikuncode_commit-0db4b04_review.md",
+      "snapshot": "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/inputs/E05.md",
+      "bytes": 28189,
+      "sha256": "bafadba6fa32f0854d5bce5a209597bdfda71bc9b28521e9c4309cc98a28e064",
+      "mtime_ns": 1790301090607540835
+    },
+    {
+      "id": "E06",
+      "name": "zhikuncode",
+      "source": "/Users/reviewer/Desktop/AICoding评测0925/zhikuncode_commit-0db4b049-独立审查报告.md",
+      "snapshot": "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/inputs/E06.md",
+      "bytes": 53640,
+      "sha256": "c8cacdb4036994542b091c96fa6c78c7c569eca65ff9cc4a8af14fa9cd8432a3",
+      "mtime_ns": 1790301641981434693
+    },
+    {
+      "id": "E07",
+      "name": "TraceCodeCn",
+      "source": "/Users/reviewer/Desktop/AICoding评测0925/TraceCodeCn_0db4b04_lifecycle-fix-review.md",
+      "snapshot": "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/inputs/E07.md",
+      "bytes": 28769,
+      "sha256": "d45ddd6eee7bc8049b1f90d2bb394899605a0d61cea60cbe7f9b5cb4848099e0",
+      "mtime_ns": 1790301228512458697
+    },
+    {
+      "id": "E08",
+      "name": "opencode",
+      "source": "/Users/reviewer/Desktop/AICoding评测0925/opencode_commit_0db4b04_review.md",
+      "snapshot": "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/inputs/E08.md",
+      "bytes": 21457,
+      "sha256": "d5741260dd808a2fccd2d4ac8d41f351e02afb40e965b24d47872a8ac74be2b6",
+      "mtime_ns": 1790303141166452015,
+      "snapshot_at": "2026-09-25T10:27:46.735230+08:00"
+    }
+  ],
+  "scope_amendment": "用户在评分前明确要求opencode立即加入同轮，不做v2；八份产物采用同一评分方法。"
+}

@@ -1,0 +1,13 @@
+{
+  "before_bytes_including_indexes": 486121651,
+  "after_bytes_including_indexes": 16723930,
+  "reduction_percent": 96.56,
+  "files": 254,
+  "removed_files": 20053,
+  "frozen_evaluation_markdown_retained": 43,
+  "referenced_source_files_retained": 46,
+  "restore_test": "5535 source files restored and hash-verified in a temporary directory; deleted after verification",
+  "commit_or_push": false,
+  "duplicate_and_preview_files_consolidated": 2,
+  "full_file_inventory_compressed": false
+}

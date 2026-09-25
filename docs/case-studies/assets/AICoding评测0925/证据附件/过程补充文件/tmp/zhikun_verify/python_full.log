@@ -1,0 +1,122 @@
+START:09:44:26
+...................s................F................................... [ 31%]
+........................................................................ [ 62%]
+...........................................F............................ [ 93%]
+..............                                                           [100%]
+=================================== FAILURES ===================================
+_ test_close_during_creation_prevents_late_registration_even_if_driver_swallows_cancel _
+
+service = <services.browser_service.BrowserService object at 0x10bcf3990>
+
+    @pytest.mark.asyncio
+    async def test_close_during_creation_prevents_late_registration_even_if_driver_swallows_cancel(service):
+        context = service._browser.new_context.return_value
+        page = context.new_page.return_value
+        entered = asyncio.Event()
+    
+        async def swallow_cancel():
+            entered.set()
+            try:
+                await asyncio.Event().wait()
+            except asyncio.CancelledError:
+                return page
+    
+        context.new_page.side_effect = swallow_cancel
+        task = asyncio.create_task(create(service, "journey"))
+        await entered.wait()
+>       assert await service.close_session("resource")
+
+tests/test_browser_service_lifecycle.py:207: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/services/browser_service.py:485: in close_session
+    return await self._finish_cleanup(self._close_session(
+src/services/browser_service.py:322: in _finish_cleanup
+    return task.result()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <services.browser_service.BrowserService object at 0x10bcf3990>
+session_id = 'resource', expected_session = None
+
+    async def _close_session(self, session_id, expected_session=None, *, expired_only=False, requester=None):
+        async with self._lock:
+            session = self._sessions.get(session_id)
+            if expected_session is not None and session is not expected_session:
+                return False
+            reservation = self._creating.get(session_id)
+            unclosed = [context for context, sid in self._unclosed_contexts.items() if sid == session_id]
+            if reservation:
+                reservation.cancelled = True
+                reservation.owner.cancel()
+            elif session:
+                if expired_only and not session.is_expired(self.idle_timeout):
+                    return False
+                if session.closed:
+                    return True
+                session.closing = True
+                # External close must also stop the Journey; otherwise its next
+                # step could recreate the just-closed resource through navigate.
+                if (expected_session is None and session.owner_task is not None
+                        and session.owner_task is not requester):
+                    session.owner_task.cancel()
+                if session.close_task is None:
+                    session.close_task = asyncio.create_task(self._close_registered_session(session_id, session))
+                close_task = session.close_task
+            elif not unclosed:
+                return False
+        if reservation:
+            closed = await self._close_resource(reservation.done.wait, f"creating session {session_id}")
+            closed = closed and reservation.cleanup_confirmed
+        elif session:
+            closed = await asyncio.shield(close_task)
+        else:
+            closed = True
+            for context in unclosed:
+                closed = await self._close_context(context, session_id) and closed
+        if not closed:
+>           raise RuntimeError(f"Browser session '{session_id}' cleanup was not confirmed")
+E           RuntimeError: Browser session 'resource' cleanup was not confirmed
+
+src/services/browser_service.py:524: RuntimeError
+------------------------------ Captured log call -------------------------------
+WARNING  services.browser_service:browser_service.py:348 Timed out closing creating session resource
+_____________________________ test_estimate_batch ______________________________
+
+client = <httpx.AsyncClient object at 0x10f29dd50>
+
+    @pytest.mark.asyncio
+    async def test_estimate_batch(client):
+        """批量 Token 估算端点：POST /api/v1/tokens/estimate"""
+        start = time.monotonic()
+        resp = await client.post("/api/v1/tokens/estimate", json={
+            "texts": ["hello world", "你好世界"],
+            "model": "cl100k_base"
+        })
+        elapsed_ms = (time.monotonic() - start) * 1000
+    
+        assert resp.status_code == 200
+        data = resp.json()
+        # 必需字段
+        assert "counts" in data
+        assert "total" in data
+        assert "method" in data
+        # counts 长度 = 输入文本数
+        assert len(data["counts"]) == 2
+        # 每个 count > 0
+        assert all(c > 0 for c in data["counts"])
+        # total = sum(counts)
+        assert data["total"] == sum(data["counts"])
+        # method 为 tiktoken 或 heuristic
+        assert data["method"] in ("tiktoken", "heuristic")
+        # 响应时间 < 100ms
+>       assert elapsed_ms < 500, f"响应耗时 {elapsed_ms:.1f}ms 超过 500ms"
+E       AssertionError: 响应耗时 782.4ms 超过 500ms
+E       assert 782.391499960795 < 500
+
+tests/test_token_estimation.py:34: AssertionError
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_browser_resource_container.py:31: isolated Linux container only
+FAILED tests/test_browser_service_lifecycle.py::test_close_during_creation_prevents_late_registration_even_if_driver_swallows_cancel
+FAILED tests/test_token_estimation.py::test_estimate_batch - AssertionError: ...
+2 failed, 227 passed, 1 skipped in 67.46s (0:01:07)
+PYTEST_EXIT=1
+END:09:45:50

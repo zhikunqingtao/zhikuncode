@@ -1,0 +1,69 @@
+{
+  "archive": "证据附件/用量数据/usage_data_2026-09-25_2026-09-25.zip",
+  "original_sha256": "a7a3d4db57f749966d7066d5a4265d38cb0e3ffede85e97bf3c4f805363a51ff",
+  "published_sha256": "931b4bd2a7a6d1e50489c56bcbc1e36db268b52eaf6176fe676123a0b79bbf1a",
+  "entries": [
+    {
+      "entry": "cost-2026-09-25_2026-09-25.csv",
+      "redacted_fields": {
+        "user_id": 3
+      },
+      "original_sha256": "8b03fda4f816fe57da213530a47a9b7d06f87bb57edba2ec579200d1bc162d43",
+      "published_sha256": "ffd00e0b68e1ba9a391e2b688fda603e132752c0b6ee101dbbea712673033934"
+    },
+    {
+      "entry": "amount-2026-09-25_2026-09-25.csv",
+      "redacted_fields": {
+        "user_id": 12,
+        "api_key": 12
+      },
+      "original_sha256": "43cc6c33a7b6e0f8c8a8e37b54fa6a027d8e51228b68ab7c5085870f4d9b58a2",
+      "published_sha256": "47f3787bb06e2358a7d2a9594344d55277815c36efb0fa33e4f4ae5fe3f00b4b"
+    }
+  ],
+  "original_unchanged": true,
+  "late_csv_copies": [
+    {
+      "path": "证据附件/用量数据/展开副本/usage_data_2026-09-25_2026-09-25/cost-2026-09-25_2026-09-25.csv",
+      "original_sha256": "8b03fda4f816fe57da213530a47a9b7d06f87bb57edba2ec579200d1bc162d43",
+      "published_sha256": "ffd00e0b68e1ba9a391e2b688fda603e132752c0b6ee101dbbea712673033934",
+      "fields_redacted": {
+        "user_id": 3
+      },
+      "rows": 3,
+      "note": "后续加入的CSV展开副本；不改变数值或原排名"
+    },
+    {
+      "path": "证据附件/用量数据/展开副本/usage_data_2026-09-25_2026-09-25/amount-2026-09-25_2026-09-25.csv",
+      "original_sha256": "43cc6c33a7b6e0f8c8a8e37b54fa6a027d8e51228b68ab7c5085870f4d9b58a2",
+      "published_sha256": "47f3787bb06e2358a7d2a9594344d55277815c36efb0fa33e4f4ae5fe3f00b4b",
+      "fields_redacted": {
+        "user_id": 12,
+        "api_key": 12
+      },
+      "rows": 12,
+      "note": "后续加入的CSV展开副本；不改变数值或原排名"
+    },
+    {
+      "path": "证据附件/用量数据/展开副本/usage_data_2026-09-25_2026-09-25 2/cost-2026-09-25_2026-09-25.csv",
+      "original_sha256": "8b03fda4f816fe57da213530a47a9b7d06f87bb57edba2ec579200d1bc162d43",
+      "published_sha256": "ffd00e0b68e1ba9a391e2b688fda603e132752c0b6ee101dbbea712673033934",
+      "fields_redacted": {
+        "user_id": 3
+      },
+      "rows": 3,
+      "note": "后续加入的CSV展开副本；不改变数值或原排名"
+    },
+    {
+      "path": "证据附件/用量数据/展开副本/usage_data_2026-09-25_2026-09-25 2/amount-2026-09-25_2026-09-25.csv",
+      "original_sha256": "43cc6c33a7b6e0f8c8a8e37b54fa6a027d8e51228b68ab7c5085870f4d9b58a2",
+      "published_sha256": "47f3787bb06e2358a7d2a9594344d55277815c36efb0fa33e4f4ae5fe3f00b4b",
+      "fields_redacted": {
+        "user_id": 12,
+        "api_key": 12
+      },
+      "rows": 12,
+      "note": "后续加入的CSV展开副本；不改变数值或原排名"
+    }
+  ]
+}

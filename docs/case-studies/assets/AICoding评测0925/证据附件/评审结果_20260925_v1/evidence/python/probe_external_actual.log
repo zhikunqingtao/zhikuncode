@@ -1,0 +1,2 @@
+python_request_failed requestId=9aff1dae-34d6-4479-b8ab-fed3a71487a1 method=POST path=/api/browser/journey/run durationMs=7 errorType=RuntimeError
+{"revision": "source", "probe": "external_close_during_create", "close_status": 200, "close_body": "{\"success\":true,\"data\":{\"closed\":true},\"error_code\":null,\"error_message\":null}", "journey": {"status": 500, "body": "Internal Server Error"}, "registered": [], "creating": [], "context_close_calls": 1}

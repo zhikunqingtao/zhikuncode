@@ -1,0 +1,921 @@
+START:09:53:46
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------< com.aicode:ai-code-assistant-backend >----------------
+[INFO] Building AI Code Assistant Backend 1.0.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ ai-code-assistant-backend ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 26 resources from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ ai-code-assistant-backend ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ ai-code-assistant-backend ---
+[INFO] Copying 13 resources from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ ai-code-assistant-backend ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.4:test (default-test) @ ai-code-assistant-backend ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.aicodeassistant.coordinator.CoordinatorServiceTest
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+[ERROR] Tests run: 7, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 1.142 s <<< FAILURE! -- in com.aicodeassistant.coordinator.CoordinatorServiceTest
+[ERROR] com.aicodeassistant.coordinator.CoordinatorServiceTest.matchSessionMode_same_mode_returns_null -- Time elapsed: 0.010 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: Should return null when current mode matches target ==> expected: <null> but was: <Exited coordinator mode to match resumed session.>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertNull.failNotNull(AssertNull.java:50)
+	at org.junit.jupiter.api.AssertNull.assertNull(AssertNull.java:35)
+	at org.junit.jupiter.api.Assertions.assertNull(Assertions.java:287)
+	at com.aicodeassistant.coordinator.CoordinatorServiceTest.matchSessionMode_same_mode_returns_null(CoordinatorServiceTest.java:81)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.aicodeassistant.coordinator.CoordinatorServiceTest.matchSessionMode_coordinator_then_isCoordinatorMode_returns_true -- Time elapsed: 0.002 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: expected: not <null>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:152)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertNotNull.failNull(AssertNotNull.java:49)
+	at org.junit.jupiter.api.AssertNotNull.assertNotNull(AssertNotNull.java:35)
+	at org.junit.jupiter.api.AssertNotNull.assertNotNull(AssertNotNull.java:30)
+	at org.junit.jupiter.api.Assertions.assertNotNull(Assertions.java:304)
+	at com.aicodeassistant.coordinator.CoordinatorServiceTest.matchSessionMode_coordinator_then_isCoordinatorMode_returns_true(CoordinatorServiceTest.java:37)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.aicodeassistant.coordinator.CoordinatorServiceTest.matchSessionMode_normal_then_isCoordinatorMode_returns_false -- Time elapsed: 0.002 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: isCoordinatorMode() should return false after matchSessionMode("normal") ==> expected: <false> but was: <true>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertFalse.failNotFalse(AssertFalse.java:63)
+	at org.junit.jupiter.api.AssertFalse.assertFalse(AssertFalse.java:36)
+	at org.junit.jupiter.api.Assertions.assertFalse(Assertions.java:239)
+	at com.aicodeassistant.coordinator.CoordinatorServiceTest.matchSessionMode_normal_then_isCoordinatorMode_returns_false(CoordinatorServiceTest.java:60)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.aicodeassistant.config.SecurityFilterIntegrationTest
+2026-09-25 09:53:52.352 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] org.springframework.test.context.support.AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.aicodeassistant.config.SecurityFilterIntegrationTest]: SecurityFilterIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-25 09:53:52.663 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.aicodeassistant.Application for test class com.aicodeassistant.config.SecurityFilterIntegrationTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.4.13)
+
+2026-09-25 09:53:53.187 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.SecurityFilterIntegrationTest - Starting SecurityFilterIntegrationTest using Java 21.0.10 with PID 81831 (started by guoqingtao in /Users/reviewer/Desktop/dev/code/zhikuncode/backend)
+2026-09-25 09:53:53.189 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.SecurityFilterIntegrationTest - Running with Spring Boot v3.4.13, Spring v6.2.15
+2026-09-25 09:53:53.189 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.SecurityFilterIntegrationTest - The following 1 profile is active: "test"
+2026-09-25 09:53:55.674 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.SqliteConfig - Initializing global SQLite database: /Users/reviewer/Desktop/dev/code/zhikuncode/backend/target/test-databases/global.db
+2026-09-25 09:53:55.696 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-09-25 09:53:56.242 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection org.sqlite.jdbc4.JDBC4Connection@3d763ae5
+2026-09-25 09:53:56.243 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-09-25 09:53:56.258 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.SqliteConfig - Initializing project SQLite database: /Users/reviewer/Desktop/dev/code/zhikuncode/backend/target/test-project/.ai-code-assistant/data.db
+2026-09-25 09:53:56.259 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.zaxxer.hikari.HikariDataSource - HikariPool-2 - Starting...
+2026-09-25 09:53:56.263 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.zaxxer.hikari.pool.HikariPool - HikariPool-2 - Added connection org.sqlite.jdbc4.JDBC4Connection@34604b32
+2026-09-25 09:53:56.264 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.zaxxer.hikari.HikariDataSource - HikariPool-2 - Start completed.
+2026-09-25 09:53:56.311 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.MigrationRunner - Validated 3 GLOBAL migrations
+2026-09-25 09:53:56.336 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.MigrationRunner - Validated 21 PROJECT migrations
+2026-09-25 09:53:56.449 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.state.AppStateStore - AppStateStore initialized with default state
+2026-09-25 09:53:56.492 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.ApiKeyRotationManager - ApiKeyRotationManager initialized with 1 key(s)
+2026-09-25 09:53:56.624 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.impl.OpenAiCompatibleProvider - OpenAI compatible provider initialized: baseUrl=https://dashscope.aliyuncs.com/compatible-mode/v1, models=[qwen3.8-max-0902]
+2026-09-25 09:53:56.624 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.MultiProviderConfiguration - Created multi-provider 'dashscope': baseUrl=https://dashscope.aliyuncs.com/compatible-mode/v1, models=[qwen3.8-max-0902], apiKeys=1
+2026-09-25 09:53:56.624 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.ApiKeyRotationManager - ApiKeyRotationManager initialized with 1 key(s)
+2026-09-25 09:53:56.625 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.impl.OpenAiCompatibleProvider - OpenAI compatible provider initialized: baseUrl=https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1, models=[qwen3.8-max, qwen3.8-flash, deepseek-v4-pro-0813, deepseek-v4-flash-0731, deepseek-v4.1-flash, bailian/glm-5.3]
+2026-09-25 09:53:56.625 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.MultiProviderConfiguration - Created multi-provider 'dashscope-token-plan': baseUrl=https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1, models=[qwen3.8-max, qwen3.8-flash, deepseek-v4-pro-0813, deepseek-v4-flash-0731, deepseek-v4.1-flash, bailian/glm-5.3], apiKeys=1
+2026-09-25 09:53:56.626 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.ApiKeyRotationManager - ApiKeyRotationManager initialized with 1 key(s)
+2026-09-25 09:53:56.626 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.impl.OpenAiCompatibleProvider - OpenAI compatible provider initialized: baseUrl=https://api.deepseek.com/v1, models=[deepseek-flash]
+2026-09-25 09:53:56.626 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.MultiProviderConfiguration - Created multi-provider 'deepseek': baseUrl=https://api.deepseek.com/v1, models=[deepseek-flash], apiKeys=1
+2026-09-25 09:53:56.626 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.ApiKeyRotationManager - ApiKeyRotationManager initialized with 1 key(s)
+2026-09-25 09:53:56.627 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.impl.OpenAiCompatibleProvider - OpenAI compatible provider initialized: baseUrl=https://api.moonshot.cn/v1, models=[kimi-k3, kimi-k2.7-code, moonshot-v1-128k]
+2026-09-25 09:53:56.627 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.MultiProviderConfiguration - Created multi-provider 'moonshot': baseUrl=https://api.moonshot.cn/v1, models=[kimi-k3, kimi-k2.7-code, moonshot-v1-128k], apiKeys=1
+2026-09-25 09:53:56.627 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.ApiKeyRotationManager - ApiKeyRotationManager initialized with 1 key(s)
+2026-09-25 09:53:56.627 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.impl.OpenAiCompatibleProvider - OpenAI compatible provider initialized: baseUrl=https://api.kimi.com/coding/v1, models=[k3, kimi-for-coding]
+2026-09-25 09:53:56.627 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.MultiProviderConfiguration - Created multi-provider 'kimi-code': baseUrl=https://api.kimi.com/coding/v1, models=[k3, kimi-for-coding], apiKeys=1
+2026-09-25 09:53:56.627 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.ApiKeyRotationManager - ApiKeyRotationManager initialized with 1 key(s)
+2026-09-25 09:53:56.628 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.impl.OpenAiCompatibleProvider - OpenAI compatible provider initialized: baseUrl=https://open.bigmodel.cn/api/paas/v4, models=[glm-5.3, glm-5.3-flash]
+2026-09-25 09:53:56.628 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.MultiProviderConfiguration - Created multi-provider 'zhipu': baseUrl=https://open.bigmodel.cn/api/paas/v4, models=[glm-5.3, glm-5.3-flash], apiKeys=1
+2026-09-25 09:53:56.628 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.ApiKeyRotationManager - ApiKeyRotationManager initialized with 1 key(s)
+2026-09-25 09:53:56.629 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.impl.OpenAiCompatibleProvider - OpenAI compatible provider initialized: baseUrl=https://api.minimax.chat/v1, models=[MiniMax-M3]
+2026-09-25 09:53:56.629 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.MultiProviderConfiguration - Created multi-provider 'minimax': baseUrl=https://api.minimax.chat/v1, models=[MiniMax-M3], apiKeys=1
+2026-09-25 09:53:56.630 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.ApiKeyRotationManager - ApiKeyRotationManager initialized with 1 key(s)
+2026-09-25 09:53:56.630 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.impl.OpenAiCompatibleProvider - OpenAI compatible provider initialized: baseUrl=https://openrouter.ai/api/v1, models=[stealth/union-alpha, openrouter/openai/gpt-6-astra, openrouter/anthropic/claude-fable-5.1]
+2026-09-25 09:53:56.630 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.MultiProviderConfiguration - Created multi-provider 'openrouter': baseUrl=https://openrouter.ai/api/v1, models=[stealth/union-alpha, openrouter/openai/gpt-6-astra, openrouter/anthropic/claude-fable-5.1], apiKeys=1
+2026-09-25 09:53:56.631 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.ApiKeyRotationManager - ApiKeyRotationManager initialized with 2 key(s)
+2026-09-25 09:53:56.631 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.impl.OpenAiCompatibleProvider - OpenAI compatible provider initialized: baseUrl=https://zenmux.ai/api/v1, models=[anthropic/claude-opus-4.8, anthropic/claude-fable-5.1, openai/gpt-5.6-sol, openai/gpt-6-astra, google/gemini-3.8-flash, x-ai/grok-4.6]
+2026-09-25 09:53:56.632 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.MultiProviderConfiguration - Created multi-provider 'zenmux': baseUrl=https://zenmux.ai/api/v1, models=[anthropic/claude-opus-4.8, anthropic/claude-fable-5.1, openai/gpt-5.6-sol, openai/gpt-6-astra, google/gemini-3.8-flash, x-ai/grok-4.6], apiKeys=2
+2026-09-25 09:53:56.632 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.MultiProviderConfiguration - MultiProviderConfiguration: 9 provider(s) created
+2026-09-25 09:53:56.633 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.LlmProviderRegistry - Registered LLM provider: dashscope (models: [qwen3.8-max-0902])
+2026-09-25 09:53:56.634 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.LlmProviderRegistry - Registered LLM provider: dashscope-token-plan (models: [qwen3.8-max, qwen3.8-flash, deepseek-v4-pro-0813, deepseek-v4-flash-0731, deepseek-v4.1-flash, bailian/glm-5.3])
+2026-09-25 09:53:56.634 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.LlmProviderRegistry - Registered LLM provider: deepseek (models: [deepseek-flash])
+2026-09-25 09:53:56.634 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.LlmProviderRegistry - Registered LLM provider: moonshot (models: [kimi-k3, kimi-k2.7-code, moonshot-v1-128k])
+2026-09-25 09:53:56.634 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.LlmProviderRegistry - Registered LLM provider: kimi-code (models: [k3, kimi-for-coding])
+2026-09-25 09:53:56.634 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.LlmProviderRegistry - Registered LLM provider: zhipu (models: [glm-5.3, glm-5.3-flash])
+2026-09-25 09:53:56.634 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.LlmProviderRegistry - Registered LLM provider: minimax (models: [MiniMax-M3])
+2026-09-25 09:53:56.634 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.LlmProviderRegistry - Registered LLM provider: openrouter (models: [stealth/union-alpha, openrouter/openai/gpt-6-astra, openrouter/anthropic/claude-fable-5.1])
+2026-09-25 09:53:56.634 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.LlmProviderRegistry - Registered LLM provider: zenmux (models: [anthropic/claude-opus-4.8, anthropic/claude-fable-5.1, openai/gpt-5.6-sol, openai/gpt-6-astra, google/gemini-3.8-flash, x-ai/grok-4.6])
+2026-09-25 09:53:56.634 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.LlmProviderRegistry - LlmProviderRegistry initialized with 9 providers: [dashscope, dashscope-token-plan, deepseek, moonshot, kimi-code, zhipu, minimax, openrouter, zenmux]
+2026-09-25 09:53:56.669 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.session.SessionSnapshotService - Snapshot directory ready: /Users/reviewer/.zhiku/snapshots
+2026-09-25 09:53:56.696 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.RemoteAccessSecurityFilter - Private network access enabled (ALLOW_PRIVATE_NETWORK=true). Requests from Docker bridge network will bypass token authentication.
+2026-09-25 09:53:56.697 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.RemoteAccessSecurityFilter - Reusing existing access token
+2026-09-25 09:53:56.701 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.RemoteAccessSecurityFilter - Mobile access: [REDACTED_RUNTIME_CREDENTIAL]
+2026-09-25 09:53:56.702 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.RemoteAccessSecurityFilter - Remote control: [REDACTED_RUNTIME_CREDENTIAL]
+2026-09-25 09:53:56.707 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.websocket.WebSocketSessionManager - WebSocket session cleanup scheduler started (TTL=180s, interval=10s)
+2026-09-25 09:53:56.931 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.security.CommandBlacklistService - Loaded custom blacklist rules: 0 deny, 0 ask
+2026-09-25 09:53:56.956 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.interaction.DurableInteractionService - Interaction capacity reconciled after restart: pending=0, available=32
+2026-09-25 09:53:57.024 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered builtin skill: commit
+2026-09-25 09:53:57.024 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Loaded builtin skill: /commit
+2026-09-25 09:53:57.025 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered builtin skill: review
+2026-09-25 09:53:57.025 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Loaded builtin skill: /review
+2026-09-25 09:53:57.026 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered builtin skill: fix
+2026-09-25 09:53:57.026 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Loaded builtin skill: /fix
+2026-09-25 09:53:57.027 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered builtin skill: test
+2026-09-25 09:53:57.027 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Loaded builtin skill: /test
+2026-09-25 09:53:57.029 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered builtin skill: pr
+2026-09-25 09:53:57.029 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Loaded builtin skill: /pr
+2026-09-25 09:53:57.031 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered builtin skill: debug
+2026-09-25 09:53:57.031 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Loaded builtin skill: /debug
+2026-09-25 09:53:57.032 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered builtin skill: verify
+2026-09-25 09:53:57.032 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Loaded builtin skill: /verify
+2026-09-25 09:53:57.033 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered builtin skill: stuck
+2026-09-25 09:53:57.033 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Loaded builtin skill: /stuck
+2026-09-25 09:53:57.034 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered builtin skill: remember
+2026-09-25 09:53:57.034 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Loaded builtin skill: /remember
+2026-09-25 09:53:57.035 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered builtin skill: software-architecture
+2026-09-25 09:53:57.035 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Loaded builtin skill: /software-architecture
+2026-09-25 09:53:57.036 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered builtin skill: csv-data-summarizer
+2026-09-25 09:53:57.036 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Loaded builtin skill: /csv-data-summarizer
+2026-09-25 09:53:57.036 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered builtin skill: prompt-engineering
+2026-09-25 09:53:57.037 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Loaded builtin skill: /prompt-engineering
+2026-09-25 09:53:57.039 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered builtin skill: test-driven-development
+2026-09-25 09:53:57.039 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Loaded builtin skill: /test-driven-development
+2026-09-25 09:53:57.040 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered builtin skill: publish-oss
+2026-09-25 09:53:57.040 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Loaded builtin skill: /publish-oss
+2026-09-25 09:53:57.040 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered builtin skill: publish-meoo
+2026-09-25 09:53:57.041 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Loaded builtin skill: /publish-meoo
+2026-09-25 09:53:57.041 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Builtin skills loaded: 15/15
+2026-09-25 09:53:57.041 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Resolved working directory: /Users/reviewer/Desktop/dev/code/zhikuncode (parent, has .zhikun/skills)
+2026-09-25 09:53:57.050 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered skill: debug (source=PROJECT)
+2026-09-25 09:53:57.050 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered skill: loop (source=PROJECT)
+2026-09-25 09:53:57.050 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered skill: csv-data-summarizer (source=PROJECT)
+2026-09-25 09:53:57.050 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered skill: stuck (source=PROJECT)
+2026-09-25 09:53:57.050 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered skill: software-architecture (source=PROJECT)
+2026-09-25 09:53:57.051 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered skill: remember (source=PROJECT)
+2026-09-25 09:53:57.051 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered skill: subagent-driven-development (source=PROJECT)
+2026-09-25 09:53:57.051 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered skill: browser-e2e-test (source=PROJECT)
+2026-09-25 09:53:57.051 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered skill: verify (source=PROJECT)
+2026-09-25 09:53:57.051 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered skill: full-page-screenshot (source=PROJECT)
+2026-09-25 09:53:57.051 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered skill: deploy (source=PROJECT)
+2026-09-25 09:53:57.051 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered skill: refactor (source=PROJECT)
+2026-09-25 09:53:57.051 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered skill: deep-research (source=PROJECT)
+2026-09-25 09:53:57.051 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered skill: translate (source=PROJECT)
+2026-09-25 09:53:57.051 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered skill: skillify (source=PROJECT)
+2026-09-25 09:53:57.051 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered skill: batch (source=PROJECT)
+2026-09-25 09:53:57.051 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Registered skill: recursive-research (source=PROJECT)
+2026-09-25 09:53:57.051 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - SkillRegistry loaded: 17 project skills, 0 user skills, 26 total
+2026-09-25 09:53:57.056 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.skill.SkillRegistry - Started watching skills directory: /Users/reviewer/Desktop/dev/code/zhikuncode/.zhikun/skills
+2026-09-25 09:53:57.123 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.llm.ModelRegistry - ModelRegistry initialized with 32 built-in models
+2026-09-25 09:53:57.148 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.recovery.ToolRecoveryFramework - ToolRecoveryFramework initialized with 2 policies
+2026-09-25 09:53:57.296 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.search.WebSearchBackendFactory - Web search backend: disabled (no available backend detected)
+2026-09-25 09:53:57.322 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.ToolRegistry - ToolRegistry initialized with 49 tools: [TaskUpdate, SyntheticOutput, ListMcpResources, Memory, VerifyJourney, TaskList, Edit, Brief, Read, InspectMeooDeployment, SendMessage, TaskStop, Agent, CtxInspect, NotebookEdit, ExitPlanMode, LSP, TaskCreate, Worktree, Git, WebBrowser, EnterPlanMode, Glob, Write, Visualization, PublishMeoo, CodeIntel, Snip, Config, CronCreate, WebFetch, REPL, ReadMcpResource, Monitor, Grep, TaskOutput, PublishArtifact, VerifyPlanExecution, WebSearch, TaskGet, TerminalCapture, ToolSearch, AskUserQuestion, Bash, Skill, Sleep, CronDelete, TodoWrite, CronList]
+2026-09-25 09:53:57.390 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /allowed-tools (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.390 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /browser-snapshot (type=LOCAL, aliases=[snap])
+2026-09-25 09:53:57.396 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /clear (type=LOCAL, aliases=[reset, new])
+2026-09-25 09:53:57.397 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /compact (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.397 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /config (type=LOCAL_JSX, aliases=[settings])
+2026-09-25 09:53:57.397 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /cost (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.397 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /diff (type=LOCAL_JSX, aliases=[])
+2026-09-25 09:53:57.397 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /doctor (type=LOCAL_JSX, aliases=[])
+2026-09-25 09:53:57.397 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /exit (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.397 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /commit (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.397 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /review (type=PROMPT, aliases=[])
+2026-09-25 09:53:57.397 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /help (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.397 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /init (type=PROMPT, aliases=[])
+2026-09-25 09:53:57.398 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /login (type=LOCAL_JSX, aliases=[])
+2026-09-25 09:53:57.398 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /logout (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.398 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /memory (type=LOCAL_JSX, aliases=[])
+2026-09-25 09:53:57.398 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /model (type=LOCAL_JSX, aliases=[])
+2026-09-25 09:53:57.398 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /permissions (type=LOCAL_JSX, aliases=[allowed-tools])
+2026-09-25 09:53:57.398 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /plan (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.398 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /publish-meoo (type=PROMPT, aliases=[])
+2026-09-25 09:53:57.398 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /publish-oss (type=PROMPT, aliases=[])
+2026-09-25 09:53:57.398 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /resume (type=LOCAL_JSX, aliases=[continue])
+2026-09-25 09:53:57.398 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /retry (type=PROMPT, aliases=[])
+2026-09-25 09:53:57.399 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /session (type=LOCAL_JSX, aliases=[])
+2026-09-25 09:53:57.399 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /skill (type=PROMPT, aliases=[])
+2026-09-25 09:53:57.399 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /status (type=LOCAL, aliases=[info])
+2026-09-25 09:53:57.399 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /undo (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.399 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /visualize (type=LOCAL, aliases=[viz])
+2026-09-25 09:53:57.399 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /reload-plugins (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.399 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /usage (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.399 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /extra-usage (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.399 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /rate-limit-options (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.399 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /upgrade (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.399 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /version (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.399 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /bug-hunter (type=PROMPT, aliases=[bughunt])
+2026-09-25 09:53:57.400 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /pr-review (type=PROMPT, aliases=[review-pr])
+2026-09-25 09:53:57.400 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /security-scan (type=PROMPT, aliases=[sec-scan])
+2026-09-25 09:53:57.400 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /explain (type=PROMPT, aliases=[])
+2026-09-25 09:53:57.400 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /bridge (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.400 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /voice (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.400 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /buddy (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.400 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /passes (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.400 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /torch (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.400 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /fork (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.400 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /peers (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.400 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /workflows (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.400 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /ultrareview (type=PROMPT, aliases=[])
+2026-09-25 09:53:57.400 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /fast (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.400 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /effort (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.400 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /output-style (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.400 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /theme (type=LOCAL_JSX, aliases=[])
+2026-09-25 09:53:57.400 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /color (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.401 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /vim (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.401 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /keybindings (type=LOCAL_JSX, aliases=[])
+2026-09-25 09:53:57.401 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /add-dir (type=LOCAL, aliases=[adddir])
+2026-09-25 09:53:57.401 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /ide (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.401 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /chrome (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.401 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /desktop (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.401 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /mobile (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.401 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /terminal-setup (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.401 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /remote-env (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.401 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /install-github-app (type=LOCAL_JSX, aliases=[])
+2026-09-25 09:53:57.401 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /install-slack-app (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.401 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /mcp (type=LOCAL_JSX, aliases=[])
+2026-09-25 09:53:57.401 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /hooks (type=LOCAL_JSX, aliases=[])
+2026-09-25 09:53:57.401 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /skills (type=LOCAL_JSX, aliases=[])
+2026-09-25 09:53:57.402 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /plugin (type=LOCAL_JSX, aliases=[])
+2026-09-25 09:53:57.402 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /agent (type=LOCAL_JSX, aliases=[])
+2026-09-25 09:53:57.402 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /tasks (type=LOCAL_JSX, aliases=[])
+2026-09-25 09:53:57.402 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /commit-push-pr (type=PROMPT, aliases=[])
+2026-09-25 09:53:57.402 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /branch (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.402 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /pr_comments (type=LOCAL, aliases=[pr-comments])
+2026-09-25 09:53:57.402 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /rewind (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.402 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /security-review (type=PROMPT, aliases=[])
+2026-09-25 09:53:57.402 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /feedback (type=LOCAL_JSX, aliases=[])
+2026-09-25 09:53:57.402 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /stats (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.402 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /stickers (type=LOCAL_JSX, aliases=[])
+2026-09-25 09:53:57.402 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /release-notes (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.402 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /advisor (type=PROMPT, aliases=[])
+2026-09-25 09:53:57.402 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /btw (type=PROMPT, aliases=[])
+2026-09-25 09:53:57.402 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /statusline (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.402 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /privacy-settings (type=LOCAL_JSX, aliases=[])
+2026-09-25 09:53:57.402 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /sandbox-toggle (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.402 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /heapdump (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.403 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /mcp-servers (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.403 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /mcp-tools (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.403 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /mcp-resources (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.403 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /search (type=PROMPT, aliases=[find, grep])
+2026-09-25 09:53:57.403 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /blame (type=PROMPT, aliases=[])
+2026-09-25 09:53:57.403 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /symbols (type=PROMPT, aliases=[sym])
+2026-09-25 09:53:57.403 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /context (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.403 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /copy (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.403 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /export (type=LOCAL_JSX, aliases=[])
+2026-09-25 09:53:57.403 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /files (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.403 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /rename (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.403 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /tag (type=LOCAL, aliases=[])
+2026-09-25 09:53:57.404 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - CommandRegistry initialized: 96 commands registered
+2026-09-25 09:53:57.406 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.AdminSecurityFilter - Admin authentication disabled (no admin.password configured)
+2026-09-25 09:53:57.416 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.controller.AdminController - Admin authentication not configured (set admin.password in config)
+2026-09-25 09:53:57.417 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.controller.AttachmentController - Attachment upload directory: /Users/reviewer/.zhikun/uploads
+2026-09-25 09:53:57.438 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpCapabilityRegistryService - Loaded 1 MCP service preference(s) from /Users/reviewer/.zhikun/mcp-service-states.json
+2026-09-25 09:53:57.494 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpCapabilityRegistryService - MCP capability registry loaded: 83 tools from /Users/reviewer/Desktop/dev/code/zhikuncode/backend/../configuration/mcp/mcp_capability_registry.json
+2026-09-25 09:53:57.657 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.TokenEncryptionService - Using encryption key from file /Users/reviewer/.zhiku/.master-key
+2026-09-25 09:53:57.658 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.TokenEncryptionService - TokenEncryptionService initialized — encryption key loaded successfully
+2026-09-25 09:53:57.676 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.service.SettingsWatcher - SettingsWatcher initialized, watching: /Users/reviewer/.zhikun
+2026-09-25 09:53:57.855 WARN  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration - 
+
+Using generated security password: [REDACTED_TEST_PASSWORD]
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-09-25 09:53:57.867 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer$InitializeUserDetailsManagerConfigurer - Global AuthenticationManager configured with UserDetailsService bean with name inMemoryUserDetailsManager
+2026-09-25 09:53:58.238 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] org.springframework.boot.actuate.endpoint.web.EndpointLinksResolver - Exposing 3 endpoints beneath base path '/actuator'
+2026-09-25 09:53:58.330 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] org.springframework.validation.beanvalidation.OptionalValidatorFactoryBean - Failed to set up a Bean Validation provider: jakarta.validation.NoProviderFoundException: Unable to create a Configuration, because no Jakarta Bean Validation provider could be found. Add a provider like Hibernate Validator (RI) to your classpath.
+2026-09-25 09:53:58.670 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.RemoteAccessSecurityFilter - Filter 'remoteAccessSecurityFilter' configured for use
+2026-09-25 09:53:58.671 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.AdminSecurityFilter - Filter 'adminSecurityFilter' configured for use
+2026-09-25 09:53:58.671 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] org.springframework.boot.test.mock.web.SpringBootMockServletContext - Initializing Spring TestDispatcherServlet ''
+2026-09-25 09:53:58.671 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
+2026-09-25 09:53:58.672 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 1 ms
+2026-09-25 09:53:58.734 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] org.springframework.web.SimpLogging - Starting...
+2026-09-25 09:53:58.734 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] org.springframework.web.SimpLogging - BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@7e8c465d]]
+2026-09-25 09:53:58.736 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] org.springframework.web.SimpLogging - Started.
+2026-09-25 09:53:58.736 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpClientManager - McpClientManager starting — initializing MCP connections
+2026-09-25 09:53:58.737 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpClientManager - MCP roots initialized: workspace='/Users/reviewer/Desktop/dev/code/zhikuncode/backend' name='backend'
+2026-09-25 09:53:58.738 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpConfigurationResolver - Loaded 3 MCP configs from env var ZHIKUN_MCP_SERVERS
+2026-09-25 09:53:58.739 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpConfigurationResolver - MCP config file not found: /etc/ai-code-assistant/mcp.json
+2026-09-25 09:53:58.739 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpConfigurationResolver - MCP config file not found: /Users/reviewer/.config/ai-code-assistant/mcp.json
+2026-09-25 09:53:58.740 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpConfigurationResolver - Resolved 3 MCP server configurations from 1 sources
+2026-09-25 09:53:58.740 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpClientManager - MCP server 'github' is configured but disabled by user preference
+2026-09-25 09:53:58.740 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpClientManager - MCP server 'context7' is configured but disabled by user preference
+2026-09-25 09:53:58.740 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpClientManager - MCP server 'alibaba-cloud-ops' is configured but disabled by user preference
+2026-09-25 09:53:58.741 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpClientManager - MCP initialization complete — 0 connections (3 from resolver, 0 from application.yml)
+2026-09-25 09:53:58.743 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpClientManager - Enabling MCP capability 'mcp_qwen_image_edit' → server 'QwenImage'
+2026-09-25 09:53:59.038 INFO  [ForkJoinPool.commonPool-worker-1] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpStreamableHttpTransport - MCP Streamable HTTP connected: https://dashscope.aliyuncs.com/api/v1/mcps/QwenImage/mcp (session=null)
+2026-09-25 09:53:59.160 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.ToolRegistry - Sorted tool cache invalidated
+2026-09-25 09:53:59.161 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.ToolRegistry - Dynamically registered tool: mcp__QwenImage__modelstudio_qwen_image_gen
+2026-09-25 09:53:59.161 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.ToolRegistry - Sorted tool cache invalidated
+2026-09-25 09:53:59.161 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.ToolRegistry - Dynamically registered tool: mcp__QwenImage__modelstudio_qwen_image_edit
+2026-09-25 09:53:59.162 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.ToolRegistry - Sorted tool cache invalidated
+2026-09-25 09:53:59.162 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.ToolRegistry - Dynamically registered tool: mcp__QwenImage__modelstudio_qwen_image_edit_new
+2026-09-25 09:53:59.162 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpClientManager - MCP server connected: QwenImage
+2026-09-25 09:53:59.163 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpClientManager - Enabling MCP capability 'mcp_wan_video_first_last_submit' → server 'WanVideo'
+2026-09-25 09:53:59.314 INFO  [ForkJoinPool.commonPool-worker-1] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpStreamableHttpTransport - MCP Streamable HTTP connected: https://dashscope.aliyuncs.com/api/v1/mcps/WanVideo/mcp (session=null)
+2026-09-25 09:53:59.445 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.ToolRegistry - Sorted tool cache invalidated
+2026-09-25 09:53:59.445 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.ToolRegistry - Dynamically registered tool: mcp__WanVideo__modelstudio_text_to_video_submit_task
+2026-09-25 09:53:59.446 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.ToolRegistry - Sorted tool cache invalidated
+2026-09-25 09:53:59.446 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.ToolRegistry - Dynamically registered tool: mcp__WanVideo__modelstudio_text_to_video_fetch_result
+2026-09-25 09:53:59.446 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.ToolRegistry - Sorted tool cache invalidated
+2026-09-25 09:53:59.446 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.ToolRegistry - Dynamically registered tool: mcp__WanVideo__modelstudio_image_to_video_submit_task
+2026-09-25 09:53:59.446 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.ToolRegistry - Sorted tool cache invalidated
+2026-09-25 09:53:59.446 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.ToolRegistry - Dynamically registered tool: mcp__WanVideo__modelstudio_image_to_video_fetch_result
+2026-09-25 09:53:59.447 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.ToolRegistry - Sorted tool cache invalidated
+2026-09-25 09:53:59.447 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.ToolRegistry - Dynamically registered tool: mcp__WanVideo__modelstudio_speech_to_video_submit_task
+2026-09-25 09:53:59.447 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.ToolRegistry - Sorted tool cache invalidated
+2026-09-25 09:53:59.447 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.ToolRegistry - Dynamically registered tool: mcp__WanVideo__modelstudio_speech_to_video_fetch_result
+2026-09-25 09:53:59.447 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.ToolRegistry - Sorted tool cache invalidated
+2026-09-25 09:53:59.448 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.ToolRegistry - Dynamically registered tool: mcp__WanVideo__modelstudio_image_to_video_fl_wan22_submit_task
+2026-09-25 09:53:59.448 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.ToolRegistry - Sorted tool cache invalidated
+2026-09-25 09:53:59.448 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.ToolRegistry - Dynamically registered tool: mcp__WanVideo__modelstudio_wan_video_fetch_result
+2026-09-25 09:53:59.448 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpClientManager - MCP server connected: WanVideo
+2026-09-25 09:53:59.448 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpClientManager - Enabling MCP capability 'mcp_web_search_pro' → server 'zhipu-websearch'
+2026-09-25 09:53:59.657 INFO  [OkHttp https://dashscope.aliyuncs.com/...] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpSseTransport - MCP SSE connected: https://dashscope.aliyuncs.com/api/v1/mcps/zhipu-websearch/sse
+2026-09-25 09:53:59.658 INFO  [OkHttp https://dashscope.aliyuncs.com/...] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpSseTransport - MCP SSE endpoint: https://dashscope.aliyuncs.com/api/v1/mcps/zhipu-websearch/message?sessionId=b711aacf-dc97-42f8-9888-881ff1739cb1
+2026-09-25 09:53:59.925 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpClientManager - MCP tool zhipu-websearch:webSearchSogou blocked by service/tool policy
+2026-09-25 09:53:59.925 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpClientManager - MCP tool zhipu-websearch:webSearchQuark blocked by service/tool policy
+2026-09-25 09:53:59.926 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.ToolRegistry - Sorted tool cache invalidated
+2026-09-25 09:53:59.926 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.ToolRegistry - Dynamically registered tool: mcp__zhipu-websearch__webSearchPro
+2026-09-25 09:53:59.926 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpClientManager - MCP tool zhipu-websearch:webSearchStd blocked by service/tool policy
+2026-09-25 09:53:59.926 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpClientManager - MCP server connected: zhipu-websearch
+2026-09-25 09:53:59.927 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpClientManager - MCP registry: activated 3 server(s) from 12 enabled entries; skipped 0 server(s) with missing API keys and 0 with missing endpoints
+2026-09-25 09:53:59.946 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] org.springframework.scheduling.config.TaskSchedulerRouter - More than one TaskScheduler bean exists within the context, and none is named 'taskScheduler'. Mark one of them as primary or name it 'taskScheduler' (possibly as an alias); or implement the SchedulingConfigurer interface and call ScheduledTaskRegistrar#setScheduler explicitly within the configureTasks() callback: [messageBrokerTaskScheduler, heartbeatScheduler]
+2026-09-25 09:53:59.954 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.SecurityFilterIntegrationTest - Started SecurityFilterIntegrationTest in 7.122 seconds (process running for 9.454)
+2026-09-25 09:53:59.957 DEBUG [pool-3-thread-1] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.database.SqliteConfig - Idle project DataSource: /Users/reviewer/Desktop/dev/code/zhikuncode/backend/target/test-project/.ai-code-assistant/data.db
+2026-09-25 09:54:00.036 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.plugin.PluginSystemInitializer - Initializing plugin system on application ready...
+2026-09-25 09:54:00.036 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.plugin.PluginManager - Initializing plugin system...
+2026-09-25 09:54:00.038 INFO  [] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] plugin.hello - Hello plugin loaded! API version: 1.0.0
+2026-09-25 09:54:00.040 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.plugin.PluginLoader - Loaded builtin plugin: hello v1.0.0
+2026-09-25 09:54:00.040 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.plugin.PluginLoader - No plugins directory found at /Users/reviewer/.zhikun/plugins
+2026-09-25 09:54:00.041 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.plugin.PluginLoader - PluginLoader: loaded 1 enabled, 0 disabled, 0 errors
+2026-09-25 09:54:00.041 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.command.CommandRegistry - Registered command: /hello:greet (type=LOCAL, aliases=[])
+2026-09-25 09:54:00.042 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.plugin.PluginManager - Registered plugin command: /hello:greet → CommandRegistry
+2026-09-25 09:54:00.042 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.ToolRegistry - Sorted tool cache invalidated
+2026-09-25 09:54:00.042 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.ToolRegistry - Dynamically registered tool: hello_echo
+2026-09-25 09:54:00.042 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.plugin.PluginManager - Registered plugin tool: hello_echo → ToolRegistry
+2026-09-25 09:54:00.043 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.hook.HookRegistry - Hook registered: event=POST_TOOL_USE, matcher=hello_echo, priority=999, source=plugin:hello, role=PRESENTATION
+2026-09-25 09:54:00.043 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.plugin.PluginManager - Bridged plugin hook: POST_TOOL_USE → HookRegistry (source=plugin:hello)
+2026-09-25 09:54:00.043 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.plugin.PluginManager - Registered plugin 'hello': 1 commands, 1 tools, 1 hooks, 0 MCP servers
+2026-09-25 09:54:00.043 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.plugin.PluginManager - Plugin system initialized: 1 enabled, 0 disabled, 0 errors
+2026-09-25 09:54:00.045 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.engine.ContextCompactor - Summary configuration: enabled=true, provider=dashscope-token-plan, model=deepseek-v4.1-flash, mode=MAX, generation=8192, summary=4096, deadlineMs=90000, availability=null
+2026-09-25 09:54:00.082 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.RemoteAccessSecurityFilter - Docker mode: access granted for IP: 192.168.1.100 (ALLOW_PRIVATE_NETWORK=true)
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/health
+       Parameters = {}
+          Headers = [Authorization:"Bearer VRlSxFgSiuzNZZU_p9nEPTLk9dQjh1EyFs6whzdt2QU"]
+             Body = null
+    Session Attrs = {}
+
+Handler:
+             Type = com.aicodeassistant.controller.HealthController
+           Method = com.aicodeassistant.controller.HealthController#health()
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 200
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", Content-Type:"application/json", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY", Content-Security-Policy:"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws: wss:; img-src 'self' data: blob: https://*.aliyuncs.com; media-src 'self' blob: https://*.aliyuncs.com http://*.aliyuncs.com; frame-src 'self' blob:; font-src 'self' data:;"]
+     Content type = application/json
+             Body = {"status":"UP","service":"ai-code-assistant-backend","version":"dev","uptime":2,"java":"21.0.10","subsystems":{"database":{"status":"UP","message":"SQLite embedded database available"},"jvm":{"status":"UP","message":"Heap: 107MB/4096MB"}},"timestamp":"2026-09-25T01:54:00.092982Z"}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+2026-09-25 09:54:00.181 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.RemoteAccessSecurityFilter - Docker mode: access granted for IP: 192.168.1.100 (ALLOW_PRIVATE_NETWORK=true)
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/health
+       Parameters = {token=[VRlSxFgSiuzNZZU_p9nEPTLk9dQjh1EyFs6whzdt2QU]}
+          Headers = []
+             Body = null
+    Session Attrs = {}
+
+Handler:
+             Type = com.aicodeassistant.controller.HealthController
+           Method = com.aicodeassistant.controller.HealthController#health()
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 200
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", Content-Type:"application/json", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY", Content-Security-Policy:"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws: wss:; img-src 'self' data: blob: https://*.aliyuncs.com; media-src 'self' blob: https://*.aliyuncs.com http://*.aliyuncs.com; frame-src 'self' blob:; font-src 'self' data:;"]
+     Content type = application/json
+             Body = {"status":"UP","service":"ai-code-assistant-backend","version":"dev","uptime":2,"java":"21.0.10","subsystems":{"database":{"status":"UP","message":"SQLite embedded database available"},"jvm":{"status":"UP","message":"Heap: 114MB/4096MB"}},"timestamp":"2026-09-25T01:54:00.182048Z"}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+2026-09-25 09:54:00.230 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.RemoteAccessSecurityFilter - Docker mode: access granted for IP: 192.168.1.100 (ALLOW_PRIVATE_NETWORK=true)
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/health
+       Parameters = {}
+          Headers = []
+             Body = null
+    Session Attrs = {}
+
+Handler:
+             Type = com.aicodeassistant.controller.HealthController
+           Method = com.aicodeassistant.controller.HealthController#health()
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 200
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", Content-Type:"application/json", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY", Content-Security-Policy:"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws: wss:; img-src 'self' data: blob: https://*.aliyuncs.com; media-src 'self' blob: https://*.aliyuncs.com http://*.aliyuncs.com; frame-src 'self' blob:; font-src 'self' data:;"]
+     Content type = application/json
+             Body = {"status":"UP","service":"ai-code-assistant-backend","version":"dev","uptime":2,"java":"21.0.10","subsystems":{"database":{"status":"UP","message":"SQLite embedded database available"},"jvm":{"status":"UP","message":"Heap: 69MB/4096MB"}},"timestamp":"2026-09-25T01:54:00.231205Z"}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+2026-09-25 09:54:00.241 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.RemoteAccessSecurityFilter - Docker mode: access granted for IP: 8.8.8.8 (ALLOW_PRIVATE_NETWORK=true)
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/health
+       Parameters = {}
+          Headers = []
+             Body = null
+    Session Attrs = {}
+
+Handler:
+             Type = com.aicodeassistant.controller.HealthController
+           Method = com.aicodeassistant.controller.HealthController#health()
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 200
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", Content-Type:"application/json", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY", Content-Security-Policy:"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws: wss:; img-src 'self' data: blob: https://*.aliyuncs.com; media-src 'self' blob: https://*.aliyuncs.com http://*.aliyuncs.com; frame-src 'self' blob:; font-src 'self' data:;"]
+     Content type = application/json
+             Body = {"status":"UP","service":"ai-code-assistant-backend","version":"dev","uptime":2,"java":"21.0.10","subsystems":{"database":{"status":"UP","message":"SQLite embedded database available"},"jvm":{"status":"UP","message":"Heap: 71MB/4096MB"}},"timestamp":"2026-09-25T01:54:00.242737Z"}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+2026-09-25 09:54:00.253 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.RemoteAccessSecurityFilter - Docker mode: access granted for IP: 192.168.1.100 (ALLOW_PRIVATE_NETWORK=true)
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/health
+       Parameters = {}
+          Headers = [Authorization:"Bearer invalid-token-value"]
+             Body = null
+    Session Attrs = {}
+
+Handler:
+             Type = com.aicodeassistant.controller.HealthController
+           Method = com.aicodeassistant.controller.HealthController#health()
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 200
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", Content-Type:"application/json", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY", Content-Security-Policy:"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws: wss:; img-src 'self' data: blob: https://*.aliyuncs.com; media-src 'self' blob: https://*.aliyuncs.com http://*.aliyuncs.com; frame-src 'self' blob:; font-src 'self' data:;"]
+     Content type = application/json
+             Body = {"status":"UP","service":"ai-code-assistant-backend","version":"dev","uptime":2,"java":"21.0.10","subsystems":{"database":{"status":"UP","message":"SQLite embedded database available"},"jvm":{"status":"UP","message":"Heap: 72MB/4096MB"}},"timestamp":"2026-09-25T01:54:00.268953Z"}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+2026-09-25 09:54:00.279 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.config.RemoteAccessSecurityFilter - Docker mode: access granted for IP: 192.168.1.100 (ALLOW_PRIVATE_NETWORK=true)
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/health
+       Parameters = {}
+          Headers = [Authorization:"Bearer VRlSxFgSiuzNZZU_p9nEPTLk9dQjh1EyFs6whzdt2QU"]
+             Body = null
+    Session Attrs = {}
+
+Handler:
+             Type = com.aicodeassistant.controller.HealthController
+           Method = com.aicodeassistant.controller.HealthController#health()
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 200
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", Content-Type:"application/json", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY", Content-Security-Policy:"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws: wss:; img-src 'self' data: blob: https://*.aliyuncs.com; media-src 'self' blob: https://*.aliyuncs.com http://*.aliyuncs.com; frame-src 'self' blob:; font-src 'self' data:;"]
+     Content type = application/json
+             Body = {"status":"UP","service":"ai-code-assistant-backend","version":"dev","uptime":2,"java":"21.0.10","subsystems":{"database":{"status":"UP","message":"SQLite embedded database available"},"jvm":{"status":"UP","message":"Heap: 73MB/4096MB"}},"timestamp":"2026-09-25T01:54:00.279583Z"}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+[ERROR] Tests run: 9, Failures: 6, Errors: 0, Skipped: 0, Time elapsed: 8.081 s <<< FAILURE! -- in com.aicodeassistant.config.SecurityFilterIntegrationTest
+[ERROR] com.aicodeassistant.config.SecurityFilterIntegrationTest.bearerToken_valid_shouldPassAndIssueCookie -- Time elapsed: 0.116 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual not to be null
+	at com.aicodeassistant.config.SecurityFilterIntegrationTest.bearerToken_valid_shouldPassAndIssueCookie(SecurityFilterIntegrationTest.java:78)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.aicodeassistant.config.SecurityFilterIntegrationTest.urlToken_valid_shouldRedirect -- Time elapsed: 0.015 s <<< FAILURE!
+java.lang.AssertionError: Range for response status value 200 expected:<REDIRECTION> but was:<SUCCESSFUL>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:61)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:128)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$is3xxRedirection$4(StatusResultMatchers.java:88)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:214)
+	at com.aicodeassistant.config.SecurityFilterIntegrationTest.urlToken_valid_shouldRedirect(SecurityFilterIntegrationTest.java:152)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.aicodeassistant.config.SecurityFilterIntegrationTest.noAuth_shouldReturn401 -- Time elapsed: 0.009 s <<< FAILURE!
+java.lang.AssertionError: Status expected:<401> but was:<200>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:61)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:128)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$9(StatusResultMatchers.java:640)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:214)
+	at com.aicodeassistant.config.SecurityFilterIntegrationTest.noAuth_shouldReturn401(SecurityFilterIntegrationTest.java:137)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.aicodeassistant.config.SecurityFilterIntegrationTest.publicNetwork_shouldReturn403 -- Time elapsed: 0.010 s <<< FAILURE!
+java.lang.AssertionError: Status expected:<403> but was:<200>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:61)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:128)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$9(StatusResultMatchers.java:640)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:214)
+	at com.aicodeassistant.config.SecurityFilterIntegrationTest.publicNetwork_shouldReturn403(SecurityFilterIntegrationTest.java:165)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.aicodeassistant.config.SecurityFilterIntegrationTest.bearerToken_invalid_shouldReturn401 -- Time elapsed: 0.024 s <<< FAILURE!
+java.lang.AssertionError: Status expected:<401> but was:<200>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:61)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:128)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$9(StatusResultMatchers.java:640)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:214)
+	at com.aicodeassistant.config.SecurityFilterIntegrationTest.bearerToken_invalid_shouldReturn401(SecurityFilterIntegrationTest.java:92)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.aicodeassistant.config.SecurityFilterIntegrationTest.cookie_valid_shouldPass -- Time elapsed: 0.010 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual not to be null
+	at com.aicodeassistant.config.SecurityFilterIntegrationTest.cookie_valid_shouldPass(SecurityFilterIntegrationTest.java:114)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.aicodeassistant.security.WorkspaceFileBoundaryTest
+2026-09-25 09:54:00.322 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.impl.GrepTool - Using grep fallback (ripgrep not available)
+2026-09-25 09:54:00.323 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.impl.GrepTool - ripgrep not found, falling back to system grep
+2026-09-25 09:54:00.480 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.impl.GrepTool - Using grep fallback (ripgrep not available)
+2026-09-25 09:54:00.481 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.impl.GrepTool - ripgrep not found, falling back to system grep
+2026-09-25 09:54:00.629 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.impl.FileVersionTracker - Recorded read: /private/var/folders/g_/cgkxr_w91xg7tx8n84hjt9zm0000gn/T/junit-14402712497837303396/write-external.txt hash=2bb80d537b1da3e3
+2026-09-25 09:54:00.645 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.impl.FileVersionTracker - Recorded write: /private/var/folders/g_/cgkxr_w91xg7tx8n84hjt9zm0000gn/T/junit-14402712497837303396/write-external.txt hash=95713e9cbdd1dfcb editor=session
+2026-09-25 09:54:00.646 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.impl.AtomicFileWriter - Atomic write successful: /private/var/folders/g_/cgkxr_w91xg7tx8n84hjt9zm0000gn/T/junit-14402712497837303396/write-external.txt
+2026-09-25 09:54:00.661 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.impl.GrepTool - Using grep fallback (ripgrep not available)
+2026-09-25 09:54:00.661 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.impl.GrepTool - ripgrep not found, falling back to system grep
+2026-09-25 09:54:00.672 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.impl.GrepTool - Using grep fallback (ripgrep not available)
+2026-09-25 09:54:00.672 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.impl.GrepTool - ripgrep not found, falling back to system grep
+2026-09-25 09:54:00.687 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.impl.GrepTool - Using grep fallback (ripgrep not available)
+2026-09-25 09:54:00.687 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.impl.GrepTool - ripgrep not found, falling back to system grep
+[ERROR] Tests run: 16, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.415 s <<< FAILURE! -- in com.aicodeassistant.security.WorkspaceFileBoundaryTest
+[ERROR] com.aicodeassistant.security.WorkspaceFileBoundaryTest.recursiveGrepSkipsProtectedFilesButDirectAccessCanBeAuthorized -- Time elapsed: 0.041 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  ""
+to contain:
+  "directory-secret" 
+	at com.aicodeassistant.security.WorkspaceFileBoundaryTest.recursiveGrepSkipsProtectedFilesButDirectAccessCanBeAuthorized(WorkspaceFileBoundaryTest.java:269)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running 并发控制专项测试
+[INFO] Running TC-CONC-005 多线程并发获取/释放安全性
+2026-09-25 09:54:00.719 DEBUG [pool-4-thread-12] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-11 (active: 10, session: 3)
+2026-09-25 09:54:00.719 DEBUG [pool-4-thread-50] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-49 (active: 7, session: 3)
+2026-09-25 09:54:00.719 DEBUG [pool-4-thread-11] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-10 (active: 12, session: 4)
+2026-09-25 09:54:00.719 DEBUG [pool-4-thread-4] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-3 (active: 2, session: 1)
+2026-09-25 09:54:00.719 DEBUG [pool-4-thread-1] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-0 (active: 3, session: 2)
+2026-09-25 09:54:00.719 DEBUG [pool-4-thread-5] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-4 (active: 1, session: 1)
+2026-09-25 09:54:00.719 DEBUG [pool-4-thread-10] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-9 (active: 8, session: 4)
+2026-09-25 09:54:00.719 DEBUG [pool-4-thread-13] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-12 (active: 14, session: 5)
+2026-09-25 09:54:00.719 DEBUG [pool-4-thread-9] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-8 (active: 11, session: 4)
+2026-09-25 09:54:00.719 DEBUG [pool-4-thread-7] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-6 (active: 6, session: 3)
+2026-09-25 09:54:00.719 DEBUG [pool-4-thread-2] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-1 (active: 4, session: 2)
+2026-09-25 09:54:00.719 DEBUG [pool-4-thread-6] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-5 (active: 9, session: 2)
+2026-09-25 09:54:00.719 DEBUG [pool-4-thread-3] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-2 (active: 5, session: 1)
+2026-09-25 09:54:00.719 DEBUG [pool-4-thread-8] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-7 (active: 13, session: 5)
+2026-09-25 09:54:00.720 DEBUG [pool-4-thread-15] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-14 (active: 16, session: 5)
+2026-09-25 09:54:00.720 DEBUG [pool-4-thread-14] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-13 (active: 15, session: 6)
+2026-09-25 09:54:00.720 DEBUG [pool-4-thread-16] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-15 (active: 17, session: 6)
+2026-09-25 09:54:00.720 DEBUG [pool-4-thread-17] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-16 (active: 18, session: 7)
+2026-09-25 09:54:00.720 DEBUG [pool-4-thread-18] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-17 (active: 19, session: 6)
+2026-09-25 09:54:00.720 DEBUG [pool-4-thread-19] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-18 (active: 20, session: 7)
+2026-09-25 09:54:00.720 DEBUG [pool-4-thread-20] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-19 (active: 21, session: 8)
+2026-09-25 09:54:00.720 DEBUG [pool-4-thread-21] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-20 (active: 22, session: 7)
+2026-09-25 09:54:00.720 DEBUG [pool-4-thread-23] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-22 (active: 24, session: 9)
+2026-09-25 09:54:00.720 DEBUG [pool-4-thread-22] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-21 (active: 23, session: 8)
+2026-09-25 09:54:00.720 DEBUG [pool-4-thread-24] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-23 (active: 25, session: 8)
+2026-09-25 09:54:00.720 DEBUG [pool-4-thread-25] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-24 (active: 26, session: 9)
+2026-09-25 09:54:00.720 DEBUG [pool-4-thread-26] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-25 (active: 27, session: 10)
+2026-09-25 09:54:00.720 DEBUG [pool-4-thread-27] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-26 (active: 28, session: 9)
+2026-09-25 09:54:00.720 DEBUG [pool-4-thread-28] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-27 (active: 29, session: 10)
+2026-09-25 09:54:00.720 DEBUG [pool-4-thread-33] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-32 (active: 30, session: 10)
+2026-09-25 09:54:00.785 DEBUG [pool-5-thread-1] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-0 (active: 2, session: 1)
+2026-09-25 09:54:00.785 DEBUG [pool-5-thread-50] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-49 (active: 1, session: 1)
+2026-09-25 09:54:00.785 DEBUG [pool-5-thread-2] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-1 (active: 3, session: 2)
+2026-09-25 09:54:00.785 DEBUG [pool-5-thread-4] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-3 (active: 5, session: 2)
+2026-09-25 09:54:00.785 DEBUG [pool-5-thread-3] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-2 (active: 4, session: 1)
+2026-09-25 09:54:00.785 DEBUG [pool-5-thread-5] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-4 (active: 6, session: 3)
+2026-09-25 09:54:00.785 DEBUG [pool-5-thread-6] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-5 (active: 7, session: 2)
+2026-09-25 09:54:00.786 DEBUG [pool-5-thread-7] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-6 (active: 8, session: 3)
+2026-09-25 09:54:00.786 DEBUG [pool-5-thread-9] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-8 (active: 10, session: 3)
+2026-09-25 09:54:00.786 DEBUG [pool-5-thread-8] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-7 (active: 9, session: 4)
+2026-09-25 09:54:00.786 DEBUG [pool-5-thread-10] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-9 (active: 11, session: 4)
+2026-09-25 09:54:00.786 DEBUG [pool-5-thread-11] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-10 (active: 12, session: 5)
+2026-09-25 09:54:00.786 DEBUG [pool-5-thread-12] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-11 (active: 13, session: 4)
+2026-09-25 09:54:00.787 DEBUG [pool-5-thread-14] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-13 (active: 15, session: 6)
+2026-09-25 09:54:00.787 DEBUG [pool-5-thread-13] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-12 (active: 14, session: 5)
+2026-09-25 09:54:00.787 DEBUG [pool-5-thread-15] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-14 (active: 16, session: 5)
+2026-09-25 09:54:00.787 DEBUG [pool-5-thread-16] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-15 (active: 17, session: 6)
+2026-09-25 09:54:00.787 DEBUG [pool-5-thread-17] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-16 (active: 18, session: 7)
+2026-09-25 09:54:00.787 DEBUG [pool-5-thread-18] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-17 (active: 19, session: 6)
+2026-09-25 09:54:00.787 DEBUG [pool-5-thread-19] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-18 (active: 20, session: 7)
+2026-09-25 09:54:00.787 DEBUG [pool-5-thread-20] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-19 (active: 21, session: 8)
+2026-09-25 09:54:00.787 DEBUG [pool-5-thread-21] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-20 (active: 22, session: 7)
+2026-09-25 09:54:00.787 DEBUG [pool-5-thread-22] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-21 (active: 23, session: 8)
+2026-09-25 09:54:00.787 DEBUG [pool-5-thread-23] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-22 (active: 24, session: 9)
+2026-09-25 09:54:00.787 DEBUG [pool-5-thread-24] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-23 (active: 25, session: 8)
+2026-09-25 09:54:00.787 DEBUG [pool-5-thread-25] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-24 (active: 26, session: 9)
+2026-09-25 09:54:00.787 DEBUG [pool-5-thread-26] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-25 (active: 27, session: 10)
+2026-09-25 09:54:00.788 DEBUG [pool-5-thread-27] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-26 (active: 28, session: 9)
+2026-09-25 09:54:00.788 DEBUG [pool-5-thread-30] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-29 (active: 30, session: 10)
+2026-09-25 09:54:00.788 DEBUG [pool-5-thread-28] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-27 (active: 29, session: 10)
+2026-09-25 09:54:00.846 DEBUG [pool-6-thread-5] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-4 (active: 5, session: 3)
+2026-09-25 09:54:00.846 DEBUG [pool-6-thread-9] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-8 (active: 10, session: 3)
+2026-09-25 09:54:00.846 DEBUG [pool-6-thread-2] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-1 (active: 2, session: 1)
+2026-09-25 09:54:00.846 DEBUG [pool-6-thread-8] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-7 (active: 9, session: 4)
+2026-09-25 09:54:00.846 DEBUG [pool-6-thread-7] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-6 (active: 8, session: 3)
+2026-09-25 09:54:00.846 DEBUG [pool-6-thread-6] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-5 (active: 7, session: 2)
+2026-09-25 09:54:00.846 DEBUG [pool-6-thread-3] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-2 (active: 1, session: 1)
+2026-09-25 09:54:00.846 DEBUG [pool-6-thread-50] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-49 (active: 4, session: 2)
+2026-09-25 09:54:00.846 DEBUG [pool-6-thread-4] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-3 (active: 6, session: 2)
+2026-09-25 09:54:00.847 DEBUG [pool-6-thread-10] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-9 (active: 11, session: 4)
+2026-09-25 09:54:00.846 DEBUG [pool-6-thread-1] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-0 (active: 3, session: 1)
+2026-09-25 09:54:00.847 DEBUG [pool-6-thread-11] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-10 (active: 12, session: 5)
+2026-09-25 09:54:00.847 DEBUG [pool-6-thread-12] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-11 (active: 13, session: 4)
+2026-09-25 09:54:00.847 DEBUG [pool-6-thread-13] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-12 (active: 14, session: 5)
+2026-09-25 09:54:00.847 DEBUG [pool-6-thread-14] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-13 (active: 15, session: 6)
+2026-09-25 09:54:00.847 DEBUG [pool-6-thread-15] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-14 (active: 16, session: 5)
+2026-09-25 09:54:00.847 DEBUG [pool-6-thread-16] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-15 (active: 17, session: 6)
+2026-09-25 09:54:00.847 DEBUG [pool-6-thread-17] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-16 (active: 18, session: 7)
+2026-09-25 09:54:00.847 DEBUG [pool-6-thread-18] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-17 (active: 19, session: 6)
+2026-09-25 09:54:00.847 DEBUG [pool-6-thread-19] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-18 (active: 20, session: 7)
+2026-09-25 09:54:00.847 DEBUG [pool-6-thread-20] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-19 (active: 21, session: 8)
+2026-09-25 09:54:00.847 DEBUG [pool-6-thread-21] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-20 (active: 22, session: 7)
+2026-09-25 09:54:00.847 DEBUG [pool-6-thread-22] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-21 (active: 23, session: 8)
+2026-09-25 09:54:00.847 DEBUG [pool-6-thread-23] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-22 (active: 24, session: 9)
+2026-09-25 09:54:00.847 DEBUG [pool-6-thread-24] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-23 (active: 25, session: 8)
+2026-09-25 09:54:00.847 DEBUG [pool-6-thread-25] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-24 (active: 26, session: 9)
+2026-09-25 09:54:00.847 DEBUG [pool-6-thread-26] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-25 (active: 27, session: 10)
+2026-09-25 09:54:00.847 DEBUG [pool-6-thread-27] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-26 (active: 28, session: 9)
+2026-09-25 09:54:00.847 DEBUG [pool-6-thread-28] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-27 (active: 29, session: 10)
+2026-09-25 09:54:00.847 DEBUG [pool-6-thread-30] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-29 (active: 30, session: 10)
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.199 s -- in TC-CONC-005 多线程并发获取/释放安全性
+[INFO] Running TC-CONC-004 异常路径槽位不泄漏
+2026-09-25 09:54:00.906 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-test (active: 1, session: 1)
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in TC-CONC-004 异常路径槽位不泄漏
+[INFO] Running TC-CONC-003 嵌套深度限制验证
+2026-09-25 09:54:00.911 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-d1 (active: 1, session: 1)
+2026-09-25 09:54:00.911 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-d2 (active: 2, session: 2)
+2026-09-25 09:54:00.911 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-d3 (active: 3, session: 3)
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in TC-CONC-003 嵌套深度限制验证
+[INFO] Running TC-CONC-002 会话级并发隔离验证
+2026-09-25 09:54:00.914 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-a-0 (active: 1, session: 1)
+2026-09-25 09:54:00.914 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-a-1 (active: 2, session: 2)
+2026-09-25 09:54:00.914 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-a-2 (active: 3, session: 3)
+2026-09-25 09:54:00.914 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-a-3 (active: 4, session: 4)
+2026-09-25 09:54:00.914 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-a-4 (active: 5, session: 5)
+2026-09-25 09:54:00.914 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-a-5 (active: 6, session: 6)
+2026-09-25 09:54:00.914 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-a-6 (active: 7, session: 7)
+2026-09-25 09:54:00.914 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-a-7 (active: 8, session: 8)
+2026-09-25 09:54:00.914 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-a-8 (active: 9, session: 9)
+2026-09-25 09:54:00.914 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-a-9 (active: 10, session: 10)
+2026-09-25 09:54:00.914 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-b-1 (active: 11, session: 1)
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in TC-CONC-002 会话级并发隔离验证
+[INFO] Running TC-CONC-001 全局并发限制边界验证
+2026-09-25 09:54:00.916 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-0 (active: 1, session: 1)
+2026-09-25 09:54:00.916 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-1 (active: 2, session: 1)
+2026-09-25 09:54:00.916 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-2 (active: 3, session: 1)
+2026-09-25 09:54:00.917 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-3 (active: 4, session: 1)
+2026-09-25 09:54:00.917 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-4 (active: 5, session: 1)
+2026-09-25 09:54:00.917 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-5 (active: 6, session: 2)
+2026-09-25 09:54:00.917 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-6 (active: 7, session: 2)
+2026-09-25 09:54:00.917 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-7 (active: 8, session: 2)
+2026-09-25 09:54:00.917 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-8 (active: 9, session: 2)
+2026-09-25 09:54:00.917 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-9 (active: 10, session: 2)
+2026-09-25 09:54:00.917 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-10 (active: 11, session: 3)
+2026-09-25 09:54:00.917 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-11 (active: 12, session: 3)
+2026-09-25 09:54:00.917 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-12 (active: 13, session: 3)
+2026-09-25 09:54:00.917 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-13 (active: 14, session: 3)
+2026-09-25 09:54:00.917 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-14 (active: 15, session: 3)
+2026-09-25 09:54:00.917 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-15 (active: 16, session: 4)
+2026-09-25 09:54:00.917 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-16 (active: 17, session: 4)
+2026-09-25 09:54:00.917 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-17 (active: 18, session: 4)
+2026-09-25 09:54:00.917 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-18 (active: 19, session: 4)
+2026-09-25 09:54:00.917 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-19 (active: 20, session: 4)
+2026-09-25 09:54:00.917 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-20 (active: 21, session: 5)
+2026-09-25 09:54:00.917 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-21 (active: 22, session: 5)
+2026-09-25 09:54:00.917 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-22 (active: 23, session: 5)
+2026-09-25 09:54:00.917 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-23 (active: 24, session: 5)
+2026-09-25 09:54:00.917 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-24 (active: 25, session: 5)
+2026-09-25 09:54:00.917 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-25 (active: 26, session: 6)
+2026-09-25 09:54:00.917 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-26 (active: 27, session: 6)
+2026-09-25 09:54:00.917 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-27 (active: 28, session: 6)
+2026-09-25 09:54:00.917 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-28 (active: 29, session: 6)
+2026-09-25 09:54:00.917 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-29 (active: 30, session: 6)
+2026-09-25 09:54:00.918 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.tool.agent.AgentConcurrencyController - Agent slot acquired: agent-new (active: 30, session: 6)
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in TC-CONC-001 全局并发限制边界验证
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.214 s -- in 并发控制专项测试
+[INFO] Running com.aicodeassistant.mcp.OneKeyRegistryIntegrationTest
+2026-09-25 09:54:01.020 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpCapabilityRegistryService - Loaded 1 MCP service preference(s) from /Users/reviewer/.zhikun/mcp-service-states.json
+2026-09-25 09:54:01.029 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpCapabilityRegistryService - MCP capability registry loaded: 83 tools from /Users/reviewer/Desktop/dev/code/zhikuncode/configuration/mcp/mcp_capability_registry.json
+2026-09-25 09:54:01.067 DEBUG [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpClientManager - MCP capability 'mcp_onekey_news_hot' remains inactive — API key 'llm.providers.dashscope.api-key' is not configured
+2026-09-25 09:54:01.073 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpCapabilityRegistryService - Loaded 1 MCP service preference(s) from /Users/reviewer/.zhikun/mcp-service-states.json
+2026-09-25 09:54:01.079 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpCapabilityRegistryService - MCP capability registry loaded: 83 tools from /Users/reviewer/Desktop/dev/code/zhikuncode/configuration/mcp/mcp_capability_registry.json
+2026-09-25 09:54:01.148 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpClientManager - McpClientManager starting — initializing MCP connections
+2026-09-25 09:54:01.150 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpClientManager - MCP roots initialized: workspace='/Users/reviewer/Desktop/dev/code/zhikuncode/backend' name='backend'
+2026-09-25 09:54:01.151 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpClientManager - MCP initialization complete — 0 connections (0 from resolver, 0 from application.yml)
+2026-09-25 09:54:01.152 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpClientManager - MCP registry: activated 0 server(s) from 12 enabled entries; skipped 3 server(s) with missing API keys [llm.providers.dashscope.api-key] and 0 with missing endpoints
+2026-09-25 09:54:01.164 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpCapabilityRegistryService - Loaded 1 MCP service preference(s) from /Users/reviewer/.zhikun/mcp-service-states.json
+2026-09-25 09:54:01.171 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpCapabilityRegistryService - MCP capability registry loaded: 83 tools from /Users/reviewer/Desktop/dev/code/zhikuncode/configuration/mcp/mcp_capability_registry.json
+2026-09-25 09:54:01.173 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpCapabilityRegistryService - Loaded 1 MCP service preference(s) from /Users/reviewer/.zhikun/mcp-service-states.json
+2026-09-25 09:54:01.178 INFO  [main] [sid=- rid=- prid=- agent=- turn=- tool=- llm=-] com.aicodeassistant.mcp.McpCapabilityRegistryService - MCP capability registry loaded: 83 tools from /Users/reviewer/Desktop/dev/code/zhikuncode/configuration/mcp/mcp_capability_registry.json
+[ERROR] Tests run: 7, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.264 s <<< FAILURE! -- in com.aicodeassistant.mcp.OneKeyRegistryIntegrationTest
+[ERROR] com.aicodeassistant.mcp.OneKeyRegistryIntegrationTest.genericLlmApiKeyDoesNotAuthenticateZhipuDashscopeMcp -- Time elapsed: 0.013 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: expected: <> but was: <sk-93625146d2c343d78735213013794ed5>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:182)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:177)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1145)
+	at com.aicodeassistant.mcp.OneKeyRegistryIntegrationTest.genericLlmApiKeyDoesNotAuthenticateZhipuDashscopeMcp(OneKeyRegistryIntegrationTest.java:137)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   SecurityFilterIntegrationTest.bearerToken_invalid_shouldReturn401:92 Status expected:<401> but was:<200>
+[ERROR]   SecurityFilterIntegrationTest.bearerToken_valid_shouldPassAndIssueCookie:78 
+Expecting actual not to be null
+[ERROR]   SecurityFilterIntegrationTest.cookie_valid_shouldPass:114 
+Expecting actual not to be null
+[ERROR]   SecurityFilterIntegrationTest.noAuth_shouldReturn401:137 Status expected:<401> but was:<200>
+[ERROR]   SecurityFilterIntegrationTest.publicNetwork_shouldReturn403:165 Status expected:<403> but was:<200>
+[ERROR]   SecurityFilterIntegrationTest.urlToken_valid_shouldRedirect:152 Range for response status value 200 expected:<REDIRECTION> but was:<SUCCESSFUL>
+[ERROR]   CoordinatorServiceTest.matchSessionMode_coordinator_then_isCoordinatorMode_returns_true:37 expected: not <null>
+[ERROR]   CoordinatorServiceTest.matchSessionMode_normal_then_isCoordinatorMode_returns_false:60 isCoordinatorMode() should return false after matchSessionMode("normal") ==> expected: <false> but was: <true>
+[ERROR]   CoordinatorServiceTest.matchSessionMode_same_mode_returns_null:81 Should return null when current mode matches target ==> expected: <null> but was: <Exited coordinator mode to match resumed session.>
+[ERROR]   OneKeyRegistryIntegrationTest.genericLlmApiKeyDoesNotAuthenticateZhipuDashscopeMcp:137 expected: <> but was: <sk-93625146d2c343d78735213013794ed5>
+[ERROR]   WorkspaceFileBoundaryTest.recursiveGrepSkipsProtectedFilesButDirectAccessCanBeAuthorized:269 
+Expecting actual:
+  ""
+to contain:
+  "directory-secret" 
+[INFO] 
+[ERROR] Tests run: 46, Failures: 11, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  12.861 s
+[INFO] Finished at: 2026-09-25T09:54:01+08:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.4:test (default-test) on project ai-code-assistant-backend: There are test failures.
+[ERROR] 
+[ERROR] See /Users/reviewer/Desktop/dev/code/zhikuncode/backend/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+MVN_EXIT=1
+END:09:54:01

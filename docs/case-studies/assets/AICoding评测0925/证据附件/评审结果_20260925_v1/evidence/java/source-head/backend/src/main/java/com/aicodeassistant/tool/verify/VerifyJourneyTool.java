@@ -1,0 +1,851 @@
+package com.aicodeassistant.tool.verify;
+
+import com.aicodeassistant.config.FeatureFlagService;
+import com.aicodeassistant.notify.NotificationService;
+import com.aicodeassistant.notify.NotificationService.VerifyAttentionPayload;
+import com.aicodeassistant.service.ActivityRepository;
+import com.aicodeassistant.service.PythonCapabilityAwareClient;
+import com.aicodeassistant.tool.PermissionRequirement;
+import com.aicodeassistant.tool.Tool;
+import com.aicodeassistant.tool.ToolInput;
+import com.aicodeassistant.tool.ToolResult;
+import com.aicodeassistant.tool.ToolUseContext;
+import com.aicodeassistant.verify.DevServerHandle;
+import com.aicodeassistant.verify.DevServerLauncher;
+import com.aicodeassistant.verify.DevServerTimeoutException;
+import com.aicodeassistant.verify.EvidenceBundle;
+import com.aicodeassistant.verify.EvidenceItem;
+import com.aicodeassistant.verify.EvidenceStore;
+import com.aicodeassistant.verify.JourneyRequest;
+import com.aicodeassistant.verify.JourneyResult;
+import com.aicodeassistant.verify.PreviewStackDetector;
+import com.aicodeassistant.verify.StackInfo;
+import com.aicodeassistant.verify.StepResult;
+import com.aicodeassistant.verify.UserJourneyVerifier;
+import com.aicodeassistant.verify.Verifier;
+import com.aicodeassistant.verify.VerifierFactory;
+import com.aicodeassistant.observability.BestEffortObservabilityRecorder;
+import com.aicodeassistant.observability.SafeLogValue;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.nio.file.Path;
+import java.nio.file.Files;
+import java.net.URI;
+import java.util.Comparator;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+
+/**
+ * VerifyJourneyTool — RV-1 运行时验证核心 Tool。
+ *
+ * <p>编排 DevServer 启动 → 浏览器 Journey 执行 → 证据保存 → 结果返回的完整流程。
+ * 双重门控：feature flag (RUNTIME_VERIFICATION) + Python BROWSER_AUTOMATION 能力域。</p>
+ */
+@Component
+public class VerifyJourneyTool implements Tool {
+
+    private static final Logger log = LoggerFactory.getLogger(VerifyJourneyTool.class);
+
+    private static final String CAPABILITY = "BROWSER_AUTOMATION";
+    private static final String FEATURE_FLAG = "RUNTIME_VERIFICATION";
+    private static final Duration DEV_SERVER_TIMEOUT = Duration.ofSeconds(120);
+    private static final Duration CLOSE_SESSION_TIMEOUT = Duration.ofSeconds(5);
+    private static final Duration FAILURE_SNAPSHOT_TIMEOUT = Duration.ofSeconds(2);
+
+    private final PythonCapabilityAwareClient pythonClient;
+    private final DevServerLauncher devServerLauncher;
+    private final VerifierFactory verifierFactory;
+    private final PreviewStackDetector previewStackDetector;
+    private final EvidenceStore evidenceStore;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final FeatureFlagService featureFlags;
+    private final ActivityRepository activityRepository;
+    private final ObjectMapper objectMapper;
+    private final NotificationService notificationService;
+    private volatile BestEffortObservabilityRecorder observabilityRecorder;
+    private com.aicodeassistant.artifact.meoo.MeooPublicationPolicy meooPolicy;
+
+    @Autowired(required = false)
+    public void setMeooPublicationPolicy(com.aicodeassistant.artifact.meoo.MeooPublicationPolicy policy) {
+        this.meooPolicy = policy;
+    }
+
+    public VerifyJourneyTool(PythonCapabilityAwareClient pythonClient,
+                             DevServerLauncher devServerLauncher,
+                             VerifierFactory verifierFactory,
+                             PreviewStackDetector previewStackDetector,
+                             EvidenceStore evidenceStore,
+                             SimpMessagingTemplate messagingTemplate,
+                             FeatureFlagService featureFlags,
+                             ActivityRepository activityRepository,
+                             ObjectMapper objectMapper,
+                             NotificationService notificationService) {
+        this.pythonClient = pythonClient;
+        this.devServerLauncher = devServerLauncher;
+        this.verifierFactory = verifierFactory;
+        this.previewStackDetector = previewStackDetector;
+        this.evidenceStore = evidenceStore;
+        this.messagingTemplate = messagingTemplate;
+        this.featureFlags = featureFlags;
+        this.activityRepository = activityRepository;
+        this.objectMapper = objectMapper;
+        this.notificationService = notificationService;
+    }
+
+    @Autowired(required = false)
+    void setObservabilityRecorder(BestEffortObservabilityRecorder observabilityRecorder) {
+        this.observabilityRecorder = observabilityRecorder;
+    }
+
+    @Override
+    public String getName() {
+        return "VerifyJourney";
+    }
+
+    @Override
+    public long getMaxExecutionTimeMs() {
+        return 600_000L; // 10 minutes for full journey verification (dev server + browser)
+    }
+
+    @Override
+    public String getDescription() {
+        return "Run a user journey verification against the running application. "
+             + "Browser mode starts a dev server; HTTP mode requires an already running service. "
+             + "Executes steps DSL and collects evidence (screenshots + console + video). "
+             + "Returns verified/failed with evidence bundle.";
+    }
+
+    @Override
+    public Map<String, Object> getInputSchema() {
+        return Map.of(
+            "type", "object",
+            "required", List.of("journey"),
+            "properties", Map.ofEntries(
+                Map.entry("journey", Map.of(
+                    "type", "array",
+                    "description", "Steps DSL array. "
+                        + "Browser actions: navigate, click, type, wait_for, assert_text, assert_url, assert_no_console_error, screenshot. "
+                        + "HTTP actions: http_get, http_post, http_put, http_delete, assert_status, assert_json, assert_header, set_variable. "
+                        + "Examples: {action:'navigate',url:'/'}, {action:'wait_for',selector:'#loading.done',state:'attached'}, "
+                        + "{action:'assert_text',selector:'body',expected:'Hello'}, {action:'http_get',url:'/api/health'}, "
+                        + "{action:'assert_status',expected_code:200}. wait_for supports selector/state or wait_until (load/domcontentloaded/networkidle), not js. "
+                        + "Browser timeout is milliseconds; HTTP timeout is seconds."
+                )),
+                Map.entry("start_command", Map.of(
+                    "type", "string",
+                    "description", "Dev server start command (e.g. 'npm run dev'). Only for browser verification. Omit for static publication: the checked files are served automatically. Otherwise auto-detected if omitted."
+                )),
+                Map.entry("base_url", Map.of(
+                    "type", "string",
+                    "description", "Base URL for verification. For browser: frontend URL (e.g. 'http://localhost:5173'). For HTTP API: backend URL (e.g. 'http://localhost:8080'). If omitted, auto-detected from stack"
+                )),
+                Map.entry("verification_mode", Map.of(
+                    "type", "string",
+                    "enum", List.of("browser", "http_api", "auto"),
+                    "description", "Verification mode: 'browser' (Playwright), 'http_api' (HTTP calls), 'auto' (detect from steps). Default: 'auto'"
+                )),
+                Map.entry("claim", Map.of(
+                    "type", "string",
+                    "maxLength", 1000,
+                    "description", "Optional exact user acceptance criterion verified by this journey. Copy one original requirement verbatim; omit for a general technical check"
+                )),
+                Map.entry("publication_path", Map.of("type", "string", "description", "Exact Meoo publication path to bind to verified evidence; do not change its files during verification")),
+                Map.entry("publication_runtime", Map.of("type", "string", "enum", List.of("static", "image"))),
+                Map.entry("record", Map.of(
+                    "type", "boolean",
+                    "description", "Whether to record video/trace/HAR. Only for browser verification. Default: true"
+                ))
+            )
+        );
+    }
+
+    @Override
+    public String getGroup() {
+        return "verify";
+    }
+
+    @Override
+    public PermissionRequirement getPermissionRequirement() {
+        return PermissionRequirement.ALWAYS_ASK;
+    }
+
+    @Override
+    public boolean shouldDefer() {
+        return false;
+    }
+
+    @Override
+    public boolean isConcurrencySafe(ToolInput input) {
+        return false;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        if (!featureFlags.isEnabled(FEATURE_FLAG)) {
+            return false;
+        }
+        return pythonClient.isCapabilityAvailable("BROWSER_AUTOMATION")
+            || pythonClient.isCapabilityAvailable("HTTP_API");
+    }
+
+    @Override
+    public boolean isReadOnly(ToolInput input) {
+        return false;
+    }
+
+    @Override
+    public boolean isOpenWorld() {
+        return true;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public ToolResult call(ToolInput input, ToolUseContext context) {
+        long startedNanos = System.nanoTime();
+        String requestedMode = safeRequestedMode(input);
+        int requestedSteps = safeRequestedStepCount(input);
+        String observationRunId = safeRunId(context);
+        recordVerificationStarted(observationRunId, requestedMode, requestedSteps);
+        try {
+            return callInternal(input, context, startedNanos, observationRunId);
+        } catch (RuntimeException failure) {
+            recordVerificationFailure(observationRunId, requestedMode, requestedSteps,
+                    "failed", failure, startedNanos);
+            throw failure;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private ToolResult callInternal(ToolInput input, ToolUseContext context, long startedNanos,
+                                    String observationRunId) {
+        // 1. 解析输入
+        Object journeyRaw = input.getRawData().get("journey");
+        if (!(journeyRaw instanceof List<?> journeyList) || journeyList.isEmpty()) {
+            recordVerificationValidationFailure(observationRunId, safeRequestedMode(input),
+                    requestedStepCount(journeyRaw), startedNanos);
+            return ToolResult.validationError("VERIFY_JOURNEY_EMPTY", "VerifyJourney requires a non-empty 'journey' array");
+        }
+        List<Map<String, Object>> journey = (List<Map<String, Object>>) journeyRaw;
+        if (journeyList.stream().anyMatch(step -> !(step instanceof Map<?, ?> m)
+                || !(m.get("action") instanceof String))) {
+            return ToolResult.validationError("VERIFY_JOURNEY_INVALID_STEP", "Every journey step needs a string action");
+        }
+
+        String startCommand = input.getString("start_command", null);
+        String baseUrl = input.getString("base_url", null);
+        String verificationMode = input.getString("verification_mode", "auto");
+        if (!List.of("auto", "browser", "http_api").contains(verificationMode)) {
+            return ToolResult.validationError("VERIFY_JOURNEY_INVALID_MODE", "Use browser, http_api or auto");
+        }
+        String evidenceClaim = normalizedClaim(input.getString("claim", null));
+        boolean record = input.has("record") ? input.getBoolean("record") : true;
+
+        String workspace = context.workingDirectory();
+        String sessionId = context.sessionId();
+        ToolInput publicationInput = null;
+        com.aicodeassistant.artifact.meoo.MeooPublicationPolicy.Snapshot publicationSnapshot = null;
+        if(input.has("publication_path")) {
+            if(meooPolicy == null) return ToolResult.validationError("MEOO_DISABLED", "Meoo verification binding is unavailable");
+            publicationInput = ToolInput.from(Map.of("path",input.getString("publication_path"),"runtime",input.getString("publication_runtime", "")));
+            try { publicationSnapshot=meooPolicy.inspect(publicationInput,context,false); }
+            catch(com.aicodeassistant.artifact.meoo.MeooException e) { return ToolResult.validationError(e.code(),e.code()); }
+        }
+
+        // 2. 选择 Verifier（多态）
+        JourneyRequest req = new JourneyRequest(sessionId, null, journey, Map.of());
+        Verifier verifier = verifierFactory.selectVerifier(req, verificationMode);
+        String selectedMode = verifier instanceof com.aicodeassistant.verify.BrowserVerifier ? "browser" : "http_api";
+        String stepError = com.aicodeassistant.verify.JourneyStepValidator.validate(journey, selectedMode);
+        if (stepError != null) return ToolResult.validationError("VERIFY_JOURNEY_INVALID_STEP", stepError);
+        if ("http_api".equals(selectedMode) && startCommand != null) {
+            return ToolResult.validationError("VERIFY_JOURNEY_HTTP_START_UNSUPPORTED",
+                    "HTTP mode does not execute start_command. Start the service first and use its actual base_url.");
+        }
+
+        // 3. 浏览器模式：需要启动 DevServer
+        if ("browser".equals(selectedMode)) {
+            if (!pythonClient.isCapabilityAvailable(CAPABILITY)) {
+                recordVerificationSkipped(observationRunId, selectedMode, journey.size(),
+                        "capability_unavailable", startedNanos);
+                if (publicationSnapshot != null) return publicationUnavailable(CAPABILITY);
+                return ToolResult.success("Runtime verification unavailable: BROWSER_AUTOMATION capability not available. "
+                        + "This does not block your task - proceed without runtime verification.");
+            }
+
+            // PreviewStackDetector 探测
+            boolean staticPublication = publicationSnapshot != null && "static".equals(publicationSnapshot.runtime());
+            Path verificationRoot = publicationSnapshot == null ? Path.of(workspace) : publicationSnapshot.root();
+            if (staticPublication && (startCommand != null || baseUrl != null)) {
+                return ToolResult.validationError("MEOO_STATIC_PREVIEW_MANAGED",
+                        "Omit start_command and base_url for static publication. VerifyJourney serves the checked snapshot automatically; use relative navigate URLs.");
+            }
+            if (staticPublication && journey.stream().anyMatch(step -> "navigate".equals(step.get("action"))
+                    && !isLocalNavigation((String) step.get("url")))) {
+                return ToolResult.validationError("VERIFY_JOURNEY_INVALID_STEP",
+                        "Static publication navigate URLs must be relative to the checked site, for example '/'.");
+            }
+            StackInfo stack = staticPublication ? null : previewStackDetector.detect(verificationRoot);
+            if (!staticPublication && "unknown".equals(stack.stackId()) && (startCommand == null || baseUrl == null)) {
+                recordVerificationSkipped(observationRunId, selectedMode, journey.size(),
+                        "unsupported_stack", startedNanos);
+                if (publicationSnapshot != null) return ToolResult.validationError("MEOO_VERIFICATION_SETUP_REQUIRED",
+                        "Cannot detect the publication server. Supply start_command and its local base_url for browser verification.");
+                return ToolResult.success("Runtime verification skipped: unsupported stack (" + stack.stackId() + "). "
+                        + "Proceed without runtime verification.");
+            }
+            if (!staticPublication && startCommand == null) {
+                startCommand = stack.defaultStartCommand();
+            }
+            if (!staticPublication && baseUrl == null) {
+                baseUrl = "http://127.0.0.1:" + stack.defaultPort();
+            }
+
+            // 启动 DevServer
+            DevServerHandle handle = null;
+            Path staticStage = null;
+            String browserResourceId = "rv-" + UUID.randomUUID();
+            try {
+                if (staticPublication) {
+                    staticStage = Files.createTempDirectory("zhikun-meoo-verify-");
+                    meooPolicy.stage(publicationSnapshot, staticStage);
+                    handle = devServerLauncher.startStatic(staticStage, DEV_SERVER_TIMEOUT);
+                    baseUrl = "http://127.0.0.1:" + handle.port();
+                } else {
+                    URI endpoint = URI.create(baseUrl);
+                    if (!"http".equals(endpoint.getScheme()) || endpoint.getHost() == null
+                            || !List.of("localhost", "127.0.0.1").contains(endpoint.getHost())
+                            || endpoint.getUserInfo() != null || endpoint.getPort() < 1 || endpoint.getPort() > 65535) {
+                        return ToolResult.validationError("VERIFY_JOURNEY_INVALID_BASE_URL",
+                                "Managed browser verification requires an http loopback base_url with an explicit port.");
+                    }
+                    handle = devServerLauncher.start(verificationRoot, startCommand, endpoint.getPort(), DEV_SERVER_TIMEOUT);
+                }
+
+                JourneyRequest browserReq = new JourneyRequest(
+                        sessionId,
+                        baseUrl,
+                        journey,
+                        record ? Map.of("video", true, "har", true, "trace", true) : Map.of(),
+                        browserResourceId
+                );
+
+                String principal = sessionId;
+                JourneyResult result = verifier.verify(browserReq, principal);
+                return handleVerificationResult(result, sessionId, journey.size(),
+                        evidenceClaim, observationRunId, selectedMode, startedNanos, publicationInput, publicationSnapshot, context,
+                        browserResourceId);
+
+            } catch (DevServerTimeoutException e) {
+                recordVerificationFailure(observationRunId, selectedMode, journey.size(),
+                        "timeout", e, startedNanos);
+                return ToolResult.timedOut("DEV_SERVER_START_DEADLINE_EXCEEDED",
+                        "Dev server failed to start within " + DEV_SERVER_TIMEOUT.toSeconds()
+                        + "s. Log tail:\n" + e.getLogTail()
+                        + "\nFix the dev server issue and retry VerifyJourney.", null, true,
+                        ToolResult.EffectState.UNKNOWN);
+            } catch (Exception e) {
+                log.warn("VerifyJourney failed: errorType={}, errorLength={}, errorFingerprint={}",
+                        SafeLogValue.errorType(e), SafeLogValue.length(e.getMessage()),
+                        SafeLogValue.fingerprint(e.getMessage()));
+                recordVerificationFailure(observationRunId, selectedMode, journey.size(),
+                        "failed", e, startedNanos);
+                return ToolResult.internalError("VERIFY_JOURNEY_FAILED", "VerifyJourney failed: " + e.getMessage(), ToolResult.EffectState.UNKNOWN);
+            } finally {
+                // 清理 DevServer + 浏览器 session
+                if (handle != null) {
+                    try {
+                        devServerLauncher.stop(handle);
+                    } catch (Exception e) {
+                        log.warn("Failed to stop dev server pid={}: {}", handle.pid(), e.getMessage());
+                    }
+                }
+                try {
+                    Optional<Map> closed = pythonClient.callIfAvailable(
+                            CAPABILITY,
+                            "/api/browser/close_session",
+                            Map.of("session_id", browserResourceId),
+                            Map.class,
+                            CLOSE_SESSION_TIMEOUT
+                    );
+                    if (closed.isEmpty() || !Boolean.TRUE.equals(closed.get().get("success"))) {
+                        log.warn("Browser cleanup unconfirmed for resource {}; TTL remains a fallback", browserResourceId);
+                    }
+                } catch (Exception e) {
+                    log.warn("Browser cleanup unconfirmed for resource {}: {}", browserResourceId, e.getClass().getSimpleName());
+                }
+                if (staticStage != null) {
+                    try (var paths = Files.walk(staticStage)) {
+                        for (Path p : paths.sorted(Comparator.reverseOrder()).toList()) Files.deleteIfExists(p);
+                    } catch (Exception e) {
+                        log.warn("Failed to clean static verification directory: {}", e.getClass().getSimpleName());
+                    }
+                }
+            }
+
+        } else {
+            // HTTP API 模式：无需启动 DevServer
+            if (!pythonClient.isCapabilityAvailable("HTTP_API")) {
+                recordVerificationSkipped(observationRunId, selectedMode, journey.size(),
+                        "capability_unavailable", startedNanos);
+                if (publicationSnapshot != null) return publicationUnavailable("HTTP_API");
+                return ToolResult.success("Runtime verification unavailable: HTTP_API capability not available. "
+                        + "This does not block your task - proceed without runtime verification.");
+            }
+
+            if (baseUrl == null) {
+                baseUrl = "http://127.0.0.1:8080";
+                log.info("HTTP API verification: using default base_url={}", baseUrl);
+            }
+
+            JourneyRequest apiReq = new JourneyRequest(
+                    sessionId,
+                    baseUrl,
+                    journey,
+                    Map.of()  // HTTP 模式无需录制
+            );
+
+            String principal = sessionId;
+            JourneyResult result = verifier.verify(apiReq, principal);
+            return handleVerificationResult(result, sessionId, journey.size(),
+                    evidenceClaim, observationRunId, selectedMode, startedNanos, publicationInput, publicationSnapshot, context, null);
+        }
+    }
+
+    private static ToolResult publicationUnavailable(String capability) {
+        return ToolResult.validationError("MEOO_VERIFICATION_UNAVAILABLE",
+                capability + " is unavailable in the Python verification service. Publication is blocked. "
+                + "Ask the administrator to check /api/health/capabilities on that service and fix its runtime; do not call PublishMeoo without verified evidence.");
+    }
+
+    private static boolean isLocalNavigation(String url) {
+        try {
+            URI uri = URI.create(url);
+            return !uri.isAbsolute() && uri.getRawAuthority() == null && !url.contains("\\");
+        } catch (IllegalArgumentException e) { return false; }
+    }
+
+    private static String safeRunId(ToolUseContext context) {
+        try { return context == null ? null : context.currentRunId(); }
+        catch (Throwable ignored) { return null; }
+    }
+
+    /**
+     * 统一后处理：证据保存 → STOMP 推送 → Activity 记录 → 返回 ToolResult
+     * 浏览器模式和 HTTP 模式共用此方法，避免逻辑重复。
+     */
+    private ToolResult handleVerificationResult(JourneyResult result, String sessionId, int stepCount,
+                                                String evidenceClaim, String runId, String mode,
+                                                long startedNanos, ToolInput publicationInput,
+                                                com.aicodeassistant.artifact.meoo.MeooPublicationPolicy.Snapshot publicationSnapshot,
+                                                ToolUseContext context, String browserResourceId) {
+        var publicationItems = new java.util.ArrayList<>(buildEvidenceItems(result));
+        if(publicationSnapshot != null) {
+            try {
+                var after=meooPolicy.inspect(publicationInput,context,false);
+                if(!publicationSnapshot.facts().equals(after.facts()))
+                    return ToolResult.validationError("MEOO_VERIFICATION_STALE", "Publication files changed during verification; verify again");
+                publicationItems.add(new EvidenceItem(null,"test","Verified Meoo publication snapshot",null,
+                    Map.of("workspace",after.root().toString(),"meooSnapshotSha256",after.sha256(),"meooRuntime",after.runtime())));
+            } catch(com.aicodeassistant.artifact.meoo.MeooException e) { return ToolResult.validationError(e.code(),e.code()); }
+        }
+        EvidenceBundle bundle = EvidenceBundle.builder()
+                .sessionId(sessionId)
+                .runId(runId)
+                .kind("journey")
+                .verdict(result.verdict())
+                .claim(evidenceClaim)
+                .items(publicationItems)
+                .build();
+        EvidenceBundle saved = evidenceStore.save(bundle);
+        recordVerificationCompleted(runId, mode, stepCount, result, saved, startedNanos);
+
+        // STOMP 推送最终结果
+        try {
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("type", "verification_result");
+            payload.put("verdict", result.verdict());
+            payload.put("bundleId", saved.bundleId());
+            payload.put("errorMessage", result.errorMessage() != null ? result.errorMessage() : "");
+            messagingTemplate.convertAndSendToUser(sessionId, "/queue/messages", payload);
+        } catch (Exception e) {
+            log.warn("Failed to push verification_result via STOMP: {}", e.getMessage());
+        }
+
+        // 三路返回
+        if ("verified".equals(result.verdict())) {
+            log.info("[RV-METRICS] verify_journey_passed session={} steps={} timestamp={}",
+                    sessionId, stepCount, Instant.now().toString());
+            recordActivity(sessionId, result.verdict(), saved.bundleId(), "success",
+                    "Runtime verification passed: " + stepCount + " steps", null);
+            return ToolResult.success("✓ Runtime verification PASSED. All " + stepCount
+                    + " steps succeeded. Evidence bundle: " + saved.bundleId());
+        } else if ("unavailable".equals(result.verdict())) {
+            recordActivity(sessionId, result.verdict(), saved.bundleId(), "skipped",
+                    "Runtime verification unavailable", result.errorMessage());
+            if (publicationSnapshot != null) return publicationUnavailable(mode.equals("browser") ? CAPABILITY : "HTTP_API");
+            return ToolResult.success("Runtime verification unavailable: " + result.errorMessage()
+                    + ". This does not block your task.");
+        } else {
+            String baseMsg = result.errorMessage() != null
+                    ? result.errorMessage()
+                    : "Runtime verification failed";
+
+            // RV-5：在 finally 块销毁会话之前，直接调用 /api/browser/snapshot-semantic
+            String enrichedMsg = browserResourceId == null ? baseMsg
+                    : enrichWithFailureSnapshot(baseMsg, browserResourceId);
+
+            // RV-METRICS: 结构化失败日志，便于 grep 统计失败率与错误分类
+            StepResult failedStep = findFailedStep(result.stepResults());
+            int failedIdx = failedStep != null ? failedStep.index() : -1;
+            String failedAction = failedStep != null ? failedStep.action() : "unknown";
+            int passedSteps = countPassedSteps(result.stepResults());
+            String errorCategory = categorizeError(baseMsg, failedStep);
+            log.info("[RV-METRICS] verify_journey_failed session={} step={}/{} action={} category={} passed={} timestamp={} errorLength={} errorFingerprint={}",
+                    sessionId, failedIdx, stepCount, failedAction, errorCategory, passedSteps,
+                    Instant.now().toString(), SafeLogValue.length(baseMsg), SafeLogValue.fingerprint(baseMsg));
+            recordActivity(sessionId, result.verdict(), saved.bundleId(), "failed",
+                    "Runtime verification failed", enrichedMsg);
+            // RV-4: failed 时主动推送 verify_attention 通知（payload 使用 enrichedMsg）
+            try {
+                VerifyAttentionPayload attention = new VerifyAttentionPayload(
+                        "verify_attention",
+                        sessionId,
+                        saved.bundleId(),
+                        result.verdict(),
+                        saved.claim(),
+                        enrichedMsg,
+                        true,
+                        Instant.now().toString()
+                );
+                notificationService.sendVerifyAttention(sessionId, attention);
+            } catch (Exception e) {
+                log.warn("Failed to send verify_attention notification: {}", e.getMessage());
+            }
+            return ToolResult.internalError("VERIFY_JOURNEY_ASSERTION_FAILED",
+                    enrichedMsg + " (evidence bundle: " + saved.bundleId() + ")", ToolResult.EffectState.NONE);
+        }
+    }
+
+    private static String normalizedClaim(String claim) {
+        if (claim == null || claim.isBlank()) return "VerifyJourney invoked";
+        String normalized = claim.strip();
+        return normalized.length() <= 1000 ? normalized : "VerifyJourney invoked";
+    }
+
+    private void recordVerificationSkipped(String runId, String mode, int stepCount,
+                                           String reason, long startedNanos) {
+        try {
+            recordVerificationEvent(runId, "runtime_verification_skipped", Map.of(
+                    "mode", mode, "stepCount", stepCount, "reason", reason,
+                    "durationMs", elapsedMillis(startedNanos)));
+        } catch (Throwable ignored) { }
+    }
+
+    private void recordVerificationFailure(String runId, String mode, int stepCount,
+                                           String verdict, Throwable error, long startedNanos) {
+        try {
+            recordVerificationEvent(runId, "runtime_verification_completed", Map.of(
+                    "mode", mode, "stepCount", stepCount, "verdict", verdict,
+                    "durationMs", elapsedMillis(startedNanos),
+                    "errorType", SafeLogValue.errorType(error)));
+        } catch (Throwable ignored) { }
+    }
+
+    private void recordVerificationValidationFailure(String runId, String mode, int stepCount,
+                                                     long startedNanos) {
+        try {
+            recordVerificationEvent(runId, "runtime_verification_completed", Map.of(
+                    "mode", mode, "stepCount", stepCount, "verdict", "invalid_input",
+                    "durationMs", elapsedMillis(startedNanos),
+                    "errorType", "validation_error"));
+        } catch (Throwable ignored) { }
+    }
+
+    private void recordVerificationStarted(String runId, String mode, int stepCount) {
+        try {
+            recordVerificationEvent(runId, "runtime_verification_started", Map.of(
+                    "mode", mode, "stepCount", stepCount));
+        } catch (Throwable ignored) { }
+    }
+
+    private void recordVerificationCompleted(String runId, String mode, int stepCount,
+                                             JourneyResult result, EvidenceBundle saved,
+                                             long startedNanos) {
+        try {
+            int passedSteps = countPassedSteps(result.stepResults());
+            int screenshots = result.stepResults() == null ? 0 : (int) result.stepResults().stream()
+                    .filter(step -> step.screenshotBase64() != null).count();
+            Map<String, Object> event = new HashMap<>();
+            event.put("mode", mode);
+            event.put("stepCount", stepCount);
+            event.put("passedSteps", passedSteps);
+            event.put("failedSteps", Math.max(0, stepCount - passedSteps));
+            event.put("verdict", result.verdict());
+            event.put("bundleId", saved.bundleId());
+            event.put("screenshotCount", screenshots);
+            event.put("artifactCount", result.artifacts() == null ? 0 : result.artifacts().size());
+            event.put("artifactTypes", result.artifacts() == null ? List.of() : result.artifacts().keySet());
+            event.put("durationMs", elapsedMillis(startedNanos));
+            event.put("errorLength", SafeLogValue.length(result.errorMessage()));
+            event.put("errorFingerprint", SafeLogValue.fingerprint(result.errorMessage()));
+            recordVerificationEvent(runId, "runtime_verification_completed", event);
+        } catch (Throwable ignored) { }
+    }
+
+    private void recordVerificationEvent(String runId, String eventType, Map<String, Object> data) {
+        try {
+            BestEffortObservabilityRecorder recorder = observabilityRecorder;
+            if (recorder != null && runId != null) recorder.record(runId, eventType, null, data);
+        } catch (Throwable ignored) { }
+    }
+
+    private static long elapsedMillis(long startedNanos) {
+        return Math.max(0L, java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(
+                System.nanoTime() - startedNanos));
+    }
+
+    private static String safeRequestedMode(ToolInput input) {
+        try { return input == null ? "unknown" : input.getString("verification_mode", "auto"); }
+        catch (Throwable ignored) { return "unknown"; }
+    }
+
+    private static int safeRequestedStepCount(ToolInput input) {
+        try {
+            return input != null && input.getRawData().get("journey") instanceof List<?> steps
+                    ? steps.size() : 0;
+        } catch (Throwable ignored) {
+            return 0;
+        }
+    }
+
+    private static int requestedStepCount(Object journeyRaw) {
+        try { return journeyRaw instanceof List<?> steps ? steps.size() : 0; }
+        catch (Throwable ignored) { return 0; }
+    }
+
+    private List<EvidenceItem> buildEvidenceItems(JourneyResult result) {
+        List<EvidenceItem> items = new ArrayList<>();
+        if (result.stepResults() == null) {
+            return items;
+        }
+        for (StepResult step : result.stepResults()) {
+            Map<String, Object> meta = new HashMap<>();
+            meta.put("action", step.action());
+            meta.put("ok", step.ok());
+            meta.put("durationMs", step.durationMs());
+            if (step.error() != null) {
+                meta.put("error", step.error());
+            }
+            if (step.consoleErrors() != null && !step.consoleErrors().isEmpty()) {
+                meta.put("consoleErrors", step.consoleErrors());
+            }
+
+            String type = step.screenshotBase64() != null ? "screenshot" : "command";
+            String summary = String.format("Step %d [%s]: %s",
+                    step.index(), step.action(), step.ok() ? "ok" : "failed");
+
+            items.add(new EvidenceItem(null, type, summary, null, meta));
+        }
+        return items;
+    }
+
+    private static StepResult findFailedStep(List<StepResult> steps) {
+        if (steps == null) {
+            return null;
+        }
+        for (StepResult s : steps) {
+            if (!s.ok()) {
+                return s;
+            }
+        }
+        return null;
+    }
+
+    private static int countPassedSteps(List<StepResult> steps) {
+        if (steps == null) {
+            return 0;
+        }
+        int count = 0;
+        for (StepResult s : steps) {
+            if (s.ok()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private static String categorizeError(String msg, StepResult failedStep) {
+        if (failedStep != null && failedStep.consoleErrors() != null && !failedStep.consoleErrors().isEmpty()) {
+            return "CONSOLE_ERROR";
+        }
+        if (msg == null) {
+            return "OTHER";
+        }
+        String lower = msg.toLowerCase();
+        if (lower.contains("not found") || lower.contains("no element")) {
+            return "SELECTOR_NOT_FOUND";
+        }
+        if (lower.contains("timeout")) {
+            return "TIMEOUT";
+        }
+        if (lower.contains("navigation") || lower.contains("err_connection")) {
+            return "NAVIGATION_FAILED";
+        }
+        return "OTHER";
+    }
+
+    /**
+     * 记录一条 verify_journey 类型的 Activity。失败不影响主流程。
+     */
+    private void recordActivity(String sessionId, String verdict, String bundleId,
+                                String status, String summary, String errorMessage) {
+        if (sessionId == null || sessionId.isBlank()) {
+            return;
+        }
+        try {
+            Map<String, Object> toolResult = new HashMap<>();
+            toolResult.put("verdict", verdict);
+            toolResult.put("bundleId", bundleId);
+            if (errorMessage != null) {
+                toolResult.put("errorMessage", errorMessage);
+            }
+            String toolResultJson;
+            try {
+                toolResultJson = objectMapper.writeValueAsString(toolResult);
+            } catch (JsonProcessingException jpe) {
+                toolResultJson = null;
+            }
+            activityRepository.upsert(
+                    UUID.randomUUID().toString(),
+                    sessionId,
+                    "verify_journey",
+                    summary,
+                    status,
+                    System.currentTimeMillis(),
+                    null,
+                    0,
+                    null,
+                    toolResultJson,
+                    null,
+                    null
+            );
+        } catch (Exception e) {
+            log.warn("Failed to record verify_journey activity: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * RV-5：在验证失败时调用 /api/browser/snapshot-semantic 拉取语义快照，
+     * 将摘要追加到错误消息末尾。
+     *
+     * <p>必须在 finally 块销毁会话之前调用。任何异常 / 超时 / 字段缺失均静默降级，
+     * 返回原始 baseMsg，不影响主流程。</p>
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private String enrichWithFailureSnapshot(String baseMsg, String browserResourceId) {
+        try {
+            Optional<Map> resp = pythonClient.callIfAvailable(
+                    CAPABILITY,
+                    "/api/browser/snapshot-semantic",
+                    Map.of(
+                            "session_id", browserResourceId,
+                            "strict_session", true,
+                            "interesting_only", true,
+                            "include_screenshot", false
+                    ),
+                    Map.class,
+                    FAILURE_SNAPSHOT_TIMEOUT
+            );
+            if (resp.isEmpty()) {
+                return baseMsg;
+            }
+            Object data = resp.get().get("data");
+            if (!(data instanceof Map<?, ?> snapData) || snapData.isEmpty()) {
+                return baseMsg;
+            }
+            String summary = formatSnapshotSummary((Map<String, Object>) snapData);
+            if (summary == null || summary.isBlank()) {
+                return baseMsg;
+            }
+            return baseMsg + "\n\n" + summary;
+        } catch (Exception e) {
+            log.debug("[RV-5] Failure snapshot unavailable: {}", e.getMessage());
+            return baseMsg;
+        }
+    }
+
+    /**
+     * RV-5：将语义快照摘要为 LLM 友好的文本块。
+     * 输入结构：{url, title, node_count, interactive[], tree:{aria}}
+     */
+    private String formatSnapshotSummary(Map<String, Object> snapshot) {
+        if (snapshot == null || snapshot.isEmpty()) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder("=== Page Snapshot at Failure ===\n");
+
+        Object url = snapshot.get("url");
+        if (url != null) sb.append("URL: ").append(url).append('\n');
+
+        Object title = snapshot.get("title");
+        if (title != null) sb.append("Title: ").append(title).append('\n');
+
+        Object nodeCount = snapshot.get("node_count");
+        Object interactive = snapshot.get("interactive");
+        int interactiveSize = (interactive instanceof List<?> il) ? il.size() : 0;
+        sb.append("Nodes: ").append(nodeCount != null ? nodeCount : "?")
+          .append(", Interactive: ").append(interactiveSize).append('\n');
+
+        // ARIA tree 前 15 行
+        Object tree = snapshot.get("tree");
+        if (tree instanceof Map<?, ?> tm) {
+            Object aria = tm.get("aria");
+            if (aria instanceof String s && !s.isBlank()) {
+                sb.append("\n[ARIA Tree (top 15 lines)]\n");
+                String[] lines = s.split("\\R");
+                int limit = Math.min(15, lines.length);
+                for (int i = 0; i < limit; i++) sb.append(lines[i]).append('\n');
+                if (lines.length > limit) sb.append("... (+").append(lines.length - limit).append(" lines)\n");
+            }
+        }
+
+        // 交互元素清单 前 15 个
+        if (interactive instanceof List<?> il && !il.isEmpty()) {
+            sb.append("\n[Interactive Elements (top 15)]\n");
+            int limit = Math.min(15, il.size());
+            for (int i = 0; i < limit; i++) {
+                Object item = il.get(i);
+                if (item instanceof Map<?, ?> m) {
+                    Object role = m.get("role");
+                    Object name = m.get("name");
+                    Object selector = m.get("selector");
+                    sb.append("- role=").append(role)
+                      .append(" name=").append(truncateField(name, 40))
+                      .append(" selector=").append(truncateField(selector, 60))
+                      .append('\n');
+                }
+            }
+            if (il.size() > limit) sb.append("... (+").append(il.size() - limit).append(" more)\n");
+        }
+        sb.append("================================");
+        return sb.toString();
+    }
+
+    private static String truncateField(Object o, int max) {
+        if (o == null) return "null";
+        String s = o.toString();
+        return s.length() <= max ? s : s.substring(0, max) + "…";
+    }
+}

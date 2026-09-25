@@ -1,0 +1,401 @@
+{
+  "at": "2026-09-25T11:19:53.208100+08:00",
+  "root": "/Users/reviewer/Desktop/AICoding评测0925",
+  "file_count": 12666,
+  "total_bytes": 414998271,
+  "largest_bytes": 13021786,
+  "categories": {
+    "系统元数据": {
+      "files": 3,
+      "bytes": 18444
+    },
+    "报告与实质评审材料": {
+      "files": 106,
+      "bytes": 4759993
+    },
+    "独立编译缓存": {
+      "files": 6,
+      "bytes": 33427
+    },
+    "可重建源码镜像（含其构建树）": {
+      "files": 12549,
+      "bytes": 410186398
+    },
+    "探针临时状态": {
+      "files": 2,
+      "bytes": 9
+    }
+  },
+  "symlinks": [],
+  "scanner_note": "启发式模式扫描；匹配不是已确认凭证，未匹配不代表绝无秘密。输出不含候选秘密原值。",
+  "secret_pattern_hits": [
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/llm/ZenMuxSubscriptionKeyFailoverTest.java",
+      "line": 29,
+      "kind": "api_key_shape",
+      "match_length": 25,
+      "fingerprint": "c5e9fa35bca9",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+      "line": 128,
+      "kind": "private_key",
+      "match_length": 31,
+      "fingerprint": "8bcac7908eb9",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+      "line": 71,
+      "kind": "github_token",
+      "match_length": 40,
+      "fingerprint": "46eb12352e80",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+      "line": 206,
+      "kind": "github_token",
+      "match_length": 40,
+      "fingerprint": "46eb12352e80",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+      "line": 210,
+      "kind": "github_token",
+      "match_length": 40,
+      "fingerprint": "46eb12352e80",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+      "line": 62,
+      "kind": "aws_access_id",
+      "match_length": 20,
+      "fingerprint": "1a5d44a2dca1",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+      "line": 205,
+      "kind": "aws_access_id",
+      "match_length": 20,
+      "fingerprint": "1a5d44a2dca1",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+      "line": 209,
+      "kind": "aws_access_id",
+      "match_length": 20,
+      "fingerprint": "1a5d44a2dca1",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+      "line": 41,
+      "kind": "api_key_shape",
+      "match_length": 33,
+      "fingerprint": "5327c7d28c7a",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+      "line": 53,
+      "kind": "api_key_shape",
+      "match_length": 29,
+      "fingerprint": "693f5072f49d",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+      "line": 89,
+      "kind": "api_key_shape",
+      "match_length": 34,
+      "fingerprint": "e0bb7259f434",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+      "line": 204,
+      "kind": "api_key_shape",
+      "match_length": 29,
+      "fingerprint": "693f5072f49d",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+      "line": 208,
+      "kind": "api_key_shape",
+      "match_length": 29,
+      "fingerprint": "693f5072f49d",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+      "line": 220,
+      "kind": "api_key_shape",
+      "match_length": 29,
+      "fingerprint": "693f5072f49d",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/service/ActivityRepositoryTest.java",
+      "line": 32,
+      "kind": "api_key_shape",
+      "match_length": 35,
+      "fingerprint": "82be8a4d9cde",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/resources/fixtures/sensitive-test.env",
+      "line": 2,
+      "kind": "api_key_shape",
+      "match_length": 49,
+      "fingerprint": "8a7b52c1a1f6",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/resources/fixtures/sensitive-test.env",
+      "line": 3,
+      "kind": "api_key_shape",
+      "match_length": 47,
+      "fingerprint": "7d4fe70091be",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/resources/fixtures/sensitive-test.env",
+      "line": 4,
+      "kind": "api_key_shape",
+      "match_length": 42,
+      "fingerprint": "9499f14adfd5",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-head/backend/target/test-classes/fixtures/sensitive-test.env",
+      "line": 2,
+      "kind": "api_key_shape",
+      "match_length": 49,
+      "fingerprint": "8a7b52c1a1f6",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-head/backend/target/test-classes/fixtures/sensitive-test.env",
+      "line": 3,
+      "kind": "api_key_shape",
+      "match_length": 47,
+      "fingerprint": "7d4fe70091be",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-head/backend/target/test-classes/fixtures/sensitive-test.env",
+      "line": 4,
+      "kind": "api_key_shape",
+      "match_length": 42,
+      "fingerprint": "9499f14adfd5",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-head/docs/assets/e2e-tests/module04-06-agent-tool-permission-test.mjs",
+      "line": 719,
+      "kind": "api_key_shape",
+      "match_length": 26,
+      "fingerprint": "b915327c0378",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-head/docs/assets/e2e-tests/module04-06-agent-tool-permission-test.mjs",
+      "line": 726,
+      "kind": "api_key_shape",
+      "match_length": 26,
+      "fingerprint": "b915327c0378",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-parent/backend/src/test/java/com/aicodeassistant/llm/ZenMuxSubscriptionKeyFailoverTest.java",
+      "line": 29,
+      "kind": "api_key_shape",
+      "match_length": 25,
+      "fingerprint": "c5e9fa35bca9",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-parent/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+      "line": 128,
+      "kind": "private_key",
+      "match_length": 31,
+      "fingerprint": "8bcac7908eb9",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-parent/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+      "line": 71,
+      "kind": "github_token",
+      "match_length": 40,
+      "fingerprint": "46eb12352e80",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-parent/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+      "line": 206,
+      "kind": "github_token",
+      "match_length": 40,
+      "fingerprint": "46eb12352e80",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-parent/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+      "line": 210,
+      "kind": "github_token",
+      "match_length": 40,
+      "fingerprint": "46eb12352e80",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-parent/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+      "line": 62,
+      "kind": "aws_access_id",
+      "match_length": 20,
+      "fingerprint": "1a5d44a2dca1",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-parent/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+      "line": 205,
+      "kind": "aws_access_id",
+      "match_length": 20,
+      "fingerprint": "1a5d44a2dca1",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-parent/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+      "line": 209,
+      "kind": "aws_access_id",
+      "match_length": 20,
+      "fingerprint": "1a5d44a2dca1",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-parent/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+      "line": 41,
+      "kind": "api_key_shape",
+      "match_length": 33,
+      "fingerprint": "5327c7d28c7a",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-parent/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+      "line": 53,
+      "kind": "api_key_shape",
+      "match_length": 29,
+      "fingerprint": "693f5072f49d",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-parent/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+      "line": 89,
+      "kind": "api_key_shape",
+      "match_length": 34,
+      "fingerprint": "e0bb7259f434",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-parent/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+      "line": 204,
+      "kind": "api_key_shape",
+      "match_length": 29,
+      "fingerprint": "693f5072f49d",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-parent/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+      "line": 208,
+      "kind": "api_key_shape",
+      "match_length": 29,
+      "fingerprint": "693f5072f49d",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-parent/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+      "line": 220,
+      "kind": "api_key_shape",
+      "match_length": 29,
+      "fingerprint": "693f5072f49d",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-parent/backend/src/test/java/com/aicodeassistant/service/ActivityRepositoryTest.java",
+      "line": 32,
+      "kind": "api_key_shape",
+      "match_length": 35,
+      "fingerprint": "82be8a4d9cde",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-parent/backend/src/test/resources/fixtures/sensitive-test.env",
+      "line": 2,
+      "kind": "api_key_shape",
+      "match_length": 49,
+      "fingerprint": "8a7b52c1a1f6",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-parent/backend/src/test/resources/fixtures/sensitive-test.env",
+      "line": 3,
+      "kind": "api_key_shape",
+      "match_length": 47,
+      "fingerprint": "7d4fe70091be",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-parent/backend/src/test/resources/fixtures/sensitive-test.env",
+      "line": 4,
+      "kind": "api_key_shape",
+      "match_length": 42,
+      "fingerprint": "9499f14adfd5",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-parent/backend/target/test-classes/fixtures/sensitive-test.env",
+      "line": 2,
+      "kind": "api_key_shape",
+      "match_length": 49,
+      "fingerprint": "8a7b52c1a1f6",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-parent/backend/target/test-classes/fixtures/sensitive-test.env",
+      "line": 3,
+      "kind": "api_key_shape",
+      "match_length": 47,
+      "fingerprint": "7d4fe70091be",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-parent/backend/target/test-classes/fixtures/sensitive-test.env",
+      "line": 4,
+      "kind": "api_key_shape",
+      "match_length": 42,
+      "fingerprint": "9499f14adfd5",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-parent/docs/assets/e2e-tests/module04-06-agent-tool-permission-test.mjs",
+      "line": 719,
+      "kind": "api_key_shape",
+      "match_length": 26,
+      "fingerprint": "b915327c0378",
+      "is_mirror": true
+    },
+    {
+      "path": "评审结果_20260925_v1/evidence/java/source-parent/docs/assets/e2e-tests/module04-06-agent-tool-permission-test.mjs",
+      "line": 726,
+      "kind": "api_key_shape",
+      "match_length": 26,
+      "fingerprint": "b915327c0378",
+      "is_mirror": true
+    }
+  ]
+}

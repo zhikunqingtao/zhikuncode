@@ -1,0 +1,26 @@
+TASK <Task cancelling name='Task-7' coro=<_wait_for_disconnect() running at /Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/python/source/python-service/src/routers/journey.py:62> wait_for=<Future pending cb=[Task.task_wakeup()]> cb=[gather.<locals>._done_callback() at /Users/reviewer/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/asyncio/tasks.py:764]>
+Stack for <Task cancelling name='Task-7' coro=<_wait_for_disconnect() running at /Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/python/source/python-service/src/routers/journey.py:62> wait_for=<Future pending cb=[Task.task_wakeup()]> cb=[gather.<locals>._done_callback() at /Users/reviewer/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/asyncio/tasks.py:764]> (most recent call last):
+  File "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/python/source/python-service/src/routers/journey.py", line 62, in _wait_for_disconnect
+    await asyncio.sleep(DISCONNECT_POLL_SECONDS)
+TASK <Task pending name='Task-2' coro=<watchdog() running at /Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/python/probe_hang_debug.py:131>>
+Stack for <Task pending name='Task-2' coro=<watchdog() running at /Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/python/probe_hang_debug.py:132>> (most recent call last):
+  File "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/python/probe_hang_debug.py", line 145, in <module>
+    asyncio.run(run())
+  File "/Users/reviewer/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+  File "/Users/reviewer/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+  File "/Users/reviewer/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/asyncio/base_events.py", line 641, in run_until_complete
+    self.run_forever()
+  File "/Users/reviewer/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/asyncio/base_events.py", line 608, in run_forever
+    self._run_once()
+  File "/Users/reviewer/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/asyncio/base_events.py", line 1936, in _run_once
+    handle._run()
+  File "/Users/reviewer/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/asyncio/events.py", line 84, in _run
+    self._context.run(self._callback, *self._args)
+  File "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/python/probe_hang_debug.py", line 132, in watchdog
+    t.print_stack(file=sys.stdout)
+TASK <Task pending name='Task-1' coro=<run() running at /Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/python/probe_hang_debug.py:139> wait_for=<_GatheringFuture pending cb=[Task.task_wakeup()]> cb=[_run_until_complete_cb() at /Users/reviewer/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/asyncio/base_events.py:181]>
+Stack for <Task pending name='Task-1' coro=<run() running at /Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/python/probe_hang_debug.py:139> wait_for=<_GatheringFuture pending cb=[Task.task_wakeup()]> cb=[_run_until_complete_cb() at /Users/reviewer/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/asyncio/base_events.py:181]> (most recent call last):
+  File "/Users/reviewer/Desktop/AICoding评测0925/评审结果_20260925_v1/evidence/python/probe_hang_debug.py", line 139, in run
+    await capacity()

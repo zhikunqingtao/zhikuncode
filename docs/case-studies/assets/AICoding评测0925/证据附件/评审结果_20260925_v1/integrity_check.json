@@ -1,0 +1,95 @@
+{
+  "checked_at": "2026-09-25T11:17:09.243414+08:00",
+  "inputs": [
+    {
+      "id": "E01",
+      "snapshot_unchanged": true,
+      "original_unchanged_since_snapshot": true,
+      "snapshot_sha256": "455b1b993ff132370d7ea96a6a66b1302b0b98c32c2f3d581ca4e8637c04cef0"
+    },
+    {
+      "id": "E02",
+      "snapshot_unchanged": true,
+      "original_unchanged_since_snapshot": true,
+      "snapshot_sha256": "48a6d17dc95d0e5ee2017656c0c04353336ea572f21efc1b069c9c9769489887"
+    },
+    {
+      "id": "E03",
+      "snapshot_unchanged": true,
+      "original_unchanged_since_snapshot": true,
+      "snapshot_sha256": "4a6c3ee66e34f6fa4d1518a8dfdb7df6bf59ee142528d30eea12ee319078c5d0"
+    },
+    {
+      "id": "E04",
+      "snapshot_unchanged": true,
+      "original_unchanged_since_snapshot": true,
+      "snapshot_sha256": "68048e93aaff3d55b87dd1f5d5643b66e5edc673b7a445a7667954a561c6d3ed"
+    },
+    {
+      "id": "E05",
+      "snapshot_unchanged": true,
+      "original_unchanged_since_snapshot": true,
+      "snapshot_sha256": "bafadba6fa32f0854d5bce5a209597bdfda71bc9b28521e9c4309cc98a28e064"
+    },
+    {
+      "id": "E06",
+      "snapshot_unchanged": true,
+      "original_unchanged_since_snapshot": true,
+      "snapshot_sha256": "c8cacdb4036994542b091c96fa6c78c7c569eca65ff9cc4a8af14fa9cd8432a3"
+    },
+    {
+      "id": "E07",
+      "snapshot_unchanged": true,
+      "original_unchanged_since_snapshot": true,
+      "snapshot_sha256": "d45ddd6eee7bc8049b1f90d2bb394899605a0d61cea60cbe7f9b5cb4848099e0"
+    },
+    {
+      "id": "E08",
+      "snapshot_unchanged": true,
+      "original_unchanged_since_snapshot": true,
+      "snapshot_sha256": "d5741260dd808a2fccd2d4ac8d41f351e02afb40e965b24d47872a8ac74be2b6"
+    }
+  ],
+  "repository_head": "0db4b0498f6cf886f862fe293883256b1c52e049",
+  "git_status_after": "",
+  "git_status_before": "",
+  "notes": "Git状态覆盖tracked/untracked状态，不认证其他参与者历史操作或ignored文件。评审脚本未修改目标源码。",
+  "arithmetic": [
+    {
+      "id": "E01",
+      "absolute_difference": 0.0
+    },
+    {
+      "id": "E02",
+      "absolute_difference": 0.0
+    },
+    {
+      "id": "E03",
+      "absolute_difference": 0.0
+    },
+    {
+      "id": "E04",
+      "absolute_difference": 0.0
+    },
+    {
+      "id": "E05",
+      "absolute_difference": 0.0
+    },
+    {
+      "id": "E06",
+      "absolute_difference": 0.0
+    },
+    {
+      "id": "E07",
+      "absolute_difference": 0.0
+    },
+    {
+      "id": "E08",
+      "absolute_difference": 0.0
+    }
+  ],
+  "broken_local_links": [],
+  "all_input_checks_passed": true,
+  "tracked_repository_clean": true,
+  "arithmetic_passed": true
+}

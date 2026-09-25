@@ -1,0 +1,13 @@
+python_request_failed requestId=795db3c8-d4e7-4fc1-8345-80f3a1b3018d method=POST path=/api/browser/journey/run durationMs=0 errorType=RuntimeError
+{"revision": "source", "probe": "journey_capacity_http", "first_status": 200, "second_status": 500, "second_body": "Internal Server Error", "allocations": 1, "registered": ["first"]}
+{"revision": "source", "probe": "ordinary_capacity", "outcome": "RuntimeError: Browser session capacity reached", "allocations": 1, "first_close_calls": 0, "registered": ["ordinary-first"]}
+Error closing session failed: synthetic close failure
+Error closing session failed: synthetic close failure
+Error closing session failed: synthetic close failure
+Expired session cleanup failed for failed: Browser session 'failed' cleanup was not confirmed
+Error closing session failed: synthetic close failure
+Shutdown could not close session failed: Browser session 'failed' cleanup was not confirmed
+{"revision": "source", "probe": "failed_close_ttl_recovery", "before": {"close_results": ["RuntimeError: Browser session 'failed' cleanup was not confirmed", "RuntimeError: Browser session 'failed' cleanup was not confirmed"], "close_calls_after_ttl": 1, "registered": ["failed"], "cached_tasks": 1}, "after": {"registered": [], "browser_is_none": true, "driver_is_none": true, "cached_tasks": 0}, "same_id_recovered_after_service_shutdown_startup": true, "old_browser_close_calls": 1, "old_driver_stop_calls": 1}
+python_request_failed requestId=23fd7f0b-4709-4fc7-a37e-5e53b598121f method=POST path=/api/browser/journey/run durationMs=6 errorType=RuntimeError
+{"revision": "source", "probe": "external_close_during_create", "close_status": 200, "close_body": "{\"success\":true,\"data\":{\"closed\":true},\"error_code\":null,\"error_message\":null}", "journey": {"status": 500, "body": "Internal Server Error"}, "registered": [], "creating": [], "context_close_calls": 1}
+{"revision": "source", "probe": "watcher_exception", "exception": "HTTPException", "status": 499, "detail": "JOURNEY_CLIENT_DISCONNECTED", "registered": [], "creating": []}

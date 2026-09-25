@@ -1,0 +1,16 @@
+{
+  "python": "3.11.15 (main, Mar 25 2026, 02:58:47) [Clang 22.1.1 ]",
+  "packages": {
+    "playwright": "1.58.0",
+    "fastapi": "0.115.6",
+    "starlette": "0.41.3",
+    "anyio": "4.13.0",
+    "pytest": "8.3.4",
+    "pytest-asyncio": "0.24.0",
+    "httpx": "0.28.1",
+    "uvicorn": "0.32.1"
+  },
+  "head": "0db4b0498f6cf886f862fe293883256b1c52e049",
+  "parent": "e78d6867f6fcd9172500b4c2cc85d4c4d927ec34",
+  "source_repository_mutated": false
+}

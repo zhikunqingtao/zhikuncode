@@ -1,0 +1,6 @@
+{"revision": "parent", "probe": "journey_capacity_http", "first_status": 200, "second_status": 200, "second_body": "{\"passed\":true,\"step_results\":[{\"index\":0,\"action\":\"screenshot\",\"ok\":true,\"duration_ms\":0,\"screenshot_base64\":\"anBlZw==\",\"error\":null,\"console_errors\":[]}],\"session_id\":\"second\",\"final_url\":\"http://local/\",\"artifacts\":{}}", "allocations": 2, "registered": ["first", "second"]}
+Session limit reached, evicted oldest: ordinary-first
+{"revision": "parent", "probe": "ordinary_capacity", "outcome": "created", "allocations": 2, "first_close_calls": 1, "registered": ["ordinary-second"]}
+Error closing session failed: synthetic close failure
+{"revision": "parent", "probe": "failed_close_ttl_recovery", "before": {"close_results": [true, false], "close_calls_after_ttl": 1, "registered": [], "cached_tasks": 0}, "after": {"registered": [], "browser_is_none": false, "driver_is_none": false, "cached_tasks": 0}, "same_id_recovered_after_service_shutdown_startup": true, "old_browser_close_calls": 1, "old_driver_stop_calls": 1}
+{"revision": "parent", "probe": "external_close_during_create", "close_status": 200, "close_body": "{\"success\":true,\"data\":{\"closed\":false},\"error_code\":null,\"error_message\":null}", "journey": {"exception": "TimeoutError"}, "registered": [], "creating": [], "context_close_calls": 0}

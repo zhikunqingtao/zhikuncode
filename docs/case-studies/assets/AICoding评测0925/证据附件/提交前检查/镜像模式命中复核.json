@@ -1,0 +1,86 @@
+[
+  {
+    "fingerprint": "c5e9fa35bca9",
+    "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/llm/ZenMuxSubscriptionKeyFailoverTest.java",
+    "line": 29,
+    "test_fixture_path": true,
+    "explicit_sample_marker": true
+  },
+  {
+    "fingerprint": "8bcac7908eb9",
+    "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+    "line": 128,
+    "test_fixture_path": true,
+    "explicit_sample_marker": false
+  },
+  {
+    "fingerprint": "46eb12352e80",
+    "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+    "line": 71,
+    "test_fixture_path": true,
+    "explicit_sample_marker": false
+  },
+  {
+    "fingerprint": "1a5d44a2dca1",
+    "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+    "line": 62,
+    "test_fixture_path": true,
+    "explicit_sample_marker": true
+  },
+  {
+    "fingerprint": "5327c7d28c7a",
+    "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+    "line": 41,
+    "test_fixture_path": true,
+    "explicit_sample_marker": true
+  },
+  {
+    "fingerprint": "693f5072f49d",
+    "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+    "line": 53,
+    "test_fixture_path": true,
+    "explicit_sample_marker": true
+  },
+  {
+    "fingerprint": "e0bb7259f434",
+    "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/security/SensitiveDataFilterTest.java",
+    "line": 89,
+    "test_fixture_path": true,
+    "explicit_sample_marker": false
+  },
+  {
+    "fingerprint": "82be8a4d9cde",
+    "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/java/com/aicodeassistant/service/ActivityRepositoryTest.java",
+    "line": 32,
+    "test_fixture_path": true,
+    "explicit_sample_marker": true
+  },
+  {
+    "fingerprint": "8a7b52c1a1f6",
+    "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/resources/fixtures/sensitive-test.env",
+    "line": 2,
+    "test_fixture_path": true,
+    "explicit_sample_marker": true
+  },
+  {
+    "fingerprint": "7d4fe70091be",
+    "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/resources/fixtures/sensitive-test.env",
+    "line": 3,
+    "test_fixture_path": true,
+    "explicit_sample_marker": true
+  },
+  {
+    "fingerprint": "9499f14adfd5",
+    "path": "评审结果_20260925_v1/evidence/java/source-head/backend/src/test/resources/fixtures/sensitive-test.env",
+    "line": 4,
+    "test_fixture_path": true,
+    "explicit_sample_marker": true
+  },
+  {
+    "fingerprint": "b915327c0378",
+    "path": "评审结果_20260925_v1/evidence/java/source-head/docs/assets/e2e-tests/module04-06-agent-tool-permission-test.mjs",
+    "line": 719,
+    "test_fixture_path": true,
+    "explicit_sample_marker": false
+  }
+]

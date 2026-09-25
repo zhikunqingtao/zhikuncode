@@ -1,0 +1,2601 @@
+{
+  "schema_version": "1.0",
+  "scored_at": "2026-09-25T10:44:31.156990+08:00",
+  "scope": "8个冻结产物同轮评价；不是模型/产品一般能力排行",
+  "weights": {
+    "D1": 30,
+    "D2": 20,
+    "D3": 15,
+    "D4": 15,
+    "D5": 12,
+    "D6": 8
+  },
+  "opportunities": [
+    {
+      "id": "G01",
+      "weight": 3,
+      "title": "启动预留窗口取消：最终已清理却沿用旧summary判FAILED",
+      "credits": {
+        "E01": 1,
+        "E02": 0,
+        "E03": 0,
+        "E04": 0,
+        "E05": 1,
+        "E06": 0,
+        "E07": 0,
+        "E08": 0
+      },
+      "evidence": "java J1；HEAD/parent coordinator确定性对照",
+      "rationale": "E01 R1；E05 2.1；其余未识别。"
+    },
+    {
+      "id": "G02",
+      "weight": 4,
+      "title": "有限重试耗尽后无恢复驱动，容量/租约持续占用并可阻塞同会话",
+      "credits": {
+        "E01": 0.5,
+        "E02": 0.5,
+        "E03": 1,
+        "E04": 0.5,
+        "E05": 0.5,
+        "E06": 1,
+        "E07": 0.5,
+        "E08": 0
+      },
+      "evidence": "java J2；retained可恢复hook探针",
+      "rationale": "E03/E06追到同session新Run拒绝；E01/E02/E04/E05/E07发现容量/lease机制但未完成session注册影响链。误写完全无重试另计D2。"
+    },
+    {
+      "id": "G03",
+      "weight": 3,
+      "title": "异常型context.close缓存失败，TTL不重发RPC，需祖先确认释放",
+      "credits": {
+        "E01": 0.5,
+        "E02": 0,
+        "E03": 0,
+        "E04": 0.5,
+        "E05": 1,
+        "E06": 1,
+        "E07": 0.5,
+        "E08": 0
+      },
+      "evidence": "python P4；probe_contracts",
+      "rationale": "E05/E06区分失败latch与超时；E01/E04/E07只有容量保留后果；E03反称自动自愈；E02/E08未指出该恢复缺口。"
+    },
+    {
+      "id": "G04",
+      "weight": 2,
+      "title": "前台正常完成也清理已归属残留，既有cmd &用法变更",
+      "credits": {
+        "E01": 1,
+        "E02": 1,
+        "E03": 1,
+        "E04": 1,
+        "E05": 1,
+        "E06": 1,
+        "E07": 1,
+        "E08": 1
+      },
+      "evidence": "root/LinuxProbe；java J4边界",
+      "rationale": "八份均识别正常完成清理/前台后台契约变化；平台、定级是否过强另裁决。"
+    },
+    {
+      "id": "G05",
+      "weight": 2,
+      "title": "普通会话容量由驱逐改拒绝，需承载用户可见错误",
+      "credits": {
+        "E01": 1,
+        "E02": 0,
+        "E03": 1,
+        "E04": 1,
+        "E05": 1,
+        "E06": 1,
+        "E07": 1,
+        "E08": 1
+      },
+      "evidence": "python P3；parent/HEAD容量对照",
+      "rationale": "E02只描述原子容量检查，没有指出驱逐改拒绝的对外变化，不计发现；其余明确识别。"
+    },
+    {
+      "id": "G06",
+      "weight": 2,
+      "title": "新journey容量拒绝/外部关闭等错误缺少结构化映射",
+      "credits": {
+        "E01": 0,
+        "E02": 0,
+        "E03": 0.5,
+        "E04": 0,
+        "E05": 0,
+        "E06": 1,
+        "E07": 0,
+        "E08": 0
+      },
+      "evidence": "python P3/P5；BrowserVerifier55",
+      "rationale": "E06 H7/H11明确新容量/创建取消500；E03只发现499/504与watcher错误泛化，部分覆盖诊断机制；其余未建立相关链路。"
+    },
+    {
+      "id": "G07",
+      "weight": 3,
+      "title": "生产BaseHTTPMiddleware使真实disconnect轮询未及时观察断连",
+      "credits": {
+        "E01": 0,
+        "E02": 0,
+        "E03": 0,
+        "E04": 0,
+        "E05": 0,
+        "E06": 0,
+        "E07": 0,
+        "E08": 0
+      },
+      "evidence": "python GT-PY-02；root/disconnect_independent.log",
+      "rationale": "独立发现，八份均未识别；不把E08的取消吞没当同一问题。"
+    },
+    {
+      "id": "G08",
+      "weight": 5,
+      "title": "真实Request CancelScope吞watcher取消，finally无界gather可挂起",
+      "credits": {
+        "E01": 0,
+        "E02": 0,
+        "E03": 0,
+        "E04": 0,
+        "E05": 0,
+        "E06": 0,
+        "E07": 0,
+        "E08": 1
+      },
+      "evidence": "python GT-PY-01；root/watcher_*；真实Uvicorn A/B",
+      "rationale": "E08完整识别CancelScope吞取消根因；E02仅泛指gather无总时限，按同根因口径不给本机会发现分，其预算观察仍在D2/D5保留。"
+    },
+    {
+      "id": "G09",
+      "weight": 1,
+      "title": "非Linux快照无法保证重父化子进程全部退出，属剩余限制",
+      "credits": {
+        "E01": 1,
+        "E02": 0.5,
+        "E03": 0,
+        "E04": 0,
+        "E05": 0.5,
+        "E06": 0.5,
+        "E07": 1,
+        "E08": 1
+      },
+      "evidence": "java J4；portable-mac/linux",
+      "rationale": "E01补充S2、E07实测、E08明确旧局限；E02/E05/E06提平台限制但对假确认后果不足；其余未识别。"
+    },
+    {
+      "id": "G10",
+      "weight": 1,
+      "title": "持续inspection失败与有限确认预算的条件性可用性风险",
+      "credits": {
+        "E01": 1,
+        "E02": 1,
+        "E03": 1,
+        "E04": 0.5,
+        "E05": 1,
+        "E06": 1,
+        "E07": 0.5,
+        "E08": 0.5
+      },
+      "evidence": "java J6；反例16ms恢复",
+      "rationale": "识别机制得分；把单次枚举异常等同永远失败另扣准确性，不能由该机会得分推导严重度。"
+    },
+    {
+      "id": "G11",
+      "weight": 1,
+      "title": "terminate与hook竞争预算及新增首次hook前超时门控",
+      "credits": {
+        "E01": 1,
+        "E02": 1,
+        "E03": 0,
+        "E04": 0,
+        "E05": 0,
+        "E06": 0,
+        "E07": 0,
+        "E08": 0
+      },
+      "evidence": "parent cleanup360；HEAD380；DockerRuntimeService25",
+      "rationale": "E01 S1/E02 P2-1均发现真实问题族，但归因各有不足；计发现，D2分别限定。"
+    },
+    {
+      "id": "G12",
+      "weight": 1,
+      "title": "新未确认分支缺通用truncated键，诊断字段不能代表清理阶段",
+      "credits": {
+        "E01": 0,
+        "E02": 0,
+        "E03": 0,
+        "E04": 0,
+        "E05": 0,
+        "E06": 1,
+        "E07": 0,
+        "E08": 0
+      },
+      "evidence": "java J3；BashTool414；ToolResult120",
+      "rationale": "E06 H5唯一准确指出通用截断字段错配；不混同既有preview裁剪问题。"
+    },
+    {
+      "id": "G13",
+      "weight": 1,
+      "title": "未完成new_context分配/等待者无自身时限的可用性限制",
+      "credits": {
+        "E01": 1,
+        "E02": 0,
+        "E03": 0,
+        "E04": 1,
+        "E05": 0,
+        "E06": 0,
+        "E07": 0,
+        "E08": 0
+      },
+      "evidence": "browser_service await shield / pending.result_ready",
+      "rationale": "E01 R4/E04 Q2明确；普通调用风险，journey外层有预算，父实现也有锁内等待，本项为剩余限制低权重。"
+    },
+    {
+      "id": "G14",
+      "weight": 1,
+      "title": "disconnect watcher异常完成被误分类为客户端断开499",
+      "credits": {
+        "E01": 0,
+        "E02": 0,
+        "E03": 1,
+        "E04": 0,
+        "E05": 0,
+        "E06": 0,
+        "E07": 0,
+        "E08": 0
+      },
+      "evidence": "python probe_contracts；journey47",
+      "rationale": "E03 F6识别；需receive抛异常的条件，不代表常态断连。"
+    },
+    {
+      "id": "G15",
+      "weight": 1,
+      "title": "服务/DevServer保留状态缺运行期恢复与可观测性",
+      "credits": {
+        "E01": 1,
+        "E02": 1,
+        "E03": 1,
+        "E04": 0.5,
+        "E05": 0,
+        "E06": 1,
+        "E07": 0.5,
+        "E08": 0
+      },
+      "evidence": "DevServerLauncher132；PythonProcessManager242",
+      "rationale": "E01/E02/E03/E06讨论Java服务恢复路径；E04/E07仅部分风险。E05对Java仅述保留引用的正面收益，Python BrowserService恢复另在G03，不能挪用到此项。"
+    },
+    {
+      "id": "G16",
+      "weight": 1,
+      "title": "绝对deadline跨主机时钟偏差及部署前提",
+      "credits": {
+        "E01": 0,
+        "E02": 1,
+        "E03": 1,
+        "E04": 1,
+        "E05": 0,
+        "E06": 1,
+        "E07": 0,
+        "E08": 0
+      },
+      "evidence": "BrowserVerifier44；journey35",
+      "rationale": "E02/E03/E04/E06明确跨主机偏差风险；E01只核对墙钟兼容，没有指出该风险，不给发现分。"
+    }
+  ],
+  "reports": [
+    {
+      "id": "E01",
+      "name": "DeepSeekHarness",
+      "fact_units": [
+        {
+          "id": "E01-F01",
+          "family": "F01",
+          "title": "取消终态",
+          "report_reference": "R1",
+          "weight": 3,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "启动旧summary误判由HEAD/parent确定性probe确认。"
+        },
+        {
+          "id": "E01-F02",
+          "family": "F02",
+          "title": "Java保留与恢复",
+          "report_reference": "R3/S4",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "保留和无周期回收属实，遗漏完成期重试，不能称没有任何恢复入口。"
+        },
+        {
+          "id": "E01-F03",
+          "family": "F03",
+          "title": "前台/沙箱结果与shell语义",
+          "report_reference": "R2/S3",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "清理/失败/沙箱丢输出属实；CWD丢失因果错误。"
+        },
+        {
+          "id": "E01-F04",
+          "family": "F04",
+          "title": "平台/进程发现与确认",
+          "report_reference": "R5/S2",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "非Linux剩余局限识别正确；枚举异常probe含永活root，永不确认的外推过强。"
+        },
+        {
+          "id": "E01-F05",
+          "family": "F05",
+          "title": "浏览器容量策略",
+          "report_reference": "R4",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "普通驱逐变拒绝及未完创建占额属实。"
+        },
+        {
+          "id": "E01-F07",
+          "family": "F07",
+          "title": "journey断连/取消/总时限",
+          "report_reference": "Q2；E01.md:L283-L284",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "局部_finish_cleanup取消安全及预算注释可核；更可靠的相对评价没有承诺watcher必有界，漏检不转成事实错误。"
+        },
+        {
+          "id": "E01-F08",
+          "family": "F08",
+          "title": "跨端契约与错误分类",
+          "report_reference": "C1/C2/C4/C5",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "字段/注入/不重试/API快照修复可核。"
+        },
+        {
+          "id": "E01-F09",
+          "family": "F09",
+          "title": "测试与CI事实",
+          "report_reference": "R9/R11",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "CI env门控和短阈值测试脆弱属实，未当发生率。"
+        },
+        {
+          "id": "E01-F10",
+          "family": "F10",
+          "title": "部署依赖/时钟",
+          "report_reference": "S5",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "依赖满足官方基础镜像，只排除该缺失分支。"
+        },
+        {
+          "id": "E01-F11",
+          "family": "F11",
+          "title": "清理预算",
+          "report_reference": "S1",
+          "weight": 1,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "预算共享既有；旧runner首次仍调用hook，HEAD前置门控新增，Docker内部旧有期限检查。"
+        },
+        {
+          "id": "E01-F12",
+          "family": "F12",
+          "title": "次要工程事实（合计封顶权重1）",
+          "report_reference": "R7/R10",
+          "weight": 1,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "废弃类属实，但每PID双读stat错误；次要事实合并封顶。"
+        }
+      ],
+      "rubrics": {
+        "D3": [
+          [
+            3,
+            "R3遗漏完成期重试；S1对旧首次hook门控修正不足，S2明确非回归。"
+          ],
+          [
+            3,
+            "R5模拟root永活混杂；Linux典型窗口缺测量。"
+          ],
+          [
+            3.5,
+            "多以行为变更/中低风险表达，但R1“唯一”与局部强保证偏满。"
+          ]
+        ],
+        "D4": [
+          [
+            4.5,
+            "调用链和行号较完整，少量扫描/空方法核查失误。"
+          ],
+          [
+            4,
+            "probe源、HEAD/parent文本报告现可见并已留存，未保留所有原始环境。"
+          ],
+          [
+            4,
+            "有A/B、重跑与环境披露；混杂probe未隔离单因果。"
+          ]
+        ],
+        "D5": [
+          [
+            3,
+            "Bash前后台沙箱、服务、journey双模齐全。"
+          ],
+          [
+            2.5,
+            "并发/归属/错误质量具体，但部分机制未经反证。"
+          ],
+          [
+            3,
+            "CI门控、flaky、平台对照具体。"
+          ],
+          [
+            3,
+            "CHANGELOG、旧ID文档、调用一致性具体。"
+          ]
+        ],
+        "D6": [
+          [
+            2.5,
+            "reaper/重算摘要合理；TTL后释放未知存活容量需补归属保障。"
+          ],
+          [
+            3.5,
+            "定位与复现有用，少量占位classpath；重复发现已在评分合并。"
+          ]
+        ]
+      },
+      "atomic_audit_units": [
+        {
+          "id": "E01-F01",
+          "report_reference": "R1",
+          "weight": 3,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "启动summary误判已由真实coordinator+parent对照确认；概率未测。"
+        },
+        {
+          "id": "E01-F02",
+          "report_reference": "R2/行为",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "正常完成清理及未确认返回失败均存在，有意契约变化。"
+        },
+        {
+          "id": "E01-F03",
+          "report_reference": "R2/CWD",
+          "weight": 2,
+          "credit": 0,
+          "verdict": "反证",
+          "reason": "L169把跳过update推为shell状态未更新，方法实际仅日志；CWD由脚本原子保存。"
+        },
+        {
+          "id": "E01-F04",
+          "report_reference": "R3",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "持续保留/无周期回收成立；遗漏completeRun及取消回调重试，不能说正常Run无任何重试。"
+        },
+        {
+          "id": "E01-F05",
+          "report_reference": "R4",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "容量拒绝和未完资源计费成立，说明淘汰也有风险。"
+        },
+        {
+          "id": "E01-F06",
+          "report_reference": "R5",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "持续inspection失败可不确认；原probe同时让root永久alive，不能证明仅枚举失败就永久不确认。"
+        },
+        {
+          "id": "E01-F07",
+          "report_reference": "R7",
+          "weight": 1,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "全/proc扫描存在；非每PID都二次读，第二读只限本组匹配项。"
+        },
+        {
+          "id": "E01-F08",
+          "report_reference": "R9",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "两个真实浏览器测试受env门控，仓库CI未启用。"
+        },
+        {
+          "id": "E01-F09",
+          "report_reference": "R10",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "废弃verifier旧ID/不关闭成立，已注明未用。"
+        },
+        {
+          "id": "E01-F10",
+          "report_reference": "R11",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "50ms/sleep敏感有源码依据；发生率不作结论。"
+        },
+        {
+          "id": "E01-F11",
+          "report_reference": "S1",
+          "weight": 1,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "共享deadline既有，但HEAD新增首次hook前期限检查；旧runner首次会调hook，Docker内部另会过期早退。"
+        },
+        {
+          "id": "E01-F12",
+          "report_reference": "S2",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "非Linux假确认为剩余局限，非新回归。"
+        },
+        {
+          "id": "E01-F13",
+          "report_reference": "S3",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "沙箱未确认分支丢输出为真，父已有；仅新暴露部分不视作新代码。"
+        },
+        {
+          "id": "E01-F14",
+          "report_reference": "S4",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "FAILED不被健康检查周期接管；显式stop/start有条件可恢复。"
+        },
+        {
+          "id": "E01-F15",
+          "report_reference": "C1/C2/C4/C5",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "增量字段、Request注入、journey不自动重试、API幽灵快照修复均可静态闭环；合为契约一族防灌水。"
+        },
+        {
+          "id": "E01-F16",
+          "report_reference": "Q2",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "Browser清理大部保留取消语义；路由watcher/gather不保证有界， blanket可靠过强。"
+        }
+      ]
+    },
+    {
+      "id": "E02",
+      "name": "QoderIDE",
+      "fact_units": [
+        {
+          "id": "E02-F02",
+          "family": "F02",
+          "title": "Java保留与恢复",
+          "report_reference": "P1-2/P2-6/P3-4",
+          "weight": 3,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "正确补完成期重试；持续失败后容量及服务恢复风险成立。"
+        },
+        {
+          "id": "E02-F03",
+          "family": "F03",
+          "title": "前台/沙箱结果与shell语义",
+          "report_reference": "P1-1/P2-2/P2-5",
+          "weight": 3,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "行为与既有沙箱丢输出属实，CWD丢失不成立。"
+        },
+        {
+          "id": "E02-F04",
+          "family": "F04",
+          "title": "平台/进程发现与确认",
+          "report_reference": "P2-4",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "明确持续/proc失败的条件，原理成立。"
+        },
+        {
+          "id": "E02-F06",
+          "family": "F06",
+          "title": "浏览器失败close与恢复",
+          "report_reference": "A3/TTL",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "关闭协议可核；TTL不能重发已异常close，恢复保证过满。"
+        },
+        {
+          "id": "E02-F07",
+          "family": "F07",
+          "title": "journey断连/取消/总时限",
+          "report_reference": "P3-9；E02.md:L135",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "无总时限与可能超预算的预警成立；未识别CancelScope仅影响G08发现分，不重复记事实错误；TTL过强另在F06。"
+        },
+        {
+          "id": "E02-F08",
+          "family": "F08",
+          "title": "跨端契约与错误分类",
+          "report_reference": "A1/A4",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "跨端字段/构造兼容与API快照修复可静态闭环。"
+        },
+        {
+          "id": "E02-F09",
+          "family": "F09",
+          "title": "测试与CI事实",
+          "report_reference": "T4/T5/T6",
+          "weight": 1,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "env门禁/耦合成立；非Linux真实路径无测试过强。"
+        },
+        {
+          "id": "E02-F10",
+          "family": "F10",
+          "title": "部署依赖/时钟",
+          "report_reference": "P2-3/P3-8",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "默认镜像/自定义依赖和跨主机时钟条件清楚。"
+        },
+        {
+          "id": "E02-F11",
+          "family": "F11",
+          "title": "清理预算",
+          "report_reference": "P2-1",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "首次hook期限检查新增，预算竞争已有；部分新增归因。"
+        },
+        {
+          "id": "E02-F12",
+          "family": "F12",
+          "title": "次要工程事实（合计封顶权重1）",
+          "report_reference": "P3-2/3/5/6/7,A5",
+          "weight": 1,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "import/轮询事实为真；process事件父已有，构造器用途唯一化过强。"
+        }
+      ],
+      "rubrics": {
+        "D3": [
+          [
+            4,
+            "主动修正沙箱旧分支与完成期重试；共预算归因仍混合。"
+          ],
+          [
+            3.5,
+            "默认镜像与条件风险分开，部分平台测试断言过强。"
+          ],
+          [
+            3,
+            "静态审查却“可安全保留main”过满；CWD误报被列P1。"
+          ]
+        ],
+        "D4": [
+          [
+            4,
+            "静态调用链/测试断言充分且可定位，存在空方法漏追。"
+          ],
+          [
+            0,
+            "明确未执行构建或测试；不作造假扣分，但无动态验证信用。"
+          ],
+          [
+            3.5,
+            "有两次自我修正及局限披露，缺动态反例/可执行探针。"
+          ]
+        ],
+        "D5": [
+          [
+            3,
+            "跨端、沙箱、完成期收敛覆盖广。"
+          ],
+          [
+            2.5,
+            "并发、失败元数据、维护性分析具体。"
+          ],
+          [
+            2.5,
+            "门禁/缺口具体，但非Linux无测试表述不准。"
+          ],
+          [
+            2.5,
+            "依赖/文档/import/命名有分析。"
+          ]
+        ],
+        "D6": [
+          [
+            2.5,
+            "修正状态同步建议无效；资源回收有方向但必须确认归属。"
+          ],
+          [
+            3.5,
+            "优先级/源码位置与冒烟清单可执行，静态方法说明清楚。"
+          ]
+        ]
+      },
+      "atomic_audit_units": [
+        {
+          "id": "E02-F01",
+          "report_reference": "P1-1/硬失败",
+          "weight": 3,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "新分支确实如此；是否错误要区分安全策略（D3）。"
+        },
+        {
+          "id": "E02-F02",
+          "report_reference": "P1-1/CWD",
+          "weight": 3,
+          "credit": 0,
+          "verdict": "反证",
+          "reason": "update为空日志，cwd/env丢失是错误因果。"
+        },
+        {
+          "id": "E02-F03",
+          "report_reference": "P1-2",
+          "weight": 3,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "已主动补completeRun一次重试，持续失败容量占用成立。"
+        },
+        {
+          "id": "E02-F04",
+          "report_reference": "P2-1",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "预算共享既有，首次hook前期限门控新增；非全新Docker清理饥饿。"
+        },
+        {
+          "id": "E02-F05",
+          "report_reference": "P2-2",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "沙箱丢输出属父已有，报告已更正。"
+        },
+        {
+          "id": "E02-F06",
+          "report_reference": "P2-3",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "Linux硬依赖为真且明确默认镜像满足。"
+        },
+        {
+          "id": "E02-F07",
+          "report_reference": "P2-4",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "该条限定/proc持续失败，原理成立；未把普通镜像实测等同受限环境。"
+        },
+        {
+          "id": "E02-F08",
+          "report_reference": "P2-5",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "前台清理行为变更真实并指出is_background迁移。"
+        },
+        {
+          "id": "E02-F09",
+          "report_reference": "P2-6/P3-4",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "Python FAILED与DevServer保留无运行期自动恢复成立；非只能重启进程。"
+        },
+        {
+          "id": "E02-F10",
+          "report_reference": "P3-2/P3-3",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "旧verifier与未用import确实存在；合并。"
+        },
+        {
+          "id": "E02-F11",
+          "report_reference": "P3-5",
+          "weight": 1,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "4参构造器生成ID成立，但“实际只用于选择”过窄；公开兼容构造并不天然错误。"
+        },
+        {
+          "id": "E02-F12",
+          "report_reference": "P3-6/P3-7",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "非Linux采样与/proc扫描开销真实，未测CPU严重度不放大。"
+        },
+        {
+          "id": "E02-F13",
+          "report_reference": "P3-8",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "时钟偏差条件风险成立。"
+        },
+        {
+          "id": "E02-F14",
+          "report_reference": "P3-9",
+          "weight": 1,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "gather缺总时限真实；串行多资源/TTL保证并未证明watcher根因。"
+        },
+        {
+          "id": "E02-F15",
+          "report_reference": "T4",
+          "weight": 1,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "Linux限定测试薄真实；说非Linux真实路径无测试过强，runner/tree/服务现有测试会在mac运行。"
+        },
+        {
+          "id": "E02-F16",
+          "report_reference": "T5/T6",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "env门禁及反射/私有mock测试耦合成立。"
+        },
+        {
+          "id": "E02-F17",
+          "report_reference": "A3/TTL",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "快照/ID契约成立；TTL不能自动重发已异常close，路由取消join也非总有界。"
+        },
+        {
+          "id": "E02-F18",
+          "report_reference": "A5/新增事件",
+          "weight": 1,
+          "credit": 0,
+          "verdict": "反证",
+          "reason": "process_started/process_finished在父提交runner已存在，本次不是新增。"
+        }
+      ]
+    },
+    {
+      "id": "E03",
+      "name": "ZCode",
+      "fact_units": [
+        {
+          "id": "E03-F02",
+          "family": "F02",
+          "title": "Java保留与恢复",
+          "report_reference": "F1/F1-chain/S1",
+          "weight": 3,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "持续失败同session阻塞成立；原probe不包含终态coordinator、遗漏完成期重试。"
+        },
+        {
+          "id": "E03-F03",
+          "family": "F03",
+          "title": "前台/沙箱结果与shell语义",
+          "report_reference": "F4",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "硬失败真实，CWD丢失与沙箱分支新增两项错误。"
+        },
+        {
+          "id": "E03-F04",
+          "family": "F04",
+          "title": "平台/进程发现与确认",
+          "report_reference": "F2",
+          "weight": 3,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "持续inspection可未确认，但单纯枚举异常并不每条永久失败。"
+        },
+        {
+          "id": "E03-F05",
+          "family": "F05",
+          "title": "浏览器容量策略",
+          "report_reference": "F3",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "普通容量策略变化真实。"
+        },
+        {
+          "id": "E03-F06",
+          "family": "F06",
+          "title": "浏览器失败close与恢复",
+          "report_reference": "S7",
+          "weight": 2,
+          "credit": 0,
+          "verdict": "反证",
+          "reason": "声称Python异常close有界周期自愈错误，TTL复用已失败task。"
+        },
+        {
+          "id": "E03-F07",
+          "family": "F07",
+          "title": "journey断连/取消/总时限",
+          "report_reference": "A7",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "Request注入正常；join有界保证被真实watcher反例驳倒。"
+        },
+        {
+          "id": "E03-F08",
+          "family": "F08",
+          "title": "跨端契约与错误分类",
+          "report_reference": "F6/S5/A5",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "watcher异常被误记499、Java错误泛化以及ID协议分析有效。"
+        },
+        {
+          "id": "E03-F09",
+          "family": "F09",
+          "title": "测试与CI事实",
+          "report_reference": "T2/T6/测试计数",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "CI门禁成立；旧失败归因缺父A/B，87与88+6内在不一致。"
+        },
+        {
+          "id": "E03-F10",
+          "family": "F10",
+          "title": "部署依赖/时钟",
+          "report_reference": "F5/F8-deps",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "依赖实测、跨机时钟偏差真实；正文明确min120上限，按最终限定给完整事实信用。"
+        },
+        {
+          "id": "E03-F11",
+          "family": "F11",
+          "title": "清理预算",
+          "report_reference": "F11",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "grace+5s至+2s变化属实。"
+        },
+        {
+          "id": "E03-F12",
+          "family": "F12",
+          "title": "次要工程事实（合计封顶权重1）",
+          "report_reference": "F7/F8-parse/F8-perf/F9/F10",
+          "weight": 1,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "多个工程事实属实；全PID双读与docker stop组信号推断不准，全部仅1权重。"
+        }
+      ],
+      "rubrics": {
+        "D3": [
+          [
+            2.5,
+            "沙箱新增、完成期重试、Python自愈存在重要归因误差。"
+          ],
+          [
+            3,
+            "Linux探针与本机边界清楚，永久锁死/inspection全失败放大。"
+          ],
+          [
+            3,
+            "最高风险判断抓到条件可用性，但证据覆盖不支撑不可逆结论。"
+          ]
+        ],
+        "D4": [
+          [
+            4,
+            "注册链追踪深入，部分上层归因未被所引probe覆盖。"
+          ],
+          [
+            4.5,
+            "Linux probe、registry repro、原始日志具实物，复核价值高。"
+          ],
+          [
+            3.5,
+            "反复测flaky、披露没跑真实浏览器；无上层终态A/B。"
+          ]
+        ],
+        "D5": [
+          [
+            3,
+            "Java/Python/沙箱/会话全链广。"
+          ],
+          [
+            2.5,
+            "并发和归属分析充分，Python恢复理解有误。"
+          ],
+          [
+            3,
+            "实际Linux、CI门控与flaky重复试验具体。"
+          ],
+          [
+            3,
+            "文档/运行参数/日志规范分析充分。"
+          ]
+        ],
+        "D6": [
+          [
+            2,
+            "强制unregister、rootdead即确认、照搬不存在的Python自愈不能直接实施。"
+          ],
+          [
+            3.5,
+            "复现文件/修复优先级明确；计数与少数归因前后不一。"
+          ]
+        ]
+      },
+      "atomic_audit_units": [
+        {
+          "id": "E03-F01",
+          "report_reference": "F1/F1-chain",
+          "weight": 3,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "会话阻塞条件成立；probe永远false并直接调用runner，未验证文中终态coordinator；遗漏完成期重试。"
+        },
+        {
+          "id": "E03-F02",
+          "report_reference": "F2",
+          "weight": 3,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "持续/proc失败可未确认；每条/永不确认泛化过强，root退出可恢复。"
+        },
+        {
+          "id": "E03-F03",
+          "report_reference": "F3",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "普通限容驱逐改拒绝真实。"
+        },
+        {
+          "id": "E03-F04",
+          "report_reference": "F4/硬失败",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "退出0也失败为真，安全策略另评。"
+        },
+        {
+          "id": "E03-F05",
+          "report_reference": "F4/CWD",
+          "weight": 2,
+          "credit": 0,
+          "verdict": "反证",
+          "reason": "方法空实现，目录/环境丢失错误。"
+        },
+        {
+          "id": "E03-F06",
+          "report_reference": "F4/沙箱新增",
+          "weight": 2,
+          "credit": 0,
+          "verdict": "反证",
+          "reason": "沙箱分支父提交已存在。"
+        },
+        {
+          "id": "E03-F07",
+          "report_reference": "F5",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "跨主机偏差真实；保护失效不准，仍min(120,remaining)。正文有保留条件，故部分。"
+        },
+        {
+          "id": "E03-F08",
+          "report_reference": "F6",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "异常watcher被分类499已probe支持；触发频率未知。"
+        },
+        {
+          "id": "E03-F09",
+          "report_reference": "F8-parse",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "只捕NoSuchFileException，坏格式可抛异常；不声称真实/proc常返回截断。"
+        },
+        {
+          "id": "E03-F10",
+          "report_reference": "F8-perf",
+          "weight": 1,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "全扫描真实；每PID双读为错。"
+        },
+        {
+          "id": "E03-F11",
+          "report_reference": "F8-deps",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "依赖真实且实测默认满足。"
+        },
+        {
+          "id": "E03-F12",
+          "report_reference": "F9",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "bash包装可引入PWD/SHLVL，环境严格清空语义发生差异，报告已限定当前调用无实际影响。"
+        },
+        {
+          "id": "E03-F13",
+          "report_reference": "F10",
+          "weight": 1,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "setsid改变控制终端/组语义；docker stop只发PID1等，不能笼统说旧组会被连带。"
+        },
+        {
+          "id": "E03-F14",
+          "report_reference": "F11",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "grace+5s改+2s属实。"
+        },
+        {
+          "id": "E03-F15",
+          "report_reference": "S1/S2",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "FAILED健康检查不接管、同步stop预算12s属实。"
+        },
+        {
+          "id": "E03-F16",
+          "report_reference": "S5",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "499/504在Java泛化为PYTHON_CALL_FAILED属实。"
+        },
+        {
+          "id": "E03-F17",
+          "report_reference": "S7",
+          "weight": 2,
+          "credit": 0,
+          "verdict": "反证",
+          "reason": "Python异常close缓存任务，TTL不会发新RPC；“有界可自愈”错误。"
+        },
+        {
+          "id": "E03-F18",
+          "report_reference": "T2",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "真实浏览器门禁未接CI属实。"
+        },
+        {
+          "id": "E03-F19",
+          "report_reference": "T6",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "旧测试/路径未改且单独重跑过支持既有可能；不是充分父提交A/B证明。"
+        },
+        {
+          "id": "E03-F20",
+          "report_reference": "A7",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "Request注入正常；join有界的强保证被真实watcher反例推翻。"
+        },
+        {
+          "id": "E03-F21",
+          "report_reference": "测试计数",
+          "weight": 1,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "开头87运行/6跳过，后文写88 passed/6 skipped，内部不一致。"
+        }
+      ]
+    },
+    {
+      "id": "E04",
+      "name": "QoderCN",
+      "fact_units": [
+        {
+          "id": "E04-F02",
+          "family": "F02",
+          "title": "Java保留与恢复",
+          "report_reference": "S2/Q1",
+          "weight": 3,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "保留与耗尽风险真；固定许可限制下无限增长、无任何自动重试过强。"
+        },
+        {
+          "id": "E04-F03",
+          "family": "F03",
+          "title": "前台/沙箱结果与shell语义",
+          "report_reference": "S1/Q5/D3",
+          "weight": 3,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "硬失败/PowerShell差异真；CWD/env丢失假。"
+        },
+        {
+          "id": "E04-F04",
+          "family": "F04",
+          "title": "平台/进程发现与确认",
+          "report_reference": "S1/受限宿主",
+          "weight": 3,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "需持续inspection异常，不能推任何受限mac全命令误报。"
+        },
+        {
+          "id": "E04-F05",
+          "family": "F05",
+          "title": "浏览器容量策略",
+          "report_reference": "S3",
+          "weight": 3,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "容量拒绝取代驱逐属实。"
+        },
+        {
+          "id": "E04-F07",
+          "family": "F07",
+          "title": "journey断连/取消/总时限",
+          "report_reference": "Q2/A10",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "普通创建等待无自身时限真实；journey join有界不成立。"
+        },
+        {
+          "id": "E04-F08",
+          "family": "F08",
+          "title": "跨端契约与错误分类",
+          "report_reference": "S4/A7",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "API快照修复、关闭envelope正确。"
+        },
+        {
+          "id": "E04-F09",
+          "family": "F09",
+          "title": "测试与CI事实",
+          "report_reference": "T1",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "50ms/sleep调度敏感有据；自述测试史未独立认证在D4体现。"
+        },
+        {
+          "id": "E04-F10",
+          "family": "F10",
+          "title": "部署依赖/时钟",
+          "report_reference": "D1/D2",
+          "weight": 3,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "环境依赖与跨主机时钟前提正确，严重度在D3评。"
+        },
+        {
+          "id": "E04-F12",
+          "family": "F12",
+          "title": "次要工程事实（合计封顶权重1）",
+          "report_reference": "Q3/Q4/Q7",
+          "weight": 1,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "字段解析可核；测试私有SDK与生产依赖混用，公开closed响应不能叫全局死字段。"
+        }
+      ],
+      "rubrics": {
+        "D3": [
+          [
+            3,
+            "识别安全取舍和API快照修复，未追完整恢复链。"
+          ],
+          [
+            2.5,
+            "全部命令失败/无限增长及部署P1较宽。"
+          ],
+          [
+            2.5,
+            "提出多个P1同时称高度正确/可合并，放行依据不足。"
+          ]
+        ],
+        "D4": [
+          [
+            3.5,
+            "链路与行号可查，但重要被调方法漏读。"
+          ],
+          [
+            2,
+            "有测试数字和flake经过，缺命令/原始输出路径，不等于虚假。"
+          ],
+          [
+            2.5,
+            "有重跑/未跑真实浏览器披露，缺关键父提交实验。"
+          ]
+        ],
+        "D5": [
+          [
+            2.5,
+            "主要链路齐，cancel终态及failure恢复不足。"
+          ],
+          [
+            2.5,
+            "并发/SDK/复杂度有具体点。"
+          ],
+          [
+            2,
+            "测试陈述有价值，但CI仅建议确认，未给核查闭环。"
+          ],
+          [
+            2,
+            "依赖/时钟/契约提及，规范审查较简略。"
+          ]
+        ],
+        "D6": [
+          [
+            3,
+            "多数指标/文档/安全取舍建议稳妥，错误CWD建议无效。"
+          ],
+          [
+            3,
+            "报告紧凑定位清楚，复现实物缺少。"
+          ]
+        ]
+      },
+      "atomic_audit_units": [
+        {
+          "id": "E04-F01",
+          "report_reference": "S1/硬失败",
+          "weight": 3,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "新失败结果及前台残留清理真实。"
+        },
+        {
+          "id": "E04-F02",
+          "report_reference": "S1/CWD",
+          "weight": 3,
+          "credit": 0,
+          "verdict": "反证",
+          "reason": "cwd/env丢失错误。"
+        },
+        {
+          "id": "E04-F03",
+          "report_reference": "S1/所有命令失败",
+          "weight": 3,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "需持续inspection错误，不是任意mac受限枚举。"
+        },
+        {
+          "id": "E04-F04",
+          "report_reference": "S2/Q1",
+          "weight": 3,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "无周期回收和计费成立；固定16容量不是无限增长，完成期有重试。"
+        },
+        {
+          "id": "E04-F05",
+          "report_reference": "S3",
+          "weight": 3,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "容量策略变化真实，是否P1在D3另评。"
+        },
+        {
+          "id": "E04-F06",
+          "report_reference": "D1",
+          "weight": 3,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "当前依赖满足且自定义缺失可失败；归类部署前提而非当前缺陷。"
+        },
+        {
+          "id": "E04-F07",
+          "report_reference": "D2",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "跨机墙钟偏差风险成立。"
+        },
+        {
+          "id": "E04-F08",
+          "report_reference": "D3",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "PowerShell未加对应terminationConfirmed失败分支属实。"
+        },
+        {
+          "id": "E04-F09",
+          "report_reference": "Q2",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "普通同ID等待创建无自身timeout；journey另有外层预算。"
+        },
+        {
+          "id": "E04-F10",
+          "report_reference": "Q3",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "私有SDK耦合主要在测试；将context._impl_obj.request.dispose等说成生产依赖过宽。"
+        },
+        {
+          "id": "E04-F11",
+          "report_reference": "Q4",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "stat字段和缺短字段显式检查属实。"
+        },
+        {
+          "id": "E04-F12",
+          "report_reference": "Q5",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "install成功但清理未确认时失败属实。"
+        },
+        {
+          "id": "E04-F13",
+          "report_reference": "Q7",
+          "weight": 1,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "Java此调用仅读success为真；公开响应closed不可因此称全局死字段。"
+        },
+        {
+          "id": "E04-F14",
+          "report_reference": "T1",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "fixture50ms与调度敏感性有证据；日志未独立认证在D4体现。"
+        },
+        {
+          "id": "E04-F15",
+          "report_reference": "A10",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "Browser cleanup有限等待大体成立；journey join不具总有界保证。"
+        }
+      ]
+    },
+    {
+      "id": "E05",
+      "name": "pi",
+      "fact_units": [
+        {
+          "id": "E05-F01",
+          "family": "F01",
+          "title": "取消终态",
+          "report_reference": "R1",
+          "weight": 3,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "启动窗口Run终态错误独立确证。"
+        },
+        {
+          "id": "E05-F03",
+          "family": "F03",
+          "title": "前台/沙箱结果与shell语义",
+          "report_reference": "R3",
+          "weight": 3,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "残留清理变化真；仅Linux生效不准，mac可杀已记录后代。"
+        },
+        {
+          "id": "E05-F04",
+          "family": "F04",
+          "title": "平台/进程发现与确认",
+          "report_reference": "R4",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "持续失败条件真；root死后也无法确认过强。"
+        },
+        {
+          "id": "E05-F05",
+          "family": "F05",
+          "title": "浏览器容量策略",
+          "report_reference": "R2",
+          "weight": 3,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "容量变更真实。"
+        },
+        {
+          "id": "E05-F06",
+          "family": "F06",
+          "title": "浏览器失败close与恢复",
+          "report_reference": "R5/R6/R7",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "失败latch、抛异常和祖先shutdown后恢复的边界准确。"
+        },
+        {
+          "id": "E05-F07",
+          "family": "F07",
+          "title": "journey断连/取消/总时限",
+          "report_reference": "A2/A5",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "取消保护有改进，路由有界清理保证过满。"
+        },
+        {
+          "id": "E05-F08",
+          "family": "F08",
+          "title": "跨端契约与错误分类",
+          "report_reference": "A1",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "唯一ID和strict快照修复可核。"
+        },
+        {
+          "id": "E05-F09",
+          "family": "F09",
+          "title": "测试与CI事实",
+          "report_reference": "R10/T1/T3",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "CI门禁真；tree父提交结果内在冲突，Linux跳过不是跨平台取消窗口的唯一原因。"
+        },
+        {
+          "id": "E05-F10",
+          "family": "F10",
+          "title": "部署依赖/时钟",
+          "report_reference": "R8",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "依赖条件及官方满足正确。"
+        },
+        {
+          "id": "E05-F12",
+          "family": "F12",
+          "title": "次要工程事实（合计封顶权重1）",
+          "report_reference": "R9",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "destroy仅杀root的潜在误用观察为真，未指当前调用必泄漏。"
+        }
+      ],
+      "rubrics": {
+        "D3": [
+          [
+            3.5,
+            "区分部分旧失败与新取消窗口，个别父失败前后矛盾。"
+          ],
+          [
+            2.5,
+            "仅Linux生效及root已死仍不确认外推；close恢复边界准确。"
+          ],
+          [
+            3.5,
+            "真实取消错误优先，行为变更高定级略重但注明产品意图。"
+          ]
+        ],
+        "D4": [
+          [
+            4,
+            "启动取消链、Pythonlatch与关键源码清楚。"
+          ],
+          [
+            2.5,
+            "报告内输出/命令可重建，所指/tmp/zk-parent和独立probe源当前无可核证据。"
+          ],
+          [
+            3.5,
+            "明确平台/没跑Linux、A/B自述和flake局限；单次测试归因仍不充分。"
+          ]
+        ],
+        "D5": [
+          [
+            2.5,
+            "取消/Python深入；同session注册阻塞与完整服务恢复弱。"
+          ],
+          [
+            3,
+            "状态机/接口语义/取消边界分析具体。"
+          ],
+          [
+            3,
+            "CI真实浏览器缺口、私有API、时序断言全面。"
+          ],
+          [
+            2.5,
+            "CHANGELOG/粒度/依赖/契约有据。"
+          ]
+        ],
+        "D6": [
+          [
+            2.5,
+            "重算summary、祖先回收合理；枚举降级宣告确认/为后台写法豁免需设计条件。"
+          ],
+          [
+            3.5,
+            "优先级与命令清楚，个别临时目录当前不存在。"
+          ]
+        ]
+      },
+      "atomic_audit_units": [
+        {
+          "id": "E05-F01",
+          "report_reference": "R1",
+          "weight": 3,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "启动summary误判独立确定性验证；原测试次数不证明频率。"
+        },
+        {
+          "id": "E05-F02",
+          "report_reference": "R2",
+          "weight": 3,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "普通容量变化真实；高定级另在D3评。"
+        },
+        {
+          "id": "E05-F03",
+          "report_reference": "R3",
+          "weight": 3,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "清理变化真实；“仅Linux生效、mac不会”过强，已记录后代在mac也能清理。"
+        },
+        {
+          "id": "E05-F04",
+          "report_reference": "R4",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "持续枚举异常可能失败；root被杀后仍永不确认不成立。"
+        },
+        {
+          "id": "E05-F05",
+          "report_reference": "R5",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "明确缓存失败latch且祖先关闭可恢复，边界正确。"
+        },
+        {
+          "id": "E05-F06",
+          "report_reference": "R6",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "未确认从bool成功改抛异常、主要调用有捕获属实；未捕获调用是假设，已说明。"
+        },
+        {
+          "id": "E05-F07",
+          "report_reference": "R7",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "startup守卫及先shutdown条件真实。"
+        },
+        {
+          "id": "E05-F08",
+          "report_reference": "R8",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "Linux依赖成立、默认镜像满足。"
+        },
+        {
+          "id": "E05-F09",
+          "report_reference": "R9",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "destroy仅根进程属实，定位为误用风险而非当前调用bug。"
+        },
+        {
+          "id": "E05-F10",
+          "report_reference": "R10/T2",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "真实浏览器CI门禁缺失属实。"
+        },
+        {
+          "id": "E05-F11",
+          "report_reference": "T1",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "源码支持startup窗口，但单次父通过不足定量因果；摘要tree测试父失败与后文父通过矛盾。"
+        },
+        {
+          "id": "E05-F12",
+          "report_reference": "T3",
+          "weight": 1,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "本地Linux跳过真实；取消窗口是跨平台问题，并非只能Linux测试发现。"
+        },
+        {
+          "id": "E05-F13",
+          "report_reference": "A2/A5",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "生命周期整体改进真实；“deadline/disconnect有界”遗漏真实watcher。"
+        }
+      ]
+    },
+    {
+      "id": "E06",
+      "name": "zhikuncode",
+      "fact_units": [
+        {
+          "id": "E06-F02",
+          "family": "F02",
+          "title": "Java保留与恢复",
+          "report_reference": "H1/H4/H8",
+          "weight": 3,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "保留后无周期恢复与同session阻塞真；任一失败永久/必占端口/重试必失败均过强。"
+        },
+        {
+          "id": "E06-F03",
+          "family": "F03",
+          "title": "前台/沙箱结果与shell语义",
+          "report_reference": "H3/H5",
+          "weight": 3,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "残留清理/通用truncated错配真，并正确排除CWD假阳性。"
+        },
+        {
+          "id": "E06-F04",
+          "family": "F04",
+          "title": "平台/进程发现与确认",
+          "report_reference": "H2",
+          "weight": 3,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "正文明确修正root死后可确认，给持续失败条件。"
+        },
+        {
+          "id": "E06-F05",
+          "family": "F05",
+          "title": "浏览器容量策略",
+          "report_reference": "H7",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "普通拒绝与journey首次限容真。"
+        },
+        {
+          "id": "E06-F06",
+          "family": "F06",
+          "title": "浏览器失败close与恢复",
+          "report_reference": "H6/H14",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "失败latch和driver严重恢复缺口真；context异常不证明实体仍存活，正常browser shutdown/startup可同进程恢复。"
+        },
+        {
+          "id": "E06-F07",
+          "family": "F07",
+          "title": "journey断连/取消/总时限",
+          "report_reference": "E06.md:L388,L586",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "L388的局部_finish_cleanup安全成立；L586称130s/125s边界静态分析成立（明确未动态压测），但真实watcher反例推翻这个整体预算判断，故部分支持。"
+        },
+        {
+          "id": "E06-F08",
+          "family": "F08",
+          "title": "跨端契约与错误分类",
+          "report_reference": "H7/H11/A19",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "HTTP错误映射/创建取消缺口真；API跳快照与父一致错误。"
+        },
+        {
+          "id": "E06-F09",
+          "family": "F09",
+          "title": "测试与CI事实",
+          "report_reference": "H9/T6/T7",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "CI及真实Request/容量路由覆盖缺口可核。"
+        },
+        {
+          "id": "E06-F10",
+          "family": "F10",
+          "title": "部署依赖/时钟",
+          "report_reference": "A20/H13时钟",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "依赖核验真；不能排除握手等其他PROCESS_GROUP_UNAVAILABLE。"
+        },
+        {
+          "id": "E06-F12",
+          "family": "F12",
+          "title": "次要工程事实（合计封顶权重1）",
+          "report_reference": "H10/H12/H13c/d/e/f",
+          "weight": 1,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "旧verifier/小ID/标签/预算/扫描事实真，但无Python日志泛化不准；合计只1权重。"
+        }
+      ],
+      "rubrics": {
+        "D3": [
+          [
+            3,
+            "排除了CWD误报；H1重试与API父行为仍误归因。"
+          ],
+          [
+            3.5,
+            "H2主动收窄，明确Linux/本机；端口与重试必失败仍过强。"
+          ],
+          [
+            3,
+            "H3/P1和任一失败永久影响较强，实际条件与P等级应拆分。"
+          ]
+        ],
+        "D4": [
+          [
+            4.5,
+            "调用链/排除清单/代码证据很广，有明确反证。"
+          ],
+          [
+            4.5,
+            "执行证据scratchpad、命令与原始输出可见已留存；未做真实browser。"
+          ],
+          [
+            4,
+            "有父提交失败复测、重跑、限制；关键H1仍仅静态并遗漏completion。"
+          ]
+        ],
+        "D5": [
+          [
+            3,
+            "覆盖功能链、错误路径、运维恢复广。"
+          ],
+          [
+            3,
+            "能识别latch、通用截断键和空方法等细节。"
+          ],
+          [
+            3,
+            "CI/用例语义/真实Request缺口分析具体。"
+          ],
+          [
+            3,
+            "文档、观测、配置、类型和死代码全面。"
+          ]
+        ],
+        "D6": [
+          [
+            2,
+            "资源未知时释放容量/强制移除和Optional[Request]建议有实害，reaper/祖先回收方向可用。"
+          ],
+          [
+            3.5,
+            "定位、优先级、原始证据清楚；少量摘要/正文强弱不一。"
+          ]
+        ]
+      },
+      "atomic_audit_units": [
+        {
+          "id": "E06-F01",
+          "report_reference": "H1",
+          "weight": 3,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "容量/同会话后续拒绝成立；任一失败即永久、没有自动重试过强。"
+        },
+        {
+          "id": "E06-F02",
+          "report_reference": "H2",
+          "weight": 3,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "正文明确修正root死亡后可确认，保留持续失败必要条件；摘要强定级在D3评。"
+        },
+        {
+          "id": "E06-F03",
+          "report_reference": "H3",
+          "weight": 3,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "前台残留清理行为真实，是否破坏/安全策略在D3评。"
+        },
+        {
+          "id": "E06-F04",
+          "report_reference": "H4",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "保留无后台回收真实；未确认不必然代表监听进程仍活、端口占用。"
+        },
+        {
+          "id": "E06-F05",
+          "report_reference": "H5",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "明确排除CWD假阳性，并发现新truncated字段错配；枚举metadata本来粗糙已区分。"
+        },
+        {
+          "id": "E06-F06",
+          "report_reference": "H6",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "失败latch/TTL不重发与容量占用真实；异常不证明真实context仍活，同进程shutdown/startup可恢复。"
+        },
+        {
+          "id": "E06-F07",
+          "report_reference": "H7",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "journey新限容及HTTP错误映射缺口真实；存在额外watcher挂起不否定无结构化映射。"
+        },
+        {
+          "id": "E06-F08",
+          "report_reference": "H8",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "FAILED保留/root grace/stopvoid真实；“重试每次必失败”不成立，资源可迟恢复。"
+        },
+        {
+          "id": "E06-F09",
+          "report_reference": "H9",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "两个opt-in真实浏览器测试CI不启用，负载敏感与私有耦合真实。"
+        },
+        {
+          "id": "E06-F10",
+          "report_reference": "H10",
+          "weight": 1,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "路由自身不记录该HTTPException属实；应用中间件会日志，不能泛称Python侧无日志。"
+        },
+        {
+          "id": "E06-F11",
+          "report_reference": "H11",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "创建被外部close取消后HTTP500、资源已清理，实际ASGI复现；是分类问题。"
+        },
+        {
+          "id": "E06-F12",
+          "report_reference": "H12",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "旧废弃verifierID/120s真实且不可达边界已说明。"
+        },
+        {
+          "id": "E06-F13",
+          "report_reference": "H13c",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "unclosed_contexts值标签承担sessionID/诊断标签双义，静态可见。"
+        },
+        {
+          "id": "E06-F14",
+          "report_reference": "H13d",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "fallback UUID截8hex，Java常规提供完整UUID，已作P3潜在限制。"
+        },
+        {
+          "id": "E06-F15",
+          "report_reference": "H13e",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "600s总预算与新增余量关系属低级预算分析，不当作已复现故障。"
+        },
+        {
+          "id": "E06-F16",
+          "report_reference": "H13f",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "/proc扫描及known集合开销存在，未将小推测算已测瓶颈。"
+        },
+        {
+          "id": "E06-F17",
+          "report_reference": "H14",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "driver stop失败latch且祖先无法确认释放时startup受阻，需进程恢复/健康可观测。"
+        },
+        {
+          "id": "E06-F18",
+          "report_reference": "A19",
+          "weight": 2,
+          "credit": 0,
+          "verdict": "反证",
+          "reason": "HTTP模式跳快照与父提交一致错误，父确会调用并创建幽灵资源。"
+        },
+        {
+          "id": "E06-F19",
+          "report_reference": "A20",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "验证setsid/bash仅排除此分支，不能保证所有PROCESS_GROUP_UNAVAILABLE（握手身份等）不发生。"
+        },
+        {
+          "id": "E06-F20",
+          "report_reference": "A9/取消安全",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "BrowserService取消保护大体有证据，整体journey无界watcher是边界反例。"
+        }
+      ]
+    },
+    {
+      "id": "E07",
+      "name": "TraceCodeCn",
+      "fact_units": [
+        {
+          "id": "E07-F02",
+          "family": "F02",
+          "title": "Java保留与恢复",
+          "report_reference": "P2-1",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "保留真，完全无自动重试错误。"
+        },
+        {
+          "id": "E07-F03",
+          "family": "F03",
+          "title": "前台/沙箱结果与shell语义",
+          "report_reference": "P2-4/P2-5",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "前台语义变更真，CWD/env丢失假。"
+        },
+        {
+          "id": "E07-F04",
+          "family": "F04",
+          "title": "平台/进程发现与确认",
+          "report_reference": "P1-2",
+          "weight": 3,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "mac假确认实际存在，但当作新增高回归不准，系剩余旧局限。"
+        },
+        {
+          "id": "E07-F05",
+          "family": "F05",
+          "title": "浏览器容量策略",
+          "report_reference": "P1-1/容量",
+          "weight": 3,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "容量策略变化真。"
+        },
+        {
+          "id": "E07-F06",
+          "family": "F06",
+          "title": "浏览器失败close与恢复",
+          "report_reference": "P1-1/close",
+          "weight": 3,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "关闭异常保留真；只能重启进程错误。"
+        },
+        {
+          "id": "E07-F08",
+          "family": "F08",
+          "title": "跨端契约与错误分类",
+          "report_reference": "S2/A1/A2",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "close路由捕获、签名、沙箱旧分支等可核。"
+        },
+        {
+          "id": "E07-F09",
+          "family": "F09",
+          "title": "测试与CI事实",
+          "report_reference": "P2-6a/b/c/S1",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "CI/短阈值真，未改文件不等于已证明无因果。"
+        },
+        {
+          "id": "E07-F10",
+          "family": "F10",
+          "title": "部署依赖/时钟",
+          "report_reference": "P2-2",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "Linux依赖与默认镜像界限正确。"
+        },
+        {
+          "id": "E07-F12",
+          "family": "F12",
+          "title": "次要工程事实（合计封顶权重1）",
+          "report_reference": "P2-3",
+          "weight": 1,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "macCPU对照有源，Linux0-4ms语境混入mac数据；重要锚点失效另在D4/D6计。"
+        }
+      ],
+      "rubrics": {
+        "D3": [
+          [
+            2.5,
+            "把剩余mac缺口作为高回归、无改动即无因果、漏completion。"
+          ],
+          [
+            3,
+            "有mac真实子进程反例，Linux计时与mac证据混用。"
+          ],
+          [
+            2.5,
+            "容量策略和旧平台限制定P1，修复建议未充分保留安全取舍。"
+          ]
+        ],
+        "D4": [
+          [
+            3,
+            "多数链路具体；OwnedProcess603/720/806超出257行，重要定位无效。"
+          ],
+          [
+            3.5,
+            "macprobe源码可见，CPU/父Python对照自述；缺完整所有日志。"
+          ],
+          [
+            3,
+            "诚实列Linux未测和负载，父归因不充分。"
+          ]
+        ],
+        "D5": [
+          [
+            2.5,
+            "平台/容量充分，启动summary与恢复误判漏掉。"
+          ],
+          [
+            2.5,
+            "轮询/兼容语义/接口有具体讨论。"
+          ],
+          [
+            3,
+            "Linux/真实浏览器门禁、flaky有实际分析。"
+          ],
+          [
+            2.5,
+            "CHANGELOG和workflow具体。"
+          ]
+        ],
+        "D6": [
+          [
+            2.5,
+            "best-effort标签、集成测试合理；TTL强制回收/LRU条件不足。"
+          ],
+          [
+            2.5,
+            "错误源码锚点影响核查；主要probe与命令可重建。"
+          ]
+        ]
+      },
+      "atomic_audit_units": [
+        {
+          "id": "E07-F01",
+          "report_reference": "P1-1",
+          "weight": 3,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "容量变化/close记账真实；只能重启进程错误，可同进程shutdown/startup。"
+        },
+        {
+          "id": "E07-F02",
+          "report_reference": "P1-2",
+          "weight": 3,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "mac真实孤儿漏清理成立；列为P1回归缺父归因，实际是旧局限未闭合。"
+        },
+        {
+          "id": "E07-F03",
+          "report_reference": "P2-1",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "持久占用真实；完全无自动重试遗漏completeRun。"
+        },
+        {
+          "id": "E07-F04",
+          "report_reference": "P2-2",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "Linux依赖及默认镜像大概率满足正确条件化。"
+        },
+        {
+          "id": "E07-F05",
+          "report_reference": "P2-3",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "mac轮询开销有效实验；Linux0-4ms被混入实测语境且无Linux运行。"
+        },
+        {
+          "id": "E07-F06",
+          "report_reference": "P2-4",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "前台清理契约变化真实。"
+        },
+        {
+          "id": "E07-F07",
+          "report_reference": "P2-5",
+          "weight": 2,
+          "credit": 0,
+          "verdict": "反证",
+          "reason": "跳日志方法不造成cwd/env陈旧。"
+        },
+        {
+          "id": "E07-F08",
+          "report_reference": "P2-6a",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "真实浏览器测试在CI门控跳过属实。"
+        },
+        {
+          "id": "E07-F09",
+          "report_reference": "P2-6b",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "50ms和sleep时序脆弱有源码依据，频率未认证。"
+        },
+        {
+          "id": "E07-F10",
+          "report_reference": "P2-6c/S1",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "未改测试/模块并非父提交对照，无因果的确定断言过强。"
+        },
+        {
+          "id": "E07-F11",
+          "report_reference": "S2",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "close抛异常、路由已有捕获属实。"
+        },
+        {
+          "id": "E07-F12",
+          "report_reference": "A1/A2",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "签名兼容、ID/strict修复、沙箱分支旧有可静态闭环。"
+        }
+      ]
+    },
+    {
+      "id": "E08",
+      "name": "opencode",
+      "fact_units": [
+        {
+          "id": "E08-F03",
+          "family": "F03",
+          "title": "前台/沙箱结果与shell语义",
+          "report_reference": "3.2",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "有残留且不能确认时工具失败真实；只说跳过update，未推CWD丢失，不按其他选手误报扣分。"
+        },
+        {
+          "id": "E08-F04",
+          "family": "F04",
+          "title": "平台/进程发现与确认",
+          "report_reference": "3.4",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "非Linux明确是旧best-effort限制而非新回归。"
+        },
+        {
+          "id": "E08-F05",
+          "family": "F05",
+          "title": "浏览器容量策略",
+          "report_reference": "3.3",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "容量拒绝变化真实且承认安全收益。"
+        },
+        {
+          "id": "E08-F07",
+          "family": "F07",
+          "title": "journey断连/取消/总时限",
+          "report_reference": "3.1/机制",
+          "weight": 3,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "真实Request CancelScope与watcher无界gather缺陷独立确认；原5/5历史及成功快路径频率未认证，不当假阳性。"
+        },
+        {
+          "id": "E08-F09",
+          "family": "F09",
+          "title": "测试与CI事实",
+          "report_reference": "摘要/3.1/4.1/4.3",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "无真实Request/ASGI覆盖正确；“全部单参/无http_request”字面错误，父Java失败归因也缺A/B；合并一族避免同一问题重复扣。"
+        },
+        {
+          "id": "E08-F12",
+          "family": "F12",
+          "title": "次要工程事实（合计封顶权重1）",
+          "report_reference": "3.5",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "废弃verifier旧ID/未用import真；Optional建议实害在D6独立评价。"
+        }
+      ],
+      "rubrics": {
+        "D3": [
+          [
+            3.5,
+            "非Linux明确非回归；旧Java失败仅以未改文件归因不足。"
+          ],
+          [
+            3.5,
+            "特定时序与多秒常态有区分；5/5替身快路径不能证明真实成功路径频率。"
+          ],
+          [
+            4,
+            "核心hang与阻断建议匹配，Java“基本安全”缺关键取消/恢复覆盖。"
+          ]
+        ],
+        "D4": [
+          [
+            4,
+            "SDK取消链精确、调用范围广；真实创建让步未追到位。"
+          ],
+          [
+            3,
+            "内联uvicorn/机制输出具价值，原jdelay/mech均缺，第三方只能重建；主审已独立证实机制。"
+          ],
+          [
+            3.5,
+            "有delay对照、重复flake降级和平台边界；缺父提交实际HTTP/旧测试证据。"
+          ]
+        ],
+        "D5": [
+          [
+            2.5,
+            "深入Pythonwatcher，Java异常收敛和browserfailedclose恢复明显薄。"
+          ],
+          [
+            2.5,
+            "SDK取消机制深入，状态机/维护性有具体点。"
+          ],
+          [
+            3,
+            "真实ASGI覆盖缺口是关键，测试参数泛化错误D2单列。"
+          ],
+          [
+            2.5,
+            "行为说明/废弃类/类型规范有覆盖。"
+          ]
+        ],
+        "D6": [
+          [
+            2,
+            "Optional[Request]会破坏路由注册；丢弃watcher/移除检测只是缓解不是完整资源修复。"
+          ],
+          [
+            3.5,
+            "核心根因和复现操作清晰，原临时脚本未随报告保存。"
+          ]
+        ]
+      },
+      "atomic_audit_units": [
+        {
+          "id": "E08-F01",
+          "report_reference": "3.1/核心hang",
+          "weight": 3,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "真实Request吞watcher取消机制成立，评审用实际容量路径及Uvicorn A/B独立复现。"
+        },
+        {
+          "id": "E08-F02",
+          "report_reference": "3.1/成功快路径归因",
+          "weight": 3,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "原脚本缺失；无await创建替身不等同真实创建成功路径。证明的是可行时序，真实可达触发由容量拒绝补证。"
+        },
+        {
+          "id": "E08-F03",
+          "report_reference": "摘要/全部测试无http_request",
+          "weight": 2,
+          "credit": 0,
+          "verdict": "反证",
+          "reason": "源码143-145传SimpleNamespace，报告正文也承认；准确表述是没有真实Request/ASGI测试。"
+        },
+        {
+          "id": "E08-F04",
+          "report_reference": "3.2",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "正常完成清理/未确认失败属实；逃逸未被发现可假确认，不一定导致unconfirmed；未直接声称CWD丢失，不扣该误报。"
+        },
+        {
+          "id": "E08-F05",
+          "report_reference": "3.3",
+          "weight": 2,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "容量策略改拒绝属实，并承认可能更安全。"
+        },
+        {
+          "id": "E08-F06",
+          "report_reference": "3.4",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "明确非Linux为既有best-effort而非回归，校准正确。"
+        },
+        {
+          "id": "E08-F07",
+          "report_reference": "3.5",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "废弃旧verifier与未用import真实。"
+        },
+        {
+          "id": "E08-F08",
+          "report_reference": "4.1/旧失败归因",
+          "weight": 2,
+          "credit": 0.5,
+          "verdict": "部分支持",
+          "reason": "未改模块+单独重跑仍失败不足证明父提交亦失败；仅支持疑似既有/环境。"
+        },
+        {
+          "id": "E08-F09",
+          "report_reference": "4.3",
+          "weight": 1,
+          "credit": 1,
+          "verdict": "支持",
+          "reason": "报告保留间歇失败及后50次未复现，不据此作稳定故障结论。"
+        }
+      ],
+      "unverified_claims": [
+        {
+          "reference": "3.1 5/5原始实验",
+          "reason": "原jdelay.py/mech.py缺失，无法认证原始5/5执行；不因此认定造假。SDK根因已由评审独立复现。"
+        },
+        {
+          "reference": "真实成功单步screenshot的触发频率",
+          "reason": "实际创建成功有await；原立即返回替身证明时序模型，不能估计生产概率。仍可能有调度竞态，未独立判定频率，不进D2。"
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "D1发现与D2正确性分别计算：识别真实机制但夸大后果者可获得发现分，同时准确性只得部分分。",
+    "D2按重要去重事实族，不以250个提取段落为分母；纯风格/重复摘要移到D5/D6。抽取全文仍公开供质疑。",
+    "部分支持仅0.5，不代表发生概率；未能认证测试历史不当成造假，在D4反映。",
+    "D3-D6为带锚点的人工判断分，不是统计测量；分数小数来自计算方便，不表示高精度。"
+  ],
+  "fact_family_labels": {
+    "F01": "取消终态",
+    "F02": "Java保留与恢复",
+    "F03": "前台/沙箱结果与shell语义",
+    "F04": "平台/进程发现与确认",
+    "F05": "浏览器容量策略",
+    "F06": "浏览器失败close与恢复",
+    "F07": "journey断连/取消/总时限",
+    "F08": "跨端契约与错误分类",
+    "F09": "测试与CI事实",
+    "F10": "部署依赖/时钟",
+    "F11": "清理预算",
+    "F12": "次要工程事实（合计封顶权重1）"
+  },
+  "scoring_amendment": "初步数值草案后、最终发布前，同侪复核统一D2：同一报告每个固定事实族仅计一次，支持/部分/反证按核心因果0/0.5/1；摘要与正文重复不重复计。次要工程观察总权重1，不能用长文小正确事实稀释重要错误。未知实验史排除D2，在D4标明可复核性。G08收紧为必须识别根因，不给仅泛称无界gather半分。所有八份统一重算，未依名次调权重。",
+  "final_claim_audit_amendment": "原文复核纠正E01/E02 F07，漏检不得自动转为误报；E06 F07改引L586整体预算静态判断，明确L388局部安全不受反证。"
+}

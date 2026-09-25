@@ -1,0 +1,4 @@
+os=Linux java=21.0.12
+setsid=true bash=true
+mode=parent-normal-completion exit=3 stdout=ok stderr=err childBefore=true cleanupConfirmed=false childAfter=true
+mode=target-owned exit=3 stdout=ok stderr=err childBefore=true cleanupConfirmed=true childAfter=false

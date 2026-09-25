@@ -1,0 +1,680 @@
+{
+  "rankings": [
+    {
+      "id": "E06",
+      "name": "zhikuncode",
+      "dimensions": {
+        "D1": 16.40625,
+        "D2": 14.545454545454545,
+        "D3": 9.5,
+        "D4": 13.0,
+        "D5": 12,
+        "D6": 5.5
+      },
+      "total": 70.95170454545455,
+      "accuracy_denominator": 22,
+      "accuracy_numerator": 16.0,
+      "rank": 1
+    },
+    {
+      "id": "E01",
+      "name": "DeepSeekHarness",
+      "dimensions": {
+        "D1": 14.53125,
+        "D2": 15.555555555555555,
+        "D3": 9.5,
+        "D4": 12.5,
+        "D5": 11.5,
+        "D6": 6.0
+      },
+      "total": 69.58680555555556,
+      "accuracy_denominator": 18,
+      "accuracy_numerator": 14.0,
+      "rank": 2
+    },
+    {
+      "id": "E08",
+      "name": "opencode",
+      "dimensions": {
+        "D1": 9.84375,
+        "D2": 18.181818181818183,
+        "D3": 11.0,
+        "D4": 10.5,
+        "D5": 10.5,
+        "D6": 5.5
+      },
+      "total": 65.52556818181819,
+      "accuracy_denominator": 11,
+      "accuracy_numerator": 10.0,
+      "rank": 3
+    },
+    {
+      "id": "E05",
+      "name": "pi",
+      "dimensions": {
+        "D1": 12.65625,
+        "D2": 15.5,
+        "D3": 9.5,
+        "D4": 10.0,
+        "D5": 11.0,
+        "D6": 6.0
+      },
+      "total": 64.65625,
+      "accuracy_denominator": 20,
+      "accuracy_numerator": 15.5,
+      "rank": 4
+    },
+    {
+      "id": "E03",
+      "name": "ZCode",
+      "dimensions": {
+        "D1": 12.1875,
+        "D2": 12.272727272727273,
+        "D3": 8.5,
+        "D4": 12.0,
+        "D5": 11.5,
+        "D6": 5.5
+      },
+      "total": 61.96022727272727,
+      "accuracy_denominator": 22,
+      "accuracy_numerator": 13.5,
+      "rank": 5
+    },
+    {
+      "id": "E02",
+      "name": "QoderIDE",
+      "dimensions": {
+        "D1": 7.96875,
+        "D2": 15.0,
+        "D3": 10.5,
+        "D4": 7.5,
+        "D5": 10.5,
+        "D6": 6.0
+      },
+      "total": 57.46875,
+      "accuracy_denominator": 18,
+      "accuracy_numerator": 13.5,
+      "rank": 6
+    },
+    {
+      "id": "E04",
+      "name": "QoderCN",
+      "dimensions": {
+        "D1": 9.84375,
+        "D2": 14.285714285714286,
+        "D3": 8.0,
+        "D4": 8.0,
+        "D5": 9.0,
+        "D6": 6
+      },
+      "total": 55.129464285714285,
+      "accuracy_denominator": 21,
+      "accuracy_numerator": 15.0,
+      "rank": 7
+    },
+    {
+      "id": "E07",
+      "name": "TraceCodeCn",
+      "dimensions": {
+        "D1": 8.90625,
+        "D2": 13.157894736842104,
+        "D3": 8.0,
+        "D4": 9.5,
+        "D5": 10.5,
+        "D6": 5.0
+      },
+      "total": 55.0641447368421,
+      "accuracy_denominator": 19,
+      "accuracy_numerator": 12.5,
+      "rank": 8
+    }
+  ],
+  "scenarios": {
+    "基准": [
+      {
+        "id": "E06",
+        "name": "zhikuncode",
+        "score": 70.95170454545455
+      },
+      {
+        "id": "E01",
+        "name": "DeepSeekHarness",
+        "score": 69.58680555555556
+      },
+      {
+        "id": "E08",
+        "name": "opencode",
+        "score": 65.52556818181819
+      },
+      {
+        "id": "E05",
+        "name": "pi",
+        "score": 64.65625
+      },
+      {
+        "id": "E03",
+        "name": "ZCode",
+        "score": 61.96022727272727
+      },
+      {
+        "id": "E02",
+        "name": "QoderIDE",
+        "score": 57.46875
+      },
+      {
+        "id": "E04",
+        "name": "QoderCN",
+        "score": 55.129464285714285
+      },
+      {
+        "id": "E07",
+        "name": "TraceCodeCn",
+        "score": 55.0641447368421
+      }
+    ],
+    "发现优先": [
+      {
+        "id": "E06",
+        "name": "zhikuncode",
+        "score": 69.19128787878788
+      },
+      {
+        "id": "E01",
+        "name": "DeepSeekHarness",
+        "score": 67.09722222222223
+      },
+      {
+        "id": "E05",
+        "name": "pi",
+        "score": 61.625
+      },
+      {
+        "id": "E08",
+        "name": "opencode",
+        "score": 61.327651515151516
+      },
+      {
+        "id": "E03",
+        "name": "ZCode",
+        "score": 59.21022727272727
+      },
+      {
+        "id": "E02",
+        "name": "QoderIDE",
+        "score": 52.625
+      },
+      {
+        "id": "E04",
+        "name": "QoderCN",
+        "score": 51.99404761904762
+      },
+      {
+        "id": "E07",
+        "name": "TraceCodeCn",
+        "score": 51.74122807017544
+      }
+    ],
+    "准确与校准优先": [
+      {
+        "id": "E06",
+        "name": "zhikuncode",
+        "score": 71.58901515151516
+      },
+      {
+        "id": "E01",
+        "name": "DeepSeekHarness",
+        "score": 71.52083333333333
+      },
+      {
+        "id": "E08",
+        "name": "opencode",
+        "score": 71.50189393939394
+      },
+      {
+        "id": "E05",
+        "name": "pi",
+        "score": 68.02083333333333
+      },
+      {
+        "id": "E02",
+        "name": "QoderIDE",
+        "score": 63.3125
+      },
+      {
+        "id": "E03",
+        "name": "ZCode",
+        "score": 62.86742424242424
+      },
+      {
+        "id": "E04",
+        "name": "QoderCN",
+        "score": 58.99107142857143
+      },
+      {
+        "id": "E07",
+        "name": "TraceCodeCn",
+        "score": 58.17434210526316
+      }
+    ],
+    "验证优先": [
+      {
+        "id": "E06",
+        "name": "zhikuncode",
+        "score": 73.71732954545455
+      },
+      {
+        "id": "E01",
+        "name": "DeepSeekHarness",
+        "score": 72.33159722222223
+      },
+      {
+        "id": "E08",
+        "name": "opencode",
+        "score": 67.21827651515152
+      },
+      {
+        "id": "E05",
+        "name": "pi",
+        "score": 66.046875
+      },
+      {
+        "id": "E03",
+        "name": "ZCode",
+        "score": 65.09564393939394
+      },
+      {
+        "id": "E02",
+        "name": "QoderIDE",
+        "score": 57.640625
+      },
+      {
+        "id": "E07",
+        "name": "TraceCodeCn",
+        "score": 57.24643640350877
+      },
+      {
+        "id": "E04",
+        "name": "QoderCN",
+        "score": 56.15550595238095
+      }
+    ],
+    "建议安全优先": [
+      {
+        "id": "E06",
+        "name": "zhikuncode",
+        "score": 70.33285984848486
+      },
+      {
+        "id": "E01",
+        "name": "DeepSeekHarness",
+        "score": 70.22048611111111
+      },
+      {
+        "id": "E08",
+        "name": "opencode",
+        "score": 67.99289772727273
+      },
+      {
+        "id": "E05",
+        "name": "pi",
+        "score": 66.50520833333333
+      },
+      {
+        "id": "E03",
+        "name": "ZCode",
+        "score": 61.89299242424243
+      },
+      {
+        "id": "E02",
+        "name": "QoderIDE",
+        "score": 60.890625
+      },
+      {
+        "id": "E04",
+        "name": "QoderCN",
+        "score": 58.1436011904762
+      },
+      {
+        "id": "E07",
+        "name": "TraceCodeCn",
+        "score": 56.327576754385966
+      }
+    ]
+  },
+  "weight_grid": {
+    "count": 729,
+    "range": {
+      "E01": [
+        2,
+        2
+      ],
+      "E02": [
+        6,
+        6
+      ],
+      "E03": [
+        5,
+        5
+      ],
+      "E04": [
+        7,
+        8
+      ],
+      "E05": [
+        3,
+        4
+      ],
+      "E06": [
+        1,
+        1
+      ],
+      "E07": [
+        7,
+        8
+      ],
+      "E08": [
+        3,
+        4
+      ]
+    },
+    "first_count": {
+      "E01": 0,
+      "E02": 0,
+      "E03": 0,
+      "E04": 0,
+      "E05": 0,
+      "E06": 729,
+      "E07": 0,
+      "E08": 0
+    },
+    "interpretation": "只表示这些指定权重组合下的位置，绝非胜率或统计置信度"
+  },
+  "subjective_anchor_envelope": {
+    "E01": [
+      63.58680555555556,
+      74.08680555555556
+    ],
+    "E02": [
+      51.96875,
+      62.96875
+    ],
+    "E03": [
+      55.96022727272727,
+      66.46022727272728
+    ],
+    "E04": [
+      49.129464285714285,
+      61.129464285714285
+    ],
+    "E05": [
+      58.65625,
+      69.65625
+    ],
+    "E06": [
+      64.95170454545455,
+      74.95170454545455
+    ],
+    "E07": [
+      49.0641447368421,
+      60.5641447368421
+    ],
+    "E08": [
+      59.52556818181819,
+      71.02556818181819
+    ]
+  },
+  "judgment_scenarios": {
+    "所有D1半档改零": [
+      {
+        "id": "E06",
+        "name": "zhikuncode",
+        "score": 70.48295454545455
+      },
+      {
+        "id": "E01",
+        "name": "DeepSeekHarness",
+        "score": 66.30555555555556
+      },
+      {
+        "id": "E08",
+        "name": "opencode",
+        "score": 65.05681818181819
+      },
+      {
+        "id": "E05",
+        "name": "pi",
+        "score": 62.3125
+      },
+      {
+        "id": "E03",
+        "name": "ZCode",
+        "score": 61.02272727272727
+      },
+      {
+        "id": "E02",
+        "name": "QoderIDE",
+        "score": 55.125
+      },
+      {
+        "id": "E04",
+        "name": "QoderCN",
+        "score": 50.910714285714285
+      },
+      {
+        "id": "E07",
+        "name": "TraceCodeCn",
+        "score": 50.8453947368421
+      }
+    ],
+    "所有D1半档改满": [
+      {
+        "id": "E01",
+        "name": "DeepSeekHarness",
+        "score": 72.86805555555556
+      },
+      {
+        "id": "E06",
+        "name": "zhikuncode",
+        "score": 71.42045454545455
+      },
+      {
+        "id": "E05",
+        "name": "pi",
+        "score": 67.0
+      },
+      {
+        "id": "E08",
+        "name": "opencode",
+        "score": 65.99431818181819
+      },
+      {
+        "id": "E03",
+        "name": "ZCode",
+        "score": 62.89772727272727
+      },
+      {
+        "id": "E02",
+        "name": "QoderIDE",
+        "score": 59.8125
+      },
+      {
+        "id": "E04",
+        "name": "QoderCN",
+        "score": 59.348214285714285
+      },
+      {
+        "id": "E07",
+        "name": "TraceCodeCn",
+        "score": 59.2828947368421
+      }
+    ],
+    "G08影响权重5改3": [
+      {
+        "id": "E06",
+        "name": "zhikuncode",
+        "score": 72.04545454545455
+      },
+      {
+        "id": "E01",
+        "name": "DeepSeekHarness",
+        "score": 70.55555555555556
+      },
+      {
+        "id": "E05",
+        "name": "pi",
+        "score": 65.5
+      },
+      {
+        "id": "E08",
+        "name": "opencode",
+        "score": 64.18181818181819
+      },
+      {
+        "id": "E03",
+        "name": "ZCode",
+        "score": 62.77272727272727
+      },
+      {
+        "id": "E02",
+        "name": "QoderIDE",
+        "score": 58.0
+      },
+      {
+        "id": "E04",
+        "name": "QoderCN",
+        "score": 55.785714285714285
+      },
+      {
+        "id": "E07",
+        "name": "TraceCodeCn",
+        "score": 55.6578947368421
+      }
+    ],
+    "G08影响权重5改7": [
+      {
+        "id": "E06",
+        "name": "zhikuncode",
+        "score": 69.98663101604278
+      },
+      {
+        "id": "E01",
+        "name": "DeepSeekHarness",
+        "score": 68.73202614379085
+      },
+      {
+        "id": "E08",
+        "name": "opencode",
+        "score": 66.71122994652407
+      },
+      {
+        "id": "E05",
+        "name": "pi",
+        "score": 63.911764705882355
+      },
+      {
+        "id": "E03",
+        "name": "ZCode",
+        "score": 61.24331550802139
+      },
+      {
+        "id": "E02",
+        "name": "QoderIDE",
+        "score": 57.0
+      },
+      {
+        "id": "E04",
+        "name": "QoderCN",
+        "score": 54.55042016806723
+      },
+      {
+        "id": "E07",
+        "name": "TraceCodeCn",
+        "score": 54.540247678018574
+      }
+    ],
+    "D2事实族等权": [
+      {
+        "id": "E06",
+        "name": "zhikuncode",
+        "score": 70.40625
+      },
+      {
+        "id": "E01",
+        "name": "DeepSeekHarness",
+        "score": 69.48579545454545
+      },
+      {
+        "id": "E08",
+        "name": "opencode",
+        "score": 65.67708333333334
+      },
+      {
+        "id": "E05",
+        "name": "pi",
+        "score": 65.15625
+      },
+      {
+        "id": "E03",
+        "name": "ZCode",
+        "score": 62.41477272727273
+      },
+      {
+        "id": "E02",
+        "name": "QoderIDE",
+        "score": 57.46875
+      },
+      {
+        "id": "E04",
+        "name": "QoderCN",
+        "score": 55.28819444444444
+      },
+      {
+        "id": "E07",
+        "name": "TraceCodeCn",
+        "score": 55.23958333333333
+      }
+    ],
+    "去除八方均漏G07": [
+      {
+        "id": "E06",
+        "name": "zhikuncode",
+        "score": 72.64890282131661
+      },
+      {
+        "id": "E01",
+        "name": "DeepSeekHarness",
+        "score": 71.09003831417624
+      },
+      {
+        "id": "E08",
+        "name": "opencode",
+        "score": 66.54388714733543
+      },
+      {
+        "id": "E05",
+        "name": "pi",
+        "score": 65.9655172413793
+      },
+      {
+        "id": "E03",
+        "name": "ZCode",
+        "score": 63.22100313479624
+      },
+      {
+        "id": "E02",
+        "name": "QoderIDE",
+        "score": 58.29310344827586
+      },
+      {
+        "id": "E04",
+        "name": "QoderCN",
+        "score": 56.14778325123153
+      },
+      {
+        "id": "E07",
+        "name": "TraceCodeCn",
+        "score": 55.98548094373865
+      }
+    ]
+  }
+}

@@ -1,0 +1,7 @@
+START:09:41:25
+s.................................................................       [100%]
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_browser_resource_container.py:31: isolated Linux container only
+65 passed, 1 skipped in 8.64s
+PYTEST_EXIT=0
+END:09:41:44

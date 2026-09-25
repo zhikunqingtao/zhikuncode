@@ -1,0 +1,10 @@
+{
+  "restored_files": 5535,
+  "existing_files_skipped": 0,
+  "note": "Only missing source files restored; no builds, network, installs, or evidence overwrites.",
+  "checked_at": "2026-09-25T13:14:07.391175+08:00",
+  "tested_in_temporary_directory": true,
+  "source_hashes_checked_by_restore_script": true,
+  "layout": "证据附件/校验与来源",
+  "repository_worktree_modified": false
+}

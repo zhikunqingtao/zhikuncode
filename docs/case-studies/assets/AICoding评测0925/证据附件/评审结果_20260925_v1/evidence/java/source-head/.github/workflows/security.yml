@@ -1,0 +1,103 @@
+# =============================================================================
+# ZhikunCode — 安全扫描
+# 触发条件：push 到 main / 每周一定时扫描
+# =============================================================================
+name: Security Scan
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # 每周一 UTC 02:00（北京时间周一 10:00）
+    - cron: '0 2 * * 1'
+  workflow_dispatch:
+
+jobs:
+  # =========================================================================
+  # Job 1: 前端依赖漏洞扫描
+  # =========================================================================
+  npm-audit:
+    name: NPM Audit (Frontend)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      # 检出代码
+      - uses: actions/checkout@v4
+
+      # 配置 Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      # 安装依赖
+      - name: Install dependencies
+        run: npm ci
+
+      # 运行 npm audit（仅报告 high/critical 级别）
+      - name: Run npm audit
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+  # =========================================================================
+  # Job 2: Python 依赖漏洞扫描
+  # =========================================================================
+  pip-audit:
+    name: Pip Audit (Python Service)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: python-service
+
+    steps:
+      # 检出代码
+      - uses: actions/checkout@v4
+
+      # 配置 Python
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # 安装 pip-audit 工具
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      # 安装项目依赖
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -e .
+
+      # 运行 pip-audit 扫描已知漏洞
+      - name: Run pip-audit
+        run: pip-audit
+        continue-on-error: true
+
+  # =========================================================================
+  # Job 3: Docker 镜像 Trivy 安全扫描
+  # =========================================================================
+  trivy-scan:
+    name: Trivy Container Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      # 检出代码
+      - uses: actions/checkout@v4
+
+      # 构建 Docker 镜像用于扫描
+      - name: Build Docker image
+        run: docker build -t zhikuncode:scan .
+
+      # 使用 Trivy 扫描容器镜像
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: 'zhikuncode:scan'
+          format: 'table'
+          exit-code: '0'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true

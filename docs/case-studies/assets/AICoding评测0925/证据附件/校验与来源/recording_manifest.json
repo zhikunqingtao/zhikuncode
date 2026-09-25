@@ -1,0 +1,433 @@
+{
+  "added_at": "2026-09-25T13:16:48.925369+08:00",
+  "path": "证据附件/完整流程录屏/钉钉录屏_2026-09-25 092622_100M.mp4",
+  "source": "EVALUATION/钉钉录屏_2026-09-25 092622_100M.mp4",
+  "original_sha256": "1abd6f29394e721193b383e6e4f70a1dfc6bcb8b0b7932dfc857e28003f87106",
+  "published_sha256": "1abd6f29394e721193b383e6e4f70a1dfc6bcb8b0b7932dfc857e28003f87106",
+  "original_bytes": 94104336,
+  "published_bytes": 94104336,
+  "markdown_frozen": false,
+  "byte_identical": true,
+  "description": "用户提供的完整评测流程压缩录屏；据用户说明覆盖每个参赛方从开始到结束及完整评测流程。",
+  "verification_scope": "复制一致性、媒体元数据、抽帧过程核验与画面隐私初筛；不是逐帧审计；冻结评分未改。",
+  "media": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "hevc",
+        "codec_type": "video",
+        "width": 1280,
+        "height": 738
+      }
+    ],
+    "format": {
+      "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+      "duration": "7046.133333",
+      "size": "94104336"
+    }
+  },
+  "original_large_recording_still_excluded": true,
+  "process_review": {
+    "reviewed_at": "2026-09-25T13:27:20.667966+08:00",
+    "document": "证据附件/完整流程录屏/录屏时间索引与过程核验.md",
+    "method": "120s coarse full-span screening; 30s exact seeks in first 40min; 5s first 2min; targeted original-resolution frames; OCR supplementary only",
+    "continuous_frame_by_frame_review": false,
+    "provider_statements": [
+      "Compressed from the beginning of the original recording; full startup/model/reasoning settings of all eight tools were not shown",
+      "Only opencode and DeepSeekHarness had permission approvals; no manual retries/restarts",
+      "Account and email visibility accepted by provider; credential exposure remains in scope"
+    ],
+    "timeline": [
+      {
+        "seconds": 0,
+        "subject": "QoderIDE",
+        "observation": "提示词已在输入区；不能把此帧当作任务已经发送。"
+      },
+      {
+        "seconds": 5,
+        "subject": "opencode、pi",
+        "observation": "存在“你可以干什么”的前置会话；pi列出Context、Skills等启动信息，审查提示词在输入区。"
+      },
+      {
+        "seconds": 10,
+        "subject": "opencode、pi",
+        "observation": "审查对话与工具输出已出现。发送的具体瞬间不作秒级计时结论。"
+      },
+      {
+        "seconds": 20,
+        "subject": "QoderCN",
+        "observation": "审查会话出现；可见模型／推理标签，完整配置过程未展示。"
+      },
+      {
+        "seconds": 25,
+        "subject": "zhikuncode",
+        "observation": "新任务输入区出现审查提示词；文件名前缀是zhikuncode。"
+      },
+      {
+        "seconds": 30,
+        "subject": "DeepSeekHarness",
+        "observation": "新任务输入区出现审查提示词，底部显示DeepSeek-V41-Flash Max。"
+      },
+      {
+        "seconds": 35,
+        "subject": "DeepSeekHarness",
+        "observation": "已出现读取代码与提交的工具步骤。"
+      },
+      {
+        "seconds": 40,
+        "subject": "opencode",
+        "observation": "画面左侧出现访问目录的Permission required提示；这不是新的评测任务。"
+      },
+      {
+        "seconds": 100,
+        "subject": "QoderIDE",
+        "observation": "出现提交审查与调用步骤。"
+      },
+      {
+        "seconds": 120,
+        "subject": "TraceCodeCn",
+        "observation": "输入区出现带TraceCodeCn前缀的审查提示词。"
+      },
+      {
+        "seconds": 330,
+        "subject": "ZCode",
+        "observation": "显示审查调用链与任务执行过程。"
+      },
+      {
+        "seconds": 420,
+        "subject": "opencode、pi",
+        "observation": "左侧Always allow确认面板；右侧有pytest结果与继续核查文字。前后台可见状态不能替代完整权限日志。"
+      },
+      {
+        "seconds": 870,
+        "subject": "QoderCN",
+        "observation": "界面报告已写入，并显示结论与验证说明。此处是可见交付点，不是精确完成时刻。"
+      },
+      {
+        "seconds": 1080,
+        "subject": "TraceCodeCn",
+        "observation": "显示源码、平台条件和测试结果的分析。"
+      },
+      {
+        "seconds": 1200,
+        "subject": "QoderIDE",
+        "observation": "报告编辑视图及继续检查的工具步骤。"
+      },
+      {
+        "seconds": 1350,
+        "subject": "zhikuncode",
+        "observation": "打开浏览器开发者工具与窄屏视图；可见操作本身不证明重启了模型任务。"
+      },
+      {
+        "seconds": 1500,
+        "subject": "QoderIDE",
+        "observation": "出现报告链接与审查结论摘要。"
+      },
+      {
+        "seconds": 1530,
+        "subject": "pi",
+        "observation": "终端已有报告交付摘要。"
+      },
+      {
+        "seconds": 1710,
+        "subject": "TraceCodeCn",
+        "observation": "界面显示风险结论及测试说明。"
+      },
+      {
+        "seconds": 1720,
+        "subject": "pi",
+        "observation": "显示清理临时探针和/tmp/zk-parent的命令，随后列出报告目录。"
+      },
+      {
+        "seconds": 1740,
+        "subject": "DeepSeekHarness",
+        "observation": "显示写入受sandbox限制、重试写入成功；随后Skim other reports for blind spots及继续核查。"
+      },
+      {
+        "seconds": 1800,
+        "subject": "DeepSeekHarness",
+        "observation": "显示交付报告卡片及验证说明。"
+      },
+      {
+        "seconds": 1860,
+        "subject": "ZCode",
+        "observation": "报告完成声明、文件编辑记录和结论；同时可见MEMORY.md更新记录。"
+      },
+      {
+        "seconds": 2130,
+        "subject": "zhikuncode",
+        "observation": "显示Write完成与报告路径；随后列目录，注意到其他报告文件名。仅此画面不能推断读取了报告正文。"
+      },
+      {
+        "seconds": 2160,
+        "subject": "zhikuncode",
+        "observation": "侧栏展开审查报告正文。"
+      },
+      {
+        "seconds": 2370,
+        "subject": "评审准备",
+        "observation": "切到Codex新任务界面；此时其他参赛运行未必都结束。"
+      },
+      {
+        "seconds": 2940,
+        "subject": "评审准备",
+        "observation": "评审请求在输入区，说明先评现有产物，opencode后补。"
+      },
+      {
+        "seconds": 3060,
+        "subject": "评审执行",
+        "observation": "已发送评审任务，并出现Java truth、Python truth、Report claims的工作状态。"
+      },
+      {
+        "seconds": 3540,
+        "subject": "opencode",
+        "observation": "显示机制核查及Preparing write；这一帧尚不能证明报告已经落盘。"
+      },
+      {
+        "seconds": 3600,
+        "subject": "opencode纳入",
+        "observation": "用户正在输入opencode已产出、纳入本轮且不做V2的指令。"
+      },
+      {
+        "seconds": 3660,
+        "subject": "opencode纳入",
+        "observation": "会话已显示纳入本轮的用户指令及接受说明；不能据此反推准确完成耗时。"
+      },
+      {
+        "seconds": 4020,
+        "subject": "技术复核",
+        "observation": "评审会话显示opencode挂起发现的独立复现结论，以及需要收窄的推断。"
+      },
+      {
+        "seconds": 4380,
+        "subject": "逐条复核",
+        "observation": "侧栏显示advice_audit.md等核验材料。"
+      },
+      {
+        "seconds": 4740,
+        "subject": "评分草案复核",
+        "observation": "侧栏显示逐项信用修订与统一判定讨论；有Wi-Fi弹层。"
+      },
+      {
+        "seconds": 5340,
+        "subject": "主张复核",
+        "observation": "显示Report claims复核工作及修订反馈。"
+      },
+      {
+        "seconds": 5700,
+        "subject": "评分状态",
+        "observation": "明确说明纠正漏检重复计为事实错误的扣分、已重算但总报告尚未完成。"
+      },
+      {
+        "seconds": 6060,
+        "subject": "评分展示",
+        "observation": "出现当时保存的八方六维评分表，同时说明正式交付未完成。"
+      },
+      {
+        "seconds": 6540,
+        "subject": "报告整理",
+        "observation": "打开综合报告草稿内容；草稿预览不等于最终落盘校验完成。"
+      },
+      {
+        "seconds": 6660,
+        "subject": "报告收尾",
+        "observation": "可见render_reports.py写入与证据索引收尾说明。"
+      },
+      {
+        "seconds": 6780,
+        "subject": "最终交付",
+        "observation": "显示八方最终总分和综合报告正文，以及准备GitHub资料的对话。"
+      },
+      {
+        "seconds": 6900,
+        "subject": "补充数据",
+        "observation": "Finder中出现用量ZIP，评审进入发布材料检查。"
+      },
+      {
+        "seconds": 7045,
+        "subject": "片尾",
+        "observation": "综合报告与提交前检查说明仍可见；没有出现后续目录精简和本次视频核验的完整过程。"
+      }
+    ],
+    "privacy_status": "Account/email visibility accepted; credential sampling found no confirmed usable credentials; not an exhaustive guarantee; user explicitly requested unchanged upload",
+    "frozen_scores_changed": false,
+    "extraction_recipe": "ffmpeg -ss SECONDS -i INPUT.mp4 -frames:v 1 -q:v 2 OUTPUT.jpg",
+    "temporary_extracted_exact_seconds": [
+      0,
+      5,
+      10,
+      15,
+      20,
+      25,
+      30,
+      35,
+      40,
+      45,
+      50,
+      55,
+      60,
+      65,
+      70,
+      75,
+      80,
+      85,
+      90,
+      95,
+      100,
+      105,
+      110,
+      115,
+      120,
+      150,
+      180,
+      210,
+      240,
+      270,
+      300,
+      330,
+      360,
+      390,
+      420,
+      450,
+      480,
+      510,
+      540,
+      570,
+      600,
+      630,
+      660,
+      690,
+      720,
+      750,
+      780,
+      810,
+      840,
+      870,
+      900,
+      930,
+      960,
+      990,
+      1020,
+      1050,
+      1080,
+      1110,
+      1140,
+      1170,
+      1200,
+      1230,
+      1260,
+      1290,
+      1320,
+      1350,
+      1380,
+      1410,
+      1440,
+      1470,
+      1500,
+      1530,
+      1560,
+      1590,
+      1620,
+      1650,
+      1680,
+      1690,
+      1700,
+      1710,
+      1720,
+      1730,
+      1740,
+      1750,
+      1760,
+      1770,
+      1780,
+      1790,
+      1800,
+      1830,
+      1860,
+      1890,
+      1920,
+      1950,
+      1980,
+      2010,
+      2040,
+      2070,
+      2100,
+      2130,
+      2160,
+      2190,
+      2220,
+      2250,
+      2280,
+      2310,
+      2340,
+      2370,
+      2400,
+      2460,
+      2580,
+      2700,
+      2820,
+      2940,
+      3000,
+      3060,
+      3180,
+      3300,
+      3420,
+      3540,
+      3600,
+      3660,
+      3780,
+      3900,
+      4020,
+      4140,
+      4200,
+      4260,
+      4380,
+      4500,
+      4620,
+      4740,
+      4800,
+      4860,
+      4980,
+      5100,
+      5220,
+      5340,
+      5460,
+      5580,
+      5700,
+      5820,
+      5940,
+      6000,
+      6060,
+      6180,
+      6300,
+      6420,
+      6540,
+      6600,
+      6660,
+      6780,
+      6900,
+      7020,
+      7045
+    ],
+    "credential_scan": {
+      "interval_seconds": 5,
+      "fast_ocr_frames": 1409,
+      "accurate_ocr_frames": 81,
+      "keyword_candidate_frames": 11,
+      "confirmed_usable_credentials": 0,
+      "candidate_disposition": "API Key menu/filter labels on usage page; not secret values",
+      "exhaustive": false
+    },
+    "document_sha256": "bfe9eeeae46c624cf15f8dc8d1e2c21861c7eda8993befcdec9a795e46ddcbe0"
+  },
+  "upload_authorization": "User requested direct upload of unchanged video; other documents remain uncommitted",
+  "publication": {
+    "git_commit": "acf22f86897d78fd745181d5e71b11225ee4476e",
+    "branch": "main",
+    "remote": "https://github.com/zhikunqingtao/zhikuncode.git",
+    "pushed": true,
+    "scope": "Historical first publication: video file only"
+  },
+  "full_package_publication_authorized": true
+}

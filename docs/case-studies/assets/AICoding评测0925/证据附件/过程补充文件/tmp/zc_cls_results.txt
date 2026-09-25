@@ -1,0 +1,6 @@
+classrun1 exit=0
+classrun2 exit=0
+classrun3 exit=0
+classrun4 exit=0
+classrun5 exit=0
+classrun6 exit=0
