@@ -9,6 +9,12 @@ import pytest
 @pytest.mark.asyncio
 async def test_estimate_batch(client):
     """批量 Token 估算端点：POST /api/v1/tokens/estimate"""
+    # 预热请求（不计时）：吸收进程内首次请求的冷启动开销（如 tiktoken 编码器加载）
+    await client.post("/api/v1/tokens/estimate", json={
+        "texts": ["hello world", "你好世界"],
+        "model": "cl100k_base"
+    })
+
     start = time.monotonic()
     resp = await client.post("/api/v1/tokens/estimate", json={
         "texts": ["hello world", "你好世界"],
