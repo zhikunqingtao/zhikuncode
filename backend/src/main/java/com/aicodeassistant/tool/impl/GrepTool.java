@@ -198,7 +198,13 @@ public class GrepTool implements Tool {
             }
 
             List<String> args;
-            boolean recursiveDirectorySearch = Files.isDirectory(searchRoot);
+            // A protected directory chosen directly as the search root is the
+            // gateway-authorized target itself, so its contents are returned
+            // (direct access may be authorized). Only when protected
+            // directories are mere descendants of the root do the recursive
+            // exclusions apply.
+            boolean recursiveDirectorySearch = Files.isDirectory(searchRoot)
+                    && !isProtectedDirectoryRoot(searchRoot);
             if (HAS_RIPGREP) {
                 args = buildRipgrepArgs(input, pattern, searchPath,
                         outputMode, recursiveDirectorySearch);
@@ -413,6 +419,22 @@ public class GrepTool implements Tool {
         }
         args.add(searchPath);
         return args;
+    }
+
+    /**
+     * Whether the search root is itself one of the protected directories.
+     * Such a root is the directly targeted resource (authorization is decided
+     * by the gateway), so its own contents must not be excluded; protected
+     * directories that are descendants of the root stay excluded.
+     */
+    private boolean isProtectedDirectoryRoot(Path root) {
+        Path rootName = root.getFileName();
+        if (rootName == null) {
+            return false;
+        }
+        String name = rootName.toString();
+        return pathSecurity.protectedDirectoryNames().stream()
+                .anyMatch(name::equalsIgnoreCase);
     }
 
     /**
