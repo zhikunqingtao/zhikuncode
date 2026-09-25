@@ -206,6 +206,7 @@ class BashToolFailureClassificationTest {
         assertThat(result.failureCode()).isEqualTo("PROCESS_TERMINATION_UNCONFIRMED");
         assertThat(result.content()).contains("cleanup could not be confirmed", "done\ndiagnostic");
         assertThat(result.metadata()).containsEntry("terminationConfirmed", false)
+                .containsEntry("truncated", true)
                 .containsEntry("descendantTrackingUnavailable", true)
                 .containsEntry("stdoutTruncated", true)
                 .containsEntry("stderrTruncated", true);

@@ -217,9 +217,48 @@ async def test_external_close_cancels_active_journey_without_recreating_context(
     task = asyncio.create_task(journey.journey_run(req))
     await asyncio.wait_for(started.wait(), 1)
     assert await service.close_session("rv-owned")
-    with pytest.raises(asyncio.CancelledError):
+    with pytest.raises(HTTPException) as error:
         await asyncio.wait_for(task, 1)
+    assert error.value.status_code == 409
+    assert error.value.detail == "JOURNEY_CANCELLED"
     assert not service._sessions
     assert not service._creating
     context.close.assert_awaited_once()
     service._browser.new_context.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_http_cleanup_join_is_bounded_and_retains_late_owner(owned_service, monkeypatch):
+    service, session = owned_service
+    service.cleanup_timeout = 0.01
+    release = asyncio.Event()
+    cleaned = asyncio.Event()
+
+    async def screenshot(**kwargs):
+        await asyncio.Event().wait()
+
+    async def close(*args, **kwargs):
+        await release.wait()
+        cleaned.set()
+
+    session.page.screenshot.side_effect = screenshot
+    service.close_session.side_effect = close
+    monkeypatch.setattr(journey, "JOURNEY_EXECUTION_TIMEOUT_SECONDS", 0.01)
+    owner = asyncio.create_task(journey.journey_run(request()))
+    try:
+        done, _ = await asyncio.wait({owner}, timeout=2)
+        assert done, "A stuck cleanup must not hold the HTTP handler indefinitely"
+        with pytest.raises(HTTPException) as error:
+            owner.result()
+        assert error.value.status_code == 504
+        retained = [task for task in journey._pending_cleanup_tasks if not task.done()]
+        assert len(retained) == 1
+        assert not cleaned.is_set()
+        service.release_session.assert_not_awaited()
+    finally:
+        release.set()
+        await asyncio.wait_for(asyncio.gather(owner, return_exceptions=True), 1)
+        await asyncio.gather(*list(journey._pending_cleanup_tasks), return_exceptions=True)
+    assert cleaned.is_set()
+    assert not journey._pending_cleanup_tasks
+    service.release_session.assert_awaited_once_with("rv-owned", session)

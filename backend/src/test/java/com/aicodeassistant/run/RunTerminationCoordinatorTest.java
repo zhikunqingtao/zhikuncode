@@ -54,6 +54,8 @@ class RunTerminationCoordinatorTest {
                         RunControlService.TransitionResult.APPLIED, 0));
         when(processes.cancelRunDetailed("run"))
                 .thenReturn(new ManagedProcessRunner.CancelSummary(2, 1, 1));
+        when(processes.currentRunTermination("run"))
+                .thenReturn(new ManagedProcessRunner.CancelSummary(1, 0, 1));
         when(tools.cancelRunDetailed("run"))
                 .thenReturn(new StreamingToolExecutor.ToolCancelSummary(0, 0, 0));
         when(executions.awaitQuiescence(eq("run"), any())).thenReturn(true);

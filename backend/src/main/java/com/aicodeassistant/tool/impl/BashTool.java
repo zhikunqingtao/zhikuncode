@@ -414,7 +414,8 @@ public class BashTool implements Tool {
                         result.exitCode(), Map.of("terminationConfirmed", false,
                                 "descendantTrackingUnavailable", result.descendantTrackingUnavailable(),
                                 "stdoutTruncated", result.stdoutTruncated(),
-                                "stderrTruncated", result.stderrTruncated()));
+                                "stderrTruncated", result.stderrTruncated(),
+                                "truncated", result.stdoutTruncated() || result.stderrTruncated()));
             }
             shellStateManager.updateStateFromSnapshot(sessionId);
             boolean failed = result.exitCode() != 0;

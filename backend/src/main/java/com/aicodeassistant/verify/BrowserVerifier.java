@@ -18,8 +18,8 @@ public class BrowserVerifier implements Verifier {
     private static final String CAPABILITY = "BROWSER_AUTOMATION";
     private static final String JOURNEY_ENDPOINT = "/api/browser/journey/run";
     private static final Duration JOURNEY_TIMEOUT = Duration.ofSeconds(130);
-    // Preserve the existing 120s work budget; add <=5s Python context cleanup
-    // and 5s transport headroom only to this HTTP call (tool budget is 600s).
+    // Preserve the existing 120s work budget; add <=6s Python cleanup join
+    // and 4s transport headroom only to this HTTP call (tool budget is 600s).
     // Failure snapshot (2s) and final close (5s) have separate, bounded tool budgets.
     private static final Duration EXECUTION_TIMEOUT = Duration.ofSeconds(120);
     private static final Logger log = LoggerFactory.getLogger(BrowserVerifier.class);
@@ -49,8 +49,13 @@ public class BrowserVerifier implements Verifier {
         );
 
         // 120s work + bounded cleanup/transport headroom.
-        Optional<JourneyResponse> resp = pythonClient.callIfAvailable(
-            CAPABILITY, JOURNEY_ENDPOINT, body, JourneyResponse.class, JOURNEY_TIMEOUT);
+        Optional<JourneyResponse> resp;
+        try {
+            resp = pythonClient.callJourneyIfAvailable(
+                    CAPABILITY, JOURNEY_ENDPOINT, body, JourneyResponse.class, JOURNEY_TIMEOUT);
+        } catch (PythonCapabilityAwareClient.JourneyCallException refusal) {
+            return JourneyResult.failed(refusal.code(), refusal.getMessage());
+        }
 
         if (resp.isEmpty()) {
             return JourneyResult.failed("PYTHON_CALL_FAILED", "Python service unreachable or timeout");

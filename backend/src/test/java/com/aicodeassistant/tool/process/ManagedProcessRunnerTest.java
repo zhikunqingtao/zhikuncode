@@ -279,8 +279,10 @@ class ManagedProcessRunnerTest {
                 .thenAnswer(call -> gate.acquireBackground(ds, "session-merge-test"));
         org.springframework.test.util.ReflectionTestUtils.setField(runner, "sessions", sessions);
         try {
-            runner.startBackground(new ManagedProcessRunner.BackgroundRequest(List.of("bash", "-c", "sleep 30"),
+            var background = runner.startBackground(new ManagedProcessRunner.BackgroundRequest(List.of("bash", "-c", "sleep 30"),
                     Path.of(System.getProperty("java.io.tmpdir")), "run-test", "tool-test", "session-merge-test"));
+            runner.retryRetainedCleanup();
+            assertThat(ProcessHandle.of(background.pid()).orElseThrow().isAlive()).isTrue();
             assertThat(gate.tryAcquireMerge(ds, "session-merge-test", "merge")).isNull();
             assertThat(gate.tryAcquire(ds, "unrelated")).isNotNull();
         } finally { runner.cancelSessionBackground("session-merge-test"); }

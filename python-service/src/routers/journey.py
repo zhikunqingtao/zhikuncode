@@ -15,14 +15,23 @@ from typing import Dict, Any
 
 from fastapi import APIRouter, HTTPException, Request
 
+from services.browser_service import BrowserAdmissionError
 from services.journey_models import JourneyRunRequest, JourneyRunResponse, StepResultModel
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-# Match BrowserVerifier: <=120s work, <=5s context cleanup, 5s transport headroom
+# Match BrowserVerifier: <=120s work, <=6s cleanup join, 4s transport headroom
 # inside its 130s HTTP timeout. Java's later snapshot/close have separate budgets.
 JOURNEY_EXECUTION_TIMEOUT_SECONDS = 120.0
 DISCONNECT_POLL_SECONDS = 0.25
+# Retain late cleanup tasks after the HTTP cleanup budget expires.
+_pending_cleanup_tasks: set[asyncio.Task] = set()
+
+
+def _cleanup_finished(task):
+    _pending_cleanup_tasks.discard(task)
+    if not task.cancelled():
+        task.exception()
 
 
 @router.post("/journey/run")
@@ -36,30 +45,56 @@ async def journey_run(request: JourneyRunRequest, http_request: Request = None) 
     if remaining <= 0:
         raise HTTPException(status_code=504, detail="JOURNEY_DEADLINE_EXCEEDED")
 
+    stop_watcher = asyncio.Event()
     execution = asyncio.create_task(_run_owned_journey(browser_service, request))
-    disconnected = (asyncio.create_task(_wait_for_disconnect(http_request))
+    disconnected = (asyncio.create_task(_wait_for_disconnect(http_request, stop_watcher))
                     if http_request is not None else None)
     try:
         watched = {execution, disconnected} if disconnected is not None else {execution}
         done, _ = await asyncio.wait(watched, timeout=remaining, return_when=asyncio.FIRST_COMPLETED)
         if execution in done:
-            return await execution
+            try:
+                return await execution
+            except BrowserAdmissionError as error:
+                raise HTTPException(status_code=error.status_code, detail=error.code) from error
+            except asyncio.CancelledError:
+                # A close_session cancelled the child; do not swallow cancellation
+                # of the HTTP handler itself.
+                if asyncio.current_task().cancelling():
+                    raise
+                raise HTTPException(status_code=409, detail="JOURNEY_CANCELLED")
         if disconnected is not None and disconnected in done:
+            disconnected.result()  # Receive failures are not client disconnects.
             raise HTTPException(status_code=499, detail="JOURNEY_CLIENT_DISCONNECTED")
         raise HTTPException(status_code=504, detail="JOURNEY_DEADLINE_EXCEEDED")
     finally:
-        # HTTP disconnect is not automatically cancellation in ASGI. Cancel and
-        # join the execution, including its bounded BrowserService cleanup.
-        if not execution.done():
-            execution.cancel()
-        if disconnected is not None:
-            disconnected.cancel()
-        await asyncio.gather(*watched, return_exceptions=True)
+        stop_watcher.set()
+        for task in watched:
+            _pending_cleanup_tasks.add(task)
+            task.add_done_callback(_cleanup_finished)
+            if not task.done():
+                task.cancel()
+        # wait_for(gather(...)) can itself wait forever for suppressed cancellation.
+        # asyncio.wait bounds the join without cancelling Playwright cleanup again.
+        _, pending = await asyncio.wait(
+            watched, timeout=getattr(browser_service, "cleanup_timeout", 5.0) + 1.0
+        )
+        if pending:
+            logger.warning("Journey cleanup still pending: %d task(s)", len(pending))
 
 
-async def _wait_for_disconnect(request: Request):
-    while not await request.is_disconnected():
-        await asyncio.sleep(DISCONNECT_POLL_SECONDS)
+async def _wait_for_disconnect(request: Request, stopped: asyncio.Event):
+    while not stopped.is_set():
+        if await request.is_disconnected():
+            return
+        # Request.is_disconnected may absorb Task.cancel inside AnyIO's scope.
+        # The explicit stop flag still ends this watcher after that call returns.
+        if stopped.is_set():
+            return
+        try:
+            await asyncio.wait_for(stopped.wait(), timeout=DISCONNECT_POLL_SECONDS)
+        except asyncio.TimeoutError:
+            pass
 
 
 async def _run_owned_journey(browser_service, request: JourneyRunRequest) -> JourneyRunResponse:

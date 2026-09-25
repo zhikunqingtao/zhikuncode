@@ -12,7 +12,7 @@ import re
 import time
 import uuid
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from capabilities import (
@@ -101,44 +101,48 @@ app = FastAPI(
 )
 
 
-@app.middleware("http")
-async def request_correlation_middleware(request: Request, call_next):
-    """Correlate Java/Python calls without reading or changing request/response bodies."""
-    incoming = request.headers.get("x-request-id", "")
-    request_id = incoming if _SAFE_REQUEST_ID.fullmatch(incoming) else str(uuid.uuid4())
-    started = time.perf_counter()
-    try:
-        response = await call_next(request)
-    except Exception as error:
-        try:
-            logger.warning(
-                "python_request_failed requestId=%s method=%s path=%s durationMs=%d errorType=%s",
-                request_id,
-                request.method,
-                request.url.path,
-                int((time.perf_counter() - started) * 1000),
-                type(error).__name__,
-            )
-        except Exception:
-            pass
-        raise
+class RequestCorrelationMiddleware:
+    """Preserve ASGI receive semantics, including nonblocking disconnect polls."""
 
-    try:
-        response.headers["X-Request-Id"] = request_id
-    except Exception:
-        pass
-    try:
-        logger.info(
-            "python_request_completed requestId=%s method=%s path=%s status=%s durationMs=%d",
-            request_id,
-            request.method,
-            request.url.path,
-            response.status_code,
-            int((time.perf_counter() - started) * 1000),
-        )
-    except Exception:
-        pass
-    return response
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            return await self.app(scope, receive, send)
+        from starlette.datastructures import Headers, MutableHeaders
+        incoming = Headers(scope=scope).get("x-request-id", "")
+        request_id = incoming if _SAFE_REQUEST_ID.fullmatch(incoming) else str(uuid.uuid4())
+        started = time.perf_counter()
+
+        async def send_correlated(message):
+            if message["type"] == "http.response.start":
+                MutableHeaders(scope=message)["X-Request-Id"] = request_id
+                try:
+                    logger.info(
+                        "python_request_completed requestId=%s method=%s path=%s status=%s durationMs=%d",
+                        request_id, scope["method"], scope["path"], message["status"],
+                        int((time.perf_counter() - started) * 1000),
+                    )
+                except Exception:
+                    pass
+            await send(message)
+
+        try:
+            await self.app(scope, receive, send_correlated)
+        except Exception as error:
+            try:
+                logger.warning(
+                    "python_request_failed requestId=%s method=%s path=%s durationMs=%d errorType=%s",
+                    request_id, scope["method"], scope["path"],
+                    int((time.perf_counter() - started) * 1000), type(error).__name__,
+                )
+            except Exception:
+                pass
+            raise
+
+
+app.add_middleware(RequestCorrelationMiddleware)
 
 # 注册始终可用的 Token 估算路由
 app.include_router(token_router, prefix="/api/v1/tokens", tags=["Token Estimation"])

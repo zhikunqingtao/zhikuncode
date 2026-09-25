@@ -257,7 +257,25 @@ public class PythonCapabilityAwareClient {
      */
     public <T> Optional<T> callWithRetry(String endpoint, Object body,
                                          Class<T> resultType, Duration timeout) {
-        boolean retryAllowed = isReadOnlyEndpoint(endpoint);
+        return callWithRetry(endpoint, body, resultType, timeout, false);
+    }
+
+    /** Journey refusals retain their stable error code; side effects are never retried. */
+    public <T> Optional<T> callJourneyIfAvailable(String domain, String endpoint, Object body,
+                                                Class<T> resultType, Duration timeout) {
+        if (!isCapabilityAvailable(domain)) return Optional.empty();
+        return callWithRetry(endpoint, body, resultType, timeout, true);
+    }
+
+    public static class JourneyCallException extends RuntimeException {
+        private final String code;
+        public JourneyCallException(String code) { super(code); this.code = code; }
+        public String code() { return code; }
+    }
+
+    private <T> Optional<T> callWithRetry(String endpoint, Object body,
+                                        Class<T> resultType, Duration timeout, boolean journeyErrors) {
+        boolean retryAllowed = !journeyErrors && isReadOnlyEndpoint(endpoint);
         String requestId = UUID.randomUUID().toString();
         for (int attempt = 0; attempt <= MAX_RETRIES; attempt++) {
             try {
@@ -279,12 +297,23 @@ public class PythonCapabilityAwareClient {
                 log.warn("Python POST failed: endpoint={}, requestId={}, attempt={}, status={}, responseLength={}, responseFingerprint={}",
                         endpoint, requestId, attempt + 1, response.statusCode(),
                         SafeLogValue.length(response.body()), SafeLogValue.fingerprint(response.body()));
+                if (journeyErrors && response.statusCode() >= 400) {
+                    // Never surface arbitrary response text or credentials from the service.
+                    String code = objectMapper.readTree(response.body()).path("detail").asText("");
+                    if (java.util.Set.of("BROWSER_CAPACITY_REACHED", "BROWSER_SESSION_CONFLICT",
+                            "BROWSER_CLEANUP_PENDING", "BROWSER_NOT_RUNNING", "JOURNEY_CANCELLED",
+                            "JOURNEY_CLIENT_DISCONNECTED", "JOURNEY_DEADLINE_EXCEEDED").contains(code)) {
+                        throw new JourneyCallException(code);
+                    }
+                }
                 if (response.statusCode() >= 400 && response.statusCode() < 500) {
                     log.info("Permanent Python client error is not retryable: endpoint={}, status={}",
                             endpoint, response.statusCode());
                     return Optional.empty();
                 }
                 if (!retryAllowed) return Optional.empty();
+            } catch (JourneyCallException refusal) {
+                throw refusal;
             } catch (Exception e) {
                 if (!retryAllowed) {
                     log.warn("Python side-effecting/unknown endpoint failed without retry: endpoint={}, requestId={}, errorType={}",

@@ -60,6 +60,11 @@ public class RunTerminationCoordinator {
         ManagedProcessRunner.CancelSummary stopped = processes.cancelRunDetailed(runId);
         RunControlService.TransitionResult terminal;
         boolean quiescent = executions.awaitQuiescence(runId, java.time.Duration.ofSeconds(2));
+        if (quiescent && !stopped.allTerminated()) {
+            // Launch reservations may have completed cleanup while we waited.
+            // Refresh without initiating another cleanup budget or reopening admission.
+            stopped = processes.currentRunTermination(runId);
+        }
         if (!quiescent) {
             terminal = runs.fail(runId, RunEnvelope.RunExitReason.TOOL_TERMINATION_UNCONFIRMED,
                     "Termination requested, but Run-owned work did not become quiescent");

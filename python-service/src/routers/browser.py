@@ -48,6 +48,20 @@ async def shutdown_browser():
     await browser_service.shutdown()
 
 
+@router.post("/recover_failed_cleanup")
+async def recover_failed_cleanup() -> BrowserResponse:
+    """Explicit maintenance action; refuses to interrupt healthy/active sessions."""
+    try:
+        if not await browser_service.recover_failed_cleanup():
+            return BrowserResponse(success=False, error_code="BROWSER_RECOVERY_NOT_READY",
+                                   error_message="Active sessions/creation exist or no failed cleanup remains")
+        return BrowserResponse(success=True, data={"recovered": True})
+    except Exception:
+        logger.exception("Browser recovery could not confirm resource release or restart")
+        return BrowserResponse(success=False, error_code="BROWSER_RECOVERY_FAILED",
+                               error_message="Browser recovery incomplete; resource ownership retained")
+
+
 # ═══ 端点 ═══
 
 @router.post("/navigate")

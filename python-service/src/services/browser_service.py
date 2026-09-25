@@ -93,6 +93,15 @@ _INTERACTIVE_QUERY_SCRIPT = """
 """
 
 
+class BrowserAdmissionError(RuntimeError):
+    """Expected admission refusal, safe to expose as a stable error code."""
+
+    def __init__(self, code: str, message: str, status_code: int = 503):
+        super().__init__(message)
+        self.code = code
+        self.status_code = status_code
+
+
 class BrowserSession:
     """单个浏览器会话 — 对应一个独立的 BrowserContext"""
 
@@ -156,6 +165,7 @@ class BrowserService:
         self._lock = asyncio.Lock()
         self._lifecycle_lock = asyncio.Lock()
         self._stopping = False
+        self._recovery_pending = False
         self.cleanup_timeout = 5.0
         self._cleanup_task: Optional[asyncio.Task] = None
         self._js_errors: dict[str, list[dict]] = {}  # session_id → collected JS errors
@@ -186,44 +196,68 @@ class BrowserService:
     async def startup(self):
         """启动 Playwright 和浏览器进程"""
         async with self._lifecycle_lock:
-            if (self._browser or self._playwright or self._creating
-                    or self._unclosed_contexts or self._resource_close_tasks
-                    or self._starting or self._startup_cleanup or self._playwright_exit):
-                raise RuntimeError("BrowserService is already started or has unreleased resources")
-            self._stopping = False
-            manager = async_playwright()
-            self._playwright_exit = partial(manager.__aexit__, None, None, None)
-            try:
-                self._starting = asyncio.create_task(manager.start())
-                self._playwright = await asyncio.shield(self._starting)
-                self._starting = None
-                launcher = getattr(self._playwright, self.browser_type)
-                launch_kwargs = {
-                    "headless": self.headless,
-                    "args": ["--no-sandbox", "--disable-dev-shm-usage",
-                             "--disable-gpu", "--disable-extensions"],
-                }
-                if self.browser_channel:
-                    launch_kwargs["channel"] = self.browser_channel
-                self._browser = await launcher.launch(**launch_kwargs)
-                self._cleanup_task = asyncio.create_task(self._periodic_cleanup())
-            except BaseException:
-                self._stopping = True
-                self._startup_cleanup = asyncio.create_task(self._rollback_startup())
-                self._startup_cleanup.add_done_callback(lambda task: None if task.cancelled() else task.exception())
-                await self._finish_cleanup(self._wait_cleanup_task(self._startup_cleanup))
-                raise
-            logger.info(f"BrowserService started: {self.browser_type}, headless={self.headless}")
+            await self._startup_locked()
+
+    async def _startup_locked(self):
+        if (self._browser or self._playwright or self._creating
+                or self._unclosed_contexts or self._resource_close_tasks
+                or self._starting or self._startup_cleanup or self._playwright_exit):
+            raise RuntimeError("BrowserService is already started or has unreleased resources")
+        self._stopping = False
+        manager = async_playwright()
+        self._playwright_exit = partial(manager.__aexit__, None, None, None)
+        try:
+            self._starting = asyncio.create_task(manager.start())
+            self._playwright = await asyncio.shield(self._starting)
+            self._starting = None
+            launcher = getattr(self._playwright, self.browser_type)
+            launch_kwargs = {
+                "headless": self.headless,
+                "args": ["--no-sandbox", "--disable-dev-shm-usage",
+                         "--disable-gpu", "--disable-extensions"],
+            }
+            if self.browser_channel:
+                launch_kwargs["channel"] = self.browser_channel
+            self._browser = await launcher.launch(**launch_kwargs)
+            self._cleanup_task = asyncio.create_task(self._periodic_cleanup())
+        except BaseException:
+            self._stopping = True
+            self._startup_cleanup = asyncio.create_task(self._rollback_startup())
+            self._startup_cleanup.add_done_callback(lambda task: None if task.cancelled() else task.exception())
+            await self._finish_cleanup(self._wait_cleanup_task(self._startup_cleanup))
+            raise
+        self._recovery_pending = False
+        logger.info(f"BrowserService started: {self.browser_type}, headless={self.headless}")
 
     async def shutdown(self):
         """关闭所有资源"""
         async with self._lifecycle_lock:
+            self._recovery_pending = False  # Explicit shutdown ends any pending restart.
             pending = self._startup_cleanup
             if pending:
                 await self._finish_cleanup(self._wait_cleanup_task(pending))
                 if not pending.done():
                     return
             await self._finish_cleanup(self._shutdown_resources())
+
+    async def recover_failed_cleanup(self) -> bool:
+        """Explicit recovery only; never restart a browser with healthy sessions."""
+        async with self._lifecycle_lock:
+            async with self._lock:
+                if (self._creating or self._starting or self._startup_cleanup
+                        or any(not s.closing or s.owner_task is not None
+                               for s in self._sessions.values())):
+                    return False
+                if (not self._recovery_pending and not self._unclosed_contexts
+                        and not self._resource_close_tasks):
+                    return False
+                # Keep restart intent if cleanup completes but startup fails or is cancelled.
+                self._recovery_pending = True
+                self._stopping = True  # Close admission before any awaited cleanup.
+            await self._finish_cleanup(self._shutdown_resources())
+            # The existing guard forbids restart if ancestors did not confirm release.
+            await self._startup_locked()
+            return True
 
     async def _rollback_startup(self):
         try:
@@ -393,23 +427,23 @@ class BrowserService:
     async def _create_session(self, session_id, context_kwargs, initialize, *, journey=False):
         async with self._lock:
             if self._stopping or not self._browser:
-                raise RuntimeError("BrowserService is not running")
+                raise BrowserAdmissionError("BROWSER_NOT_RUNNING", "BrowserService is not running")
             if session_id in self._sessions:
                 existing = self._sessions[session_id]
                 if journey or existing.closing:
-                    raise RuntimeError(f"Browser session '{session_id}' already exists or is closing")
+                    raise BrowserAdmissionError("BROWSER_SESSION_CONFLICT", f"Browser session '{session_id}' already exists or is closing", 409)
                 existing.touch()
                 return existing
             pending = self._creating.get(session_id)
             if pending:
                 if journey:
-                    raise RuntimeError(f"Browser session '{session_id}' is being created")
+                    raise BrowserAdmissionError("BROWSER_SESSION_CONFLICT", f"Browser session '{session_id}' is being created", 409)
             else:
                 if session_id in self._unclosed_contexts.values():
-                    raise RuntimeError(f"Browser session '{session_id}' has unfinished cleanup")
+                    raise BrowserAdmissionError("BROWSER_CLEANUP_PENDING", f"Browser session '{session_id}' has unfinished cleanup")
                 # Unclosed rollback contexts still consume capacity; never silently evict a user.
                 if len(self._sessions) + len(self._creating) + len(self._unclosed_contexts) >= self.max_sessions:
-                    raise RuntimeError("Browser session capacity reached")
+                    raise BrowserAdmissionError("BROWSER_CAPACITY_REACHED", "Browser session capacity reached")
                 reservation = _SessionCreation()
                 self._creating[session_id] = reservation
 

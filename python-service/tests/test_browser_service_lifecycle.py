@@ -814,3 +814,152 @@ async def test_cancelled_start_retains_one_cleanup_until_driver_is_obtainable(mo
     assert service._starting is None and service._startup_cleanup is None
     assert service._playwright is None and service._playwright_exit is None
     assert not service._resource_close_tasks
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("ancestor_closes", [True, False])
+async def test_explicit_recovery_requires_confirmed_ancestor_release(service, monkeypatch, ancestor_closes):
+    service.max_sessions = 1
+    session = await create(service, "ordinary")
+    session.context.close.side_effect = RuntimeError("latched context failure")
+    with pytest.raises(RuntimeError, match="not confirmed"):
+        await service.close_session("resource")
+    old_browser, old_driver = service._browser, service._playwright
+    if not ancestor_closes:
+        old_browser.close.side_effect = RuntimeError("browser close failed")
+        old_driver.stop.side_effect = RuntimeError("driver stop failed")
+    fresh_context = Mock(new_page=AsyncMock(return_value=SimpleNamespace(
+        set_default_timeout=Mock(), add_init_script=AsyncMock(), on=Mock())), close=AsyncMock())
+    fresh_browser = SimpleNamespace(new_context=AsyncMock(return_value=fresh_context), close=AsyncMock())
+    fresh_driver = SimpleNamespace(chromium=SimpleNamespace(launch=AsyncMock(return_value=fresh_browser)),
+                                   stop=AsyncMock())
+    start = AsyncMock(return_value=fresh_driver)
+    monkeypatch.setattr("services.browser_service.async_playwright", lambda: SimpleNamespace(
+        start=start, __aexit__=AsyncMock()))
+    try:
+        if ancestor_closes:
+            assert await service.recover_failed_cleanup()
+            assert await create(service, "ordinary")  # Same ID and capacity become available.
+            assert service._browser is fresh_browser
+            start.assert_awaited_once()
+        else:
+            with pytest.raises(RuntimeError, match="unreleased resources"):
+                await service.recover_failed_cleanup()
+            start.assert_not_awaited()
+            assert service._sessions["resource"] is session
+            assert service._browser is old_browser
+            with pytest.raises(RuntimeError, match="not running"):
+                await create(service, "ordinary", "other")
+        # Retrying the latched close must never manufacture a successful no-op.
+        session.context.close.assert_awaited_once()
+    finally:
+        await service.shutdown()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("busy", ["healthy", "owner", "creating"])
+async def test_recovery_never_interrupts_existing_work(service, busy):
+    session = await create(service, "ordinary")
+    if busy != "healthy":
+        session.closing = True
+    if busy == "owner":
+        session.owner_task = asyncio.current_task()
+    elif busy == "creating":
+        service._creating["pending"] = object()
+    service._unclosed_contexts[session.context] = "resource"
+    assert not await service.recover_failed_cleanup()
+    service._browser.close.assert_not_awaited()
+    service._playwright.stop.assert_not_awaited()
+    assert not service._stopping
+    service._creating.clear()
+    session.owner_task = None
+    service._unclosed_contexts.clear()
+    await service.shutdown()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("interruption,completion", [
+    ("launch_failure", "retry"), ("cleanup_cancel", "retry"), ("launch_cancel", "retry"),
+    ("launch_failure", "startup"), ("launch_failure", "shutdown"),
+])
+async def test_recovery_can_resume_after_interruption(service, monkeypatch, interruption, completion):
+    session = await create(service, "ordinary")
+    session.context.close.side_effect = RuntimeError("latched context failure")
+    with pytest.raises(RuntimeError, match="not confirmed"):
+        await service.close_session("resource")
+
+    fresh_context = Mock(new_page=AsyncMock(return_value=SimpleNamespace(
+        set_default_timeout=Mock(), add_init_script=AsyncMock(), on=Mock())), close=AsyncMock())
+    fresh_browser = SimpleNamespace(new_context=AsyncMock(return_value=fresh_context), close=AsyncMock())
+    launch = AsyncMock(return_value=fresh_browser)
+    driver = SimpleNamespace(chromium=SimpleNamespace(launch=launch), stop=AsyncMock())
+    monkeypatch.setattr("services.browser_service.async_playwright", lambda: SimpleNamespace(
+        start=AsyncMock(return_value=driver), __aexit__=AsyncMock()))
+    entered, release = asyncio.Event(), asyncio.Event()
+    task = None
+
+    async def paused_cleanup():
+        entered.set()
+        await release.wait()
+
+    async def paused_launch(**kwargs):
+        entered.set()
+        await asyncio.Event().wait()
+
+    try:
+        if interruption == "launch_failure":
+            launch.side_effect = RuntimeError("transient launch failure")
+            with pytest.raises(RuntimeError, match="transient launch failure"):
+                await service.recover_failed_cleanup()
+        else:
+            if interruption == "cleanup_cancel":
+                service._browser.close.side_effect = paused_cleanup
+            else:
+                launch.side_effect = paused_launch
+            task = asyncio.create_task(service.recover_failed_cleanup())
+            await asyncio.wait_for(entered.wait(), 1)
+            task.cancel()
+            release.set()
+            with pytest.raises(asyncio.CancelledError):
+                await asyncio.wait_for(task, 1)
+
+        assert service._browser is None and service._playwright is None
+        assert not service._resource_close_tasks
+        assert service._stopping
+        launch.side_effect = None
+        if completion == "shutdown":
+            await service.shutdown()
+            assert not await service.recover_failed_cleanup()
+            launch.assert_awaited_once()  # Only the failed attempt, no implicit restart.
+            return
+        if completion == "startup":
+            await service.startup()
+        else:
+            assert await service.recover_failed_cleanup()
+        assert service._browser is fresh_browser
+        assert not service._stopping
+        # Successful recovery clears its intent; another request must not reset it.
+        assert not await service.recover_failed_cleanup()
+        fresh_browser.close.assert_not_awaited()
+        restored = await create(service, "ordinary")
+        assert restored.context is fresh_context
+        session.context.close.assert_awaited_once()
+    finally:
+        release.set()
+        if task is not None:
+            task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+        await service.shutdown()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("previously_running", [False, True])
+async def test_recovery_does_not_start_a_service_without_failed_recovery(service, monkeypatch, previously_running):
+    if previously_running:
+        await service.shutdown()
+    else:
+        service = BrowserService()
+    factory = Mock()
+    monkeypatch.setattr("services.browser_service.async_playwright", factory)
+    assert not await service.recover_failed_cleanup()
+    factory.assert_not_called()

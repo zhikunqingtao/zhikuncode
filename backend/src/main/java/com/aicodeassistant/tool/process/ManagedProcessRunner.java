@@ -330,6 +330,31 @@ public class ManagedProcessRunner {
         return summary;
     }
 
+    /** Read after Run quiescence: entries disappear only after confirmed cleanup. */
+    public CancelSummary currentRunTermination(String runId) {
+        int remaining = (int) active.keySet().stream()
+                .filter(key -> runId != null && runId.equals(key.runId())).count();
+        return new CancelSummary(remaining, 0, remaining);
+    }
+
+    private int cleanupCursor;
+
+    /** Retry only retained foreground work, never a running command/background service. */
+    @org.springframework.scheduling.annotation.Scheduled(fixedDelayString = "${process.runner.cleanup-retry-ms:30000}")
+    public synchronized void retryRetainedCleanup() {
+        var entries = List.copyOf(active.entrySet());
+        if (entries.isEmpty()) return;
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
+        for (int scanned = 0; scanned < entries.size() && System.nanoTime() < deadline; scanned++) {
+            var entry = entries.get(Math.floorMod(cleanupCursor++, entries.size()));
+            ActiveProcess process = entry.getValue();
+            if (process.backgroundGroup() != null || !process.runnerFinished().get()) continue;
+            if (terminate(process, deadline) && cleanup(process, deadline)) {
+                releaseRetained(entry.getKey(), process);
+            }
+        }
+    }
+
     public boolean cancel(String runId, String toolUseId) {
         ActiveProcess process = active.get(new ProcessKey(runId, toolUseId));
         if(process==null)return false;

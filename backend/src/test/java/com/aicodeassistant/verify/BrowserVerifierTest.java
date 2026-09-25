@@ -58,6 +58,18 @@ class BrowserVerifierTest {
     }
 
     @Test
+    void verify_expectedRefusalPreservesItsCode() {
+        when(pythonClient.isCapabilityAvailable(CAPABILITY)).thenReturn(true);
+        when(pythonClient.callJourneyIfAvailable(eq(CAPABILITY), eq(ENDPOINT), any(),
+                eq(JourneyResponse.class), eq(TIMEOUT)))
+                .thenThrow(new PythonCapabilityAwareClient.JourneyCallException("BROWSER_CAPACITY_REACHED"));
+        JourneyResult result = verifier.verify(sampleRequest(), "user1");
+        assertEquals("failed", result.verdict());
+        assertEquals("BROWSER_CAPACITY_REACHED", result.errorMessage());
+        verifyNoInteractions(messagingTemplate);
+    }
+
+    @Test
     @DisplayName("TC-BV-01: BROWSER_AUTOMATION 能力不可用 → verdict=unavailable")
     void verify_capabilityUnavailable_returnsUnavailable() {
         when(pythonClient.isCapabilityAvailable(CAPABILITY)).thenReturn(false);
@@ -65,7 +77,7 @@ class BrowserVerifierTest {
         JourneyResult result = verifier.verify(sampleRequest(), "user1");
 
         assertEquals("unavailable", result.verdict());
-        verify(pythonClient, never()).callIfAvailable(anyString(), anyString(), any(), any(), any());
+        verify(pythonClient, never()).callJourneyIfAvailable(anyString(), anyString(), any(), any(), any());
         verifyNoInteractions(messagingTemplate);
     }
 
@@ -73,7 +85,7 @@ class BrowserVerifierTest {
     @DisplayName("TC-BV-02: 正常执行 + Python 返回 passed=true → verdict=verified")
     void verify_pythonReturnsPassed_returnsVerified() {
         when(pythonClient.isCapabilityAvailable(CAPABILITY)).thenReturn(true);
-        when(pythonClient.callIfAvailable(eq(CAPABILITY), eq(ENDPOINT), any(),
+        when(pythonClient.callJourneyIfAvailable(eq(CAPABILITY), eq(ENDPOINT), any(),
                 eq(JourneyResponse.class), eq(TIMEOUT)))
             .thenReturn(Optional.of(passedResponse()));
 
@@ -88,7 +100,7 @@ class BrowserVerifierTest {
     @DisplayName("TC-BV-03: Python 调用返回 Optional.empty → verdict=failed")
     void verify_pythonReturnsEmpty_returnsFailed() {
         when(pythonClient.isCapabilityAvailable(CAPABILITY)).thenReturn(true);
-        when(pythonClient.callIfAvailable(eq(CAPABILITY), eq(ENDPOINT), any(),
+        when(pythonClient.callJourneyIfAvailable(eq(CAPABILITY), eq(ENDPOINT), any(),
                 eq(JourneyResponse.class), eq(TIMEOUT)))
             .thenReturn(Optional.empty());
 
@@ -104,7 +116,7 @@ class BrowserVerifierTest {
     @SuppressWarnings("unchecked")
     void verify_bodyHasRvPrefixAndViewportRecord() {
         when(pythonClient.isCapabilityAvailable(CAPABILITY)).thenReturn(true);
-        when(pythonClient.callIfAvailable(anyString(), anyString(), any(),
+        when(pythonClient.callJourneyIfAvailable(anyString(), anyString(), any(),
                 eq(JourneyResponse.class), any(Duration.class)))
             .thenReturn(Optional.of(passedResponse()));
 
@@ -114,7 +126,7 @@ class BrowserVerifierTest {
         long after = System.currentTimeMillis();
 
         ArgumentCaptor<Object> bodyCap = ArgumentCaptor.forClass(Object.class);
-        verify(pythonClient).callIfAvailable(
+        verify(pythonClient).callJourneyIfAvailable(
             eq(CAPABILITY), eq(ENDPOINT), bodyCap.capture(),
             eq(JourneyResponse.class), any(Duration.class));
 
@@ -141,14 +153,14 @@ class BrowserVerifierTest {
     @DisplayName("TC-BV-05: 120s execution plus 10s bounded cleanup/transport headroom")
     void verify_reservesCleanupHeadroomInHttpTimeout() {
         when(pythonClient.isCapabilityAvailable(CAPABILITY)).thenReturn(true);
-        when(pythonClient.callIfAvailable(anyString(), anyString(), any(),
+        when(pythonClient.callJourneyIfAvailable(anyString(), anyString(), any(),
                 eq(JourneyResponse.class), any(Duration.class)))
             .thenReturn(Optional.of(passedResponse()));
 
         verifier.verify(sampleRequest(), "user1");
 
         ArgumentCaptor<Duration> timeoutCap = ArgumentCaptor.forClass(Duration.class);
-        verify(pythonClient).callIfAvailable(
+        verify(pythonClient).callJourneyIfAvailable(
             eq(CAPABILITY), eq(ENDPOINT), any(),
             eq(JourneyResponse.class), timeoutCap.capture());
 
