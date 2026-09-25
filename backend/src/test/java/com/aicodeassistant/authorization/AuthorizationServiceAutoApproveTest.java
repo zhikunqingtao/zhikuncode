@@ -37,6 +37,8 @@ class AuthorizationServiceAutoApproveTest {
                         List.of(new ResourceRef("cwd", ".", false))),
                 descriptor("Read", "file-v1", RiskClass.GUARDED,
                         List.of(new ResourceRef("path", "/outside/file.txt", true))),
+                descriptor("PublishMeoo", "meoo-publish-v1", RiskClass.HIGH,
+                        List.of(new ResourceRef("meoo-snapshot", "a".repeat(64), false))),
                 descriptor("WebFetch", "network-v1", RiskClass.GUARDED,
                         List.of()))) {
             Fixture fixture = fixture();

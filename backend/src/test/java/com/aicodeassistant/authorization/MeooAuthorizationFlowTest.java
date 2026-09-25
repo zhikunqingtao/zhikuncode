@@ -27,7 +27,7 @@ import static org.mockito.Mockito.*;
 
 class MeooAuthorizationFlowTest {
     @TempDir Path temp;
-    @Test void deniedOnceCausesZeroCloudWritesEvenInAutoApproveMode() throws Exception {
+    @Test void deniedOnceCausesZeroCloudWrites() throws Exception {
         try(var f=new Fixture(temp, false)) {
             var pending=f.request("denied");
             var request=f.delivered();
@@ -51,6 +51,22 @@ class MeooAuthorizationFlowTest {
         }
     }
 
+    @Test void autoApproveModePublishesWithoutInteraction() throws Exception {
+        try(var f=new Fixture(temp,false,null,null,PermissionMode.AUTO_APPROVE)) {
+            when(f.cli.execute(argThat(a->a!=null && a.getFirst().equals("projects")),any(),any(),any())).thenReturn(f.json.readTree("{\"urlId\":\"new-site\"}"));
+            when(f.cli.execute(argThat(a->a!=null && a.getFirst().equals("deploy")),any(),any(),any())).thenReturn(f.json.readTree("{\"version\":1,\"accessUrl\":\"https://new-site.meoo.fun\",\"projectUrl\":\"https://meoo.com/chat/new-site\"}"));
+            // AUTO_APPROVE replaces the per-publication permission card; policy checks,
+            // snapshot binding and the final dynamic recheck still execute.
+            assertThat(f.request("auto-approved").get(5,TimeUnit.SECONDS).isError()).isFalse();
+            assertThat(f.interactions.pending(f.context.sessionId())).isEmpty();
+            assertThat(f.jdbc.queryForObject("SELECT count(*) FROM meoo_publications",Integer.class)).isEqualTo(1);
+            verify(f.cli,times(1)).execute(argThat(a->a!=null && a.getFirst().equals("projects")),any(),any(),any());
+            // Replaying the same tool call stays idempotent without any interaction.
+            assertThat(f.request("auto-approved").get(5,TimeUnit.SECONDS).isError()).isFalse();
+            verify(f.cli,times(1)).execute(argThat(a->a!=null && a.getFirst().equals("projects")),any(),any(),any());
+        }
+    }
+
     static final class Fixture implements AutoCloseable {
         final ObjectMapper json=new ObjectMapper().findAndRegisterModules(); final SqliteConfig sqlite;
         final JdbcTemplate jdbc; final DurableInteractionService interactions;
@@ -59,8 +75,9 @@ class MeooAuthorizationFlowTest {
         final ToolExecutionGateway gateway; final ToolUseContext context; final ToolInput input;
         Future<ToolResult> lastRequest;
         final ExecutorService executor=Executors.newVirtualThreadPerTaskExecutor();
-        Fixture(Path base, boolean live) throws Exception { this(base,live,null,null); }
-        Fixture(Path base, boolean live, Path reportPath, Path source) throws Exception {
+        Fixture(Path base, boolean live) throws Exception { this(base,live,null,null,PermissionMode.DEFAULT); }
+        Fixture(Path base, boolean live, Path reportPath, Path source) throws Exception { this(base,live,reportPath,source,PermissionMode.DEFAULT); }
+        Fixture(Path base, boolean live, Path reportPath, Path source, PermissionMode mode) throws Exception {
             Files.createDirectories(base);
             var resolver=new DatabaseResolver("",base.toString());sqlite=new SqliteConfig(resolver);
             var ds=sqlite.getProjectDataSource(base);jdbc=new JdbcTemplate(ds);
@@ -103,7 +120,7 @@ class MeooAuthorizationFlowTest {
             if(!live)when(verifier.verify(anyString(),any())).thenReturn(true);
             tool=new PublishMeooTool(new MeooPublicationService(policy,new MeooPublicationStore(jdbc),cli,verifier),props);
             var registry=new OperationAnalyzerRegistry(json,mock(BashSecurityAnalyzer.class),new SensitiveDataFilter(),mock(PathSecurityService.class));registry.setMeooPublicationPolicy(policy);
-            var modes=mock(PermissionModeManager.class);when(modes.getMode(anyString())).thenReturn(PermissionMode.AUTO_APPROVE);
+            var modes=mock(PermissionModeManager.class);when(modes.getMode(anyString())).thenReturn(mode);
             authorization=new AuthorizationService(new AuthorizationSubjectResolver(jdbc,workspace),registry,grants,interactions,modes,runs,json,mock(ProjectWorkspaceService.class));
             gateway=new ToolExecutionGateway(authorization,runs);
         }

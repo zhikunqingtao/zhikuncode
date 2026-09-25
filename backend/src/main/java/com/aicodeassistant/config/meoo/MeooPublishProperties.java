@@ -11,7 +11,12 @@ import java.util.Set;
 @Component
 @ConfigurationProperties(prefix = "zhikuncode.meoo")
 public class MeooPublishProperties {
-    public static final String CLI_VERSION = "0.5.3";
+    public static final String CLI_VERSION = "0.5.4";
+    /** 秒悟平台硬性限制：全栈（image）deploy 上传的源码 zip 不超过 100MiB（CLI MAX_IMAGE_SOURCE_ZIP_BYTES）。
+     *  静态发布走本地产物 CDN 上传并显式跳过沙箱推送，无平台包大小限制，仅受本地 maxBytes 配额约束。 */
+    public static final long PLATFORM_IMAGE_SOURCE_ZIP_BYTES = 100L * 1024 * 1024;
+    /** image 按未压缩源码总字节判定，并保留 2% 安全缓冲，吸收平台端 zip 压缩的度量差异。 */
+    public static final long IMAGE_SOURCE_MAX_BYTES = PLATFORM_IMAGE_SOURCE_ZIP_BYTES * 98 / 100;
     private boolean enabled;
     private String credentialsFile = System.getProperty("user.home") + "/.meoo/credentials.json";
     private String executable = "meoo";
@@ -21,7 +26,7 @@ public class MeooPublishProperties {
 
     public Credential credential() {
         if (!enabled) throw new MeooException("MEOO_DISABLED");
-        if (maxBytes < 1 || maxBytes > 100L * 1024 * 1024 || maxFiles < 1 || maxFiles > 50000
+        if (maxBytes < 1 || maxBytes > PLATFORM_IMAGE_SOURCE_ZIP_BYTES || maxFiles < 1 || maxFiles > 50000
                 || timeoutSeconds < 30 || timeoutSeconds > 3600 || executable.isBlank())
             throw new MeooException("MEOO_CONFIG_INVALID");
         try {

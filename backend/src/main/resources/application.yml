@@ -36,6 +36,8 @@ zhikuncode:
     enabled: ${ZHIKUN_MEOO_ENABLED:false}
     credentials-file: ${ZHIKUN_MEOO_CREDENTIALS_FILE:${user.home}/.meoo/credentials.json}
     executable: ${ZHIKUN_MEOO_EXECUTABLE:meoo}
+    # 本地发布配额（未压缩总字节）。全栈发布另有平台 100MiB 源码 zip 硬限，按 98% 缓冲提前判定；
+    # 静态发布走本地产物 CDN 上传，无平台包大小限制。
     max-bytes: ${ZHIKUN_MEOO_MAX_BYTES:104857600}
     max-files: ${ZHIKUN_MEOO_MAX_FILES:10000}
     timeout-seconds: ${ZHIKUN_MEOO_TIMEOUT_SECONDS:1200}

@@ -79,7 +79,7 @@ ARG NPM_REGISTRY=https://registry.npmjs.org/
 RUN case "${NPM_REGISTRY}" in https://*) ;; \
         *) echo "NPM_REGISTRY must use HTTPS" >&2; exit 2 ;; \
     esac && \
-    npm install --global @aliyun-meoo/cli@0.5.3 --ignore-scripts --no-audit --no-fund \
+    npm install --global @aliyun-meoo/cli@0.5.4 --ignore-scripts --no-audit --no-fund \
         --registry="${NPM_REGISTRY}" \
         --replace-registry-host=always
 

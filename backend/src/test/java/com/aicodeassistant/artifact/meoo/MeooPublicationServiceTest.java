@@ -83,7 +83,7 @@ class MeooPublicationServiceTest {
     @Test void imageDeployUsesRemoteRuntimeAndRetainsBuildFailure() throws Exception {
         var image=new MeooPublicationPolicy.Snapshot(root,".","image","Demo","account",snapshot.files(),20,"hash","ev");
         when(policy.inspect(any(),any(),eq(true))).thenReturn(image);
-        // Exact shape of CLI 0.5.3 image success: no projectUrl field.
+        // Exact shape of CLI 0.5.4 image success: no projectUrl field.
         when(cli.execute(argThat(a->a!=null && a.getFirst().equals("deploy")),any(),any(),any())).thenReturn(new ObjectMapper().readTree("{\"version\":\"1\",\"accessUrl\":\"https://new-site.meoo.pub\",\"imageTag\":\"fixture:1\"}"));
         var published=service.publish(input,context);
         assertThat(published.state()).isEqualTo("public_verified");

@@ -76,6 +76,7 @@ public class MeooPublicationPolicy {
             }
             if(candidates.size()>100000) throw error("MEOO_TOO_MANY_FILES");
             List<FileFact> files=new ArrayList<>(); long total=0;
+            long maxBytes=effectiveMaxBytes(runtime,properties);
             for(Path p:candidates) {
                 String relative=root.relativize(p).toString().replace('\\','/');
                 if(forbidden(relative) || Files.isSymbolicLink(p)) continue;
@@ -84,7 +85,7 @@ public class MeooPublicationPolicy {
                 if(runtime.equals("static") && !staticAsset(relative)) continue;
                 rejectLinks(root,p);
                 long size=Files.size(p); total+=size;
-                if(total>properties.getMaxBytes() || files.size()>=properties.getMaxFiles()) throw error("MEOO_PACKAGE_LIMIT");
+                if(total>maxBytes || files.size()>=properties.getMaxFiles()) throw error("MEOO_PACKAGE_LIMIT");
                 scanSecrets(p);
                 files.add(new FileFact(single?"index.html":relative,p,size,hash(p)));
             }
@@ -241,6 +242,15 @@ public class MeooPublicationPolicy {
             scanSecrets(target);
             if(Files.size(target)!=f.size() || !hash(target).equals(f.sha256())) throw error("MEOO_SNAPSHOT_CHANGED");
         }
+    }
+    /**
+     * 大小限制按发布路径对齐平台行为：image 的源码 zip 平台硬限 100MiB（按未压缩字节预留 2% 缓冲），
+     * 静态发布走本地产物 CDN 上传并跳过沙箱推送，无平台包限制，只受本地配额约束。
+     */
+    static long effectiveMaxBytes(String runtime, MeooPublishProperties properties) {
+        return runtime.equals("image")
+                ? Math.min(properties.getMaxBytes(), MeooPublishProperties.IMAGE_SOURCE_MAX_BYTES)
+                : properties.getMaxBytes();
     }
     static MeooException error(String code) { return new MeooException(code); }
 }

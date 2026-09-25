@@ -31,7 +31,7 @@ final class DockerIgnore {
                 else if(c=='[' || c=='\\') throw new MeooException("MEOO_IGNORE_RULE_UNSUPPORTED");
                 else regex.append(Pattern.quote(String.valueOf(c)));
             }
-            // CLI 0.5.3 uses npm ignore with its default ignorecase=true.
+            // CLI 0.5.4 uses npm ignore with its default ignorecase=true.
             rules.add(new Rule(Pattern.compile(regex+"$",Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE),negate,directory));
         }
     }

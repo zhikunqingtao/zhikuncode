@@ -72,6 +72,32 @@ class MeooPublicationPolicyTest {
         Files.writeString(root.resolve("app.js"),"const secret='meoo_ak_abcdefghijklmnopqrst';");
         assertThatThrownBy(()->policy.inspect(input(".","static"),context,false)).hasMessage("MEOO_SENSITIVE_CONTENT");
     }
+    @Test void packageLimitsTrackPlatformImageCap() {
+        // 平台仅硬性限制全栈源码 zip 不超过 100MiB；静态发布无平台包限制，只受本地配额约束。
+        assertThat(MeooPublishProperties.PLATFORM_IMAGE_SOURCE_ZIP_BYTES).isEqualTo(100L*1024*1024);
+        assertThat(MeooPublishProperties.IMAGE_SOURCE_MAX_BYTES).isEqualTo(102_760_448L);
+        assertThat(new MeooPublishProperties().getMaxBytes()).isEqualTo(100L*1024*1024);
+    }
+    @Test void packageExceedingLimitIsRejectedAtInspection() throws Exception {
+        Files.writeString(root.resolve("big.js"),"x".repeat(100));
+        props.setMaxBytes(64);
+        assertThatThrownBy(()->policy.inspect(input(".","static"),context,false)).hasMessage("MEOO_PACKAGE_LIMIT");
+        assertThat(MeooException.guidance("MEOO_PACKAGE_LIMIT")).contains("100MiB");
+    }
+    @Test void imageEffectiveLimitNeverExceedsPlatformMargin() {
+        var p=new MeooPublishProperties();
+        p.setMaxBytes(MeooPublishProperties.PLATFORM_IMAGE_SOURCE_ZIP_BYTES);
+        // 本地配额高于平台阈值时，image 仍按 98%×100MiB 提前拒绝；static 不受该平台限制。
+        assertThat(MeooPublicationPolicy.effectiveMaxBytes("image",p)).isEqualTo(MeooPublishProperties.IMAGE_SOURCE_MAX_BYTES);
+        assertThat(MeooPublicationPolicy.effectiveMaxBytes("static",p)).isEqualTo(MeooPublishProperties.PLATFORM_IMAGE_SOURCE_ZIP_BYTES);
+        p.setMaxBytes(1024);
+        assertThat(MeooPublicationPolicy.effectiveMaxBytes("image",p)).isEqualTo(1024);
+        assertThat(MeooPublicationPolicy.effectiveMaxBytes("static",p)).isEqualTo(1024);
+    }
+    @Test void maxBytesAbovePlatformImageCapIsInvalidConfiguration() {
+        props.setMaxBytes(MeooPublishProperties.PLATFORM_IMAGE_SOURCE_ZIP_BYTES+1);
+        assertThatThrownBy(()->policy.inspect(input(".","static"),context,false)).hasMessage("MEOO_CONFIG_INVALID");
+    }
     @Test void checksEvidenceAndRejectsModificationAfterApproval() throws Exception {
         var passed=EvidenceBundle.builder().bundleId("ev").sessionId("session").verdict("verified").items(List.of(new EvidenceItem(null,"test","passed",null,Map.of("workspace",root.toString(),"meooSnapshotSha256",policy.inspect(input(".","static"),context,false).sha256(),"meooRuntime","static")))).createdAt(Instant.now().plusSeconds(1)).build();
         when(evidence.findById("ev")).thenReturn(Optional.of(passed));
@@ -155,7 +181,7 @@ class MeooPublicationPolicyTest {
             String script="""
                 const fs=require('fs'),path=require('path'),crypto=require('crypto');
                 const [cli,root,zipPath]=process.argv.slice(1);
-                if(require(path.join(cli,'package.json')).version!=='0.5.3') throw Error('CLI version');
+                if(require(path.join(cli,'package.json')).version!=='0.5.4') throw Error('CLI version');
                 const {createDockerignoreMatcher}=require(path.join(cli,'dist/lib/dockerignore.js'));
                 const {createZipFromDirectory}=require(path.join(cli,'dist/lib/archive.js'));
                 const ignore=createDockerignoreMatcher(fs.readFileSync(path.join(root,'.dockerignore'),'utf8').split(/\\r?\\n/));

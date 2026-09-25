@@ -149,7 +149,7 @@ ZhikunCode 使用 Kimi K3 在 2026-08-09 凌晨一次性完成了一个纯静态
 | 🇨🇳 | **国产大模型直连** | 千问 / DeepSeek / Moonshot / 智谱GLM / MiniMax 开箱即用，国内网络直连，无需科学上网 |
 | 🐳 | **Docker 一键部署** | `docker compose up -d` 默认启动 Java 后端和内置静态前端；镜像同时包含可选的受管 Python 服务，数据存本地 |
 | 📤 | **OSS 发布与截图粘贴（可选）** | `/publish-oss` 仍只按明确指令发布已验证产物；粘贴截图支持双路径——OSS 已配置时走后端快速上传，OSS 未配置时自动降级为 Base64 直传，无需额外配置即可使用图片分析能力 |
-| 🌍 | **秒悟应用发布（可选）** | 通过 `/publish-meoo` 将已验证的静态网站或全栈应用发布为独立新站点，获取可分享的网站链接；默认关闭，每次发布需单独确认 |
+| 🌍 | **秒悟应用发布（可选）** | 通过 `/publish-meoo` 将已验证的静态网站或全栈应用发布为独立新站点，获取可分享的网站链接；默认关闭，完全访问模式外每次发布需单独确认 |
 | 🎙️ | **语音交互（ASR / TTS）** | 对话输入支持麦克风语音识别（qwen3-asr-flash），AI 回复支持一键朗读（qwen3-tts-flash）；接入阿里云百炼 DashScope，配置 API Key 即用，未配置时自动隐藏 |
 | ⚡ | **智能上下文管理** | 六层压缩级联（Snip / MicroCompact / ContextCollapse / AutoCompact / CollapseDrain / ReactiveCompact）+ 增量折叠（每10轮自动压缩）+ 413 两级上下文压缩（CollapseDrain 激进压缩 → ReactiveCompact 反应式压缩）+ 精确 Token 计数（tiktoken 多模型支持）+ 自纠错循环（SelfCorrectionLoop，编译/测试失败自动诊断修复，最多3次）+ Token三级告警 + 图片上下文治理（大图外置化 → 按需注入 → 预算守卫三层防护），无缝应对超长对话。核心引擎为 ContextCascade 与 QueryEngine |
 | 📷 | **多模态图片对话** | 支持图片上传输入，模型自动识别图片内容并分析；**智能视觉模型路由**——当前模型不支持图片时，自动切换至同厂商视觉模型处理，处理完成后无缝切回原模型；DeepSeek V4.1 Flash（`deepseek-flash`）原生支持视觉，并作为 DeepSeek 系列图片理解兜底。**图片预算守卫**——大图片（>50KB）自动外置化为轻量 JSON 引用，API 调用前按需注入，两阶段 Token 预算守卫确保多图对话不累积超限（单张≤1.5MB，总量≤2MB，单次最多注入 8 张）。ZenMux 图片模型包括 Fable 5.1、GPT-5.6 Sol、GPT-6 Astra、Gemini 3.8 Flash 与 Grok 4.6（各模型数量上限见模型目录） |
@@ -180,7 +180,7 @@ ZhikunCode 使用 Kimi K3 在 2026-08-09 凌晨一次性完成了一个纯静态
 
 刷新或断线重连后，若恢复的 Run 已失败，会补回错误提示；没有错误摘要时提示上次回复未完成，可发送消息继续对话。
 
-秒悟发布需要启用开关、部署账号、固定版本 CLI 及可用的验证服务；默认关闭，每次发布独立授权。超时或公网验证未通过不等于发布成功，也不保证远端取消。详见[部署与故障说明](docs/deployment/meoo.md)。
+秒悟发布需要启用开关、部署账号、固定版本 CLI 及可用的验证服务；默认关闭。完全访问（`AUTO_APPROVE`）模式下直接发布，仍强制执行验证证据绑定、快照一致性与内容安全检查；其他模式需逐次授权，不允许交互或发布的模式会拒绝操作。超时或公网验证未通过不等于发布成功，也不保证远端取消。详见[部署与故障说明](docs/deployment/meoo.md)。
 
 ### 会话资料合并（2～5 个来源）
 
@@ -741,11 +741,11 @@ Web 新会话必须先选择一个已授权目录。远程和 Docker 部署的�
 | PLAN | 只允许安全工作区读取，其他 Effect 拒绝 |
 | ACCEPT_EDITS | 自动允许工作区内非高风险文件编辑，其他受控操作仍需确认 |
 | DONT_ASK | 不创建交互；安全读取、已有 Grant 和已授权 Project 内普通文件操作可执行，其他需要交互的操作直接拒绝 |
-| AUTO_APPROVE | 自动批准到达人工授权阶段的工具操作，包括工作区外文件和公共互联网请求；秒悟发布仍需逐次确认；硬拒绝、安全 Hook、SSRF 防护和部署沙箱仍然生效 |
+| AUTO_APPROVE | 自动批准到达人工授权阶段的工具操作，包括工作区外文件、公共互联网请求和秒悟发布；秒悟发布仍强制验证证据绑定、快照一致性与内容安全检查；硬拒绝、安全 Hook、SSRF 防护和部署沙箱仍然生效 |
 
 新建 Web、REST 和合并会话默认使用完全访问（`AUTO_APPROVE`），创建接口显式传入其他合法权限模式时使用该模式。已有会话的 REST 查询沿用保存的权限；若显式传入的 `permissionMode` 与会话不同，三个查询接口（包括 SSE）在开始执行前返回 HTTP 409，错误码 `PERMISSION_MODE_MISMATCH`，请先在页面修改会话权限。页面收到保存确认后更新显示；修改影响后续工具授权，已经获准或执行中的操作不会被终止。
 
-`AUTO_APPROVE` 会取消工具权限确认，但秒悟发布仍需逐次确认；远程部署使用时应确认运行账户、文件系统和网络边界符合预期。它不会赋予操作系统之外的新权限，也不会绕过系统安全与部署限制。
+`AUTO_APPROVE` 会取消工具权限确认（包括秒悟发布）；远程部署使用时应确认运行账户、文件系统和网络边界符合预期。它不会赋予操作系统之外的新权限，也不会绕过系统安全与部署限制。
 
 ### 受保护路径
 
@@ -1160,7 +1160,7 @@ aica --continue "fix the bug we just discussed"
 |------|------|
 | 三种输出格式 | `text`（终端 Markdown 渲染）/ `json`（结构化）/ `stream-json`（SSE 流式） |
 | 管道支持 | 自动读取 stdin，与 shell 管道无缝组合 |
-| 权限模式 | `--permission-mode default/plan/accept_edits/dont_ask/auto_approve` 控制授权策略（CLI 未指定时新建默认完全访问、续接沿用会话权限；`auto_approve` 取消人工确认，秒悟发布除外；不能绕过硬拒绝、安全 Hook、SSRF 或部署沙箱） |
+| 权限模式 | `--permission-mode default/plan/accept_edits/dont_ask/auto_approve` 控制授权策略（CLI 未指定时新建默认完全访问、续接沿用会话权限；`auto_approve` 取消人工确认，含秒悟发布；不能绕过硬拒绝、安全 Hook、SSRF 或部署沙箱） |
 | 会话管理 | `--continue` 继续上次会话，`--resume <id>` 恢复指定会话 |
 | 模型选择 | `--model` 指定模型，`--effort` 控制推理深度 |
 | 工具控制 | `--allowed-tools` / `--disallowed-tools` 白名单/黑名单 |
