@@ -3,16 +3,17 @@
   "caseId": "zhikuncode-king-20260809",
   "reportVersion": "v15",
   "classification": "OUTSIDE_DEVELOPMENT_WINDOW_DIRECT_BROWSER_LAYOUT_AUDIT",
-  "observedAt": "2026-08-10T08:38:21.357Z",
+  "observedAt": "2026-09-25T15:29:49.306Z",
   "browser": {
     "name": "Chromium",
-    "surface": "Codex in-app browser",
+    "version": "145.0.7632.6",
+    "surface": "Playwright local harness (python-service venv)",
     "measurement": "direct DOM geometry and interactive controls"
   },
   "report": {
     "path": "zhikuncode开发王者荣耀.html",
-    "sha256": "93e4ed8c17b37ce06ece4006175cfed41ab759259f9ec4a44f39c5493cd01e8e",
-    "bytes": 1859505
+    "sha256": "9ed1f07007a898d91435c48e7fe667ae4c2c64053966e9e583d772ae1456c73e",
+    "bytes": 1862132
   },
   "viewport": {
     "width": 1280,
@@ -33,2823 +34,2823 @@
   },
   "figures": [
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "CASE-V01",
+      "viewBox": {
+        "width": 1200,
+        "height": 710
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 710
       },
-      "id": "CASE-V01",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 710,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "CASE-V02",
+      "viewBox": {
+        "width": 1200,
+        "height": 690
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 690
       },
-      "id": "CASE-V02",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 690,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "CASE-V03",
+      "viewBox": {
+        "width": 1200,
+        "height": 735
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 735
       },
-      "id": "CASE-V03",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 735,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "CASE-V04",
+      "viewBox": {
+        "width": 1200,
+        "height": 960
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 960
       },
-      "id": "CASE-V04",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 960,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "CASE-V05",
+      "viewBox": {
+        "width": 1200,
+        "height": 755
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 755
       },
-      "id": "CASE-V05",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 755,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "CASE-V06",
+      "viewBox": {
+        "width": 1200,
+        "height": 730
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 730
       },
-      "id": "CASE-V06",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 730,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "CASE-V07",
+      "viewBox": {
+        "width": 1200,
+        "height": 765
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 765
       },
-      "id": "CASE-V07",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 765,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "CASE-V08",
+      "viewBox": {
+        "width": 1200,
+        "height": 780
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 780
       },
-      "id": "CASE-V08",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 780,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "SRC-V01",
+      "viewBox": {
+        "width": 1200,
+        "height": 820
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 820
       },
-      "id": "SRC-V01",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 820,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "SRC-V02",
+      "viewBox": {
+        "width": 1200,
+        "height": 800
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 800
       },
-      "id": "SRC-V02",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 800,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "SRC-V03",
+      "viewBox": {
+        "width": 1200,
+        "height": 845
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 845
       },
-      "id": "SRC-V03",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 845,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "SRC-V04",
+      "viewBox": {
+        "width": 1200,
+        "height": 735
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 735
       },
-      "id": "SRC-V04",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 735,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
-        "x2": 1200,
-        "y1": 0,
-        "y2": 800
-      },
       "id": "KING-V01",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "viewBox": {
+        "width": 1200,
+        "height": 800
       },
       "renderedWidthPx": 1161,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 800,
-        "width": 1200
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
+        "y2": 800
       },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
-        "x2": 1200,
-        "y1": 0,
-        "y2": 760
-      },
       "id": "KING-V02",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "viewBox": {
+        "width": 1200,
+        "height": 760
       },
       "renderedWidthPx": 1163,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 760,
-        "width": 1200
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
+        "y2": 760
       },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
-        "x2": 1200,
-        "y1": 0,
-        "y2": 760
-      },
       "id": "KING-V03",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "viewBox": {
+        "width": 1200,
+        "height": 760
       },
       "renderedWidthPx": 1163,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 760,
-        "width": 1200
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
+        "y2": 760
       },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
-        "x2": 1200,
-        "y1": 0,
-        "y2": 760
-      },
       "id": "KING-V04",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "viewBox": {
+        "width": 1200,
+        "height": 760
       },
       "renderedWidthPx": 1163,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 760,
-        "width": 1200
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
+        "y2": 760
       },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
-        "x2": 1200,
-        "y1": 0,
-        "y2": 760
-      },
       "id": "KING-V05",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "viewBox": {
+        "width": 1200,
+        "height": 760
       },
       "renderedWidthPx": 1163,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 760,
-        "width": 1200
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
+        "y2": 760
       },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
-        "x2": 1200,
-        "y1": 0,
-        "y2": 800
-      },
       "id": "KING-V06",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "viewBox": {
+        "width": 1200,
+        "height": 800
       },
       "renderedWidthPx": 1161,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 800,
-        "width": 1200
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
+        "y2": 800
       },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
-        "x2": 1200,
-        "y1": 0,
-        "y2": 800
-      },
       "id": "KING-V07",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "viewBox": {
+        "width": 1200,
+        "height": 800
       },
       "renderedWidthPx": 1161,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 800,
-        "width": 1200
-      },
-      "manualReview": "measured",
-      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
-    },
-    {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 800
       },
-      "id": "KING-V08",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "id": "KING-V08",
+      "viewBox": {
+        "width": 1200,
+        "height": 800
       },
       "renderedWidthPx": 1161,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 800,
-        "width": 1200
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
+        "y2": 800
       },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
-        "x2": 1200,
-        "y1": 0,
-        "y2": 760
-      },
       "id": "KING-V09",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "viewBox": {
+        "width": 1200,
+        "height": 760
       },
       "renderedWidthPx": 1163,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 760,
-        "width": 1200
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
+        "y2": 760
       },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
-        "x2": 1200,
-        "y1": 0,
-        "y2": 760
-      },
       "id": "KING-V10",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "viewBox": {
+        "width": 1200,
+        "height": 760
       },
       "renderedWidthPx": 1163,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 760,
-        "width": 1200
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
+        "y2": 760
       },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
-        "x2": 1200,
-        "y1": 0,
-        "y2": 760
-      },
       "id": "KING-V11",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "viewBox": {
+        "width": 1200,
+        "height": 760
       },
       "renderedWidthPx": 1163,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 760,
-        "width": 1200
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
+        "y2": 760
       },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
-        "x2": 1200,
-        "y1": 0,
-        "y2": 760
-      },
       "id": "KING-V12",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "viewBox": {
+        "width": 1200,
+        "height": 760
       },
       "renderedWidthPx": 1163,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 760,
-        "width": 1200
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
+        "y2": 760
       },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
-        "x2": 1200,
-        "y1": 0,
-        "y2": 760
-      },
       "id": "KING-V13",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "viewBox": {
+        "width": 1200,
+        "height": 760
       },
       "renderedWidthPx": 1163,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 760,
-        "width": 1200
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
+        "y2": 760
       },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
-        "x2": 1200,
-        "y1": 0,
-        "y2": 760
-      },
       "id": "KING-V14",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "viewBox": {
+        "width": 1200,
+        "height": 760
       },
       "renderedWidthPx": 1163,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 760,
-        "width": 1200
-      },
-      "manualReview": "measured",
-      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
-    },
-    {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 760
       },
-      "id": "KING-V15",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1163,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 760,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "KING-V15",
+      "viewBox": {
+        "width": 1200,
+        "height": 760
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1163,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
+        "y2": 760
+      },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "id": "KING-V16",
+      "viewBox": {
+        "width": 1200,
+        "height": 774
+      },
+      "renderedWidthPx": 1163,
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
         "y2": 774
       },
-      "id": "KING-V16",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1163,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 774,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
-        "x2": 1200,
-        "y1": 0,
-        "y2": 760
-      },
       "id": "KING-V17",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "viewBox": {
+        "width": 1200,
+        "height": 760
       },
       "renderedWidthPx": 1163,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 760,
-        "width": 1200
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
+        "y2": 760
       },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
-        "x2": 1200,
-        "y1": 0,
-        "y2": 760
-      },
       "id": "KING-V18",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "viewBox": {
+        "width": 1200,
+        "height": 760
       },
       "renderedWidthPx": 1163,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 760,
-        "width": 1200
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
+        "y2": 760
       },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
-        "x2": 1200,
-        "y1": 0,
-        "y2": 760
-      },
       "id": "KING-V19",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "viewBox": {
+        "width": 1200,
+        "height": 760
       },
       "renderedWidthPx": 1163,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 760,
-        "width": 1200
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
+        "y2": 760
       },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
-        "x2": 1200,
-        "y1": 0,
-        "y2": 800
-      },
       "id": "KING-V20",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "viewBox": {
+        "width": 1200,
+        "height": 800
       },
       "renderedWidthPx": 1161,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 800,
-        "width": 1200
-      },
-      "manualReview": "measured",
-      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
-    },
-    {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
-        "x2": 1200,
-        "y1": 0,
-        "y2": 760
-      },
-      "id": "KING-V21",
       "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "renderedWidthPx": 1163,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 760,
-        "width": 1200
-      },
-      "manualReview": "measured",
-      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
-    },
-    {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
-        "y2": 760
-      },
-      "id": "KING-V22",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "renderedWidthPx": 1163,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 760,
-        "width": 1200
-      },
-      "manualReview": "measured",
-      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
-    },
-    {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
         "x2": 1200,
-        "y1": 0,
-        "y2": 760
-      },
-      "id": "KING-V23",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "renderedWidthPx": 1163,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 760,
-        "width": 1200
-      },
-      "manualReview": "measured",
-      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
-    },
-    {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
-        "x2": 1200,
-        "y1": 0,
-        "y2": 760
-      },
-      "id": "KING-V24",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "renderedWidthPx": 1163,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 760,
-        "width": 1200
-      },
-      "manualReview": "measured",
-      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
-    },
-    {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
-        "x2": 1200,
-        "y1": 0,
         "y2": 800
       },
-      "id": "KING-V25",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1161,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 800,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
-        "x2": 1200,
-        "y1": 0,
-        "y2": 760
-      },
-      "id": "KING-V26",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "KING-V21",
+      "viewBox": {
+        "width": 1200,
+        "height": 760
       },
       "renderedWidthPx": 1163,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 760,
-        "width": 1200
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
+        "y2": 760
       },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "KING-V22",
+      "viewBox": {
+        "width": 1200,
+        "height": 760
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1163,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
-        "y2": 795
+        "x2": 1200,
+        "y2": 760
       },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "id": "KING-V23",
+      "viewBox": {
+        "width": 1200,
+        "height": 760
+      },
+      "renderedWidthPx": 1163,
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
+        "y2": 760
+      },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "id": "KING-V24",
+      "viewBox": {
+        "width": 1200,
+        "height": 760
+      },
+      "renderedWidthPx": 1163,
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
+        "y2": 760
+      },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "id": "KING-V25",
+      "viewBox": {
+        "width": 1200,
+        "height": 800
+      },
+      "renderedWidthPx": 1161,
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
+        "y2": 800
+      },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "id": "KING-V26",
+      "viewBox": {
+        "width": 1200,
+        "height": 760
+      },
+      "renderedWidthPx": 1163,
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
+        "y2": 760
+      },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
       "id": "PLAT-V01",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "viewBox": {
+        "width": 1200,
+        "height": 795
       },
       "renderedWidthPx": 1157,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 795,
-        "width": 1200
-      },
-      "manualReview": "measured",
-      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
-    },
-    {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 795
       },
-      "id": "PLAT-V02",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 795,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "PLAT-V02",
+      "viewBox": {
+        "width": 1200,
+        "height": 795
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
+        "y2": 795
+      },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "id": "PLAT-V03",
+      "viewBox": {
+        "width": 1200,
+        "height": 700
+      },
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
         "y2": 700
       },
-      "id": "PLAT-V03",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 700,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "PLAT-V04",
+      "viewBox": {
+        "width": 1200,
+        "height": 795
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 795
       },
-      "id": "PLAT-V04",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 795,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "PLAT-V05",
+      "viewBox": {
+        "width": 1200,
+        "height": 815
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 815
       },
-      "id": "PLAT-V05",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 815,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "PLAT-V06",
+      "viewBox": {
+        "width": 1200,
+        "height": 770
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 770
       },
-      "id": "PLAT-V06",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 770,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "PLAT-V07",
+      "viewBox": {
+        "width": 1200,
+        "height": 800
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 800
       },
-      "id": "PLAT-V07",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 800,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "PLAT-V08",
+      "viewBox": {
+        "width": 1200,
+        "height": 755
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 755
       },
-      "id": "PLAT-V08",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 755,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "PLAT-V09",
+      "viewBox": {
+        "width": 1200,
+        "height": 790
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 790
       },
-      "id": "PLAT-V09",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 790,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "PLAT-V10",
+      "viewBox": {
+        "width": 1200,
+        "height": 815
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 815
       },
-      "id": "PLAT-V10",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 815,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
-        "x2": 1200,
-        "y1": 0,
-        "y2": 790
-      },
       "id": "LOG-V01",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "viewBox": {
+        "width": 1200,
+        "height": 790
       },
       "renderedWidthPx": 1165,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 790,
-        "width": 1200
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
+        "y2": 790
       },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "LOG-V03",
+      "viewBox": {
+        "width": 1200,
+        "height": 820
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1165,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 820
       },
-      "id": "LOG-V03",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1165,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 820,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "RUN-V01",
+      "viewBox": {
+        "width": 1400,
+        "height": 990
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1400,
         "y1": 0,
+        "x2": 1400,
         "y2": 990
       },
-      "id": "RUN-V01",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 990,
-        "width": 1400
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "RUN-V02",
+      "viewBox": {
+        "width": 1400,
+        "height": 740
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1400,
         "y1": 0,
+        "x2": 1400,
         "y2": 740
       },
-      "id": "RUN-V02",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 740,
-        "width": 1400
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
-        "x2": 1400,
-        "y1": 0,
-        "y2": 855
-      },
       "id": "RUN-V03",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "viewBox": {
+        "width": 1400,
+        "height": 855
       },
       "renderedWidthPx": 1157,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 855,
-        "width": 1400
-      },
-      "manualReview": "measured",
-      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
-    },
-    {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
-        "y2": 855
-      },
-      "id": "RUN-V04",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "renderedWidthPx": 1157,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 855,
-        "width": 1200
-      },
-      "manualReview": "measured",
-      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
-    },
-    {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
         "x2": 1400,
-        "y1": 0,
         "y2": 855
       },
-      "id": "RUN-V05",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 855,
-        "width": 1400
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "RUN-V04",
+      "viewBox": {
+        "width": 1200,
+        "height": 855
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
+        "y2": 855
+      },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "id": "RUN-V05",
+      "viewBox": {
+        "width": 1400,
+        "height": 855
+      },
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1400,
+        "y2": 855
+      },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "id": "RUN-V06",
+      "viewBox": {
+        "width": 1200,
+        "height": 780
+      },
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
         "y2": 780
       },
-      "id": "RUN-V06",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 780,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "RUN-V07",
+      "viewBox": {
+        "width": 1200,
+        "height": 835
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 835
       },
-      "id": "RUN-V07",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 835,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "RUN-V08",
+      "viewBox": {
+        "width": 1200,
+        "height": 800
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 800
       },
-      "id": "RUN-V08",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 800,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "DBG-V01",
+      "viewBox": {
+        "width": 1200,
+        "height": 750
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1154,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 750
       },
-      "id": "DBG-V01",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1154,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 750,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "DBG-V02",
+      "viewBox": {
+        "width": 1200,
+        "height": 815
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1154,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 815
       },
-      "id": "DBG-V02",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1154,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 815,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "DBG-V03",
+      "viewBox": {
+        "width": 1200,
+        "height": 790
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1154,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 790
       },
-      "id": "DBG-V03",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1154,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 790,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "DBG-V04",
+      "viewBox": {
+        "width": 1200,
+        "height": 755
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1154,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 755
       },
-      "id": "DBG-V04",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1154,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 755,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "DBG-V05",
+      "viewBox": {
+        "width": 1200,
+        "height": 875
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1154,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 875
       },
-      "id": "DBG-V05",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1154,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 875,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "DBG-V06",
+      "viewBox": {
+        "width": 1200,
+        "height": 805
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1154,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 805
       },
-      "id": "DBG-V06",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1154,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 805,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "QA-V01",
+      "viewBox": {
+        "width": 1200,
+        "height": 775
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 775
       },
-      "id": "QA-V01",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 775,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "QA-V02",
+      "viewBox": {
+        "width": 1400,
+        "height": 855
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1400,
         "y1": 0,
+        "x2": 1400,
         "y2": 855
       },
-      "id": "QA-V02",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 855,
-        "width": 1400
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "QA-V03",
+      "viewBox": {
+        "width": 1200,
+        "height": 735
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 735
       },
-      "id": "QA-V03",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 735,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "QA-V04",
+      "viewBox": {
+        "width": 1200,
+        "height": 855
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 855
       },
-      "id": "QA-V04",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 855,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "QA-V05",
+      "viewBox": {
+        "width": 1200,
+        "height": 835
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 835
       },
-      "id": "QA-V05",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 835,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "QA-V06",
+      "viewBox": {
+        "width": 1400,
+        "height": 1280
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1149,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1400,
         "y1": 0,
+        "x2": 1400,
         "y2": 1280
       },
-      "id": "QA-V06",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1149,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 1280,
-        "width": 1400
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "QA-V07",
+      "viewBox": {
+        "width": 1200,
+        "height": 795
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1149,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 795
       },
-      "id": "QA-V07",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1149,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 795,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "QA-V08",
+      "viewBox": {
+        "width": 1200,
+        "height": 825
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1149,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 825
       },
-      "id": "QA-V08",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1149,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 825,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "QA-V09",
+      "viewBox": {
+        "width": 1400,
+        "height": 1110
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1149,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1400,
         "y1": 0,
+        "x2": 1400,
         "y2": 1110
       },
-      "id": "QA-V09",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1149,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 1110,
-        "width": 1400
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
-        "x2": 1200,
-        "y1": 0,
-        "y2": 775
-      },
       "id": "QA-V10",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "viewBox": {
+        "width": 1200,
+        "height": 775
       },
       "renderedWidthPx": 1157,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 775,
-        "width": 1200
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
+        "y2": 775
       },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "AUDIT-V01",
+      "viewBox": {
+        "width": 1200,
+        "height": 730
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 730
       },
-      "id": "AUDIT-V01",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 730,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "AUDIT-V02",
+      "viewBox": {
+        "width": 1200,
+        "height": 830
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 830
       },
-      "id": "AUDIT-V02",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 830,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "AUDIT-V03",
+      "viewBox": {
+        "width": 1200,
+        "height": 780
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 780
       },
-      "id": "AUDIT-V03",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 780,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "AUDIT-V04",
+      "viewBox": {
+        "width": 1200,
+        "height": 725
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 725
       },
-      "id": "AUDIT-V04",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 725,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "AUDIT-V05",
+      "viewBox": {
+        "width": 1200,
+        "height": 805
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 805
       },
-      "id": "AUDIT-V05",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 805,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
-        "x2": 1200,
-        "y1": 0,
-        "y2": 775
-      },
       "id": "AUDIT-V06",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "viewBox": {
+        "width": 1200,
+        "height": 775
       },
       "renderedWidthPx": 1157,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 775,
-        "width": 1200
-      },
-      "manualReview": "measured",
-      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
-    },
-    {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 775
       },
-      "id": "AUDIT-V07",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 775,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "AUDIT-V07",
+      "viewBox": {
+        "width": 1200,
+        "height": 775
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
+        "y2": 775
+      },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "id": "AUDIT-V08",
+      "viewBox": {
+        "width": 1200,
+        "height": 780
+      },
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
         "y2": 780
       },
-      "id": "AUDIT-V08",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 780,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "AUDIT-V09",
+      "viewBox": {
+        "width": 1200,
+        "height": 815
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 815
       },
-      "id": "AUDIT-V09",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 815,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "AUDIT-V10",
+      "viewBox": {
+        "width": 1400,
+        "height": 780
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1400,
         "y1": 0,
+        "x2": 1400,
         "y2": 780
       },
-      "id": "AUDIT-V10",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 780,
-        "width": 1400
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "AUDIT-V11",
+      "viewBox": {
+        "width": 1400,
+        "height": 1180
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1400,
         "y1": 0,
+        "x2": 1400,
         "y2": 1180
       },
-      "id": "AUDIT-V11",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 1180,
-        "width": 1400
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "AUDIT-V12",
+      "viewBox": {
+        "width": 1200,
+        "height": 840
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 840
       },
-      "id": "AUDIT-V12",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 840,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
-        "x2": 1200,
-        "y1": 0,
-        "y2": 790
-      },
       "id": "LOG-V02",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "viewBox": {
+        "width": 1200,
+        "height": 790
       },
       "renderedWidthPx": 1165,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 790,
-        "width": 1200
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
+        "y2": 790
       },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
-        "x2": 1200,
-        "y1": 0,
-        "y2": 815
-      },
       "id": "META-V01",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "viewBox": {
+        "width": 1200,
+        "height": 815
       },
       "renderedWidthPx": 1157,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 815,
-        "width": 1200
-      },
-      "manualReview": "measured",
-      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
-    },
-    {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
         "y2": 815
       },
-      "id": "META-V02",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 815,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "id": "META-V02",
+      "viewBox": {
+        "width": 1200,
+        "height": 815
       },
-      "collisionSamples": [],
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
       "contentBounds": {
         "x1": 0,
-        "x2": 1200,
         "y1": 0,
+        "x2": 1200,
+        "y2": 815
+      },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "id": "META-V03",
+      "viewBox": {
+        "width": 1200,
+        "height": 780
+      },
+      "renderedWidthPx": 1157,
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
         "y2": 780
       },
-      "id": "META-V03",
-      "minimumTextSizePx": 12,
       "overflow": {
-        "bottom": 0,
-        "left": 0,
+        "top": 0,
         "right": 0,
-        "top": 0
+        "bottom": 0,
+        "left": 0
       },
-      "renderedWidthPx": 1157,
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
       "textCollisionCount": 0,
-      "viewBox": {
-        "height": 780,
-        "width": 1200
-      },
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     },
     {
-      "blankRatios": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
-      },
-      "collisionSamples": [],
-      "contentBounds": {
-        "x1": 0,
-        "x2": 1200,
-        "y1": 0,
-        "y2": 900
-      },
       "id": "META-V04",
-      "minimumTextSizePx": 12,
-      "overflow": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "top": 0
+      "viewBox": {
+        "width": 1200,
+        "height": 900
       },
       "renderedWidthPx": 1157,
-      "textCollisionCount": 0,
-      "viewBox": {
-        "height": 900,
-        "width": 1200
+      "minimumTextSizePx": 12,
+      "contentBounds": {
+        "x1": 0,
+        "y1": 0,
+        "x2": 1200,
+        "y2": 900
       },
+      "overflow": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "blankRatios": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "textCollisionCount": 0,
+      "collisionSamples": [],
       "manualReview": "measured",
       "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
     }

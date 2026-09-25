@@ -3,95 +3,91 @@
   "caseId": "zhikuncode-king-20260809",
   "reportVersion": "v15",
   "classification": "OUTSIDE_DEVELOPMENT_WINDOW_CURRENT_REPORT_BROWSER_VERIFICATION",
-  "observedAt": "2026-08-10T08:38:21.357Z",
+  "observedAt": "2026-09-25T15:29:49.306Z",
   "browser": {
     "name": "Chromium",
-    "surface": "Codex in-app browser",
+    "version": "145.0.7632.6",
+    "surface": "Playwright local harness (python-service venv)",
     "measurement": "direct DOM geometry and interactive controls"
   },
   "report": {
     "path": "zhikuncode开发王者荣耀.html",
-    "sha256": "93e4ed8c17b37ce06ece4006175cfed41ab759259f9ec4a44f39c5493cd01e8e",
-    "bytes": 1859505
+    "sha256": "9ed1f07007a898d91435c48e7fe667ae4c2c64053966e9e583d772ae1456c73e",
+    "bytes": 1862132
   },
   "content": {
-    "claimBoundaryRows": 19,
-    "details": 126,
-    "evidenceLedgerRows": 42,
     "figures": 91,
+    "svgs": 91,
     "htmlImageElements": 58,
     "htmlImageRefs": 44,
-    "openDetails": 126,
-    "preformattedBlocks": 25,
     "svgImageElements": 67,
-    "svgs": 91,
-    "tables": 39
+    "svgImageRefs": 63,
+    "evidenceLedgerRows": 42,
+    "claimBoundaryRows": 19,
+    "tables": 39,
+    "preformattedBlocks": 25,
+    "details": 126,
+    "openDetails": 126
   },
   "viewports": [
     {
-      "consoleErrors": 0,
-      "documentHeightPx": 176090,
-      "figureCount": 91,
+      "width": 1280,
       "height": 720,
+      "figureCount": 91,
+      "svgCount": 91,
+      "pageOverflowPx": 0,
+      "consoleErrors": 0,
+      "stageOverflowIds": [],
+      "stageOverflowCount": 0,
       "maximumStageOverflowPx": 0,
+      "documentHeightPx": 176178,
       "media": {
         "htmlImageRefs": 44,
         "loadedHtmlImages": 44,
         "previewVideosReady": 5
-      },
-      "pageOverflowPx": 0,
-      "stageOverflowCount": 0,
-      "stageOverflowIds": [],
-      "svgCount": 91,
-      "width": 1280
+      }
     },
     {
-      "consoleErrors": 0,
-      "documentHeightPx": 182785,
-      "figureCount": 91,
+      "width": 1440,
       "height": 900,
+      "figureCount": 91,
+      "svgCount": 91,
+      "pageOverflowPx": 0,
+      "consoleErrors": 0,
+      "stageOverflowIds": [],
+      "stageOverflowCount": 0,
       "maximumStageOverflowPx": 0,
+      "documentHeightPx": 182881,
       "media": {
         "htmlImageRefs": 44,
         "loadedHtmlImages": 44,
         "previewVideosReady": 5
-      },
-      "pageOverflowPx": 0,
-      "stageOverflowCount": 0,
-      "stageOverflowIds": [],
-      "svgCount": 91,
-      "width": 1440
+      }
     },
     {
-      "consoleErrors": 0,
-      "documentHeightPx": 173482,
-      "figureCount": 91,
+      "width": 1920,
       "height": 1080,
+      "figureCount": 91,
+      "svgCount": 91,
+      "pageOverflowPx": 0,
+      "consoleErrors": 0,
+      "stageOverflowIds": [],
+      "stageOverflowCount": 0,
       "maximumStageOverflowPx": 0,
+      "documentHeightPx": 173573,
       "media": {
         "htmlImageRefs": 44,
         "loadedHtmlImages": 44,
         "previewVideosReady": 5
-      },
-      "pageOverflowPx": 0,
-      "stageOverflowCount": 0,
-      "stageOverflowIds": [],
-      "svgCount": 91,
-      "width": 1920
+      }
     },
     {
-      "consoleErrors": 0,
-      "documentHeightPx": 243584,
-      "figureCount": 91,
+      "width": 390,
       "height": 844,
-      "maximumStageOverflowPx": 1086,
-      "media": {
-        "htmlImageRefs": 44,
-        "loadedHtmlImages": 44,
-        "previewVideosReady": 5
-      },
+      "figureCount": 91,
+      "svgCount": 91,
       "pageOverflowPx": 0,
-      "stageOverflowCount": 82,
+      "consoleErrors": 0,
       "stageOverflowIds": [
         "CASE-V01",
         "CASE-V02",
@@ -176,13 +172,19 @@
         "META-V03",
         "META-V04"
       ],
-      "svgCount": 91,
-      "width": 390
+      "stageOverflowCount": 82,
+      "maximumStageOverflowPx": 1086,
+      "documentHeightPx": 243689,
+      "media": {
+        "htmlImageRefs": 44,
+        "loadedHtmlImages": 44,
+        "previewVideosReady": 5
+      }
     }
   ],
   "layoutAudit": {
     "path": "svg-layout-audit.json",
-    "sha256": "c887853d00808e2140930084a3eda21f7d10728867ad8b08ca5dd15ac4ec21b8",
+    "sha256": "a17628c7a7b8abcfb5f8d2dac61845a0bd754302f8de3fa6372ce38f3a91f389",
     "summary": {
       "figures": 91,
       "foregroundOverflowFigures": 0,
@@ -209,33 +211,36 @@
     "htmlImageElements": 58,
     "htmlImageRefs": 44,
     "loadedHtmlImages": 44,
-    "previewVideoErrors": 0,
+    "svgImageElements": 67,
+    "svgImageRefs": 63,
     "previewVideos": 5,
     "previewVideosReady": 5,
-    "svgImageRefs": 63
+    "previewVideoErrors": 0
   },
   "semantics": {
+    "platV09PublicationNode": false,
     "platV09Entities": [
       "sessions",
       "messages",
       "activities",
       "interaction_requests"
-    ],
-    "platV09PublicationNode": false
+    ]
   },
   "onlineDeployment": {
     "classification": "OUTSIDE_DEVELOPMENT_WINDOW_ALIYUN_HTTPS_DEPLOYMENT",
-    "observedAt": "2026-08-10T06:38:34.263Z",
+    "observedAt": "2026-09-25T15:29:49.307Z",
     "standard": {
       "url": "https://king.zhikun.xin/",
       "title": "KING_OK",
       "heroSelectContainer": true,
       "heroCards": 5,
+      "canvasCount": 7,
       "selectionTest": {
         "hero": "亚瑟",
+        "selected": "arthur",
         "lockSelectionSucceeded": true,
         "postLockHeroSelectContainer": false,
-        "postLockTimer": "00:01",
+        "postLockTimer": "00:05",
         "postLockCanvasCount": 2
       },
       "consoleErrors": 0,
@@ -246,7 +251,7 @@
       "title": "KING_OK",
       "heroSelectContainer": false,
       "timerBefore": "00:00",
-      "timerAfter": "00:01",
+      "timerAfter": "00:02",
       "timerAdvanced": true,
       "canvasCount": 2,
       "consoleErrors": 0,
