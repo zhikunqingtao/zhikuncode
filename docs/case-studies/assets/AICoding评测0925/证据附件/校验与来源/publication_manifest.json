@@ -2598,6 +2598,18 @@
       "byte_identical": true,
       "description": "用户提供的完整评测流程压缩录屏；据用户说明覆盖每个参赛方从开始到结束及完整评测流程。",
       "verification_scope": "校验复制一致性与媒体元数据；未逐帧审计内容、隐私或完整性，未据此重评。"
+    },
+    {
+      "path": "证据附件/完整流程录屏/codex-gpt6-astra-ultra-review.png",
+      "source": "USER_ATTACHMENT/codex-clipboard-ab03cb9f-b557-485d-87b9-e43c2a7cce41.png",
+      "original_sha256": "8baa6de255daf21e3adaaa4ebcc504d94ad7ed1202602bcb896a952ab57f9ed4",
+      "published_sha256": "8baa6de255daf21e3adaaa4ebcc504d94ad7ed1202602bcb896a952ab57f9ed4",
+      "original_bytes": 1942048,
+      "published_bytes": 1942048,
+      "markdown_frozen": false,
+      "byte_identical": true,
+      "description": "实验提供者补充的流程录屏截图，展示 Codex 评审任务与 GPT-6 Astra Ultra 模式标签；保留原图和圈注。",
+      "verification_scope": "核对画面标签与复制字节一致性；用于 README 的评审工具与模式说明，未修改冻结报告或评分。"
     }
   ],
   "excluded_metadata": [
