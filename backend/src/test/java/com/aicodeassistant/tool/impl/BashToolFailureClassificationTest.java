@@ -197,6 +197,22 @@ class BashToolFailureClassificationTest {
                 .containsKey("failure_suggestion");
     }
 
+    @Test
+    void foregroundExitZeroDoesNotHideUnconfirmedCleanup() throws Exception {
+        when(processRunner.run(any())).thenReturn(new ManagedProcessRunner.Result(
+                0, "done", "diagnostic", true, true, false, false, false, 10, true));
+        ToolResult result = bashTool.call(ToolInput.from(Map.of("command", "echo done")), context);
+        assertThat(result.isError()).isTrue();
+        assertThat(result.failureCode()).isEqualTo("PROCESS_TERMINATION_UNCONFIRMED");
+        assertThat(result.content()).contains("cleanup could not be confirmed", "done\ndiagnostic");
+        assertThat(result.metadata()).containsEntry("terminationConfirmed", false)
+                .containsEntry("descendantTrackingUnavailable", true)
+                .containsEntry("stdoutTruncated", true)
+                .containsEntry("stderrTruncated", true);
+        org.mockito.Mockito.verify(outputProcessor).processOutput("done\ndiagnostic", true);
+        org.mockito.Mockito.verify(shellStateManager, org.mockito.Mockito.never()).updateStateFromSnapshot(anyString());
+    }
+
     private static ManagedProcessRunner.Result result(int exit, String stdout, String stderr, boolean timedOut) {
         return new ManagedProcessRunner.Result(exit, stdout, stderr, false, false,
                 timedOut, false, true, 10, false);

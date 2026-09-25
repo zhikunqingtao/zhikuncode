@@ -17,7 +17,11 @@ import java.util.Optional;
 public class BrowserVerifier implements Verifier {
     private static final String CAPABILITY = "BROWSER_AUTOMATION";
     private static final String JOURNEY_ENDPOINT = "/api/browser/journey/run";
-    private static final Duration JOURNEY_TIMEOUT = Duration.ofSeconds(120);
+    private static final Duration JOURNEY_TIMEOUT = Duration.ofSeconds(130);
+    // Preserve the existing 120s work budget; add <=5s Python context cleanup
+    // and 5s transport headroom only to this HTTP call (tool budget is 600s).
+    // Failure snapshot (2s) and final close (5s) have separate, bounded tool budgets.
+    private static final Duration EXECUTION_TIMEOUT = Duration.ofSeconds(120);
     private static final Logger log = LoggerFactory.getLogger(BrowserVerifier.class);
 
     private final PythonCapabilityAwareClient pythonClient;
@@ -36,14 +40,15 @@ public class BrowserVerifier implements Verifier {
         }
 
         Map<String, Object> body = Map.of(
-            "session_id", "rv-" + req.sessionId(),
+            "session_id", req.browserResourceId(),
+            "deadline_epoch_ms", System.currentTimeMillis() + EXECUTION_TIMEOUT.toMillis(),
             "base_url", req.baseUrl(),
             "steps", req.steps(),
             "record", req.recordOptions(),
             "viewport", Map.of("width", 1280, "height", 800)
         );
 
-        // 使用带超时的重载（120s — journey 涉及多步浏览器操作）
+        // 120s work + bounded cleanup/transport headroom.
         Optional<JourneyResponse> resp = pythonClient.callIfAvailable(
             CAPABILITY, JOURNEY_ENDPOINT, body, JourneyResponse.class, JOURNEY_TIMEOUT);
 

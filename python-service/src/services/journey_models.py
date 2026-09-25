@@ -13,6 +13,9 @@ class JourneyRunRequest(BaseModel):
     record: Dict[str, bool] = {}
     viewport: Dict[str, int] = {"width": 1280, "height": 800}
     mode: str = "browser"  # "browser" 或 "http_api"
+    # Optional for existing callers. Java/Python normally share the host clock;
+    # an absolute deadline also rejects requests delayed beyond the caller budget.
+    deadline_epoch_ms: Optional[int] = None
 
 
 class StepResultModel(BaseModel):

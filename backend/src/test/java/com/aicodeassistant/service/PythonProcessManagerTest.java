@@ -47,6 +47,37 @@ class PythonProcessManagerTest {
     }
 
     @Test
+    void unconfirmedOldGenerationIsRetainedAndBlocksRestart() {
+        PythonProcessManager manager = configuredManager();
+        var old = org.mockito.Mockito.mock(com.aicodeassistant.tool.process.OwnedProcess.class);
+        org.mockito.Mockito.when(old.terminate(org.mockito.ArgumentMatchers.anyLong(),
+                org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.eq(true))).thenReturn(false);
+        @SuppressWarnings("unchecked")
+        var ref = (AtomicReference<Process>) ReflectionTestUtils.getField(manager, "processRef");
+        ref.set(old);
+        manager.stop();
+        assertThat(manager.getState()).isEqualTo(PythonProcessManager.ProcessState.FAILED);
+        assertThat(ref.get()).isSameAs(old);
+        assertThat(manager.restart()).isFalse();
+        assertThat(manager.start()).isFalse();
+        assertThat(ref.get()).isSameAs(old);
+    }
+
+    @Test
+    void successfulCleanupAlsoHandlesAnExitedRootAndClearsOwnership() {
+        PythonProcessManager manager = configuredManager();
+        var old = org.mockito.Mockito.mock(com.aicodeassistant.tool.process.OwnedProcess.class);
+        org.mockito.Mockito.when(old.terminate(org.mockito.ArgumentMatchers.anyLong(),
+                org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.eq(true))).thenReturn(true);
+        @SuppressWarnings("unchecked")
+        var ref = (AtomicReference<Process>) ReflectionTestUtils.getField(manager, "processRef");
+        ref.set(old);
+        manager.stop();
+        assertThat(ref.get()).isNull();
+        assertThat(manager.getState()).isEqualTo(PythonProcessManager.ProcessState.STOPPED);
+    }
+
+    @Test
     void healthCheckUsesCanonicalApiHealthEndpoint() {
         PythonProcessManager manager = configuredManager();
 

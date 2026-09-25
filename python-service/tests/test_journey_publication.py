@@ -16,6 +16,7 @@ async def test_relative_navigation_uses_requested_server(monkeypatch):
     service = SimpleNamespace(
         default_timeout=30000,
         _create_context_for_journey=AsyncMock(return_value=session),
+        release_session=AsyncMock(),
         navigate=AsyncMock(return_value={"status": 200}),
     )
     monkeypatch.setattr(browser, "browser_service", service)

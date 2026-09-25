@@ -15,7 +15,6 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,6 +25,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.Semaphore;
 
 /** Foreground process supervisor with hard deadlines, bounded drains and run cancellation. */
@@ -86,18 +86,29 @@ public class ManagedProcessRunner {
 
     private Result runWithEnvironment(Request request, Map<String, String> environment) throws IOException, InterruptedException {
         RunExecutionRegistry.WorkLease workLease = acquireLease(request.runId(), request.toolUseId(), request.ownership());
+        var leaseTransferred = new AtomicBoolean(false);
         try {
-            return runWithLease(request, workLease, environment);
+            return runWithLease(request, workLease, environment, leaseTransferred);
         } finally {
-            if (workLease != null) workLease.close();
+            if (workLease != null && !leaseTransferred.get()) workLease.close();
         }
     }
 
-    private Result runWithLease(Request request, RunExecutionRegistry.WorkLease workLease, Map<String, String> environment)
+    private Result runWithLease(Request request, RunExecutionRegistry.WorkLease workLease,
+                                Map<String, String> environment, AtomicBoolean leaseTransferred)
             throws IOException, InterruptedException {
         if (!capacity.tryAcquire()) throw new IOException("PROCESS_CAPACITY_EXCEEDED");
         long started = System.nanoTime();
-        Process process;
+        ActiveProcess activeProcess = new ActiveProcess(new AtomicReference<>(), new AtomicBoolean(false),
+                new AtomicReference<>(), request.terminationHook(), null, new AtomicBoolean(false), workLease);
+        ProcessKey key = new ProcessKey(request.runId(), request.toolUseId());
+        // Reserve ownership before starting user code, including on duplicate requests.
+        if (active.putIfAbsent(key, activeProcess) != null) {
+            capacity.release();
+            throw new IOException("PROCESS_OWNERSHIP_CONFLICT");
+        }
+        leaseTransferred.set(true);
+        java.util.concurrent.ExecutorService drains = null;
         try {
             ProcessBuilder builder = new ProcessBuilder(request.command());
             builder.directory(request.workingDirectory().toFile());
@@ -106,30 +117,21 @@ public class ManagedProcessRunner {
                 builder.environment().putAll(environment);
             }
             builder.redirectErrorStream(false);
-            process = builder.start();
-        } catch (IOException | RuntimeException startFailure) {
-            capacity.release();
-            throw startFailure;
-        }
-        ActiveProcess activeProcess = new ActiveProcess(process, new AtomicBoolean(false), new AtomicBoolean(false),
-                new AtomicBoolean(false), new CompletableFuture<>(), request.terminationHook(), null);
-        process.getOutputStream().close();
-        ProcessKey key = new ProcessKey(request.runId(), request.toolUseId());
-        if (key.trackable() && active.putIfAbsent(key, activeProcess) != null) {
-            process.destroyForcibly();
-            capacity.release();
-            throw new IOException("PROCESS_OWNERSHIP_CONFLICT");
-        }
-        if (workLease != null) {
-            workLease.onCancel(() -> {
-                activeProcess.cancelled().set(true);
+            Process process = OwnedProcess.start(builder);
+            activeProcess.processRef().set(process);
+            if (workLease != null) {
+                workLease.onCancel(() -> {
+                    activeProcess.cancelled().set(true);
+                    long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
+                    boolean stopped = terminate(activeProcess, deadline);
+                    if (cleanup(activeProcess, deadline) && stopped) releaseRetained(key, activeProcess);
+                });
+            }
+            if (activeProcess.cancelled().get()) {
                 long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
                 terminate(activeProcess, deadline);
-                cleanup(activeProcess, deadline);
-            });
-        }
-        var drains = Executors.newVirtualThreadPerTaskExecutor();
-        try {
+            }
+            drains = Executors.newVirtualThreadPerTaskExecutor();
             Future<Capture> stdout = drains.submit(() -> drain(process.getInputStream()));
             Future<Capture> stderr = drains.submit(() -> drain(process.getErrorStream()));
             recordProcessEvent(request.runId(), "process_started", request.toolUseId(), () -> Map.of(
@@ -141,9 +143,9 @@ public class ManagedProcessRunner {
             long remainingNanos = request.timeout().toNanos() - (System.nanoTime() - started);
             boolean completed = remainingNanos > 0
                     && process.waitFor(remainingNanos, TimeUnit.NANOSECONDS);
-            boolean terminationConfirmed = true;
             long cleanupDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
-            if (!completed) terminationConfirmed = terminate(activeProcess, cleanupDeadline);
+            // Foreground completion owns its remaining children, even after the shell has exited.
+            boolean terminationConfirmed = terminate(activeProcess, cleanupDeadline);
             terminationConfirmed = cleanup(activeProcess, cleanupDeadline) && terminationConfirmed;
             Capture out = awaitDrain(stdout, cleanupDeadline);
             Capture err = awaitDrain(stderr, cleanupDeadline);
@@ -162,15 +164,25 @@ public class ManagedProcessRunner {
                     "stderrTruncated", result.stderrTruncated()));
             return result;
         } finally {
-            active.remove(key, activeProcess);
+            boolean interrupted = Thread.interrupted();
+            activeProcess.runnerFinished().set(true);
+            Process process = activeProcess.process();
             long finalDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
-            if (process.isAlive()) terminate(activeProcess, finalDeadline);
-            cleanup(activeProcess, finalDeadline);
-            closeQuietly(process.getInputStream());
-            closeQuietly(process.getErrorStream());
-            closeQuietly(process.getOutputStream());
-            drains.shutdownNow();
-            capacity.release();
+            boolean stopped = process == null || terminate(activeProcess, finalDeadline);
+            if (process != null) stopped = cleanup(activeProcess, finalDeadline) && stopped;
+            if (stopped) {
+                releaseRetained(key, activeProcess);
+            } else {
+                // Retain ownership and its capacity slot; a later cancellation can retry termination.
+                log.warn("Foreground process cleanup unconfirmed: pid={}", process.pid());
+            }
+            if (process != null) {
+                closeQuietly(process.getInputStream());
+                closeQuietly(process.getErrorStream());
+                closeQuietly(process.getOutputStream());
+            }
+            if (drains != null) drains.shutdownNow();
+            if (interrupted) Thread.currentThread().interrupt();
         }
     }
 
@@ -206,8 +218,8 @@ public class ManagedProcessRunner {
         }
         Process process = group.launcher;
         ProcessKey key = new ProcessKey("session:" + request.sessionId(), request.toolUseId());
-        ActiveProcess owned = new ActiveProcess(process, new AtomicBoolean(false), new AtomicBoolean(false),
-                new AtomicBoolean(false), new CompletableFuture<>(), null, group);
+        ActiveProcess owned = new ActiveProcess(new AtomicReference<>(process), new AtomicBoolean(false),
+                new AtomicReference<>(), null, group, new AtomicBoolean(false), null);
         ActiveProcess previous = active.putIfAbsent(key, owned);
         processOwnsLease.set(true);
         group.exited.whenComplete((ignored, error) -> {
@@ -273,11 +285,12 @@ public class ManagedProcessRunner {
 
     @jakarta.annotation.PreDestroy
     void shutdown() {
-        for (ActiveProcess process : List.copyOf(active.values())) {
+        for (var entry : List.copyOf(active.entrySet())) {
+            ActiveProcess process = entry.getValue();
             process.cancelled().set(true);
             long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
-            terminate(process, deadline);
-            cleanup(process, deadline);
+            boolean stopped = terminate(process, deadline);
+            if (cleanup(process, deadline) && stopped) releaseRetained(entry.getKey(), process);
         }
     }
 
@@ -303,7 +316,10 @@ public class ManagedProcessRunner {
                 found++;
                 entry.getValue().cancelled().set(true);
                 long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
-                if (terminate(entry.getValue(), deadline) && cleanup(entry.getValue(), deadline)) confirmed++;
+                if (terminate(entry.getValue(), deadline) && cleanup(entry.getValue(), deadline)) {
+                    confirmed++;
+                    releaseRetained(entry.getKey(), entry.getValue());
+                }
             }
         }
         CancelSummary summary = new CancelSummary(found, confirmed, found - confirmed);
@@ -319,7 +335,20 @@ public class ManagedProcessRunner {
         if(process==null)return false;
         process.cancelled().set(true);
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
-        return terminate(process, deadline) && cleanup(process, deadline);
+        boolean confirmed = terminate(process, deadline) && cleanup(process, deadline);
+        if (confirmed) releaseRetained(new ProcessKey(runId, toolUseId), process);
+        return confirmed;
+    }
+
+    private void releaseRetained(ProcessKey key, ActiveProcess process) {
+        if (process.backgroundGroup() == null && process.runnerFinished().get()
+                && active.remove(key, process)) {
+            try {
+                if (process.workLease() != null) process.workLease().close();
+            } finally {
+                capacity.release();
+            }
+        }
     }
 
     private void recordProcessEvent(String runId, String eventType, String toolUseId,
@@ -334,54 +363,40 @@ public class ManagedProcessRunner {
 
     private boolean terminate(ActiveProcess owned, long cleanupDeadlineNanos) {
         if (owned.backgroundGroup() != null) return owned.backgroundGroup().terminate(cleanupDeadlineNanos, terminateGraceMs);
-        Process process = owned.process();
-        if (!process.isAlive()) return true;
-        if (!owned.terminationStarted().compareAndSet(false, true)) {
-            return awaitExit(process, cleanupDeadlineNanos);
+        if (owned.process() instanceof OwnedProcess process) {
+            return process.terminate(cleanupDeadlineNanos, terminateGraceMs, false);
         }
-        List<ProcessHandle> descendants = new ArrayList<>();
-        try { descendants.addAll(process.descendants().toList()); }
-        catch (RuntimeException e) { log.debug("Process descendants unavailable: {}", e.getMessage()); }
-        descendants.reversed().forEach(ProcessHandle::destroy);
-        process.destroy();
-        try {
-            long firstWait = Math.min(terminateGraceMs, remainingMillis(cleanupDeadlineNanos));
-            if (firstWait > 0 && process.waitFor(firstWait, TimeUnit.MILLISECONDS)) return true;
-            descendants.reversed().stream().filter(ProcessHandle::isAlive).forEach(ProcessHandle::destroyForcibly);
-            process.destroyForcibly();
-            return awaitExit(process, cleanupDeadlineNanos);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            process.destroyForcibly();
-            return false;
-        }
+        return false; // A launch path without ownership must never claim whole-task cleanup.
     }
 
     private boolean cleanup(ActiveProcess owned, long deadlineNanos) {
+        // Cancellation may observe the reservation before launch; no resource is clean yet.
+        if (owned.process() == null) return false;
         if (owned.terminationHook() == null) return true;
-        if (owned.cleanupStarted().compareAndSet(false, true)) {
-            boolean result;
-            try { result = owned.terminationHook().cleanup(deadlineNanos); }
-            catch (Exception e) {
+        CompletableFuture<Boolean> attempt;
+        for (;;) {
+            attempt = owned.cleanupAttempt().get();
+            if (attempt != null && (!attempt.isDone() || attempt.getNow(false))) break;
+            if (remainingMillis(deadlineNanos) <= 0) return false;
+            var next = new CompletableFuture<Boolean>();
+            if (!owned.cleanupAttempt().compareAndSet(attempt, next)) continue;
+            boolean result = false;
+            try {
+                result = owned.terminationHook().cleanup(deadlineNanos);
+                return result;
+            } catch (Exception e) {
                 log.warn("Process cleanup hook failed: {}", e.getMessage());
-                result = false;
+                return false;
+            } finally {
+                // Cache success; a later caller may replace a failed attempt, never an active one.
+                next.complete(result);
             }
-            owned.cleanupResult().complete(result);
-            return result;
         }
         long remaining = remainingMillis(deadlineNanos);
-        if (remaining <= 0) return owned.cleanupResult().getNow(false);
-        try { return owned.cleanupResult().get(remaining, TimeUnit.MILLISECONDS); }
+        if (remaining <= 0) return attempt.getNow(false);
+        try { return attempt.get(remaining, TimeUnit.MILLISECONDS); }
         catch (InterruptedException e) { Thread.currentThread().interrupt(); return false; }
         catch (Exception e) { return false; }
-    }
-
-    private static boolean awaitExit(Process process, long deadlineNanos) {
-        if (!process.isAlive()) return true;
-        long remaining = remainingMillis(deadlineNanos);
-        if (remaining <= 0) return !process.isAlive();
-        try { return process.waitFor(remaining, TimeUnit.MILLISECONDS); }
-        catch (InterruptedException e) { Thread.currentThread().interrupt(); return !process.isAlive(); }
     }
 
     private static long remainingMillis(long deadlineNanos) {
@@ -436,6 +451,7 @@ public class ManagedProcessRunner {
 
     private Capture awaitDrain(Future<Capture> future, long cleanupDeadlineNanos) {
         try {
+            if (future.isDone()) return future.get();
             long remaining = Math.min(drainJoinMs, remainingMillis(cleanupDeadlineNanos));
             if (remaining <= 0) throw new java.util.concurrent.TimeoutException("cleanup deadline reached");
             return future.get(remaining, TimeUnit.MILLISECONDS);
@@ -521,10 +537,11 @@ public class ManagedProcessRunner {
     }
     private record Capture(String text, boolean truncated) {}
     @FunctionalInterface public interface TerminationHook { boolean cleanup(long deadlineNanos) throws Exception; }
-    private record ActiveProcess(Process process, AtomicBoolean cancelled, AtomicBoolean terminationStarted,
-                                 AtomicBoolean cleanupStarted, CompletableFuture<Boolean> cleanupResult,
-                                 TerminationHook terminationHook, BackgroundProcessGroup backgroundGroup) {}
-    private record ProcessKey(String runId, String toolUseId) {
-        boolean trackable() { return runId != null && toolUseId != null; }
+    private record ActiveProcess(AtomicReference<Process> processRef, AtomicBoolean cancelled,
+                                 AtomicReference<CompletableFuture<Boolean>> cleanupAttempt,
+                                 TerminationHook terminationHook, BackgroundProcessGroup backgroundGroup,
+                                 AtomicBoolean runnerFinished, RunExecutionRegistry.WorkLease workLease) {
+        Process process() { return processRef.get(); }
     }
+    private record ProcessKey(String runId, String toolUseId) {}
 }

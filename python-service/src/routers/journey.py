@@ -5,6 +5,7 @@
 依赖 BROWSER_AUTOMATION 能力域（与 browser 路由同域注册）。
 """
 
+import asyncio
 import base64
 import time
 import uuid
@@ -12,26 +13,79 @@ import logging
 from urllib.parse import urljoin
 from typing import Dict, Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Request
 
 from services.journey_models import JourneyRunRequest, JourneyRunResponse, StepResultModel
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+# Match BrowserVerifier: <=120s work, <=5s context cleanup, 5s transport headroom
+# inside its 130s HTTP timeout. Java's later snapshot/close have separate budgets.
+JOURNEY_EXECUTION_TIMEOUT_SECONDS = 120.0
+DISCONNECT_POLL_SECONDS = 0.25
 
 
 @router.post("/journey/run")
-async def journey_run(request: JourneyRunRequest) -> JourneyRunResponse:
+async def journey_run(request: JourneyRunRequest, http_request: Request = None) -> JourneyRunResponse:
     """执行用户旅程验证 — 逐步执行 steps DSL，首个失败即停止"""
     from routers.browser import browser_service
 
-    # 生成 session_id
-    session_id = request.session_id or f"rv-{uuid.uuid4().hex[:8]}"
+    remaining = JOURNEY_EXECUTION_TIMEOUT_SECONDS
+    if request.deadline_epoch_ms is not None:
+        remaining = min(remaining, request.deadline_epoch_ms / 1000 - time.time())
+    if remaining <= 0:
+        raise HTTPException(status_code=504, detail="JOURNEY_DEADLINE_EXCEEDED")
 
-    # 创建带录制能力的新 session
+    execution = asyncio.create_task(_run_owned_journey(browser_service, request))
+    disconnected = (asyncio.create_task(_wait_for_disconnect(http_request))
+                    if http_request is not None else None)
+    try:
+        watched = {execution, disconnected} if disconnected is not None else {execution}
+        done, _ = await asyncio.wait(watched, timeout=remaining, return_when=asyncio.FIRST_COMPLETED)
+        if execution in done:
+            return await execution
+        if disconnected is not None and disconnected in done:
+            raise HTTPException(status_code=499, detail="JOURNEY_CLIENT_DISCONNECTED")
+        raise HTTPException(status_code=504, detail="JOURNEY_DEADLINE_EXCEEDED")
+    finally:
+        # HTTP disconnect is not automatically cancellation in ASGI. Cancel and
+        # join the execution, including its bounded BrowserService cleanup.
+        if not execution.done():
+            execution.cancel()
+        if disconnected is not None:
+            disconnected.cancel()
+        await asyncio.gather(*watched, return_exceptions=True)
+
+
+async def _wait_for_disconnect(request: Request):
+    while not await request.is_disconnected():
+        await asyncio.sleep(DISCONNECT_POLL_SECONDS)
+
+
+async def _run_owned_journey(browser_service, request: JourneyRunRequest) -> JourneyRunResponse:
+    session_id = request.session_id or f"rv-{uuid.uuid4().hex[:8]}"
+    # Creation itself is cancellation-safe; do not close by ID if creation fails
+    # (a duplicate request must never close the existing owner's context).
     session = await browser_service._create_context_for_journey(
         session_id, request.record, request.viewport
     )
+    try:
+        return await _execute_journey(browser_service, request, session_id, session)
+    except BaseException:
+        # Normal step failures are results and retain the context for Java's
+        # failure semantic snapshot. Only aborted execution is released here.
+        try:
+            await browser_service.close_session(session_id, expected_session=session)
+        except Exception:
+            # Keep the original failure/cancellation. BrowserService retains
+            # failed cleanup for retry; do not silently claim it was released.
+            logger.exception("Journey cleanup unconfirmed for %s", session_id)
+        raise
+    finally:
+        await browser_service.release_session(session_id, session)
+
+
+async def _execute_journey(browser_service, request, session_id, session) -> JourneyRunResponse:
 
     step_results = []
 

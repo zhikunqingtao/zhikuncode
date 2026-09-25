@@ -24,7 +24,7 @@ class BrowserVerifierTest {
 
     private static final String CAPABILITY = "BROWSER_AUTOMATION";
     private static final String ENDPOINT = "/api/browser/journey/run";
-    private static final Duration TIMEOUT = Duration.ofSeconds(120);
+    private static final Duration TIMEOUT = Duration.ofSeconds(130);
 
     private PythonCapabilityAwareClient pythonClient;
     private SimpMessagingTemplate messagingTemplate;
@@ -100,7 +100,7 @@ class BrowserVerifierTest {
     }
 
     @Test
-    @DisplayName("TC-BV-04: session_id 前缀为 rv- + 原始 sessionId，且 body 含 viewport/record/steps/base_url")
+    @DisplayName("TC-BV-04: browser resource ID is invocation-owned, not the business session ID")
     @SuppressWarnings("unchecked")
     void verify_bodyHasRvPrefixAndViewportRecord() {
         when(pythonClient.isCapabilityAvailable(CAPABILITY)).thenReturn(true);
@@ -109,7 +109,9 @@ class BrowserVerifierTest {
             .thenReturn(Optional.of(passedResponse()));
 
         JourneyRequest req = sampleRequest();
+        long before = System.currentTimeMillis();
         verifier.verify(req, "user1");
+        long after = System.currentTimeMillis();
 
         ArgumentCaptor<Object> bodyCap = ArgumentCaptor.forClass(Object.class);
         verify(pythonClient).callIfAvailable(
@@ -117,8 +119,14 @@ class BrowserVerifierTest {
             eq(JourneyResponse.class), any(Duration.class));
 
         Map<String, Object> body = (Map<String, Object>) bodyCap.getValue();
-        assertEquals("rv-" + req.sessionId(), body.get("session_id"),
-            "BrowserVerifier 必须给 session_id 加 rv- 前缀以隔离验证会话");
+        assertEquals(req.browserResourceId(), body.get("session_id"));
+        assertTrue(req.browserResourceId().startsWith("rv-"));
+        assertNotEquals("rv-" + req.sessionId(), body.get("session_id"));
+        assertNotEquals(req.browserResourceId(), sampleRequest().browserResourceId());
+        assertEquals("abc123", req.sessionId(), "Business session ownership must not change");
+        long deadline = ((Number) body.get("deadline_epoch_ms")).longValue();
+        assertTrue(deadline >= before + 120_000 && deadline <= after + 120_000,
+                "Preserve 120s work budget without depending on test scheduling speed");
         assertEquals(req.baseUrl(), body.get("base_url"));
         assertEquals(req.steps(), body.get("steps"));
         assertEquals(req.recordOptions(), body.get("record"));
@@ -130,8 +138,8 @@ class BrowserVerifierTest {
     }
 
     @Test
-    @DisplayName("TC-BV-05: timeout=120s（与 HttpApiVerifier 60s 形成区别）")
-    void verify_usesHundredTwentySecondTimeout() {
+    @DisplayName("TC-BV-05: 120s execution plus 10s bounded cleanup/transport headroom")
+    void verify_reservesCleanupHeadroomInHttpTimeout() {
         when(pythonClient.isCapabilityAvailable(CAPABILITY)).thenReturn(true);
         when(pythonClient.callIfAvailable(anyString(), anyString(), any(),
                 eq(JourneyResponse.class), any(Duration.class)))
@@ -144,8 +152,7 @@ class BrowserVerifierTest {
             eq(CAPABILITY), eq(ENDPOINT), any(),
             eq(JourneyResponse.class), timeoutCap.capture());
 
-        assertEquals(Duration.ofSeconds(120), timeoutCap.getValue(),
-            "BrowserVerifier 必须使用 120s 超时（区别于 HttpApiVerifier 的 60s）");
+        assertEquals(Duration.ofSeconds(130), timeoutCap.getValue());
         assertNotEquals(Duration.ofSeconds(60), timeoutCap.getValue());
     }
 }

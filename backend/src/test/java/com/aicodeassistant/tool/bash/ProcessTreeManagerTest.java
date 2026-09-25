@@ -74,21 +74,22 @@ class ProcessTreeManagerTest {
         // 等待子进程创建
         Thread.sleep(200);
         assertThat(process.isAlive()).isTrue();
+        java.util.List<ProcessHandle> children;
+        try {
+            children = process.descendants().toList();
+        } catch (RuntimeException unavailable) {
+            process.destroyForcibly();
+            org.junit.jupiter.api.Assumptions.assumeTrue(false, "Host cannot enumerate children: " + unavailable);
+            return;
+        }
+        assertThat(children).isNotEmpty();
 
         boolean result = manager.destroyProcessTree(process, Duration.ofSeconds(3));
 
         assertThat(result).isTrue();
         assertThat(process.isAlive()).isFalse();
         // 验证所有子进程也已终止
-        ProcessHandle handle = process.toHandle();
-        try {
-            assertThat(handle.descendants().filter(ProcessHandle::isAlive).count()).isZero();
-        } catch (RuntimeException unavailableInRestrictedHost) {
-            // The production contract explicitly reports descendant enumeration as
-            // best-effort. The primary-process termination assertion above remains
-            // mandatory when the host denies ProcessHandle's sysctl/proc access.
-            assertThat(unavailableInRestrictedHost.getMessage()).isNotBlank();
-        }
+        assertThat(children).allMatch(child -> !child.isAlive());
     }
 
     // ═══════════════════════════════════════════════════════════

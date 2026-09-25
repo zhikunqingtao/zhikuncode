@@ -1,5 +1,6 @@
 package com.aicodeassistant.service;
 
+import com.aicodeassistant.tool.process.OwnedProcess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -127,8 +128,11 @@ public class PythonProcessManager {
                 && existing != null && existing.isAlive()) {
             return true;
         }
-        if (existing != null && existing.isAlive()) {
-            stopProcess(existing);
+        if (existing != null) {
+            if (!stopProcess(existing)) {
+                stateRef.set(ProcessState.FAILED);
+                return false;
+            }
             processRef.compareAndSet(existing, null);
         }
 
@@ -139,7 +143,7 @@ public class PythonProcessManager {
         try {
             ProcessBuilder builder = createProcessBuilder();
             builder.redirectErrorStream(true);
-            process = builder.start();
+            process = OwnedProcess.start(builder);
             processRef.set(process);
             Process started = process;
             Thread.ofVirtual().name("zhikun-python-drain")
@@ -158,13 +162,14 @@ public class PythonProcessManager {
             log.error("Interrupted while starting Python service");
         } catch (Exception e) {
             log.error("Failed to start Python service: {}", e.getMessage());
+        } catch (Error failure) {
+            if (process != null && stopProcess(process)) processRef.compareAndSet(process, null);
+            stateRef.set(ProcessState.FAILED);
+            throw failure;
         }
 
         if (process != null) {
-            if (process.isAlive()) {
-                stopProcess(process);
-            }
-            processRef.compareAndSet(process, null);
+            if (stopProcess(process)) processRef.compareAndSet(process, null);
         }
         stateRef.set(ProcessState.FAILED);
         return false;
@@ -174,10 +179,14 @@ public class PythonProcessManager {
      * 停止 Python 服务。
      */
     public synchronized void stop() {
-        Process process = processRef.getAndSet(null);
-        if (process != null && process.isAlive()) {
+        Process process = processRef.get();
+        if (process != null) {
             log.info("Stopping Python service...");
-            stopProcess(process);
+            if (!stopProcess(process)) {
+                stateRef.set(ProcessState.FAILED);
+                return;
+            }
+            processRef.compareAndSet(process, null);
         }
         stateRef.set(ProcessState.STOPPED);
     }
@@ -187,6 +196,7 @@ public class PythonProcessManager {
      */
     public synchronized boolean restart() {
         stop();
+        if (processRef.get() != null) return false;
         try {
             Thread.sleep(Math.max(0, restartDelayMs));
         } catch (InterruptedException e) {
@@ -347,17 +357,12 @@ public class PythonProcessManager {
         return false;
     }
 
-    private void stopProcess(Process process) {
-        process.destroy();
-        try {
-            if (!process.waitFor(10, TimeUnit.SECONDS)) {
-                process.destroyForcibly();
-                log.warn("Python service force-killed");
-            }
-        } catch (InterruptedException e) {
-            process.destroyForcibly();
-            Thread.currentThread().interrupt();
-        }
+    private boolean stopProcess(Process process) {
+        boolean stopped = process instanceof OwnedProcess owned
+                ? owned.terminate(System.nanoTime() + TimeUnit.SECONDS.toNanos(12), 10_000, true)
+                : OwnedProcess.terminateTree(process, java.time.Duration.ofSeconds(10));
+        if (!stopped) log.warn("Python service cleanup unconfirmed; retaining process ownership: pid={}", process.pid());
+        return stopped;
     }
 
     private void drainOutput(Process process) {

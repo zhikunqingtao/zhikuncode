@@ -23,6 +23,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -393,6 +399,57 @@ class VerifyJourneyEdgeCaseTest {
         assertTrue(result.isError());
         assertTrue(elapsed < 5_000,
                 "Verifier 已自带 120s 超时；工具层不应再阻塞，本次耗时 ms=" + elapsed);
+    }
+
+    @Test
+    void concurrentJourneysKeepBusinessSessionButOwnDistinctSnapshotAndCloseIds() throws Exception {
+        prepareBrowserModeStubs();
+        when(devServerLauncher.start(any(), anyString(), anyInt(), any())).thenReturn(mockHandle());
+        BrowserVerifier browser = stubBrowserVerifier();
+        var requests = new ConcurrentLinkedQueue<JourneyRequest>();
+        var stages = new ConcurrentHashMap<String, String>();
+        var bothStarted = new CyclicBarrier(2);
+        when(browser.verify(any(), eq("session-edge"))).thenAnswer(inv -> {
+            JourneyRequest request = inv.getArgument(0);
+            requests.add(request);
+            assertNull(stages.putIfAbsent(request.browserResourceId(), "created"));
+            bothStarted.await(5, TimeUnit.SECONDS);
+            return JourneyResult.failed("ASSERTION_FAILED", "missing button");
+        });
+        when(evidenceStore.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(pythonClient.callIfAvailable(eq("BROWSER_AUTOMATION"), anyString(), any(),
+                eq(Map.class), any(Duration.class))).thenAnswer(inv -> {
+            String endpoint = inv.getArgument(1);
+            Map<?, ?> body = inv.getArgument(2);
+            String resourceId = (String) body.get("session_id");
+            if (endpoint.endsWith("snapshot-semantic")) {
+                assertEquals(Boolean.TRUE, body.get("strict_session"), "Snapshot must not recreate a closed resource");
+                assertEquals(Boolean.FALSE, body.get("include_screenshot"));
+                assertEquals("created", stages.replace(resourceId, "snapshot"));
+                return Optional.of(Map.of("success", true, "data", Map.of("title", "Failure page")));
+            }
+            assertTrue(endpoint.endsWith("close_session"));
+            assertEquals("snapshot", stages.replace(resourceId, "closed"), "Close must follow this resource's failure snapshot");
+            return Optional.of(Map.of("success", true, "data", Map.of("closed", true)));
+        });
+
+        try (var executor = Executors.newFixedThreadPool(2)) {
+            var first = executor.submit(() -> tool.call(browserInput(null), browserCtx()));
+            var second = executor.submit(() -> tool.call(browserInput(null), browserCtx()));
+            for (var future : List.of(first, second)) {
+                ToolResult result = future.get(10, TimeUnit.SECONDS);
+                assertTrue(result.isError());
+                assertTrue(result.content().contains("Page Snapshot at Failure"));
+            }
+        }
+        assertEquals(2, requests.size());
+        assertEquals(2, stages.size());
+        assertTrue(stages.values().stream().allMatch("closed"::equals));
+        assertTrue(requests.stream().allMatch(req -> "session-edge".equals(req.sessionId())));
+        ArgumentCaptor<EvidenceBundle> bundles = ArgumentCaptor.forClass(EvidenceBundle.class);
+        verify(evidenceStore, times(2)).save(bundles.capture());
+        assertTrue(bundles.getAllValues().stream().allMatch(bundle -> "session-edge".equals(bundle.sessionId())));
+        verify(notificationService, times(2)).sendVerifyAttention(eq("session-edge"), any());
     }
 
     // ─────────────────────────────────────────────────────────────────────

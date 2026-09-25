@@ -405,6 +405,17 @@ public class BashTool implements Tool {
                         .withMetadata("stdoutTruncated", result.stdoutTruncated())
                         .withMetadata("stderrTruncated", result.stderrTruncated());
             }
+            if (!result.terminationConfirmed()) {
+                return ToolResult.failed(ToolResult.ToolFailureType.PROCESS,
+                        "PROCESS_TERMINATION_UNCONFIRMED",
+                        "Command exited but child process cleanup could not be confirmed\n"
+                                + outputProcessor.processOutput(combined, true),
+                        ToolResult.Retryability.NEVER, ToolResult.EffectState.UNKNOWN,
+                        result.exitCode(), Map.of("terminationConfirmed", false,
+                                "descendantTrackingUnavailable", result.descendantTrackingUnavailable(),
+                                "stdoutTruncated", result.stdoutTruncated(),
+                                "stderrTruncated", result.stderrTruncated()));
+            }
             shellStateManager.updateStateFromSnapshot(sessionId);
             boolean failed = result.exitCode() != 0;
             String processed = outputProcessor.processOutput(combined, failed);

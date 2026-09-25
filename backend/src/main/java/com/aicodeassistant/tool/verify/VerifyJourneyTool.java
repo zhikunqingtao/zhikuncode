@@ -315,6 +315,7 @@ public class VerifyJourneyTool implements Tool {
             // 启动 DevServer
             DevServerHandle handle = null;
             Path staticStage = null;
+            String browserResourceId = "rv-" + UUID.randomUUID();
             try {
                 if (staticPublication) {
                     staticStage = Files.createTempDirectory("zhikun-meoo-verify-");
@@ -336,13 +337,15 @@ public class VerifyJourneyTool implements Tool {
                         sessionId,
                         baseUrl,
                         journey,
-                        record ? Map.of("video", true, "har", true, "trace", true) : Map.of()
+                        record ? Map.of("video", true, "har", true, "trace", true) : Map.of(),
+                        browserResourceId
                 );
 
                 String principal = sessionId;
                 JourneyResult result = verifier.verify(browserReq, principal);
                 return handleVerificationResult(result, sessionId, journey.size(),
-                        evidenceClaim, observationRunId, selectedMode, startedNanos, publicationInput, publicationSnapshot, context);
+                        evidenceClaim, observationRunId, selectedMode, startedNanos, publicationInput, publicationSnapshot, context,
+                        browserResourceId);
 
             } catch (DevServerTimeoutException e) {
                 recordVerificationFailure(observationRunId, selectedMode, journey.size(),
@@ -369,15 +372,18 @@ public class VerifyJourneyTool implements Tool {
                     }
                 }
                 try {
-                    pythonClient.callIfAvailable(
+                    Optional<Map> closed = pythonClient.callIfAvailable(
                             CAPABILITY,
                             "/api/browser/close_session",
-                            Map.of("session_id", "rv-" + sessionId),
+                            Map.of("session_id", browserResourceId),
                             Map.class,
                             CLOSE_SESSION_TIMEOUT
                     );
-                } catch (Exception ignored) {
-                    // 清理失败不影响主流程
+                    if (closed.isEmpty() || !Boolean.TRUE.equals(closed.get().get("success"))) {
+                        log.warn("Browser cleanup unconfirmed for resource {}; TTL remains a fallback", browserResourceId);
+                    }
+                } catch (Exception e) {
+                    log.warn("Browser cleanup unconfirmed for resource {}: {}", browserResourceId, e.getClass().getSimpleName());
                 }
                 if (staticStage != null) {
                     try (var paths = Files.walk(staticStage)) {
@@ -413,7 +419,7 @@ public class VerifyJourneyTool implements Tool {
             String principal = sessionId;
             JourneyResult result = verifier.verify(apiReq, principal);
             return handleVerificationResult(result, sessionId, journey.size(),
-                    evidenceClaim, observationRunId, selectedMode, startedNanos, publicationInput, publicationSnapshot, context);
+                    evidenceClaim, observationRunId, selectedMode, startedNanos, publicationInput, publicationSnapshot, context, null);
         }
     }
 
@@ -443,7 +449,7 @@ public class VerifyJourneyTool implements Tool {
                                                 String evidenceClaim, String runId, String mode,
                                                 long startedNanos, ToolInput publicationInput,
                                                 com.aicodeassistant.artifact.meoo.MeooPublicationPolicy.Snapshot publicationSnapshot,
-                                                ToolUseContext context) {
+                                                ToolUseContext context, String browserResourceId) {
         var publicationItems = new java.util.ArrayList<>(buildEvidenceItems(result));
         if(publicationSnapshot != null) {
             try {
@@ -497,7 +503,8 @@ public class VerifyJourneyTool implements Tool {
                     : "Runtime verification failed";
 
             // RV-5：在 finally 块销毁会话之前，直接调用 /api/browser/snapshot-semantic
-            String enrichedMsg = enrichWithFailureSnapshot(baseMsg, sessionId);
+            String enrichedMsg = browserResourceId == null ? baseMsg
+                    : enrichWithFailureSnapshot(baseMsg, browserResourceId);
 
             // RV-METRICS: 结构化失败日志，便于 grep 统计失败率与错误分类
             StepResult failedStep = findFailedStep(result.stepResults());
@@ -747,13 +754,14 @@ public class VerifyJourneyTool implements Tool {
      * 返回原始 baseMsg，不影响主流程。</p>
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private String enrichWithFailureSnapshot(String baseMsg, String sessionId) {
+    private String enrichWithFailureSnapshot(String baseMsg, String browserResourceId) {
         try {
             Optional<Map> resp = pythonClient.callIfAvailable(
                     CAPABILITY,
                     "/api/browser/snapshot-semantic",
                     Map.of(
-                            "session_id", "rv-" + sessionId,
+                            "session_id", browserResourceId,
+                            "strict_session", true,
                             "interesting_only", true,
                             "include_screenshot", false
                     ),

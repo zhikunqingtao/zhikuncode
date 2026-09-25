@@ -3,6 +3,7 @@ package com.aicodeassistant.verify;
 import com.aicodeassistant.observability.SafeLogValue;
 
 import com.aicodeassistant.tool.bash.ProcessTreeManager;
+import com.aicodeassistant.tool.process.OwnedProcess;
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -31,6 +33,7 @@ public class DevServerLauncher {
 
     private final ProcessTreeManager processTreeManager;
     private final ConcurrentHashMap<String, DevServerHandle> activeHandles = new ConcurrentHashMap<>();
+    private final Set<Process> pendingCleanup = ConcurrentHashMap.newKeySet();
 
     public DevServerLauncher(ProcessTreeManager processTreeManager) {
         this.processTreeManager = processTreeManager;
@@ -89,44 +92,50 @@ public class DevServerLauncher {
 
         Process process;
         try {
-            process = pb.start();
-            process.getOutputStream().close();
+            process = OwnedProcess.start(pb);
         } catch (IOException e) {
             throw new RuntimeException("Failed to start dev server: " + e.getMessage(), e);
         }
 
         long pid = process.pid();
-        log.info("Dev server started: pid={}, commandLength={}, commandFingerprint={}, port={}", pid,
-                SafeLogValue.length(command.toString()), SafeLogValue.fingerprint(command.toString()), port);
-
-        // PID 持久化
         Path pidFile = workspace.resolve(".ai-code-assistant/devserver.pid");
-        try {
-            Files.writeString(pidFile, String.valueOf(pid));
-        } catch (IOException e) {
-            log.warn("Failed to write PID file", e);
-        }
-
-        // HTTP 轮询就绪
-        boolean ready = pollUntilReady(process, port, timeout);
-        if (!ready) {
-            String logTail = readLogTail(logFile, 2000);
-            boolean exited = !process.isAlive();
-            int exitCode = exited ? process.exitValue() : -1;
-            DevServerHandle handle = new DevServerHandle(process, pid, port, logFile, pidFile);
-            stop(handle);
-            if (exited) throw new IllegalStateException("Dev server exited with code " + exitCode + ": " + logTail);
-            throw new DevServerTimeoutException(port, timeout, logTail);
-        }
-
         DevServerHandle handle = new DevServerHandle(process, pid, port, logFile, pidFile);
         activeHandles.put(String.valueOf(pid), handle);
-        return handle;
+        try {
+            log.info("Dev server started: pid={}, commandLength={}, commandFingerprint={}, port={}", pid,
+                    SafeLogValue.length(command.toString()), SafeLogValue.fingerprint(command.toString()), port);
+
+            // PID 持久化
+            try {
+                Files.writeString(pidFile, String.valueOf(pid));
+            } catch (IOException e) {
+                log.warn("Failed to write PID file", e);
+            }
+
+            // HTTP 轮询就绪
+            boolean ready = pollUntilReady(process, port, timeout);
+            if (!ready) {
+                String logTail = readLogTail(logFile, 2000);
+                boolean exited = !process.isAlive();
+                int exitCode = exited ? process.exitValue() : -1;
+                if (exited) throw new IllegalStateException("Dev server exited with code " + exitCode + ": " + logTail);
+                throw new DevServerTimeoutException(port, timeout, logTail);
+            }
+
+            return handle;
+        } catch (RuntimeException | Error failure) {
+            stop(handle);
+            throw failure;
+        }
     }
 
     public void stop(DevServerHandle handle) {
-        activeHandles.remove(String.valueOf(handle.pid()));
-        processTreeManager.destroyProcessTree(handle.process(), GRACE_PERIOD);
+        if (!processTreeManager.destroyProcessTree(handle.process(), GRACE_PERIOD)) {
+            activeHandles.putIfAbsent(String.valueOf(handle.pid()), handle);
+            log.warn("Dev server cleanup unconfirmed: pid={}", handle.pid());
+            return;
+        }
+        activeHandles.remove(String.valueOf(handle.pid()), handle);
         try { Files.deleteIfExists(handle.pidFile()); } catch (IOException ignored) {}
         log.info("Dev server stopped: pid={}", handle.pid());
     }
@@ -134,6 +143,7 @@ public class DevServerLauncher {
     @PreDestroy
     public void shutdownAll() {
         activeHandles.values().forEach(this::stop);
+        pendingCleanup.removeIf(process -> processTreeManager.destroyProcessTree(process, GRACE_PERIOD));
     }
 
     private boolean pollUntilReady(Process process, int port, Duration timeout) {
@@ -162,18 +172,29 @@ public class DevServerLauncher {
             ProcessBuilder pb = new ProcessBuilder("bash", "-c", command);
             pb.directory(workspace.toFile());
             pb.redirectErrorStream(true);
-            Process p = pb.start();
-            boolean done = p.waitFor(timeout.toMillis(), TimeUnit.MILLISECONDS);
-            if (!done) {
-                processTreeManager.destroyProcessTree(p, GRACE_PERIOD);
-                throw new RuntimeException("npm install timed out after " + timeout.toSeconds() + "s");
-            }
-            if (p.exitValue() != 0) {
-                String output = new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-                throw new RuntimeException("npm install failed (exit " + p.exitValue() + "): "
-                    + output.substring(0, Math.min(output.length(), 2000)));
+            Process p = OwnedProcess.start(pb);
+            Throwable primaryFailure = null;
+            try {
+                boolean done = p.waitFor(timeout.toMillis(), TimeUnit.MILLISECONDS);
+                if (!done) throw new RuntimeException("npm install timed out after " + timeout.toSeconds() + "s");
+                if (p.exitValue() != 0) {
+                    String output = new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                    throw new RuntimeException("npm install failed (exit " + p.exitValue() + "): "
+                        + output.substring(0, Math.min(output.length(), 2000)));
+                }
+            } catch (IOException | InterruptedException | RuntimeException | Error failure) {
+                primaryFailure = failure;
+                throw failure;
+            } finally {
+                if (!processTreeManager.destroyProcessTree(p, GRACE_PERIOD)) {
+                    pendingCleanup.add(p);
+                    var cleanupFailure = new IllegalStateException("npm install process cleanup unconfirmed");
+                    if (primaryFailure != null) primaryFailure.addSuppressed(cleanupFailure);
+                    else throw cleanupFailure;
+                }
             }
         } catch (IOException | InterruptedException e) {
+            if (e instanceof InterruptedException) Thread.currentThread().interrupt();
             throw new RuntimeException("npm install failed: " + e.getMessage(), e);
         }
     }
