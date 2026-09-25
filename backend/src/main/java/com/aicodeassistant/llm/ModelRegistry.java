@@ -26,10 +26,8 @@ public class ModelRegistry {
         entry("gpt-5.4-mini",      caps("gpt-5.4-mini",      "GPT-5.4 Mini",     128000, 400000,  true, true, true, 10, true, 0.00075, 0.0045)),
         // Anthropic
         entry("claude-sonnet-4-6", caps("claude-sonnet-4-6", "Claude Sonnet 4.6",  16384, 200000, true, true, true, 10, true, 0.003, 0.015)),
-        entry("claude-opus-4-8",          caps("claude-opus-4-8",          "Claude Opus 4.8",  16384, 200000, true, true, true, 10, true, 0.015, 0.075)),
         entry("claude-haiku-4-5", caps("claude-haiku-4-5", "Claude Haiku 4.5", 8192, 200000, true, false, true, 10, true, 0.0008, 0.004)),
          // Anthropic via ZenMux (anthropic/ 前缀 = zenmux 中转，1M ctx · 128K 最大输出，我们保守设 64K)
-        entry("anthropic/claude-opus-4.8", caps("anthropic/claude-opus-4.8", "Claude Opus 4.8", 64000, 1000000, true, false, true, 5, true, 0.005, 0.025)),
         entry("anthropic/claude-fable-5.1", cacheCaps("anthropic/claude-fable-5.1", "Claude Fable 5.1（ZenMux）", 64000, 1000000, true, false, true, 5, true, 0.010, 0.050)),
         // OpenAI via ZenMux (openai/ 前缀 = zenmux 中转)
         entry("openai/gpt-5.6-sol",   caps("openai/gpt-5.6-sol",   "OpenAI GPT-5.6 Sol",   128000, 1050000, true,  true, true, 4, true, 0.030, 0.180)),
@@ -56,9 +54,8 @@ public class ModelRegistry {
         entry("deepseek-v4.1-flash", caps("deepseek-v4.1-flash", "DeepSeek V4.1 Flash（百炼）", 393216, 1000000, true, true, true, 4, true, 0.002, 0.008)),
         entry("deepseek-v4-pro-0813",   caps("deepseek-v4-pro-0813",   "DeepSeek V4 Pro 0813（百炼）",   384000, 1000000, true, true, false, 0, true, 0.001, 0.004)),
         entry("deepseek-v4-flash-0731", caps("deepseek-v4-flash-0731", "DeepSeek V4 Flash 0731（百炼）", 384000, 1000000, true, true, false, 0, true, 0.0005, 0.002)),
-        // Moonshot（Kimi K3/K2.7 视觉模型仅接受 base64 图片输入，不支持公网 URL）
+        // Moonshot（Kimi K3 视觉模型仅接受 base64 图片输入，不支持公网 URL）
         entry("kimi-k3",          caps("kimi-k3",          "Kimi K3",         131072, 1000000,  true, true, true, 8, true, 0.002, 0.012, ModelCapabilities.ImageInputMode.BASE64_ONLY)),
-        entry("kimi-k2.7-code",     caps("kimi-k2.7-code",     "Kimi K2.7 Code",    16384, 256000,  true, true, true, 8, true, 0.002, 0.012, ModelCapabilities.ImageInputMode.BASE64_ONLY)),
         // Kimi Code 订阅（2026-09-20）：两款均配置最大 1M 上下文；K3 需套餐具备 1M 权限。
         // https://www.kimi.com/code/docs/kimi-code/models.html
         // 131072 为应用单次输出预算，8 张图片为应用保守上限；订阅用量不按按量单价估算。
@@ -66,7 +63,6 @@ public class ModelRegistry {
                 true, true, true, 8, true, 0.0, 0.0, 3.5, true, ModelCapabilities.ImageInputMode.BASE64_ONLY)),
         entry("kimi-for-coding", new ModelCapabilities("kimi-for-coding", "Kimi K2.8 Preview（订阅）", 131072, 1048576,
                 true, true, true, 8, true, 0.0, 0.0, 3.5, true, ModelCapabilities.ImageInputMode.BASE64_ONLY)),
-        entry("moonshot-v1-128k",  caps("moonshot-v1-128k",  "Moonshot V1 128K",   8192, 128000,  true, false, false, 0, true, 0.001, 0.002)),
         entry("qwen-turbo",        caps("qwen-turbo",        "Qwen Turbo",         8192, 1000000,  true, false, false, 0, true, 0.0003, 0.0006)),
         entry("qwen3.8-max-0902", caps("qwen3.8-max-0902", "Qwen 3.8 Max 0902", 65536, 1000000, true, true, true, 4, true, 0.009, 0.054)),
         entry("qwen3.8-max", caps("qwen3.8-max", "Qwen 3.8 Max（百炼）", 65536, 1000000, true, true, true, 4, true, 0.009, 0.054)),

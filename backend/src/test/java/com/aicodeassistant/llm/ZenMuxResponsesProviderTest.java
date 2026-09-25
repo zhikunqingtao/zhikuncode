@@ -32,8 +32,8 @@ class ZenMuxResponsesProviderTest {
                 new LlmHttpProperties(new LlmHttpProperties.PoolProperties(2, 30),
                         10, 10, false),
                 new ApiKeyRotationManager("key"), "key",
-                server.url("/v1").toString(), "anthropic/claude-opus-4.8",
-                List.of("anthropic/claude-opus-4.8", "openai/gpt-5.6-sol",
+                server.url("/v1").toString(), "anthropic/claude-fable-5.1",
+                List.of("anthropic/claude-fable-5.1", "openai/gpt-5.6-sol",
                         "openai/gpt-6-astra", "google/gemini-3.8-flash",
                         "x-ai/grok-4.6"));
     }

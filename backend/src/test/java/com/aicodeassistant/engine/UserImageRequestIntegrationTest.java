@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
 /** Actual download, conversion, both guards, and the provider's final HTTP request. No API credentials. */
 class UserImageRequestIntegrationTest {
     @ParameterizedTest
-    @ValueSource(strings = {"kimi-k3", "kimi-k2.7-code"})
+    @ValueSource(strings = {"kimi-k3"})
     void sendsLargePngThroughBothRealGuardsAndKeepsUrlHistory(String model) throws Exception {
         try (var storage = new MockWebServer(); var api = new MockWebServer()) {
             storage.start(); api.start();

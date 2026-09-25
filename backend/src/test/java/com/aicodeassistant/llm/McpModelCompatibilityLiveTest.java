@@ -215,7 +215,7 @@ class McpModelCompatibilityLiveTest {
                 "deepseek-flash");
         addProvider(endpoints, "moonshot", "LLM_PROVIDER_MOONSHOT_API_KEY",
                 env("LLM_PROVIDER_MOONSHOT_BASE_URL", "https://api.moonshot.cn/v1"),
-                "LLM_PROVIDER_MOONSHOT_MODELS", "kimi-k3,kimi-k2.7-code,moonshot-v1-128k");
+                "LLM_PROVIDER_MOONSHOT_MODELS", "kimi-k3");
         addProvider(endpoints, "kimi-code", "LLM_PROVIDER_KIMI_CODE_API_KEY",
                 "https://api.kimi.com/coding/v1",
                 "LLM_PROVIDER_KIMI_CODE_MODELS", "k3,kimi-for-coding");
@@ -228,7 +228,7 @@ class McpModelCompatibilityLiveTest {
         addProvider(endpoints, "zenmux", "LLM_PROVIDER_ZENMUX_API_KEY",
                 env("LLM_PROVIDER_ZENMUX_BASE_URL", "https://zenmux.ai/api/v1"),
                 "LLM_PROVIDER_ZENMUX_MODELS",
-                "anthropic/claude-opus-4.8,anthropic/claude-fable-5.1,openai/gpt-5.6-sol,openai/gpt-6-astra,google/gemini-3.8-flash,x-ai/grok-4.6");
+                "anthropic/claude-fable-5.1,openai/gpt-5.6-sol,openai/gpt-6-astra,google/gemini-3.8-flash,x-ai/grok-4.6");
         addProvider(endpoints, "dashscope", "LLM_PROVIDER_DASHSCOPE_API_KEY",
                 env("LLM_PROVIDER_DASHSCOPE_BASE_URL",
                         "https://dashscope.aliyuncs.com/compatible-mode/v1"),

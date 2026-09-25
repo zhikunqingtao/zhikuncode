@@ -269,7 +269,7 @@ class QueryEngineMediaRecoveryTest {
         }
 
         @ParameterizedTest
-        @ValueSource(strings = {"kimi-k3", "kimi-k2.7-code"})
+        @ValueSource(strings = {"kimi-k3"})
         void realBudgetAndCapabilitiesAcceptLargePngWithoutChangingHistory(String model) throws Exception {
             OssPublishProperties ossProperties = new OssPublishProperties();
             ossProperties.setBucket("zhikunshare");
@@ -415,7 +415,7 @@ class QueryEngineMediaRecoveryTest {
         var user = new Message.UserMessage("current", Instant.now(), List.of(image, image), null, null);
         var state = new QueryLoopState(List.of(user), ToolUseContext.of("/tmp", "test-session"));
         var scripted = scriptProvider((call, callback) -> finish(callback, "end_turn", new LlmStreamEvent.TextDelta("ok")));
-        var config = QueryConfig.withDefaults("kimi-k2.7-code", "test", List.of(), List.of(),
+        var config = QueryConfig.withDefaults("kimi-k3", "test", List.of(), List.of(),
                 16384, 256000, new ThinkingConfig.Disabled(), 1, "test");
         var handler = new TestHandler();
         var result = newEngine(new MessageNormalizer(), new UserImageTranscoder(UserImageTranscoderTest.properties()))
@@ -424,7 +424,7 @@ class QueryEngineMediaRecoveryTest {
         assertThat(handler.errors).isEmpty();
         var request = scripted.requests().getFirst();
         assertThat(imageParts(request)).hasSize(2);
-        assertThat(new FinalProviderPayloadGuard(modelRegistry).validate("moonshot", "kimi-k2.7-code",
+        assertThat(new FinalProviderPayloadGuard(modelRegistry).validate("moonshot", "kimi-k3",
                 Map.of("messages", request), 16384).guarded()).isTrue();
         assertThat(((Message.UserMessage) state.getMessages().getFirst()).content()).containsExactly(image, image);
     }

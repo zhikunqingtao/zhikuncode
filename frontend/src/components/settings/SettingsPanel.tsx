@@ -85,13 +85,10 @@ function ModelPicker() {
     { id: 'kimi-k3', name: 'Kimi K3', description: '长文本理解' },
     { id: 'k3', name: 'Kimi K3（订阅）', description: '1M 上下文 · 最强推理' },
     { id: 'kimi-for-coding', name: 'Kimi K2.8 Preview（订阅）', description: '1M 上下文 · 最强推理' },
-    { id: 'kimi-k2.7-code', name: 'Kimi K2.7 Code', description: '长文本理解' },
-    { id: 'moonshot-v1-128k', name: 'Moonshot V1 128K', description: '128K上下文' },
     { id: 'glm-5.3', name: 'GLM-5.3', description: '智谱最新' },
     { id: 'bailian/glm-5.3', name: 'GLM-5.3（百炼）', description: '1M 上下文 · 最强推理' },
     { id: 'glm-5.3-flash', name: 'GLM-5.3-Flash', description: '智谱多模态编程模型' },
     { id: 'MiniMax-M3', name: 'MiniMax M3', description: '百万上下文' },
-    { id: 'anthropic/claude-opus-4.8', name: 'claude-opus-4.8', description: '1M上下文 · 编程旗舰' },
     { id: 'anthropic/claude-fable-5.1', name: 'claude-fable-5.1', description: '1M上下文 · Mythos级' },
     { id: 'openai/gpt-5.6-sol', name: 'OpenAI GPT-5.6 Sol', description: 'OpenAI 旗舰模型' },
   ];
