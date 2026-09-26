@@ -159,47 +159,15 @@ Eight AI coding tools reviewed the same commit. Their final reports were compare
 
 ### Conversation Workbench and Change Review
 
-Appearance settings offer light, dark, and liquid-glass themes with eight accent presets: Celadon (青瓷, default), Ice Cyan (冰青), Azure (蔚蓝), Indigo (靛蓝), Wisteria (藤紫), Violet (紫罗兰), Magenta (品红), and Graphite (石墨). Changes apply immediately and are saved locally. The browser tab title shows the current session's running, compacting, or approval-pending state with a shortened title. Pending approvals take priority, multiple requests show a count, and idle tabs return to `zhikuncode`.
-
-New sessions start in the **development workbench with the Standard display mode**. Simple and development workbenches share the session; the display mode can be Compact, Standard, or Full Process. Light, dark, and liquid-glass themes share business state. On phones, session navigation, file references, images/camera, commands, voice, and send controls remain accessible. Permission, model, and display-mode controls show their current values in the composer navigation bar; appearance, memory, MCP, and help are under More. Desktop and tablet selectors adapt to their available width.
-
-**Source capabilities added on 2026-09-16 (not a deployed-version claim):** On the home screen without a server session, model selection is stored locally for the first session creation. It does not change the configured default or send a switch request to a nonexistent session. Existing sessions still require the appropriate connection and binding state.
-
-The “Changes this turn” summary at the end of an assistant turn expands into a file list and individual operation details; lists longer than five files can be expanded. At widths ≥1024px, details use a right overlay panel; phones and narrow tablets use a full-screen panel. This feature is also part of the source update above.
-
-Only native `Edit` and `Write` operations with a successful result, a verifiable path, and a matching tool call in the turn are included. Edits prefer recorded diffs, otherwise showing a labeled fragment; a write does not imply a new file. Repeated operations remain separate, not a net Git diff. Commands, deletions, and unverified batch or subtask changes are excluded. An absent summary does not mean no files changed. Historical views never read current disk contents.
-
-Session restoration recovers recorded terminal tool states. Activity approval/rejection updates follow server acknowledgement. An empty final response gets at most one recovery attempt; another empty response or a limit terminates according to its reason, not as a successful empty delivery.
-
-After a refresh or reconnection, a restored failed Run also restores an error notice. If no error summary is available, the notice explains that the previous reply did not finish and that you can send a message to continue.
-
-Meoo publishing requires its feature switch, deployment credentials, pinned CLI, and an available verification service. It is disabled by default; outside full-access (AUTO_APPROVE) mode, each publication requires separate approval, while AUTO_APPROVE publishes directly with verification binding and content checks still enforced. A timeout or unsuccessful public-access check is not success and does not guarantee remote cancellation. See the [deployment and troubleshooting guide (Chinese)](deployment/meoo.md).
+New sessions start in the **development workbench with the Standard display mode**; the workbenches share the session, and the display mode can be Compact, Standard, or Full Process. The “Changes this turn” summary at the end of an assistant turn expands into a file list of per-operation changes for native `Edit`/`Write` operations that succeeded with a verifiable path in the turn.
 
 ### Session Context Merge (2–5 Sources)
 
-Merge progress is polled periodically and checked immediately when you return to the page, regain connectivity, or reopen the panel. A synchronization failure shows “合并状态待确认” (merge status awaiting confirmation) with a retry action. Source sessions remain reserved until the result is confirmed; temporarily unavailable progress is not treated as completion.
-
-In the session list, click “合并为新会话” (Merge into a new session), select a total of 2–5 idle sessions, and confirm the primary session, title, and model. The initiating session stays selected; you can add up to four other sources. The new session uses the primary session’s working directory and receives a handoff summary, text records of persisted activity, copies of temporary artifacts with established ownership, and a file manifest. Summary generation uses the selected model and incurs API usage.
-
-All source sessions and their associated background tasks must be idle. During merging, the sources remain viewable but cannot run tasks or be deleted; other sessions remain available. Source sessions are preserved, including their native tool cards. Missing or unreadable files, and files whose ownership cannot be established, are explicitly listed.
-
-The selected sessions may use different folders. The new session uses only the primary session’s working directory as the default base for relative paths. Other directories remain external references, not additional working directories; use explicit paths when accessing those projects. Project code remains at its original paths and is not automatically merged.
-
-The new session uses **Full Access (`AUTO_APPROVE`)**, matching the default for ordinary sessions created through the Web UI. Historical permission grants from the sources are not copied. Cross-directory reads and writes that pass security checks may proceed without another confirmation; system security restrictions and operating-system permissions still apply. Not copying historical grants does not mean that access to other directories will always prompt for approval.
-
-The new session waits for your next instruction; injecting context into an existing session is not supported. Each merge shares the existing limits of 10 minutes, 16 model calls, and artifact copy capacity, regardless of the number of sources. Exceeding the summary budget fails explicitly without omitting sources or truncating their activity records.
+Select 2–5 stopped idle sessions in the session list (they may use different folders) to merge into a new session, confirming the primary session, title, and model; the new session receives the handoff summary, activity text, and copies of temporary artifacts with established ownership, while project code is not merged automatically. Sources remain viewable but cannot run or be deleted during merging; the new session uses **Full Access (`AUTO_APPROVE`)** and waits for your next instruction.
 
 ### Speech Recognition Hotword Configuration
 
-Speech recognition uses the standard DashScope provider and requires `LLM_PROVIDER_DASHSCOPE_API_KEY`; a Token Plan Key cannot substitute for it. Set `ASR_CORRECTIONS` in the project's root `.env` file and restart the backend after changes. For Docker Compose deployments, recreate the container to apply the updated environment.
-
-Use the format `Canonical:variant1,variant2;Canonical2:variant3`, for example:
-
-```dotenv
-ASR_CORRECTIONS='zhikuncode:zhi kun code,zkun code,智坤code;PostgreSQL:post gre sql'
-```
-
-Canonical names are included in the recognition context as an entity vocabulary, and configured variants in the transcript are then replaced with their canonical names. Matching ignores ASCII letter case and tolerates spaces or hyphens at token boundaries. To add vocabulary without replacement rules, use an entry such as `PostgreSQL:`. A custom value replaces the entire default rule set; when unset, common misrecognitions of `zhikuncode` are corrected by default. See also [`.env.example`](../.env.example).
+Speech recognition requires `LLM_PROVIDER_DASHSCOPE_API_KEY` (a Token Plan Key cannot substitute for it); configure `ASR_CORRECTIONS` in the project's root `.env` and restart the backend to apply hotword corrections. Format: `Canonical:variant1,variant2;Canonical2:variant3`, for example `zhikuncode:zhi kun code,zkun code,智坤code;PostgreSQL:post gre sql`. See also [`.env.example`](../.env.example).
 
 ## ⚡ Quick Start
 
