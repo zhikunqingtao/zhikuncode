@@ -112,6 +112,33 @@ describe('Session activation transaction', () => {
         await expect(next).resolves.toMatchObject({ status: 'activated', sessionId: 'next-session' });
     });
 
+    it('accepts a default-bound restore after seven seconds without rebinding the old Session', async () => {
+        await useSessionStore.getState().resumeSession('session-old');
+        useMessageStore.getState().addMessage(oldMessage);
+        vi.mocked(sendToServer).mockReturnValue(true);
+        const messages: Message[] = Array.from({ length: 914 }, (_, index) => ({
+            ...oldMessage, uuid: `restored-${index}`,
+        }));
+        const activation = activateSessionCandidate('session-large');
+
+        await vi.advanceTimersByTimeAsync(5_000);
+        expect(getPendingSessionActivation()).toBe(activation);
+        expect(sendToServer).toHaveBeenCalledTimes(1);
+        expect(useSessionStore.getState().sessionId).toBe('session-old');
+        expect(useMessageStore.getState().messages).toEqual([oldMessage]);
+
+        await vi.advanceTimersByTimeAsync(2_000);
+        const payload = vi.mocked(sendToServer).mock.calls[0][1] as BindPayload;
+        restore(payload, messages);
+        await expect(activation).resolves.toMatchObject({
+            status: 'activated', sessionId: 'session-large',
+        });
+        expect(sendToServer).toHaveBeenCalledTimes(1);
+        expect(isSessionBound('session-large')).toBe(true);
+        expect(useSessionStore.getState().sessionId).toBe('session-large');
+        expect(useMessageStore.getState().messages).toEqual(messages);
+    });
+
     it('keeps the old Session until a timed-out switch is safely rebound', async () => {
         await useSessionStore.getState().resumeSession('session-old');
         useMessageStore.getState().addMessage(oldMessage);

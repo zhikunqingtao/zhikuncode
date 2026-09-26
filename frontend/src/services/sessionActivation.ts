@@ -1,4 +1,5 @@
 import {
+    SESSION_BIND_TIMEOUT_MS,
     bindSessionAndWait,
     clearSessionBinding,
     isSessionBound,
@@ -139,7 +140,7 @@ export function activateSessionCandidate(
     const connectionController = new AbortController();
     const previousSessionId =
         useSessionStore.getState().sessionId?.trim() || null;
-    const bindTimeoutMs = options.bindTimeoutMs ?? 5000;
+    const bindTimeoutMs = options.bindTimeoutMs ?? SESSION_BIND_TIMEOUT_MS;
 
     const operation = (async (): Promise<SessionActivationResult> => {
         try {

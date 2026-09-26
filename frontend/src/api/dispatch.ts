@@ -230,17 +230,20 @@ async function flushPendingInteractionAcks(sessionId: string): Promise<void> {
     }
 }
 
+// Large history snapshots can take more than five seconds to arrive over WAN.
+export const SESSION_BIND_TIMEOUT_MS = 30_000;
+
 /**
  * 等待 session_restored 事件处理完成。
  * 用于 bind-session 后确保 session_restored 已处理完毕再添加用户消息，
  * 避免 clearMessages() 清掉刚添加的用户消息。
- * @param timeoutMs 最大等待时间，默认 5s（包含 Run event 缺口补齐）
+ * @param timeoutMs 最大等待时间，默认 30s（包含 Run event 缺口补齐）
  * @return true 表示已收到并处理完服务端 session_restored；false 表示绑定未确认
  */
 export function bindSessionAndWait(
     sessionId: string,
     publish: (payload: { sessionId: string; protocolVersion: number; bindRequestId: string; bindingEpoch: number }) => void | boolean,
-    timeoutMs = 5000,
+    timeoutMs = SESSION_BIND_TIMEOUT_MS,
 ): Promise<boolean> {
     usePermissionStore.getState().clearModeChange();
     if (activeRecoveryId) finishBind(activeRecoveryId, false, false);

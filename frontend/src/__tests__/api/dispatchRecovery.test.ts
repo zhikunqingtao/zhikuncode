@@ -112,6 +112,44 @@ describe('transport-scoped bind recovery', () => {
         vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => [] }));
     });
 
+    it('accepts a restore arriving after seven seconds with the default bind timeout', async () => {
+        vi.useFakeTimers();
+        try {
+            const { bound, restored } = startRestore('session-delayed', null);
+            const settled = vi.fn();
+            void bound.then(settled);
+            await vi.advanceTimersByTimeAsync(7_000);
+            expect(settled).not.toHaveBeenCalled();
+
+            dispatch(restored);
+            await expect(bound).resolves.toBe(true);
+            expect(isSessionBindingReady('session-delayed')).toBe(true);
+        } finally {
+            resetBoundSession();
+            vi.useRealTimers();
+        }
+    });
+
+    it('still expires an unconfirmed default bind at thirty seconds and ignores its late restore', async () => {
+        vi.useFakeTimers();
+        try {
+            const { bound, restored } = startRestore('session-timeout', null);
+            const settled = vi.fn();
+            void bound.then(settled);
+            await vi.advanceTimersByTimeAsync(29_999);
+            expect(settled).not.toHaveBeenCalled();
+            await vi.advanceTimersByTimeAsync(1);
+            await expect(bound).resolves.toBe(false);
+
+            dispatch(restored);
+            expect(isSessionBindingReady('session-timeout')).toBe(false);
+            expect(useSessionStore.getState().sessionId).toBeNull();
+        } finally {
+            resetBoundSession();
+            vi.useRealTimers();
+        }
+    });
+
     it.each(['refresh', 'reconnect'])('restores a FAILED run error after %s while keeping input available', async (recovery) => {
         useSessionStore.getState().setStatus('streaming');
         if (recovery === 'reconnect') {
