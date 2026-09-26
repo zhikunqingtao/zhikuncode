@@ -21,6 +21,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -220,6 +222,16 @@ class WorkspaceFileBoundaryTest {
                 workspace.resolve(".SsH"));
         Files.writeString(protectedDirectory.resolve("custom-key"),
                 "MATCH directory-secret");
+        Files.writeString(protectedDirectory.resolve(".ENV"),
+                "MATCH nested-env-secret");
+        Path nestedProtected = Files.createDirectories(
+                protectedDirectory.resolve("sub/.SsH"));
+        Files.writeString(nestedProtected.resolve("deep-key"),
+                "MATCH nested-deep-secret");
+        Path colonProtected = Files.createDirectories(
+                protectedDirectory.resolve("weird:name/.SsH"));
+        Files.writeString(colonProtected.resolve("colon-key"),
+                "MATCH colon-path-secret");
         PathSecurityService security = new PathSecurityService();
         GrepTool grep = new GrepTool(
                 mock(KeyFileTracker.class), security);
@@ -267,6 +279,130 @@ class WorkspaceFileBoundaryTest {
         assertThat(directProtectedRoot.isError()).isFalse();
         assertThat(directProtectedRoot.content())
                 .contains("directory-secret");
+        // Descendant protections stay active inside a directly authorized
+        // root: neither the nested .ENV file nor deeper same-name .SsH
+        // directories (including one below a colon-named directory) may leak.
+        assertThat(directProtectedRoot.content())
+                .doesNotContain("nested-env-secret", "nested-deep-secret",
+                        "colon-path-secret");
+    }
+
+    @Test
+    void rootsNamedLikeExcludedDirectoriesRemainDirectlySearchable()
+            throws Exception {
+        Path workspace = Files.createDirectory(
+                temp.resolve("excluded-root-workspace")).toRealPath();
+        Path gitObjects = Files.createDirectories(
+                workspace.resolve(".git/objects"));
+        Files.writeString(gitObjects.resolve("note.txt"),
+                "MATCH git-note");
+        Path gitInner = Files.createDirectories(
+                workspace.resolve(".git/objects/.git"));
+        Files.writeString(gitInner.resolve("inner.txt"),
+                "MATCH git-inner");
+        Path dependency = Files.createDirectories(
+                workspace.resolve("node_modules/pkg"));
+        Files.writeString(dependency.resolve("index.js"),
+                "MATCH dependency-note");
+        PathSecurityService security = new PathSecurityService();
+        GrepTool grep = new GrepTool(
+                mock(KeyFileTracker.class), security);
+        ToolUseContext context = ToolUseContext.of(
+                workspace.toString(), "session");
+
+        // Direct search roots must never be pruned by the traversal
+        // exclusions that still protect descendants (a pruned root used to
+        // return an empty result).
+        ToolResult gitRoot = grep.call(
+                ToolInput.from(Map.of(
+                        "pattern", "MATCH",
+                        "path", workspace.resolve(".git").toString(),
+                        "output_mode", "content")),
+                context);
+        assertThat(gitRoot.isError()).isFalse();
+        assertThat(gitRoot.content()).contains("git-note");
+        // A deeper same-name .git directory inside the root stays protected.
+        assertThat(gitRoot.content()).doesNotContain("git-inner");
+
+        ToolResult modulesRoot = grep.call(
+                ToolInput.from(Map.of(
+                        "pattern", "MATCH",
+                        "path", workspace.resolve("node_modules").toString(),
+                        "output_mode", "content")),
+                context);
+        assertThat(modulesRoot.isError()).isFalse();
+        assertThat(modulesRoot.content()).contains("dependency-note");
+    }
+
+    @Test
+    void paginationSlicesRestoredSearchRootPaths() throws Exception {
+        Path workspace = Files.createDirectory(
+                temp.resolve("grep-pagination-workspace")).toRealPath();
+        // File traversal order can differ between searches; line order within
+        // one file is stable, so it provides a deterministic pagination oracle.
+        Path file = Files.writeString(workspace.resolve("note.txt"),
+                "MATCH entry-1\nMATCH entry-2\nMATCH entry-3\nMATCH entry-4\n");
+        PathSecurityService security = new PathSecurityService();
+        GrepTool grep = new GrepTool(
+                mock(KeyFileTracker.class), security);
+        ToolUseContext context = ToolUseContext.of(
+                workspace.toString(), "session");
+
+        ToolResult firstPage = grep.call(
+                ToolInput.from(Map.of(
+                        "pattern", "MATCH",
+                        "path", workspace.toString(),
+                        "output_mode", "content",
+                        "head_limit", 2)),
+                context);
+        ToolResult secondPage = grep.call(
+                ToolInput.from(Map.of(
+                        "pattern", "MATCH",
+                        "path", workspace.toString(),
+                        "output_mode", "content",
+                        "head_limit", 2,
+                        "offset", 2)),
+                context);
+
+        assertThat(firstPage.isError()).isFalse();
+        assertThat(secondPage.isError()).isFalse();
+        List<String> firstLines = firstPage.content().lines()
+                .filter(line -> line.contains("MATCH")).toList();
+        List<String> secondLines = secondPage.content().lines()
+                .filter(line -> line.contains("MATCH")).toList();
+        assertThat(firstLines).containsExactly(
+                file + ":1:MATCH entry-1", file + ":2:MATCH entry-2");
+        assertThat(secondLines).containsExactly(
+                file + ":3:MATCH entry-3", file + ":4:MATCH entry-4");
+        assertThat(firstPage.content()).contains("[Results truncated]");
+        assertThat(secondPage.content()).doesNotContain("[Results truncated]");
+        assertThat(firstPage.metadata().get("truncated")).isEqualTo(true);
+        assertThat(secondPage.metadata().get("truncated")).isEqualTo(false);
+    }
+
+    @Test
+    void multiFileSearchRestoresAbsolutePathsWithoutAssumingOrder() throws Exception {
+        Path workspace = Files.createDirectory(
+                temp.resolve("grep-path-workspace")).toRealPath();
+        Path searchRoot = Files.createDirectory(workspace.resolve("nested"));
+        List<String> expectedPaths = new ArrayList<>();
+        for (int index = 1; index <= 4; index++) {
+            expectedPaths.add(Files.writeString(
+                    searchRoot.resolve("note-" + index + ".txt"),
+                    "MATCH entry-" + index).toString());
+        }
+        GrepTool grep = new GrepTool(
+                mock(KeyFileTracker.class), new PathSecurityService());
+        ToolResult result = grep.call(
+                ToolInput.from(Map.of("pattern", "MATCH", "path", searchRoot.toString())),
+                ToolUseContext.of(workspace.toString(), "session"));
+
+        assertThat(result.isError()).isFalse();
+        List<String> paths = result.content().lines().toList();
+        assertThat(paths).containsExactlyInAnyOrderElementsOf(expectedPaths);
+        assertThat(result.metadata().get("filenames")).isEqualTo(paths);
+        assertThat(result.metadata().get("numFiles")).isEqualTo(4);
+        assertThat(result.metadata().get("truncated")).isEqualTo(false);
     }
 
     @Test

@@ -198,25 +198,27 @@ public class GrepTool implements Tool {
             }
 
             List<String> args;
-            // A protected directory chosen directly as the search root is the
-            // gateway-authorized target itself, so its contents are returned
-            // (direct access may be authorized). Only when protected
-            // directories are mere descendants of the root do the recursive
-            // exclusions apply.
-            boolean recursiveDirectorySearch = Files.isDirectory(searchRoot)
-                    && !isProtectedDirectoryRoot(searchRoot);
+            // 目录搜索以搜索根为工作目录、对 "." 执行，排除规则保持完整：
+            // 命令行目标 "." 不匹配任何被排除的目录名，因此显式根目录不会被
+            // 剪掉，而根之下同名/受保护的目录仍按名字被排除。输出中的 "./…"
+            // 前缀随后还原为搜索根下的绝对路径。
+            boolean directorySearch = Files.isDirectory(searchRoot);
+            String searchTarget = directorySearch ? "." : searchPath;
             if (HAS_RIPGREP) {
-                args = buildRipgrepArgs(input, pattern, searchPath,
-                        outputMode, recursiveDirectorySearch);
+                args = buildRipgrepArgs(input, pattern, searchTarget,
+                        outputMode, directorySearch);
             } else {
                 log.debug("ripgrep not found, falling back to system grep");
-                args = buildGrepFallbackArgs(input, pattern, searchPath,
-                        outputMode, recursiveDirectorySearch);
+                args = buildGrepFallbackArgs(input, pattern, searchTarget,
+                        outputMode, directorySearch);
             }
 
             // 执行搜索命令
             ProcessBuilder pb = new ProcessBuilder(args);
             pb.redirectErrorStream(true);
+            if (directorySearch) {
+                pb.directory(searchRoot.toFile());
+            }
             Process process = pb.start();
 
             // 异步消费输出流（防止缓冲区满导致死锁）
@@ -257,6 +259,9 @@ public class GrepTool implements Tool {
 
             // 获取输出（进程已结束，给少量时间等待流读取完成）
             String rawOutput = outputFuture.get(5, TimeUnit.SECONDS);
+            if (directorySearch) {
+                rawOutput = restoreSearchRootPaths(rawOutput, searchPath);
+            }
 
             // 3. 应用 head_limit + offset 分页
             List<String> lines = new ArrayList<>(rawOutput.lines().toList());
@@ -346,6 +351,9 @@ public class GrepTool implements Tool {
         input.getOptionalString("type").ifPresent(t -> args.addAll(List.of("--type", t)));
         // Security exclusions come last so caller-provided globs cannot
         // re-include protected descendants during a broad directory search.
+        // Directory searches target "." with the root as working directory,
+        // so the full list — including the root's own name — never prunes
+        // the explicit root while descendants stay excluded.
         if (excludeProtectedDescendants) {
             for (String file : pathSecurity.protectedFileGlobs()) {
                 args.addAll(List.of(
@@ -422,19 +430,17 @@ public class GrepTool implements Tool {
     }
 
     /**
-     * Whether the search root is itself one of the protected directories.
-     * Such a root is the directly targeted resource (authorization is decided
-     * by the gateway), so its own contents must not be excluded; protected
-     * directories that are descendants of the root stay excluded.
+     * Restores absolute paths under the search root for output produced with
+     * the search root as the process working directory ("./…" or Windows ".\\…" prefixes).
      */
-    private boolean isProtectedDirectoryRoot(Path root) {
-        Path rootName = root.getFileName();
-        if (rootName == null) {
-            return false;
-        }
-        String name = rootName.toString();
-        return pathSecurity.protectedDirectoryNames().stream()
-                .anyMatch(name::equalsIgnoreCase);
+    private static String restoreSearchRootPaths(String rawOutput, String searchRoot) {
+        boolean windows = File.separatorChar == '\\';
+        String prefix = searchRoot.endsWith("/") || (windows && searchRoot.endsWith("\\"))
+                ? searchRoot : searchRoot + File.separator;
+        return rawOutput.lines()
+                .map(line -> line.startsWith("./") || (windows && line.startsWith(".\\"))
+                        ? prefix + line.substring(2) : line)
+                .collect(Collectors.joining("\n"));
     }
 
     /**
