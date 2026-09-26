@@ -73,6 +73,7 @@ requireCondition(onlineDeployment?.classification === 'OUTSIDE_DEVELOPMENT_WINDO
 requireCondition(onlineDeployment.standard?.url === 'https://king.zhikun.xin/', 'Standard online URL differs');
 requireCondition(onlineDeployment.standard?.title === 'KING_OK', 'Standard online title differs');
 requireCondition(onlineDeployment.standard?.heroSelectContainer === true && onlineDeployment.standard?.heroCards === 5, 'Standard online hero selection check failed');
+requireCondition(onlineDeployment.standard?.selectionTest?.lockSelectionSucceeded === true, 'Standard online hero lock selection failed');
 requireCondition(onlineDeployment.standard?.consoleErrors === 0 && onlineDeployment.standard?.resourceErrors === 0, 'Standard online page has console/resource errors');
 requireCondition(onlineDeployment.demo?.url === 'https://king.zhikun.xin/?demo=1', 'Demo online URL differs');
 requireCondition(onlineDeployment.demo?.title === 'KING_OK', 'Demo online title differs');

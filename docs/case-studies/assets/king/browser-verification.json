@@ -3,7 +3,7 @@
   "caseId": "zhikuncode-king-20260809",
   "reportVersion": "v15",
   "classification": "OUTSIDE_DEVELOPMENT_WINDOW_CURRENT_REPORT_BROWSER_VERIFICATION",
-  "observedAt": "2026-09-25T15:29:49.306Z",
+  "observedAt": "2026-09-26T01:07:53.827Z",
   "browser": {
     "name": "Chromium",
     "version": "145.0.7632.6",
@@ -184,7 +184,7 @@
   ],
   "layoutAudit": {
     "path": "svg-layout-audit.json",
-    "sha256": "a17628c7a7b8abcfb5f8d2dac61845a0bd754302f8de3fa6372ce38f3a91f389",
+    "sha256": "1eccc5f4c8ac19cd4325f26c4979fc68e78ff94c5db6fda831ed193308a6595c",
     "summary": {
       "figures": 91,
       "foregroundOverflowFigures": 0,
@@ -228,7 +228,7 @@
   },
   "onlineDeployment": {
     "classification": "OUTSIDE_DEVELOPMENT_WINDOW_ALIYUN_HTTPS_DEPLOYMENT",
-    "observedAt": "2026-09-25T15:29:49.307Z",
+    "observedAt": "2026-09-26T01:07:53.828Z",
     "standard": {
       "url": "https://king.zhikun.xin/",
       "title": "KING_OK",
@@ -240,7 +240,7 @@
         "selected": "arthur",
         "lockSelectionSucceeded": true,
         "postLockHeroSelectContainer": false,
-        "postLockTimer": "00:05",
+        "postLockTimer": "00:04",
         "postLockCanvasCount": 2
       },
       "consoleErrors": 0,
@@ -251,7 +251,7 @@
       "title": "KING_OK",
       "heroSelectContainer": false,
       "timerBefore": "00:00",
-      "timerAfter": "00:02",
+      "timerAfter": "00:03",
       "timerAdvanced": true,
       "canvasCount": 2,
       "consoleErrors": 0,

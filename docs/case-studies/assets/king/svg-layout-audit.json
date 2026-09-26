@@ -3,7 +3,7 @@
   "caseId": "zhikuncode-king-20260809",
   "reportVersion": "v15",
   "classification": "OUTSIDE_DEVELOPMENT_WINDOW_DIRECT_BROWSER_LAYOUT_AUDIT",
-  "observedAt": "2026-09-25T15:29:49.306Z",
+  "observedAt": "2026-09-26T01:07:53.827Z",
   "browser": {
     "name": "Chromium",
     "version": "145.0.7632.6",
@@ -42,10 +42,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 710
+        "x1": 38,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 655
       },
       "overflow": {
         "top": 0,
@@ -54,10 +54,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.03662,
+        "right": 0.031667,
+        "bottom": 0.077465,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -73,10 +73,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 690
+        "x1": 38,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 630
       },
       "overflow": {
         "top": 0,
@@ -85,10 +85,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.037681,
+        "right": 0.031667,
+        "bottom": 0.086957,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -104,10 +104,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 735
+        "x1": 38,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 675
       },
       "overflow": {
         "top": 0,
@@ -116,10 +116,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.035374,
+        "right": 0.031667,
+        "bottom": 0.081633,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -135,10 +135,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 960
+        "x1": 38,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 889
       },
       "overflow": {
         "top": 0,
@@ -147,10 +147,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.027083,
+        "right": 0.031667,
+        "bottom": 0.073958,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -166,10 +166,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 755
+        "x1": 38,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 693
       },
       "overflow": {
         "top": 0,
@@ -178,10 +178,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.034437,
+        "right": 0.031667,
+        "bottom": 0.082119,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -197,10 +197,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 730
+        "x1": 38,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 678
       },
       "overflow": {
         "top": 0,
@@ -209,10 +209,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.035616,
+        "right": 0.031667,
+        "bottom": 0.071233,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -228,10 +228,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 765
+        "x1": 38,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 705
       },
       "overflow": {
         "top": 0,
@@ -240,10 +240,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.033987,
+        "right": 0.031667,
+        "bottom": 0.078431,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -259,10 +259,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 780
+        "x1": 38,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 718
       },
       "overflow": {
         "top": 0,
@@ -271,10 +271,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.033333,
+        "right": 0.031667,
+        "bottom": 0.079487,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -290,10 +290,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 820
+        "x1": 38,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 756
       },
       "overflow": {
         "top": 0,
@@ -302,10 +302,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.031707,
+        "right": 0.031667,
+        "bottom": 0.078049,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -321,10 +321,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 800
+        "x1": 38,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 740
       },
       "overflow": {
         "top": 0,
@@ -333,10 +333,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.0325,
+        "right": 0.031667,
+        "bottom": 0.075,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -352,10 +352,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 845
+        "x1": 38,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 785
       },
       "overflow": {
         "top": 0,
@@ -364,10 +364,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.030769,
+        "right": 0.031667,
+        "bottom": 0.071006,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -383,10 +383,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 735
+        "x1": 38,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 675
       },
       "overflow": {
         "top": 0,
@@ -395,10 +395,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.035374,
+        "right": 0.031667,
+        "bottom": 0.081633,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -414,10 +414,10 @@
       "renderedWidthPx": 1161,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 800
+        "x1": 54,
+        "y1": 28,
+        "x2": 1146,
+        "y2": 776
       },
       "overflow": {
         "top": 0,
@@ -426,10 +426,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.035,
+        "right": 0.045,
+        "bottom": 0.03,
+        "left": 0.045
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -445,9 +445,9 @@
       "renderedWidthPx": 1163,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
+        "x1": 46,
         "y1": 0,
-        "x2": 1200,
+        "x2": 1154,
         "y2": 760
       },
       "overflow": {
@@ -458,9 +458,9 @@
       },
       "blankRatios": {
         "top": 0,
-        "right": 0,
+        "right": 0.038333,
         "bottom": 0,
-        "left": 0
+        "left": 0.038333
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -476,9 +476,9 @@
       "renderedWidthPx": 1163,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
+        "x1": 46,
         "y1": 0,
-        "x2": 1200,
+        "x2": 1154,
         "y2": 760
       },
       "overflow": {
@@ -489,9 +489,9 @@
       },
       "blankRatios": {
         "top": 0,
-        "right": 0,
+        "right": 0.038333,
         "bottom": 0,
-        "left": 0
+        "left": 0.038333
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -507,9 +507,9 @@
       "renderedWidthPx": 1163,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
+        "x1": 46,
         "y1": 0,
-        "x2": 1200,
+        "x2": 1154,
         "y2": 760
       },
       "overflow": {
@@ -520,9 +520,9 @@
       },
       "blankRatios": {
         "top": 0,
-        "right": 0,
+        "right": 0.038333,
         "bottom": 0,
-        "left": 0
+        "left": 0.038333
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -538,9 +538,9 @@
       "renderedWidthPx": 1163,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
+        "x1": 46,
         "y1": 0,
-        "x2": 1200,
+        "x2": 1154,
         "y2": 760
       },
       "overflow": {
@@ -551,9 +551,9 @@
       },
       "blankRatios": {
         "top": 0,
-        "right": 0,
+        "right": 0.038333,
         "bottom": 0,
-        "left": 0
+        "left": 0.038333
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -569,10 +569,10 @@
       "renderedWidthPx": 1161,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 800
+        "x1": 53,
+        "y1": 20,
+        "x2": 1147,
+        "y2": 776
       },
       "overflow": {
         "top": 0,
@@ -581,10 +581,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.025,
+        "right": 0.044167,
+        "bottom": 0.03,
+        "left": 0.044167
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -600,10 +600,10 @@
       "renderedWidthPx": 1161,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 800
+        "x1": 53,
+        "y1": 22,
+        "x2": 1147,
+        "y2": 776
       },
       "overflow": {
         "top": 0,
@@ -612,10 +612,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.0275,
+        "right": 0.044167,
+        "bottom": 0.03,
+        "left": 0.044167
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -631,10 +631,10 @@
       "renderedWidthPx": 1161,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 800
+        "x1": 53,
+        "y1": 20,
+        "x2": 1147,
+        "y2": 776
       },
       "overflow": {
         "top": 0,
@@ -643,10 +643,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.025,
+        "right": 0.044167,
+        "bottom": 0.03,
+        "left": 0.044167
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -662,9 +662,9 @@
       "renderedWidthPx": 1163,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
+        "x1": 46,
         "y1": 0,
-        "x2": 1200,
+        "x2": 1154,
         "y2": 760
       },
       "overflow": {
@@ -675,9 +675,9 @@
       },
       "blankRatios": {
         "top": 0,
-        "right": 0,
+        "right": 0.038333,
         "bottom": 0,
-        "left": 0
+        "left": 0.038333
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -693,9 +693,9 @@
       "renderedWidthPx": 1163,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
+        "x1": 46,
         "y1": 0,
-        "x2": 1200,
+        "x2": 1154,
         "y2": 760
       },
       "overflow": {
@@ -706,9 +706,9 @@
       },
       "blankRatios": {
         "top": 0,
-        "right": 0,
+        "right": 0.038333,
         "bottom": 0,
-        "left": 0
+        "left": 0.038333
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -724,9 +724,9 @@
       "renderedWidthPx": 1163,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
+        "x1": 46,
         "y1": 0,
-        "x2": 1200,
+        "x2": 1154,
         "y2": 760
       },
       "overflow": {
@@ -737,9 +737,9 @@
       },
       "blankRatios": {
         "top": 0,
-        "right": 0,
+        "right": 0.038333,
         "bottom": 0,
-        "left": 0
+        "left": 0.038333
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -755,9 +755,9 @@
       "renderedWidthPx": 1163,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
+        "x1": 46,
         "y1": 0,
-        "x2": 1200,
+        "x2": 1154,
         "y2": 760
       },
       "overflow": {
@@ -768,9 +768,9 @@
       },
       "blankRatios": {
         "top": 0,
-        "right": 0,
+        "right": 0.038333,
         "bottom": 0,
-        "left": 0
+        "left": 0.038333
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -786,9 +786,9 @@
       "renderedWidthPx": 1163,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
+        "x1": 46,
         "y1": 0,
-        "x2": 1200,
+        "x2": 1154,
         "y2": 760
       },
       "overflow": {
@@ -799,9 +799,9 @@
       },
       "blankRatios": {
         "top": 0,
-        "right": 0,
+        "right": 0.038333,
         "bottom": 0,
-        "left": 0
+        "left": 0.038333
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -817,9 +817,9 @@
       "renderedWidthPx": 1163,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
+        "x1": 46,
         "y1": 0,
-        "x2": 1200,
+        "x2": 1154,
         "y2": 760
       },
       "overflow": {
@@ -830,9 +830,9 @@
       },
       "blankRatios": {
         "top": 0,
-        "right": 0,
+        "right": 0.038333,
         "bottom": 0,
-        "left": 0
+        "left": 0.038333
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -848,9 +848,9 @@
       "renderedWidthPx": 1163,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
+        "x1": 46,
         "y1": 0,
-        "x2": 1200,
+        "x2": 1154,
         "y2": 760
       },
       "overflow": {
@@ -861,9 +861,9 @@
       },
       "blankRatios": {
         "top": 0,
-        "right": 0,
+        "right": 0.038333,
         "bottom": 0,
-        "left": 0
+        "left": 0.038333
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -879,9 +879,9 @@
       "renderedWidthPx": 1163,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
+        "x1": 56,
         "y1": 0,
-        "x2": 1200,
+        "x2": 1144,
         "y2": 774
       },
       "overflow": {
@@ -892,9 +892,9 @@
       },
       "blankRatios": {
         "top": 0,
-        "right": 0,
+        "right": 0.046667,
         "bottom": 0,
-        "left": 0
+        "left": 0.046667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -910,9 +910,9 @@
       "renderedWidthPx": 1163,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
+        "x1": 46,
         "y1": 0,
-        "x2": 1200,
+        "x2": 1154,
         "y2": 760
       },
       "overflow": {
@@ -923,9 +923,9 @@
       },
       "blankRatios": {
         "top": 0,
-        "right": 0,
+        "right": 0.038333,
         "bottom": 0,
-        "left": 0
+        "left": 0.038333
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -941,9 +941,9 @@
       "renderedWidthPx": 1163,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
+        "x1": 46,
         "y1": 0,
-        "x2": 1200,
+        "x2": 1154,
         "y2": 760
       },
       "overflow": {
@@ -954,9 +954,9 @@
       },
       "blankRatios": {
         "top": 0,
-        "right": 0,
+        "right": 0.038333,
         "bottom": 0,
-        "left": 0
+        "left": 0.038333
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -972,9 +972,9 @@
       "renderedWidthPx": 1163,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
+        "x1": 46,
         "y1": 0,
-        "x2": 1200,
+        "x2": 1154,
         "y2": 760
       },
       "overflow": {
@@ -985,9 +985,9 @@
       },
       "blankRatios": {
         "top": 0,
-        "right": 0,
+        "right": 0.038333,
         "bottom": 0,
-        "left": 0
+        "left": 0.038333
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1003,10 +1003,10 @@
       "renderedWidthPx": 1161,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 800
+        "x1": 51,
+        "y1": 5,
+        "x2": 1149,
+        "y2": 779
       },
       "overflow": {
         "top": 0,
@@ -1015,10 +1015,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.00625,
+        "right": 0.0425,
+        "bottom": 0.02625,
+        "left": 0.0425
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1034,9 +1034,9 @@
       "renderedWidthPx": 1163,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
+        "x1": 46,
         "y1": 0,
-        "x2": 1200,
+        "x2": 1154,
         "y2": 760
       },
       "overflow": {
@@ -1047,9 +1047,9 @@
       },
       "blankRatios": {
         "top": 0,
-        "right": 0,
+        "right": 0.038333,
         "bottom": 0,
-        "left": 0
+        "left": 0.038333
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1065,9 +1065,9 @@
       "renderedWidthPx": 1163,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
+        "x1": 46,
         "y1": 0,
-        "x2": 1200,
+        "x2": 1154,
         "y2": 760
       },
       "overflow": {
@@ -1078,9 +1078,9 @@
       },
       "blankRatios": {
         "top": 0,
-        "right": 0,
+        "right": 0.038333,
         "bottom": 0,
-        "left": 0
+        "left": 0.038333
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1096,9 +1096,9 @@
       "renderedWidthPx": 1163,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
+        "x1": 46,
         "y1": 0,
-        "x2": 1200,
+        "x2": 1154,
         "y2": 760
       },
       "overflow": {
@@ -1109,9 +1109,9 @@
       },
       "blankRatios": {
         "top": 0,
-        "right": 0,
+        "right": 0.038333,
         "bottom": 0,
-        "left": 0
+        "left": 0.038333
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1127,9 +1127,9 @@
       "renderedWidthPx": 1163,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
+        "x1": 46,
         "y1": 0,
-        "x2": 1200,
+        "x2": 1154,
         "y2": 760
       },
       "overflow": {
@@ -1140,9 +1140,9 @@
       },
       "blankRatios": {
         "top": 0,
-        "right": 0,
+        "right": 0.038333,
         "bottom": 0,
-        "left": 0
+        "left": 0.038333
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1158,10 +1158,10 @@
       "renderedWidthPx": 1161,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 800
+        "x1": 51,
+        "y1": 5,
+        "x2": 1174,
+        "y2": 777
       },
       "overflow": {
         "top": 0,
@@ -1170,10 +1170,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.00625,
+        "right": 0.021667,
+        "bottom": 0.02875,
+        "left": 0.0425
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1189,9 +1189,9 @@
       "renderedWidthPx": 1163,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
+        "x1": 46,
         "y1": 0,
-        "x2": 1200,
+        "x2": 1154,
         "y2": 760
       },
       "overflow": {
@@ -1202,9 +1202,9 @@
       },
       "blankRatios": {
         "top": 0,
-        "right": 0,
+        "right": 0.038333,
         "bottom": 0,
-        "left": 0
+        "left": 0.038333
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1220,10 +1220,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 795
+        "x1": 38,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 735
       },
       "overflow": {
         "top": 0,
@@ -1232,10 +1232,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.032704,
+        "right": 0.031667,
+        "bottom": 0.075472,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1251,10 +1251,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 795
+        "x1": 38,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 735
       },
       "overflow": {
         "top": 0,
@@ -1263,10 +1263,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.032704,
+        "right": 0.031667,
+        "bottom": 0.075472,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1282,10 +1282,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 700
+        "x1": 34,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 640
       },
       "overflow": {
         "top": 0,
@@ -1294,10 +1294,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.037143,
+        "right": 0.031667,
+        "bottom": 0.085714,
+        "left": 0.028333
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1313,10 +1313,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 795
+        "x1": 4,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 735
       },
       "overflow": {
         "top": 0,
@@ -1325,10 +1325,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.032704,
+        "right": 0.031667,
+        "bottom": 0.075472,
+        "left": 0.003333
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1344,10 +1344,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 815
+        "x1": 38,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 750
       },
       "overflow": {
         "top": 0,
@@ -1356,10 +1356,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.031902,
+        "right": 0.031667,
+        "bottom": 0.079755,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1375,10 +1375,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 770
+        "x1": 38,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 712
       },
       "overflow": {
         "top": 0,
@@ -1387,10 +1387,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.033766,
+        "right": 0.031667,
+        "bottom": 0.075325,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1406,10 +1406,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 800
+        "x1": 4,
+        "y1": 26,
+        "x2": 1197,
+        "y2": 740
       },
       "overflow": {
         "top": 0,
@@ -1418,10 +1418,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.0325,
+        "right": 0.0025,
+        "bottom": 0.075,
+        "left": 0.003333
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1437,10 +1437,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 755
+        "x1": 38,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 695
       },
       "overflow": {
         "top": 0,
@@ -1449,10 +1449,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.034437,
+        "right": 0.031667,
+        "bottom": 0.07947,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1468,10 +1468,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 790
+        "x1": 38,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 728
       },
       "overflow": {
         "top": 0,
@@ -1480,10 +1480,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.032911,
+        "right": 0.031667,
+        "bottom": 0.078481,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1499,10 +1499,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 815
+        "x1": 38,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 755
       },
       "overflow": {
         "top": 0,
@@ -1511,10 +1511,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.031902,
+        "right": 0.031667,
+        "bottom": 0.07362,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1530,10 +1530,10 @@
       "renderedWidthPx": 1165,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 790
+        "x1": 18,
+        "y1": 18,
+        "x2": 1182,
+        "y2": 772
       },
       "overflow": {
         "top": 0,
@@ -1542,10 +1542,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.022785,
+        "right": 0.015,
+        "bottom": 0.022785,
+        "left": 0.015
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1561,10 +1561,10 @@
       "renderedWidthPx": 1165,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 820
+        "x1": 18,
+        "y1": 18,
+        "x2": 1182,
+        "y2": 802
       },
       "overflow": {
         "top": 0,
@@ -1573,10 +1573,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.021951,
+        "right": 0.015,
+        "bottom": 0.021951,
+        "left": 0.015
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1592,10 +1592,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1400,
-        "y2": 990
+        "x1": 38,
+        "y1": 26,
+        "x2": 1362,
+        "y2": 890
       },
       "overflow": {
         "top": 0,
@@ -1604,10 +1604,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.026263,
+        "right": 0.027143,
+        "bottom": 0.10101,
+        "left": 0.027143
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1623,10 +1623,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1400,
-        "y2": 740
+        "x1": 38,
+        "y1": 26,
+        "x2": 1362,
+        "y2": 671
       },
       "overflow": {
         "top": 0,
@@ -1635,10 +1635,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.035135,
+        "right": 0.027143,
+        "bottom": 0.093243,
+        "left": 0.027143
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1654,10 +1654,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1400,
-        "y2": 855
+        "x1": 38,
+        "y1": 26,
+        "x2": 1362,
+        "y2": 785
       },
       "overflow": {
         "top": 0,
@@ -1666,10 +1666,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.030409,
+        "right": 0.027143,
+        "bottom": 0.081871,
+        "left": 0.027143
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1685,10 +1685,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 855
+        "x1": 14,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 785
       },
       "overflow": {
         "top": 0,
@@ -1697,10 +1697,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.030409,
+        "right": 0.031667,
+        "bottom": 0.081871,
+        "left": 0.011667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1716,10 +1716,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1400,
-        "y2": 855
+        "x1": 38,
+        "y1": 26,
+        "x2": 1362,
+        "y2": 785
       },
       "overflow": {
         "top": 0,
@@ -1728,10 +1728,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.030409,
+        "right": 0.027143,
+        "bottom": 0.081871,
+        "left": 0.027143
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1747,10 +1747,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 780
+        "x1": 38,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 720
       },
       "overflow": {
         "top": 0,
@@ -1759,10 +1759,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.033333,
+        "right": 0.031667,
+        "bottom": 0.076923,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1778,10 +1778,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 835
+        "x1": 38,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 775
       },
       "overflow": {
         "top": 0,
@@ -1790,10 +1790,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.031138,
+        "right": 0.031667,
+        "bottom": 0.071856,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1809,10 +1809,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 800
+        "x1": 8,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 738
       },
       "overflow": {
         "top": 0,
@@ -1821,10 +1821,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.0325,
+        "right": 0.031667,
+        "bottom": 0.0775,
+        "left": 0.006667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1840,10 +1840,10 @@
       "renderedWidthPx": 1154,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 750
+        "x1": 38,
+        "y1": 26,
+        "x2": 1135,
+        "y2": 689
       },
       "overflow": {
         "top": 0,
@@ -1852,10 +1852,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.034667,
+        "right": 0.054167,
+        "bottom": 0.081333,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1871,10 +1871,10 @@
       "renderedWidthPx": 1154,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 815
+        "x1": 38,
+        "y1": 26,
+        "x2": 1158,
+        "y2": 752
       },
       "overflow": {
         "top": 0,
@@ -1883,10 +1883,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.031902,
+        "right": 0.035,
+        "bottom": 0.077301,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1902,10 +1902,10 @@
       "renderedWidthPx": 1154,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 790
+        "x1": 38,
+        "y1": 26,
+        "x2": 1150,
+        "y2": 728
       },
       "overflow": {
         "top": 0,
@@ -1914,10 +1914,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.032911,
+        "right": 0.041667,
+        "bottom": 0.078481,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1933,10 +1933,10 @@
       "renderedWidthPx": 1154,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 755
+        "x1": 38,
+        "y1": 26,
+        "x2": 1158,
+        "y2": 695
       },
       "overflow": {
         "top": 0,
@@ -1945,10 +1945,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.034437,
+        "right": 0.035,
+        "bottom": 0.07947,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1964,10 +1964,10 @@
       "renderedWidthPx": 1154,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 875
+        "x1": 38,
+        "y1": 26,
+        "x2": 1157,
+        "y2": 804
       },
       "overflow": {
         "top": 0,
@@ -1976,10 +1976,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.029714,
+        "right": 0.035833,
+        "bottom": 0.081143,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -1995,10 +1995,10 @@
       "renderedWidthPx": 1154,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 805
+        "x1": 38,
+        "y1": 26,
+        "x2": 1144,
+        "y2": 745
       },
       "overflow": {
         "top": 0,
@@ -2007,10 +2007,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.032298,
+        "right": 0.046667,
+        "bottom": 0.074534,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -2026,10 +2026,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 775
+        "x1": 38,
+        "y1": 26,
+        "x2": 1168,
+        "y2": 715
       },
       "overflow": {
         "top": 0,
@@ -2038,10 +2038,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.033548,
+        "right": 0.026667,
+        "bottom": 0.077419,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -2057,10 +2057,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1400,
-        "y2": 855
+        "x1": 38,
+        "y1": 26,
+        "x2": 1368,
+        "y2": 785
       },
       "overflow": {
         "top": 0,
@@ -2069,10 +2069,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.030409,
+        "right": 0.022857,
+        "bottom": 0.081871,
+        "left": 0.027143
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -2088,10 +2088,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 735
+        "x1": 38,
+        "y1": 26,
+        "x2": 1168,
+        "y2": 675
       },
       "overflow": {
         "top": 0,
@@ -2100,10 +2100,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.035374,
+        "right": 0.026667,
+        "bottom": 0.081633,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -2119,10 +2119,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 855
+        "x1": 38,
+        "y1": 26,
+        "x2": 1168,
+        "y2": 785
       },
       "overflow": {
         "top": 0,
@@ -2131,10 +2131,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.030409,
+        "right": 0.026667,
+        "bottom": 0.081871,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -2150,10 +2150,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 835
+        "x1": 38,
+        "y1": 26,
+        "x2": 1168,
+        "y2": 770
       },
       "overflow": {
         "top": 0,
@@ -2162,10 +2162,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.031138,
+        "right": 0.026667,
+        "bottom": 0.077844,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -2181,10 +2181,10 @@
       "renderedWidthPx": 1149,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1400,
-        "y2": 1280
+        "x1": 34,
+        "y1": 26,
+        "x2": 1368,
+        "y2": 1185
       },
       "overflow": {
         "top": 0,
@@ -2193,10 +2193,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.020313,
+        "right": 0.022857,
+        "bottom": 0.074219,
+        "left": 0.024286
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -2212,10 +2212,10 @@
       "renderedWidthPx": 1149,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 795
+        "x1": 38,
+        "y1": 26,
+        "x2": 1168,
+        "y2": 735
       },
       "overflow": {
         "top": 0,
@@ -2224,10 +2224,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.032704,
+        "right": 0.026667,
+        "bottom": 0.075472,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -2243,10 +2243,10 @@
       "renderedWidthPx": 1149,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 825
+        "x1": 38,
+        "y1": 26,
+        "x2": 1168,
+        "y2": 765
       },
       "overflow": {
         "top": 0,
@@ -2255,10 +2255,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.031515,
+        "right": 0.026667,
+        "bottom": 0.072727,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -2274,10 +2274,10 @@
       "renderedWidthPx": 1149,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1400,
-        "y2": 1110
+        "x1": 38,
+        "y1": 26,
+        "x2": 1368,
+        "y2": 1002
       },
       "overflow": {
         "top": 0,
@@ -2286,10 +2286,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.023423,
+        "right": 0.022857,
+        "bottom": 0.097297,
+        "left": 0.027143
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -2305,10 +2305,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 775
+        "x1": 38,
+        "y1": 26,
+        "x2": 1168,
+        "y2": 730
       },
       "overflow": {
         "top": 0,
@@ -2317,10 +2317,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.033548,
+        "right": 0.026667,
+        "bottom": 0.058065,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -2336,10 +2336,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 730
+        "x1": 38,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 670
       },
       "overflow": {
         "top": 0,
@@ -2348,10 +2348,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.035616,
+        "right": 0.031667,
+        "bottom": 0.082192,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -2367,10 +2367,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 830
+        "x1": 38,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 765
       },
       "overflow": {
         "top": 0,
@@ -2379,10 +2379,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.031325,
+        "right": 0.031667,
+        "bottom": 0.078313,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -2398,10 +2398,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 780
+        "x1": 4,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 725
       },
       "overflow": {
         "top": 0,
@@ -2410,10 +2410,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.033333,
+        "right": 0.031667,
+        "bottom": 0.070513,
+        "left": 0.003333
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -2429,10 +2429,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 725
+        "x1": 38,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 665
       },
       "overflow": {
         "top": 0,
@@ -2441,10 +2441,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.035862,
+        "right": 0.031667,
+        "bottom": 0.082759,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -2460,10 +2460,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 805
+        "x1": 38,
+        "y1": 26,
+        "x2": 1163,
+        "y2": 745
       },
       "overflow": {
         "top": 0,
@@ -2472,10 +2472,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.032298,
+        "right": 0.030833,
+        "bottom": 0.074534,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -2491,10 +2491,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 775
+        "x1": 38,
+        "y1": 26,
+        "x2": 1150,
+        "y2": 715
       },
       "overflow": {
         "top": 0,
@@ -2503,10 +2503,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.033548,
+        "right": 0.041667,
+        "bottom": 0.077419,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -2522,10 +2522,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 775
+        "x1": 38,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 715
       },
       "overflow": {
         "top": 0,
@@ -2534,10 +2534,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.033548,
+        "right": 0.031667,
+        "bottom": 0.077419,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -2553,10 +2553,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 780
+        "x1": 38,
+        "y1": 26,
+        "x2": 1150,
+        "y2": 718
       },
       "overflow": {
         "top": 0,
@@ -2565,10 +2565,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.033333,
+        "right": 0.041667,
+        "bottom": 0.079487,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -2584,10 +2584,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 815
+        "x1": 38,
+        "y1": 26,
+        "x2": 1144,
+        "y2": 755
       },
       "overflow": {
         "top": 0,
@@ -2596,10 +2596,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.031902,
+        "right": 0.046667,
+        "bottom": 0.07362,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -2615,10 +2615,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1400,
-        "y2": 780
+        "x1": 38,
+        "y1": 26,
+        "x2": 1355,
+        "y2": 700
       },
       "overflow": {
         "top": 0,
@@ -2627,10 +2627,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.033333,
+        "right": 0.032143,
+        "bottom": 0.102564,
+        "left": 0.027143
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -2646,10 +2646,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1400,
-        "y2": 1180
+        "x1": 38,
+        "y1": 26,
+        "x2": 1361,
+        "y2": 1066
       },
       "overflow": {
         "top": 0,
@@ -2658,10 +2658,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.022034,
+        "right": 0.027857,
+        "bottom": 0.09661,
+        "left": 0.027143
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -2677,10 +2677,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 840
+        "x1": 38,
+        "y1": 26,
+        "x2": 1158,
+        "y2": 775
       },
       "overflow": {
         "top": 0,
@@ -2689,10 +2689,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.030952,
+        "right": 0.035,
+        "bottom": 0.077381,
+        "left": 0.031667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -2708,10 +2708,10 @@
       "renderedWidthPx": 1165,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 790
+        "x1": 18,
+        "y1": 18,
+        "x2": 1182,
+        "y2": 772
       },
       "overflow": {
         "top": 0,
@@ -2720,10 +2720,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.022785,
+        "right": 0.015,
+        "bottom": 0.022785,
+        "left": 0.015
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -2739,10 +2739,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 815
+        "x1": 32,
+        "y1": 26,
+        "x2": 1144,
+        "y2": 755
       },
       "overflow": {
         "top": 0,
@@ -2751,10 +2751,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.031902,
+        "right": 0.046667,
+        "bottom": 0.07362,
+        "left": 0.026667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -2770,10 +2770,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 815
+        "x1": 32,
+        "y1": 26,
+        "x2": 1144,
+        "y2": 755
       },
       "overflow": {
         "top": 0,
@@ -2782,10 +2782,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.031902,
+        "right": 0.046667,
+        "bottom": 0.07362,
+        "left": 0.026667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -2801,10 +2801,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 780
+        "x1": 32,
+        "y1": 26,
+        "x2": 1150,
+        "y2": 720
       },
       "overflow": {
         "top": 0,
@@ -2813,10 +2813,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.033333,
+        "right": 0.041667,
+        "bottom": 0.076923,
+        "left": 0.026667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],
@@ -2832,10 +2832,10 @@
       "renderedWidthPx": 1157,
       "minimumTextSizePx": 12,
       "contentBounds": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 1200,
-        "y2": 900
+        "x1": 32,
+        "y1": 26,
+        "x2": 1162,
+        "y2": 897
       },
       "overflow": {
         "top": 0,
@@ -2844,10 +2844,10 @@
         "left": 0
       },
       "blankRatios": {
-        "top": 0,
-        "right": 0,
-        "bottom": 0,
-        "left": 0
+        "top": 0.028889,
+        "right": 0.031667,
+        "bottom": 0.003333,
+        "left": 0.026667
       },
       "textCollisionCount": 0,
       "collisionSamples": [],

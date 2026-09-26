@@ -21,10 +21,14 @@ Measurement semantics (kept consistent with the frozen evidence schema):
   converted with the same uniform client->viewBox scale used by the frozen
   evidence (scaleX = viewBox.width / svgWidth, scaleY = viewBox.height /
   svgHeight, relative to the SVG's top-left client corner). contentBounds =
-  union of that frame and all rendered content, rounded to integer viewBox
-  units. overflow = content extending beyond the frame (i.e. beyond the
-  rendered SVG viewport), rounded to integer viewBox units. blankRatios = gaps
-  between contentBounds and the frame edges.
+  union of all rendered content only (the canvas frame is NOT forced in;
+  full-canvas decorative backdrop rects and redundant container-group boxes
+  are excluded), rounded to integer viewBox units. overflow = any rendered
+  element (including backdrops) extending beyond the frame (i.e. beyond the
+  rendered SVG viewport), rounded to integer viewBox units, so a mis-sized
+  backdrop can never mask a real overflow. blankRatios = unused margins
+  between the frame edges and the rendered content, so bottom-blank
+  regressions (content no longer filling its canvas) are observable.
 - text collisions: pairwise intersections of rendered <text> client rects,
   counted when the intersection area exceeds 8% of the smaller text box.
 - stageOverflowIds: figure stages .v12-stage/.pv-stage only (the metric used by
@@ -121,9 +125,10 @@ LAYOUT_JS = r"""
   const SKIP = new Set(['defs', 'title', 'desc', 'style', 'metadata', 'clippath', 'mask', 'filter',
     'lineargradient', 'radialgradient', 'pattern', 'marker', 'stop', 'feflood', 'fegaussianblur',
     'femerge', 'femergenode', 'fedropshadow', 'fecolormatrix', 'feoffset', 'feblend']);
+  const CONTAINER = new Set(['g', 'a', 'switch', 'svg']);
   const round6 = (value) => Math.round(value * 1e6) / 1e6;
   const figures = [...document.querySelectorAll('figure[data-viz-code]')];
-  const diagnostics = { fullCanvasFigures: 0, figuresWithOverflow: 0, collisionFigures: 0, maxViewportEscapePx: 0 };
+  const diagnostics = { fullCanvasFigures: 0, figuresWithOverflow: 0, collisionFigures: 0, maxViewportEscapePx: 0, backdropRects: 0 };
   const records = figures.map((figure) => {
     const svg = figure.querySelector('svg');
     const viewBox = svg.viewBox.baseVal;
@@ -138,8 +143,17 @@ LAYOUT_JS = r"""
       x2: (rect.right - svgRect.left) * scaleX,
       y2: (rect.bottom - svgRect.top) * scaleY,
     });
-    // The canvas frame is the rendered SVG viewport box; rendered content refines it.
-    const union = { x1: 0, y1: 0, x2: viewBox.width, y2: viewBox.height };
+    // Two unions are tracked: every rendered element (overflow detection, so
+    // a mis-sized backdrop can never mask a real overflow) and the
+    // non-backdrop content (contentBounds / blankRatios, so backdrops cannot
+    // hide the figure's real bottom blank). The canvas frame is never forced
+    // in, otherwise blankRatios would be structurally zero.
+    let boundsAll = null;
+    let content = null;
+    const include = (union, box) => union === null
+      ? { x1: box.x1, y1: box.y1, x2: box.x2, y2: box.y2 }
+      : { x1: Math.min(union.x1, box.x1), y1: Math.min(union.y1, box.y1),
+          x2: Math.max(union.x2, box.x2), y2: Math.max(union.y2, box.y2) };
     for (const el of svg.querySelectorAll('*')) {
       if (SKIP.has(el.tagName.toLowerCase())) continue;
       let ancestor = el.parentElement;
@@ -149,6 +163,11 @@ LAYOUT_JS = r"""
         ancestor = ancestor.parentElement;
       }
       if (skipped) continue;
+      // Container elements (<g>, <a>, <switch>, nested <svg>) report the
+      // union of their children; their leaves are measured individually, and
+      // counting a container box again would re-import an excluded backdrop
+      // that sits inside the group.
+      if (CONTAINER.has(el.tagName.toLowerCase())) continue;
       const rect = el.getBoundingClientRect();
       if (rect.width <= 0 || rect.height <= 0) continue;
       const escapePx = Math.max(
@@ -157,18 +176,31 @@ LAYOUT_JS = r"""
       );
       if (escapePx > diagnostics.maxViewportEscapePx) diagnostics.maxViewportEscapePx = escapePx;
       const box = toUser(rect);
-      union.x1 = Math.min(union.x1, box.x1); union.y1 = Math.min(union.y1, box.y1);
-      union.x2 = Math.max(union.x2, box.x2); union.y2 = Math.max(union.y2, box.y2);
+      boundsAll = include(boundsAll, box);
+      // A rect covering the whole canvas is a decorative backdrop (page
+      // background / grid / wash); it contributes to overflow detection but
+      // not to blankRatios.
+      if (el.tagName.toLowerCase() === 'rect'
+        && rect.width >= svgRect.width * 0.99
+        && rect.height >= svgRect.height * 0.99) {
+        diagnostics.backdropRects += 1;
+        continue;
+      }
+      content = include(content, box);
     }
-    const contentBounds = {
-      x1: Math.round(union.x1), y1: Math.round(union.y1),
-      x2: Math.round(union.x2), y2: Math.round(union.y2),
-    };
+    // No rendered content: report an empty content box so the blank ratios
+    // flag the figure instead of silently passing.
+    const rounded = (bounds) => ({
+      x1: Math.round(bounds.x1), y1: Math.round(bounds.y1),
+      x2: Math.round(bounds.x2), y2: Math.round(bounds.y2),
+    });
+    const contentBounds = rounded(content ?? { x1: 0, y1: 0, x2: 0, y2: 0 });
+    const allBounds = rounded(boundsAll ?? { x1: 0, y1: 0, x2: 0, y2: 0 });
     const overflow = {
-      top: Math.max(0, -contentBounds.y1),
-      right: Math.max(0, contentBounds.x2 - width),
-      bottom: Math.max(0, contentBounds.y2 - height),
-      left: Math.max(0, -contentBounds.x1),
+      top: Math.max(0, -allBounds.y1),
+      right: Math.max(0, allBounds.x2 - width),
+      bottom: Math.max(0, allBounds.y2 - height),
+      left: Math.max(0, -allBounds.x1),
     };
     const blankRatios = {
       top: round6(Math.max(0, contentBounds.y1) / height),
@@ -746,6 +778,9 @@ def self_check(measurement: dict, report_html: str) -> list:
         problems.append("standard online url/title differs")
     if standard["heroSelectContainer"] is not True or standard["heroCards"] != 5:
         problems.append("standard online hero selection differs")
+    selection = standard.get("selectionTest") or {}
+    if selection.get("lockSelectionSucceeded") is not True:
+        problems.append("standard online hero lock selection failed")
     if standard["consoleErrors"] != 0 or standard["resourceErrors"] != 0:
         problems.append("standard online page has console/resource errors")
     demo = online["demo"]
