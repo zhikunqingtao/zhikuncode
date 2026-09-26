@@ -20,8 +20,8 @@ public class CompactConfiguration {
             String enabled = value("llm-enabled", "true");
             if ("false".equalsIgnoreCase(enabled)) return unavailable("summary_disabled");
             if (!"true".equalsIgnoreCase(enabled)) return unavailable("invalid_summary_configuration");
-            String provider = value("provider", "dashscope-token-plan");
-            String model = value("model", "deepseek-v4.1-flash");
+            String provider = value("provider", "deepseek");
+            String model = value("model", "deepseek-flash");
             var mode = SummaryRequest.ThinkingMode.valueOf(value("thinking-mode", "max").toUpperCase(Locale.ROOT));
             int completion = Integer.parseInt(value("max-completion-tokens", "8192"));
             int summary = Integer.parseInt(value("max-summary-tokens", "4096"));

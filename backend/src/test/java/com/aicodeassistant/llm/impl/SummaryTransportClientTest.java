@@ -14,22 +14,28 @@ import java.util.*;
 import java.util.concurrent.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-class BailianSummaryClientTest {
+class SummaryTransportClientTest {
     final ObjectMapper json = new ObjectMapper();
     MockWebServer server;
     OpenAiCompatibleProvider provider;
     @BeforeEach void setup() throws Exception {
         server = new MockWebServer(); server.start();
-        provider = provider(BailianSummaryClient.ENDPOINT);
+        provider = provider(SummaryTransportClient.BAILIAN_ENDPOINT);
         var client = new OkHttpClient.Builder().addInterceptor(chain -> chain.proceed(
                 chain.request().newBuilder().url(server.url("/chat/completions")).build())).build();
         ReflectionTestUtils.setField(provider, "httpClient", client);
     }
-    OpenAiCompatibleProvider provider(String url) {
-        return new OpenAiCompatibleProvider("dashscope-token-plan", json,
+    OpenAiCompatibleProvider provider(String name, String url) {
+        return provider(name, url, List.of("deepseek-flash", "deepseek-v4.1-flash", "qwen3.8-flash", "qwen3.7-plus"));
+    }
+    OpenAiCompatibleProvider provider(String name, String url, List<String> models) {
+        return new OpenAiCompatibleProvider(name, json,
                 new LlmHttpProperties(new LlmHttpProperties.PoolProperties(2,30), 2,2,true),
                 new ApiKeyRotationManager("test-only"), "test-only", url, "deepseek-v4.1-flash",
-                List.of("deepseek-v4.1-flash", "qwen3.8-flash", "qwen3.7-plus"));
+                models);
+    }
+    OpenAiCompatibleProvider provider(String url) {
+        return provider("dashscope-token-plan", url);
     }
     @AfterEach void cleanup() throws Exception { server.shutdown(); }
     SummaryRequest request(String model, String mode, long millis) {
@@ -40,8 +46,9 @@ class BailianSummaryClientTest {
         return new MockResponse().setBody("{\"id\":\"response-1\",\"model\":\"actual-model\",\"choices\":[{\"message\":{\"content\":\"<summary>body</summary>\"},\"finish_reason\":\"stop\"}]" + suffix + "}");
     }
     @ParameterizedTest @CsvSource({"deepseek-v4.1-flash,MAX", "deepseek-v4.1-flash,LOW", "deepseek-v4.1-flash,OFF",
+            "deepseek-flash,MAX", "deepseek-flash,LOW", "deepseek-flash,OFF",
             "qwen3.8-flash,MAX", "qwen3.8-flash,OFF", "qwen3.7-plus,OFF"})
-    void exactSixProfilesAndRawMetadata(String model, String mode) throws Exception {
+    void exactProfilesAndRawMetadata(String model, String mode) throws Exception {
         server.enqueue(success(",\"usage\":{\"completion_tokens\":12,\"completion_tokens_details\":{\"reasoning_tokens\":null}}"));
         var result = provider.summarize(request(model,mode,5000), LlmCallContext.unscoped());
         assertNull(result.failureReason()); assertEquals("stop",result.finishReason());
@@ -54,6 +61,45 @@ class BailianSummaryClientTest {
         else assertEquals(!mode.equals("OFF"),body.path("enable_thinking").asBoolean());
         if (mode.equals("OFF")) assertFalse(body.has("reasoning_effort"));
         else assertEquals(mode.toLowerCase(Locale.ROOT),body.path("reasoning_effort").asText());
+    }
+    @ParameterizedTest @CsvSource({"MAX", "LOW", "OFF"})
+    void deepseekProviderSummarizesAgainstOfficialEndpoint(String mode) throws Exception {
+        var capturedUrl = new java.util.concurrent.atomic.AtomicReference<String>();
+        var deepseekProvider = provider("deepseek", SummaryTransportClient.DEEPSEEK_ENDPOINT);
+        var deepseekClient = new OkHttpClient.Builder().addInterceptor(chain -> {
+            capturedUrl.set(chain.request().url().toString());
+            return chain.proceed(chain.request().newBuilder().url(server.url("/chat/completions")).build());
+        }).build();
+        ReflectionTestUtils.setField(deepseekProvider, "httpClient", deepseekClient);
+        assertTrue(deepseekProvider.supportsSummary("deepseek-flash", SummaryRequest.ThinkingMode.valueOf(mode)));
+        server.enqueue(success(""));
+        var result = deepseekProvider.summarize(request("deepseek-flash",mode,5000), LlmCallContext.unscoped());
+        assertNull(result.failureReason());
+        assertEquals("stop", result.finishReason());
+        assertTrue(result.content() != null && result.content().contains("<summary>body</summary>"));
+        assertEquals("https://api.deepseek.com/v1/chat/completions", capturedUrl.get());
+        JsonNode body = json.readTree(server.takeRequest().getBody().readUtf8());
+        assertEquals("deepseek-flash", body.path("model").asText());
+        assertEquals(8192, body.path("max_tokens").asInt());
+        assertFalse(body.has("max_completion_tokens"));
+        if (mode.equals("OFF")) {
+            assertEquals("disabled", body.path("thinking").path("type").asText());
+            assertFalse(body.has("reasoning_effort"));
+        } else {
+            assertEquals("enabled", body.path("thinking").path("type").asText());
+            assertEquals(mode.toLowerCase(Locale.ROOT), body.path("reasoning_effort").asText());
+        }
+        assertFalse(body.path("stream").asBoolean(true));
+    }
+    @Test void providerModelListIsolationRejectsWhitelistedModelAbsentFromProvider() {
+        var limited = provider("deepseek", SummaryTransportClient.DEEPSEEK_ENDPOINT, List.of("deepseek-flash"));
+        var client = new OkHttpClient.Builder().addInterceptor(chain -> chain.proceed(
+                chain.request().newBuilder().url(server.url("/chat/completions")).build())).build();
+        ReflectionTestUtils.setField(limited, "httpClient", client);
+        assertFalse(limited.supportsSummary("qwen3.8-flash", SummaryRequest.ThinkingMode.MAX));
+        assertEquals("unsupported_summary",
+                limited.summarize(request("qwen3.8-flash","MAX",5000), LlmCallContext.unscoped()).failureReason());
+        assertEquals(0, server.getRequestCount());
     }
     @Test void finalHttpContainsSummaryOnceAndCanonicalLegacyIdOnEveryBuild() throws Exception {
         var now=java.time.Instant.EPOCH;
@@ -113,8 +159,8 @@ class BailianSummaryClientTest {
         assertEquals("summary_retry_after_deadline",provider.summarize(request("deepseek-v4.1-flash","MAX",5000),LlmCallContext.unscoped()).failureReason());
         assertEquals("summary_timeout",provider.summarize(request("deepseek-v4.1-flash","MAX",-1),LlmCallContext.unscoped()).failureReason());
         assertEquals(1,server.getRequestCount());
-        assertEquals(1000,BailianSummaryClient.retryAfterMillis(null));
-        assertEquals(1000,BailianSummaryClient.retryAfterMillis("invalid"));
+        assertEquals(1000,SummaryTransportClient.retryAfterMillis(null));
+        assertEquals(1000,SummaryTransportClient.retryAfterMillis("invalid"));
     }
     @Test void summaryTimeoutDoesNotCancelParent() {
         server.enqueue(success("").setBodyDelay(500,TimeUnit.MILLISECONDS));

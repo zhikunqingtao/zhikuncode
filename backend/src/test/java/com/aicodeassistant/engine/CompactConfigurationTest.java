@@ -17,7 +17,7 @@ class CompactConfigurationTest {
         new YamlPropertySourceLoader().load("application",new ClassPathResource("application.yml"))
                 .forEach(s -> env.getPropertySources().addLast(s));
         var defaults = new CompactConfiguration(env).settings();
-        assertEquals(new CompactConfiguration.Settings(true,"dashscope-token-plan","deepseek-v4.1-flash",
+        assertEquals(new CompactConfiguration.Settings(true,"deepseek","deepseek-flash",
                 SummaryRequest.ThinkingMode.MAX,8192,4096,90000,null),defaults);
         Map<String,Object> overrides = Map.of("LLM_COMPACT_LLM_ENABLED","true","LLM_COMPACT_PROVIDER","selected",
                 "LLM_COMPACT_MODEL","qwen3.8-flash","LLM_COMPACT_THINKING_MODE","off",

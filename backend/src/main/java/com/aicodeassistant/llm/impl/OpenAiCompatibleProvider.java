@@ -119,7 +119,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
 
     @Override
     public boolean supportsSummary(String model, SummaryRequest.ThinkingMode mode) {
-        return BailianSummaryClient.ENDPOINT.equals(baseUrl) && supportedModels.contains(model)
+        return SummaryTransportClient.supportsEndpoint(baseUrl) && supportedModels.contains(model)
                 && SummaryRequest.supports(model, mode);
     }
 
@@ -128,7 +128,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         if (!supportsSummary(request.model(), request.thinkingMode())) return SummaryResult.failed("unsupported_summary");
         if (request.maxCompletionTokens() <= 0) return SummaryResult.failed("invalid_summary_configuration");
         String key = keyRotationManager.getKeyCount() > 0 ? keyRotationManager.getNextKey() : apiKey;
-        return BailianSummaryClient.execute(httpClient, objectMapper, key, activeCalls, request, context);
+        return SummaryTransportClient.execute(httpClient, objectMapper, baseUrl, key, activeCalls, request, context);
     }
 
     @Override

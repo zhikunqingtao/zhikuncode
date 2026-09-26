@@ -59,7 +59,8 @@ class ContextCompactionContinuationLiveTest {
             when(failed.summarize(any(),any())).thenReturn(SummaryResult.failed("injected_transport_failure"));
             summaryRegistry=mock(LlmProviderRegistry.class);when(summaryRegistry.findProviderByName("dashscope-token-plan")).thenReturn(Optional.of(failed));
         }
-        var compactor=new ContextCompactor(counter,summaryRegistry,models,new CompactConfiguration(new MockEnvironment()));
+        var compactor=new ContextCompactor(counter,summaryRegistry,models,new CompactConfiguration(new MockEnvironment()
+            .withProperty("app.compact.provider","dashscope-token-plan").withProperty("app.compact.model","deepseek-v4.1-flash")));
         var source=new ArrayList<Message>();source.add(user("goal","Maintain /repo/main.java in an isolated test workspace. Report facts faithfully; never infer successful verification."));
         addTransactions(source,"first",scenario.fact());
         if(!scenario.correction().isEmpty())source.add(user("correction",scenario.correction()));

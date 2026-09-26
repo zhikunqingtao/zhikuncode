@@ -10,17 +10,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
 
-/** Non-streaming, summary-only transport. No global retries, key rotation, or chatSync fallback. */
-final class BailianSummaryClient {
-    static final String ENDPOINT = "https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1";
-    private BailianSummaryClient() {}
+/** Non-streaming, summary-only transport for dedicated summary endpoints
+ *  (Bailian Token Plan / DeepSeek official).
+ *  No global retries, key rotation, or chatSync fallback. */
+final class SummaryTransportClient {
+    static final String BAILIAN_ENDPOINT = "https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1";
+    static final String DEEPSEEK_ENDPOINT = "https://api.deepseek.com/v1";
+    private SummaryTransportClient() {}
 
-    static SummaryResult execute(OkHttpClient client, ObjectMapper mapper, String key,
+    static boolean supportsEndpoint(String baseUrl) {
+        return BAILIAN_ENDPOINT.equals(baseUrl) || DEEPSEEK_ENDPOINT.equals(baseUrl);
+    }
+
+    static SummaryResult execute(OkHttpClient client, ObjectMapper mapper, String baseUrl, String key,
                                  ConcurrentMap<String, Call> active, SummaryRequest input,
                                  LlmCallContext context) {
         var body = mapper.createObjectNode();
+        // DeepSeek 官方仅认 max_tokens（max_completion_tokens 被静默忽略、上限不生效，已实测）；
+        // 百炼 Token Plan 的 max_completion_tokens 已经现网验证，保持不变。必须按端点分流：
+        // 百炼同样托管 deepseek- 前缀模型，不能按模型名判断。
+        String limitKey = DEEPSEEK_ENDPOINT.equals(baseUrl) ? "max_tokens" : "max_completion_tokens";
         body.put("model", input.model()).put("stream", false)
-                .put("max_completion_tokens", input.maxCompletionTokens());
+                .put(limitKey, input.maxCompletionTokens());
         body.set("messages", mapper.valueToTree(List.of(
                 Map.of("role", "system", "content", input.systemPrompt()),
                 Map.of("role", "user", "content", input.userContent()))));
@@ -29,7 +40,7 @@ final class BailianSummaryClient {
             body.putObject("thinking").put("type", thinking ? "enabled" : "disabled");
         } else body.put("enable_thinking", thinking);
         if (thinking) body.put("reasoning_effort", input.thinkingMode().name().toLowerCase(java.util.Locale.ROOT));
-        Request request = new Request.Builder().url(ENDPOINT + "/chat/completions")
+        Request request = new Request.Builder().url(baseUrl + "/chat/completions")
                 .header("Authorization", "Bearer " + key)
                 .post(RequestBody.create(body.toString(), MediaType.get("application/json"))).build();
         for (int attempt = 0; attempt < 2; attempt++) {

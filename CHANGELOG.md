@@ -39,6 +39,7 @@
 - 消息持久化改为落盘优先：assistant 消息先同步落库成功才进入工作集并允许本轮工具执行；落盘失败先取消已启动工具，再以 INCOMPLETE（`PERSISTENCE_FAILED`）终结 Run，取代原“失败后跳过后写、结尾按长度补偿补写”策略。
 - ZenMux 多 API Key 选择策略改为 `PRIORITY_FAILOVER`（配置顺序中首个健康 Key 优先，冷却时故障转移，恢复后重新优先）；其余 Provider 保持既有轮询。
 - 移除内部压缩标记（`[final]` / `[skeleton]` / `[collapsed]` 等）的正文剥离规则：用户可见正文原样保留，避免误伤 INI 段名等合法方括号内容；流式与历史展示同步不再过滤。整段最终答复仅为系统折叠占位符时仍按无可见正文处理，触发一次补请求恢复。
+- 压缩摘要默认模型改为 DeepSeek 官方直连 `deepseek-flash`（Provider `deepseek`）：摘要传输通道同时支持百炼 Token Plan 与 DeepSeek 官方端点；可用 `LLM_COMPACT_MODEL` / `LLM_COMPACT_PROVIDER` 覆盖回百炼 `deepseek-v4.1-flash`。
 
 ### Fixed
 - 修复多批次后台代理等待共享运行级截止时间的问题：首个等待周期结束后，超过 `AGENT_TIMEOUT_MAX_WAIT_MINUTES` 的新批次会以 0 预算立即触发 `BACKGROUND_AGENT_WAIT_TIMEOUT` 并终结主 Run，已启动的后台代理结果无法交付。现每个等待周期独立获得完整预算（同一次等待内的唤醒不刷新预算），并新增两波次等待回归测试。

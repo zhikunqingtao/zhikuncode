@@ -30,7 +30,8 @@ class BailianDeepSeekConfigurationTest {
         var bailianConfig = configs.providers().get("dashscope-token-plan");
         var directConfig = configs.providers().get("deepseek");
         assertEquals(BAILIAN, env.getProperty("app.model.default"));
-        assertEquals(BAILIAN, env.getProperty("app.compact.model"));
+        assertEquals("deepseek-flash", env.getProperty("app.compact.model"));
+        assertEquals("deepseek", env.getProperty("app.compact.provider"));
         assertEquals(BAILIAN, env.getProperty("app.model.vision-fallback"));
         assertEquals(BAILIAN, env.getProperty("app.model.fast"));
         assertEquals(BAILIAN, env.getProperty("app.model.tier-chain[0]"));

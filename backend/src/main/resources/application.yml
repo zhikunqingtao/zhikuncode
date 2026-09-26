@@ -281,9 +281,9 @@ app:
     rerank-timeout-ms: 3000
   compact:
     # Independent summary model; does not use getFastModel().
-    model: ${LLM_COMPACT_MODEL:deepseek-v4.1-flash}
+    model: ${LLM_COMPACT_MODEL:deepseek-flash}
     llm-enabled: ${LLM_COMPACT_LLM_ENABLED:true}
-    provider: ${LLM_COMPACT_PROVIDER:dashscope-token-plan}
+    provider: ${LLM_COMPACT_PROVIDER:deepseek}
     thinking-mode: ${LLM_COMPACT_THINKING_MODE:max}
     max-completion-tokens: ${LLM_COMPACT_MAX_COMPLETION_TOKENS:8192}
     max-summary-tokens: ${LLM_COMPACT_MAX_SUMMARY_TOKENS:4096}

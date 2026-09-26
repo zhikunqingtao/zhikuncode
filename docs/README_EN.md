@@ -366,7 +366,7 @@ If no multi-Provider keys are configured, the system automatically falls back to
 | Provider | Base URL | Recommended Model | Notes |
 |----------|----------|-------------------|-------|
 | **Qwen / DashScope** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen3.8-max-0902 | Pay-as-you-go Provider, direct connection in China |
-| **Alibaba Cloud Bailian Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max / qwen3.8-flash / deepseek-v4-pro-0813 / deepseek-v4-flash-0731 / deepseek-v4.1-flash | Independent `sk-sp-` key; models are labeled “Bailian”. V4.1 Flash defaults `app.model.default`, fast queries, summaries and vision fallback; the frontend initial preference remains `qwen3.8-max-0902`, with configured/session selections taking precedence |
+| **Alibaba Cloud Bailian Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max / qwen3.8-flash / deepseek-v4-pro-0813 / deepseek-v4-flash-0731 / deepseek-v4.1-flash | Independent `sk-sp-` key; models are labeled “Bailian”. V4.1 Flash defaults `app.model.default`, fast queries and vision fallback; the frontend initial preference remains `qwen3.8-max-0902`, with configured/session selections taking precedence |
 | **DeepSeek** | `https://api.deepseek.com/v1` | deepseek-flash | Direct connection in China; DeepSeek V4.1 Flash with thinking, tool use, and native vision |
 | **Moonshot (Kimi)** | `https://api.moonshot.cn/v1` | kimi-k3 | Direct connection; kimi-k3 features 1M context window and native vision |
 | **Zhipu (GLM)** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.3, glm-5.3-flash | China direct access |
@@ -1430,9 +1430,9 @@ ZhikunCode includes 11 built-in visualization features that make data and status
 
 ### Model Selection and Routing
 
-Main queries use the user-selected model; Swarm workers inherit the parent query model by default. Fast queries and summaries have independent configuration, both defaulting to Bailian `deepseek-v4.1-flash`. Vision fallback applies only when the selected model cannot accept images. Bailian and direct DeepSeek use separate model IDs, endpoints and keys.
+Main queries use the user-selected model; Swarm workers inherit the parent query model by default. Fast queries and summaries have independent configuration: fast queries default to Bailian `deepseek-v4.1-flash`; summaries default to the direct DeepSeek endpoint `deepseek-flash`. Vision fallback applies only when the selected model cannot accept images. Bailian and direct DeepSeek use separate model IDs, endpoints and keys.
 
-Bailian V4.1 Flash streaming requests, fast queries and summaries send `thinking.type=enabled` and the string `reasoning_effort="max"`. Tests on 2026-09-15 confirmed that the Token Plan endpoint accepts `"max"` and rejects integers; its internal numeric mapping remains unverified.
+Bailian V4.1 Flash streaming requests, fast queries and summaries send `thinking.type=enabled` and the string `reasoning_effort="max"`; the direct DeepSeek endpoint sends the same parameters for streaming requests and summaries (`chatSync` non-streaming fast queries do not inject thinking). Tests on 2026-09-15 confirmed that the Token Plan endpoint accepts `"max"` and rejects integers; its internal numeric mapping remains unverified.
 
 ### Environment Variables
 
@@ -1453,7 +1453,8 @@ Environment variables are managed via the `.env` file. Copy `.env.example` and m
 | `LLM_PROVIDER_OPENROUTER_MODELS` | — | stealth/union-alpha,openrouter/openai/gpt-6-astra,openrouter/anthropic/claude-fable-5.1 | Available OpenRouter models (comma-separated) |
 | `LLM_DEFAULT_MODEL` | — | deepseek-v4.1-flash | Bailian Token Plan default; falls back to an active Provider default when unavailable |
 | `LLM_FAST_MODEL` | — | deepseek-v4.1-flash | Preferred fast-query model and classifier fallback |
-| `LLM_COMPACT_MODEL` | — | deepseek-v4.1-flash | Summary model, configured independently of the fast model |
+| `LLM_COMPACT_MODEL` | — | deepseek-flash | Summary model (direct DeepSeek), configured independently of the fast model |
+| `LLM_COMPACT_PROVIDER` | — | deepseek | Summary provider; must be registered and is used together with `LLM_COMPACT_MODEL` |
 | `LLM_VISION_FALLBACK_MODEL` | — | deepseek-v4.1-flash | Preferred model when the selected model cannot accept images |
 
 > In multi-Provider mode, configure at least one Provider's API Key. The frontend supports free switching between configured Providers.

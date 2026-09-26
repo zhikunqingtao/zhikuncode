@@ -1975,7 +1975,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
   </div>
 
   <div class="card java-accent" style="margin-top:12px">
-    <div style="padding:12px 16px;font-size:.82rem;line-height:1.8">主对话跟随用户选择；Swarm Worker 默认继承父查询模型。快速查询用 LLM_FAST_MODEL，摘要用独立的 LLM_COMPACT_MODEL，图片兜底用 LLM_VISION_FALLBACK_MODEL；三者默认 deepseek-v4.1-flash（百炼）。该模型流式与同步请求均发送 thinking=enabled、reasoning_effort=&quot;max&quot;。</div>
+    <div style="padding:12px 16px;font-size:.82rem;line-height:1.8">主对话跟随用户选择；Swarm Worker 默认继承父查询模型。快速查询用 LLM_FAST_MODEL，摘要用独立的 LLM_COMPACT_MODEL，图片兜底用 LLM_VISION_FALLBACK_MODEL；快速查询与图片兜底默认 deepseek-v4.1-flash（百炼），摘要默认 deepseek-flash（DeepSeek 官方直连）。两款默认模型的流式请求与压缩摘要均发送 thinking=enabled、reasoning_effort=&quot;max&quot;（DeepSeek 官方直连的非流式快速查询不注入 thinking）。</div>
     <div class="card-title" onclick="toggleDetail(this)"><span class="toggle">▶</span> 辅助组件</div>
     <div class="card-detail">
       <div class="grid-3" style="font-size:.8rem">

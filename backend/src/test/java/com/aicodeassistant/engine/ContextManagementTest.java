@@ -219,7 +219,7 @@ class ContextManagementTest {
                 "\n- pom.xml: 升级依赖版本\n## 当前工作\n持续优化各模块功能。\n</summary>";
 
             var models = mock(com.aicodeassistant.llm.ModelRegistry.class);
-            when(providerRegistry.findProviderByName("dashscope-token-plan")).thenReturn(java.util.Optional.of(llmProvider));
+            when(providerRegistry.findProviderByName("deepseek")).thenReturn(java.util.Optional.of(llmProvider));
             when(llmProvider.supportsSummary(any(),any())).thenReturn(true);
             when(models.findExplicitCapabilities(any(),eq(llmProvider))).thenReturn(java.util.Optional.of(
                 new com.aicodeassistant.llm.ModelCapabilities("deepseek-v4.1-flash","DS",32768,1000000,true,true,false,0,false,0,0)));

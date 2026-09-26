@@ -372,7 +372,7 @@ LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 | 服务商 | Base URL | 推荐模型 | 备注 |
 |--------|----------|----------|------|
 | **千问/DashScope** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen3.8-max-0902 | 按量计费 Provider，国内直连 |
-| **阿里云百炼 Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max / qwen3.8-flash / deepseek-v4-pro-0813 / deepseek-v4-flash-0731 / deepseek-v4.1-flash | 使用独立 `sk-sp-` Key；模型均标注“百炼”。V4.1 Flash 为服务端 `app.model.default`、快速查询、摘要及图片兜底的默认值；前端初始模型偏好仍为 `qwen3.8-max-0902`，用户配置／会话选择优先 |
+| **阿里云百炼 Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max / qwen3.8-flash / deepseek-v4-pro-0813 / deepseek-v4-flash-0731 / deepseek-v4.1-flash | 使用独立 `sk-sp-` Key；模型均标注“百炼”。V4.1 Flash 为服务端 `app.model.default`、快速查询及图片兜底的默认值；前端初始模型偏好仍为 `qwen3.8-max-0902`，用户配置／会话选择优先 |
 | **DeepSeek** | `https://api.deepseek.com/v1` | deepseek-flash | 国内直连；DeepSeek V4.1 Flash，支持思考、工具调用与原生视觉 |
 | **Moonshot（Kimi）** | `https://api.moonshot.cn/v1` | kimi-k3 | 国内直连；kimi-k3 支持 1M 上下文和原生视觉 |
 | **Zhipu（智谱 GLM）** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.3, glm-5.3-flash | 国内直连 |
@@ -1444,9 +1444,9 @@ ZhikunCode 内置 11 项可视化能力，让 AI 编程过程中的数据和状�
 
 ### 模型选择与路由
 
-主对话使用用户选择的模型；Swarm 缺省 Worker 继承父查询模型。快速查询与压缩摘要使用各自配置，默认均为百炼 `deepseek-v4.1-flash`；只有当前模型不支持图片时才触发视觉兜底。百炼与 DeepSeek 直连的模型 ID、端点和 Key 独立。
+主对话使用用户选择的模型；Swarm 缺省 Worker 继承父查询模型。快速查询与压缩摘要使用各自配置：快速查询默认百炼 `deepseek-v4.1-flash`，压缩摘要默认 DeepSeek 官方直连 `deepseek-flash`；只有当前模型不支持图片时才触发视觉兜底。百炼与 DeepSeek 直连的模型 ID、端点和 Key 独立。
 
-百炼 V4.1 Flash 的流式请求、快速查询和压缩摘要统一发送 `thinking.type=enabled`、字符串 `reasoning_effort="max"`。2026-09-15 Token Plan 实测接受 `"max"`、拒绝整数；未验证内部数值映射。
+百炼 V4.1 Flash 的流式请求、快速查询和压缩摘要统一发送 `thinking.type=enabled`、字符串 `reasoning_effort="max"`；DeepSeek 官方直连的流式请求与压缩摘要同样发送该参数组合（`chatSync` 非流式快速查询不注入 thinking）。2026-09-15 Token Plan 实测接受 `"max"`、拒绝整数；未验证内部数值映射。
 
 ### 环境变量
 
@@ -1467,7 +1467,8 @@ ZhikunCode 内置 11 项可视化能力，让 AI 编程过程中的数据和状�
 | `LLM_PROVIDER_OPENROUTER_MODELS` | — | stealth/union-alpha,openrouter/openai/gpt-6-astra,openrouter/anthropic/claude-fable-5.1 | OpenRouter 可用模型列表（逗号分隔） |
 | `LLM_DEFAULT_MODEL` | — | deepseek-v4.1-flash | 默认模型（百炼 Token Plan）；不可用时回退到当前 Provider 的有效默认模型 |
 | `LLM_FAST_MODEL` | — | deepseek-v4.1-flash | 快速辅助查询与分类器回退优先使用的模型 |
-| `LLM_COMPACT_MODEL` | — | deepseek-v4.1-flash | 对话压缩摘要模型，独立于快速模型选择 |
+| `LLM_COMPACT_MODEL` | — | deepseek-flash | 对话压缩摘要模型（DeepSeek 官方直连），独立于快速模型选择 |
+| `LLM_COMPACT_PROVIDER` | — | deepseek | 压缩摘要 Provider；需已注册该 Provider，配合 `LLM_COMPACT_MODEL` 使用 |
 | `LLM_VISION_FALLBACK_MODEL` | — | deepseek-v4.1-flash | 当前模型不支持图片时优先使用的视觉模型 |
 
 > 多 Provider 模式下至少配置一个 Provider 的 API Key 即可。前端支持自由切换已配置的 Provider。

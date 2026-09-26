@@ -21,7 +21,7 @@ class ContextCompactorTest {
     final TokenCounter counter = new TokenCounter(null, null, null);
     ContextCompactor compactor;
     @BeforeEach void setup() {
-        when(registry.findProviderByName("dashscope-token-plan")).thenReturn(Optional.of(provider));
+        when(registry.findProviderByName("deepseek")).thenReturn(Optional.of(provider));
         when(provider.supportsSummary(any(), any())).thenReturn(true);
         when(models.findExplicitCapabilities(any(), eq(provider))).thenReturn(Optional.of(
                 new ModelCapabilities("deepseek-v4.1-flash", "DS", 32768, 1000000, true, true, false, 0, false, 0, 0)));
