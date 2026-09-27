@@ -35,7 +35,7 @@ import { SessionStatusCapsule } from '@/components/status/SessionStatusCapsule';
 interface PromptInputProps {
     sessionId?: string | null;
     onSubmit: (event: SubmitEvent) => Promise<boolean>;
-    onSlashCommand: (command: string) => Promise<boolean>;
+    onSlashCommand: (command: string, skillId?: string) => Promise<boolean>;
     onInterrupt: () => void;
     disabled: boolean;
     runActive: boolean;
@@ -78,7 +78,7 @@ const PromptInput: React.FC<PromptInputProps> = (props) => {
                 <CommandPalette
                     commands={commands}
                     filter={s.input.slice(1)}
-                    onSelect={(cmd) => { void s.submitSlashCommand('/' + cmd); }}
+                    onSelect={(cmd, skillId) => { void s.submitSlashCommand('/' + cmd, true, skillId); }}
                     onClose={() => s.setShowCommands(false)} />
             )}
 
@@ -87,7 +87,7 @@ const PromptInput: React.FC<PromptInputProps> = (props) => {
                 <CommandPalette
                     commands={commands}
                     filter=""
-                    onSelect={(cmd) => { void s.submitSlashCommand('/' + cmd, false); }}
+                    onSelect={(cmd, skillId) => { void s.submitSlashCommand('/' + cmd, false, skillId); }}
                     onClose={() => s.setShowGlobalPalette(false)}
                     isGlobal />
             )}

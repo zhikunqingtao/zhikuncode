@@ -13,6 +13,7 @@ export type DialogType =
     | 'settings' 
     | 'mcp'
     | 'memory'
+    | 'skills'
     | 'export' 
     | 'resume' 
     | 'theme' 

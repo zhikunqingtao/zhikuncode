@@ -219,6 +219,10 @@ process:
     drain-join-ms: ${PROCESS_RUNNER_DRAIN_JOIN_MS:1000}
     max-concurrent: ${PROCESS_RUNNER_MAX_CONCURRENT:16}
 
+skill:
+  # 后端全局 Skill 开关，默认全部启用；保存后对后续请求生效。
+  state-path: ${SKILL_STATE_PATH:${user.home}/.zhikun/skill-states.json}
+
 mcp:
   capability-registry-path: ${MCP_REGISTRY_PATH:${user.dir}/../configuration/mcp/mcp_capability_registry.json}
   # 用户开关状态；低频或高风险 MCP 默认关闭，其他服务保持默认启用。

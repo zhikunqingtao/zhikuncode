@@ -63,4 +63,24 @@ describe('CommandPalette 视图显示方式命令（P2 detailed 陷阱常驻出�
         expect(onClose).not.toHaveBeenCalled();
         expect(useTurnViewStore.getState().density).toBe('balanced');
     });
+
+    it('同名技能按 canonical id 区分 React key 和选择结果，保留显示名称', () => {
+        const onSelect = vi.fn();
+        const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+        const commands: Command[] = [
+            { name: 'skill Shared alias', skillId: 'first-id', description: '第一个技能', group: 'Skills' },
+            { name: 'skill Shared alias', skillId: 'second-id', description: '第二个技能', group: 'Skills' },
+        ];
+        try {
+            const { rerender } = render(<CommandPalette commands={commands} filter="Shared" onSelect={onSelect} onClose={vi.fn()} />);
+            fireEvent.click(screen.getByRole('option', { name: /\/skill Shared alias\s*第二个技能/ }));
+            expect(onSelect).toHaveBeenLastCalledWith('skill Shared alias', 'second-id');
+            rerender(<CommandPalette commands={[...commands].reverse()} filter="Shared" onSelect={onSelect} onClose={vi.fn()} />);
+            fireEvent.click(screen.getByRole('option', { name: /\/skill Shared alias\s*第一个技能/ }));
+            expect(onSelect).toHaveBeenLastCalledWith('skill Shared alias', 'first-id');
+            expect(consoleError).not.toHaveBeenCalled();
+        } finally {
+            consoleError.mockRestore();
+        }
+    });
 });

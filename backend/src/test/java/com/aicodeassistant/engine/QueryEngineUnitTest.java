@@ -7,6 +7,7 @@ import com.aicodeassistant.authorization.AuthorizedOperation;
 import com.aicodeassistant.authorization.EffectClass;
 import com.aicodeassistant.authorization.FrozenToolInputFactory;
 import com.aicodeassistant.authorization.OperationDescriptor;
+import com.aicodeassistant.authorization.OperationAnalyzerRegistry;
 import com.aicodeassistant.authorization.PreparedOperation;
 import com.aicodeassistant.authorization.RiskClass;
 import com.aicodeassistant.authorization.ToolExecutionGateway;
@@ -27,6 +28,7 @@ import com.aicodeassistant.security.SensitiveDataFilter;
 import com.aicodeassistant.skill.SkillDefinition;
 import com.aicodeassistant.skill.SkillExecutor;
 import com.aicodeassistant.skill.SkillRegistry;
+import com.aicodeassistant.skill.SkillStateService;
 import com.aicodeassistant.skill.SkillTokenBudget;
 import com.aicodeassistant.skill.SkillTool;
 import com.aicodeassistant.skill.SkillToolValidator;
@@ -1484,11 +1486,16 @@ class QueryEngineUnitTest {
         private static final String RENDERED_BODY = "BODY_SENTINEL Hello World!";
         private static final String CONTROL_MARKER = "CONTROL_METADATA_ONLY_SENTINEL";
         private static final String CONTROL_CONTENT = "control-tool-visible-content";
+        private static final String DISABLED_NAME = "isolated-disabled-skill-sentinel";
+        private static final String DISABLED_DESCRIPTION = "DISABLED_SKILL_DESCRIPTION_SENTINEL";
+        private static final String DISABLED_BODY = "DISABLED_SKILL_BODY_SENTINEL {{name}}";
 
         private RunExecutionRegistry executions;
         private RunEnvelope run;
         private AtomicReference<RunEnvelope> authority;
         private final List<List<Map<String, Object>>> requests = new ArrayList<>();
+        private final List<Map<String, Object>> completeRequests = new ArrayList<>();
+        private SkillRegistry registry;
         private TokenCounter skillTokenCounter;
         private SkillTokenBudget skillBudget;
         private Tool skillTool;
@@ -1499,7 +1506,7 @@ class QueryEngineUnitTest {
         void wireRealSkillToolExecution() {
             executions = new RunExecutionRegistry();
             run = RunEnvelope.start("test-session", null, "query", "mock-model");
-            when(runTracker.startRun("test-session", null, "query", "mock-model"))
+            lenient().when(runTracker.startRun("test-session", null, "query", "mock-model"))
                     .thenReturn(run);
             authority = new AtomicReference<>(run);
             lenient().when(runTracker.getRun(run.id())).thenAnswer(inv -> Optional.of(authority.get()));
@@ -1519,7 +1526,8 @@ class QueryEngineUnitTest {
                     .when(runTracker).abortRun(eq(run.id()), any(), anyString());
 
             // 真实 skill 栈 — 合成 inline 技能
-            SkillRegistry registry = new SkillRegistry();
+            registry = new SkillRegistry(new SkillStateService(
+                    objectMapper, workspace.resolve("skill-states.json").toString()));
             registry.register(SkillDefinition.fromMarkdown(
                     "greet.md",
                     "---\ncontext: inline\n---\nBODY_SENTINEL Hello {{name}}!",
@@ -1552,13 +1560,13 @@ class QueryEngineUnitTest {
                     List.of(EffectClass.PROCESS), List.of(), List.of(), List.of(),
                     RiskClass.HIGH, "operation-hash", "test operation");
             PreparedOperation prepared = new PreparedOperation(subject, descriptor, "attempt");
-            when(authorization.prepare(any(), any(), any(), any())).thenReturn(prepared);
-            when(authorization.authorizePrepared(any(), any(), any(), any(), any()))
+            lenient().when(authorization.prepare(any(), any(), any(), any())).thenReturn(prepared);
+            lenient().when(authorization.authorizePrepared(any(), any(), any(), any(), any()))
                     .thenAnswer(invocation -> new AuthorizedOperation(
                             prepared.subject(), prepared.descriptor(), invocation.getArgument(2),
                             AuthorizationDiagnostic.Source.MODE, "AUTO_APPROVE",
                             null, null, null, "attempt"));
-            when(gateway.execute(any(), any(), any(), any(), any()))
+            lenient().when(gateway.execute(any(), any(), any(), any(), any()))
                     .thenAnswer(invocation -> {
                         Runnable admission = invocation.getArgument(3);
                         Runnable started = invocation.getArgument(4);
@@ -1705,12 +1713,170 @@ class QueryEngineUnitTest {
             assertThat(skillBudget.getStatus("test-session", "greet").skillUsed()).isZero();
         }
 
+        @Test
+        @DisplayName("关闭技能不出现在实际模型请求或未知技能建议中")
+        void disabledSkillIsAbsentFromActualModelRequestsAndSuggestions() throws Exception {
+            registerIsolatedSkill();
+            registry.setEnabled(DISABLED_NAME, false);
+            script((call, callback) -> {
+                if (call == 1) {
+                    finish(callback, "tool_use",
+                            new LlmStreamEvent.ToolUseStart("skill-call-1", "Skill"),
+                            new LlmStreamEvent.ToolInputDelta("skill-call-1",
+                                    "{\"skill\":\"missing-workflow\"}"));
+                } else {
+                    finish(callback, "end_turn", new LlmStreamEvent.TextDelta("done"));
+                }
+            });
+
+            QueryEngine.QueryResult result = queryEngine.execute(
+                    configFromRegistry(realToolRegistry(), false), buildState("Find a workflow"), handler);
+
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(completeRequests).hasSize(2);
+            // The user and scripted model never supplied the disabled markers: none may be added by the app.
+            assertThat(objectMapper.writeValueAsString(completeRequests))
+                    .doesNotContain(DISABLED_NAME, DISABLED_DESCRIPTION, "DISABLED_SKILL_BODY_SENTINEL");
+            assertThat(toolResultBlocks(requests.get(1))).anySatisfy(block -> {
+                assertThat(block.get("is_error")).isEqualTo(true);
+                assertThat((String) block.get("content")).contains("Available skills: greet");
+            });
+            assertThat(skillBudget.getStatus("test-session", DISABLED_NAME).sessionUsed()).isZero();
+            verifyNoInteractions(skillTokenCounter);
+        }
+
+        @Test
+        @DisplayName("配置建立后关闭技能，旧工具通过别名调用也不能渲染正文或消耗预算")
+        void disabledSkillRejectsStaleToolCallsBeforeRenderingOrSpendingBudget() throws Exception {
+            registerIsolatedSkill();
+            assertThat(registry.resolve("/Isolated-Alias").name()).isEqualTo(DISABLED_NAME);
+            QueryConfig staleConfig = configFromRegistry(realToolRegistry(), false);
+            script((call, callback) -> {
+                if (call == 1) {
+                    registry.setEnabled(DISABLED_NAME, false);
+                    finish(callback, "tool_use",
+                            new LlmStreamEvent.ToolUseStart("skill-call-1", "Skill"),
+                            new LlmStreamEvent.ToolInputDelta("skill-call-1",
+                                    "{\"skill\":\"/Isolated-Alias\",\"args\":\"name=World\"}"));
+                } else {
+                    finish(callback, "end_turn", new LlmStreamEvent.TextDelta("done"));
+                }
+            });
+
+            QueryEngine.QueryResult result = queryEngine.execute(
+                    staleConfig, buildState("Use the previously selected workflow"), handler);
+
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(completeRequests).hasSize(2);
+            assertThat(objectMapper.writeValueAsString(completeRequests))
+                    .doesNotContain(DISABLED_NAME, DISABLED_DESCRIPTION, "DISABLED_SKILL_BODY_SENTINEL");
+            assertThat(toolResultBlocks(requests.get(1))).anySatisfy(block -> {
+                assertThat(block.get("tool_use_id")).isEqualTo("skill-call-1");
+                assertThat(block.get("is_error")).isEqualTo(true);
+                assertThat((String) block.get("content")).contains("Skill not found");
+            });
+            assertThat(skillBudget.getStatus("test-session", DISABLED_NAME).sessionUsed()).isZero();
+            assertThat(skillBudget.getStatus("test-session", "Isolated-Alias").skillUsed()).isZero();
+            verifyNoInteractions(skillTokenCounter);
+        }
+
+        @Test
+        @DisplayName("全部关闭后下一条主代理请求不含 Skill，重新开启后恢复")
+        void nextRootRequestsReflectAllDisabledAndReenabledSkills() throws Exception {
+            assertNextRequestsReflectToggle(false);
+        }
+
+        @Test
+        @DisplayName("全部关闭后下一条子代理请求不含 Skill，重新开启后恢复")
+        void nextSubAgentRequestsReflectAllDisabledAndReenabledSkills() throws Exception {
+            when(runTracker.startRun("test-session", null, "subagent", "mock-model")).thenReturn(run);
+            assertNextRequestsReflectToggle(true);
+            verify(runTracker, times(3)).startRun("test-session", null, "subagent", "mock-model");
+        }
+
+        private void assertNextRequestsReflectToggle(boolean subAgent) throws Exception {
+            ToolRegistry tools = realToolRegistry();
+            script((call, callback) -> {
+                if (call == 3) {
+                    finish(callback, "tool_use",
+                            new LlmStreamEvent.ToolUseStart("restored-skill-call", "Skill"),
+                            new LlmStreamEvent.ToolInputDelta("restored-skill-call",
+                                    "{\"skill\":\"greet\",\"args\":\"name=World\"}"));
+                } else {
+                    finish(callback, "end_turn", new LlmStreamEvent.TextDelta("done"));
+                }
+            });
+
+            for (boolean enabled : List.of(true, false, true)) {
+                registry.setEnabled("greet", enabled);
+                // Each execute models a new user message, with a newly assembled tool configuration.
+                authority.set(run);
+                QueryLoopState state = buildState("Continue the task");
+                if (subAgent) {
+                    state.setToolUseContext(state.getToolUseContext()
+                            .withParentSessionId("parent-session").withNestingDepth(1));
+                }
+                QueryConfig config = configFromRegistry(tools, subAgent);
+                assertThat(config.tools().stream().map(Tool::getName).toList().contains("Skill"))
+                        .isEqualTo(enabled);
+                assertThat(queryEngine.execute(config, state, handler).isSuccess()).isTrue();
+            }
+
+            assertThat(handler.errors).isEmpty();
+            assertThat(completeRequests).hasSize(4);
+            assertThat(toolNames(completeRequests.get(0))).contains("Skill");
+            assertThat(toolNames(completeRequests.get(1))).doesNotContain("Skill");
+            assertThat(toolNames(completeRequests.get(2))).contains("Skill");
+            assertThat(objectMapper.writeValueAsString(completeRequests.get(1))).doesNotContain("BODY_SENTINEL");
+            assertThat(toolResultBlocks(requests.get(3))).anySatisfy(block -> {
+                assertThat(block.get("tool_use_id")).isEqualTo("restored-skill-call");
+                assertThat(block.get("content")).isEqualTo(RENDERED_BODY);
+                assertThat(block.get("is_error")).isNull();
+            });
+            assertThat(skillBudget.getStatus("test-session", "greet").skillUsed()).isEqualTo(100);
+        }
+
+        private void registerIsolatedSkill() {
+            registry.register(SkillDefinition.fromMarkdown(DISABLED_NAME + ".md",
+                    "---\nname: isolated-alias\ndescription: " + DISABLED_DESCRIPTION
+                            + "\ncontext: inline\n---\n" + DISABLED_BODY,
+                    SkillDefinition.SkillSource.PROJECT, null));
+        }
+
+        private ToolRegistry realToolRegistry() {
+            OperationAnalyzerRegistry analyzers = mock(OperationAnalyzerRegistry.class);
+            when(analyzers.isExplicitCoreTool(anyString())).thenReturn(true);
+            ToolRegistry tools = new ToolRegistry(List.of(skillTool, controlTool), analyzers);
+            tools.activate("test-session", List.of("Skill"));
+            return tools;
+        }
+
+        private QueryConfig configFromRegistry(ToolRegistry tools, boolean subAgent) {
+            List<Tool> enabled = subAgent ? tools.getSubAgentTools()
+                    : tools.getEnabledToolsSortedCached("test-session");
+            List<Map<String, Object>> definitions = subAgent
+                    ? enabled.stream().map(Tool::toToolDefinition).toList()
+                    : tools.getActiveToolDefinitions("test-session");
+            return QueryConfig.withDefaults("mock-model", "You are a helpful assistant.",
+                    enabled, definitions, 8192, 200000, new ThinkingConfig.Disabled(), 2, "test");
+        }
+
+        private List<String> toolNames(Map<String, Object> request) {
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> definitions = (List<Map<String, Object>>) request.get("tools");
+            return definitions.stream()
+                    .map(definition -> (String) ((Map<?, ?>) definition.get("function")).get("name"))
+                    .toList();
+        }
+
         private void script(BiConsumer<Integer, StreamChatCallback> response) {
             LlmProvider provider = mock(LlmProvider.class);
             when(providerRegistry.getProvider(anyString())).thenReturn(provider);
             doAnswer(inv -> {
                 List<Map<String, Object>> messages = inv.getArgument(1);
                 requests.add(List.copyOf(messages));
+                completeRequests.add(Map.of("messages", List.copyOf(messages),
+                        "system", inv.<String>getArgument(2), "tools", List.copyOf(inv.getArgument(3))));
                 response.accept(requests.size(), inv.getArgument(7));
                 return null;
             }).when(provider).streamChat(

@@ -273,7 +273,7 @@ cd frontend && npm install && npm run dev
 
 ### Optional: OSS Artifact Publishing, Screenshot Paste, and Remote File References
 
-ZhikunCode includes a built-in `/publish-oss` Skill that can publish one verified artifact from the current session as a permanently public OSS download. The `/publish-oss` path is **disabled by default and never uploads automatically**: generating a file, completing a Run, previewing, or opening a file cannot trigger it. Every publication requires an explicit user request and a one-time high-risk permission confirmation.
+ZhikunCode includes a built-in `/publish-oss` Skill that can publish one verified artifact from the current session as a permanently public OSS download. The underlying OSS publishing capability is **disabled by default and never uploads automatically** and must be configured separately; the Skill management switch does not replace deployment configuration. Generating a file, completing a Run, previewing, or opening a file cannot trigger publication. Every publication requires an explicit user request and a one-time high-risk permission confirmation.
 
 With the same OSS configuration enabled, the browser can detect PNG/JPEG/WebP screenshots pasted from another application (up to 5 MiB each), publish them immediately through a deterministic backend endpoint, and pass the server-validated OSS image URL directly to the vision model. This path does not invoke `/publish-oss` or make an extra LLM call. If OSS is not configured, screenshots automatically fall back to Base64 inline upload — no extra configuration needed to use image analysis.
 
@@ -826,6 +826,18 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 
 ZhikunCode's Skill System is a **Markdown-driven extensible workflow engine**. Each skill is a `.md` file — YAML frontmatter defines metadata, Markdown body defines execution instructions.
 
+### Management and Availability
+
+Open **Skill** in the desktop or tablet header, or **More → Skill Management** on a phone, to search skills, inspect their source and content, and enable or disable each one. Existing and newly discovered skills are enabled by default. All devices and sessions connected to the same backend share these settings, stored at `~/.zhikun/skill-states.json`. Override the path with `SKILL_STATE_PATH`; Docker uses `/app/data/skill-states.json` in its persistent data directory.
+
+Choices are keyed by the internal skill name. Replacing a definition, reloading its file, or deleting and recreating the same skill preserves its previous setting.
+
+Saving immediately blocks new calls to a disabled skill; the next user message uses the updated configuration without restarting. Disabled skills disappear from runtime discovery and suggestions, and their descriptions and bodies are no longer automatically included or charged as corresponding input tokens. When all skills are disabled, the `Skill` tool is removed. While the app is visible, settings synchronize every five seconds; manual refresh is also available.
+
+If the settings file is damaged or unreadable, the backend still starts, but all skills are temporarily disabled. Management displays an error and blocks saves, preserving the original file. Repair the indicated file and restart the backend to restore management.
+
+Current answers and already started skill executions continue. Skill content in chat history can still influence the model; start a new chat for a clean context. Switches control skill loading and invocation, not ordinary file access. Independent commands, underlying tools, and deployment settings retain their own availability rules: for example, disabling the `review` skill does not disable the separate `/review` command.
+
 ### 13 Built-in Skills
 
 In the Web input, enter `/skill <name>` to open the skill dialog, then fill in its arguments and execute. Use the dedicated commands shown below for publishing. Skills provide workflow instructions; direct commands with matching names, such as `/review`, have separate implementations.
@@ -843,7 +855,7 @@ In the Web input, enter `/skill <name>` to open the skill dialog, then fill in i
 | **CSV Summary** | `/skill csv-data-summarizer` | CSV statistical analysis + charts + Markdown report |
 | **Prompt Engineering** | `/skill prompt-engineering` | Optimizes prompt structure, clarity and effectiveness |
 | **Test-Driven Dev** | `/skill test-driven-development` | TDD red→green→refactor cycle methodology guidance |
-| **OSS Artifact Publishing** | `/publish-oss` | With one-time approval, publishes one verified artifact from the current session as a permanently public OSS download; disabled by default and never automatic |
+| **OSS Artifact Publishing** | `/publish-oss` | With one-time approval, publishes one verified artifact from the current session as a permanently public OSS download; the underlying publishing capability is disabled by default and never automatic |
 | **Meoo App Publishing** | `/publish-meoo` | Each publication creates a new site, preserves existing sites, and consumes platform quota. The result card shows anonymous access verification status. [Setup guide (Chinese)](deployment/meoo.md) |
 
 ### Skill Loading Sources

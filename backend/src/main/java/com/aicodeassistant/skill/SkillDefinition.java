@@ -24,6 +24,11 @@ public record SkillDefinition(
         String filePath
 ) {
 
+    /** Stable settings key, independent of a display name/frontmatter alias. */
+    public String id() {
+        return SkillStateService.canonicalId(name);
+    }
+
     /**
      * 技能加载来源
      */

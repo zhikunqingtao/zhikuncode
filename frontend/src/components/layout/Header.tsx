@@ -21,6 +21,7 @@ import { useBridgeStore } from '@/store/bridgeStore';
 import { clearSessionSelection } from '@/services/sessionActivation';
 import { McpIcon } from '@/components/mcp/McpIcon';
 import { MemoryIcon } from '@/components/memory/MemoryIcon';
+import { SkillIcon } from '@/components/skills/SkillIcon';
 import { SessionStatusCapsule } from '@/components/status/SessionStatusCapsule';
 
 /** §7.4 头部按钮共性：hover/active/焦点环（ring-accent2-ring） */
@@ -202,6 +203,16 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                     aria-label="记忆"
                 >
                     <MemoryIcon className="h-7 w-auto" />
+                </button>
+
+                <button
+                    onClick={() => openDialog('skills')}
+                    className={`panel-control inline-flex ${HEADER_BUTTON_CLASS} min-h-11 min-w-11`}
+                    title="Skill 管理"
+                    aria-label="Skill 管理"
+                    aria-haspopup="dialog"
+                >
+                    <SkillIcon className="h-7 w-auto" />
                 </button>
 
                 <button

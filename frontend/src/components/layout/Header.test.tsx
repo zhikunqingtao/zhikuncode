@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getSessionStatusLabel, Header } from '@/components/layout/Header';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
@@ -7,6 +7,7 @@ import { useModelStore } from '@/store/modelStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
 import { useBridgeStore } from '@/store/bridgeStore';
+import { useDialogStore } from '@/store/dialogStore';
 
 describe('Header', () => {
     beforeEach(() => {
@@ -63,6 +64,14 @@ describe('Header', () => {
 
         // idle 时移动端无状态胶囊，role=status 唯一命中桌面右簇的会话状态
         expect(screen.getByRole('status')).toHaveTextContent('就绪');
+    });
+
+    it('opens Skill management from the desktop and tablet header', () => {
+        useModelStore.setState({ loaded: true, loading: false, error: null, models: [], defaultModel: null });
+        useDialogStore.setState({ activeDialog: null });
+        render(<Header />);
+        fireEvent.click(screen.getByRole('button', { name: 'Skill 管理' }));
+        expect(useDialogStore.getState().activeDialog).toBe('skills');
     });
 });
 

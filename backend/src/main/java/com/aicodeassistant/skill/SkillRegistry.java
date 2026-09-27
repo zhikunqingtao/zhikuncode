@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.aicodeassistant.exception.ResourceNotFoundException;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -38,6 +40,17 @@ import java.util.stream.Stream;
 public class SkillRegistry {
 
     private static final Logger log = LoggerFactory.getLogger(SkillRegistry.class);
+
+    private final SkillStateService stateService;
+
+    public SkillRegistry() {
+        this(new SkillStateService());
+    }
+
+    @Autowired
+    public SkillRegistry(SkillStateService stateService) {
+        this.stateService = stateService;
+    }
 
     /** 所有已注册技能 (name → definition)，按优先级覆盖 */
     private final Map<String, SkillDefinition> skills = new ConcurrentHashMap<>();
@@ -109,8 +122,9 @@ public class SkillRegistry {
      * 注册内置技能。
      */
     public void registerBuiltin(SkillDefinition skill) {
-        builtinSkills.put(skill.name(), skill);
-        skills.put(skill.name(), skill);
+        if (!hasValidName(skill)) return;
+        builtinSkills.put(skill.id(), skill);
+        skills.put(skill.id(), skill);
         log.debug("Registered builtin skill: {}", skill.name());
     }
 
@@ -118,8 +132,15 @@ public class SkillRegistry {
      * 注册自定义技能（来自任何来源）。
      */
     public void register(SkillDefinition skill) {
-        skills.put(skill.name(), skill);
+        if (!hasValidName(skill)) return;
+        skills.put(skill.id(), skill);
         log.debug("Registered skill: {} (source={})", skill.name(), skill.source());
+    }
+
+    private boolean hasValidName(SkillDefinition skill) {
+        if (skill.name() != null && !skill.name().isBlank()) return true;
+        log.warn("Skipping skill with an empty name: {}", skill.filePath() == null ? skill.fileName() : skill.filePath());
+        return false;
     }
 
     /**
@@ -130,17 +151,17 @@ public class SkillRegistry {
      */
     public SkillDefinition resolve(String name) {
         if (name == null) return null;
-        String normalized = name.replaceFirst("^/", "").toLowerCase();
+        String normalized = name.replaceFirst("^/", "").toLowerCase(Locale.ROOT);
 
         // 精确匹配
         SkillDefinition skill = skills.get(normalized);
-        if (skill != null) return skill;
+        if (skill != null) return isEnabled(skill) ? skill : null;
 
         // 遍历查找（大小写不敏感 + 别名）
         for (SkillDefinition s : skills.values()) {
             if (s.name().equalsIgnoreCase(normalized)
                     || s.effectiveName().equalsIgnoreCase(normalized)) {
-                return s;
+                return isEnabled(s) ? s : null;
             }
         }
         return null;
@@ -169,7 +190,38 @@ public class SkillRegistry {
      * 获取所有已注册技能。
      */
     public Collection<SkillDefinition> getAllSkills() {
-        return Collections.unmodifiableCollection(skills.values());
+        return List.copyOf(skills.values());
+    }
+
+    /** Runtime discovery must only expose enabled definitions. */
+    public List<SkillDefinition> getEnabledSkills() {
+        return skills.values().stream().filter(this::isEnabled)
+                .sorted(Comparator.comparing(SkillDefinition::id)).toList();
+    }
+
+    public boolean hasEnabledSkills() {
+        return skills.values().stream().anyMatch(this::isEnabled);
+    }
+
+    public boolean isEnabled(SkillDefinition skill) {
+        return stateService.isEnabled(skill.id());
+    }
+
+    public String getStateError() {
+        return stateService.getStateError();
+    }
+
+    /** Management-only lookup; aliases are deliberately not settings identifiers. */
+    public SkillDefinition getManagedSkill(String id) {
+        SkillDefinition skill = skills.get(SkillStateService.canonicalId(id));
+        if (skill == null) throw new ResourceNotFoundException("SKILL_NOT_FOUND", "Skill not found: " + id);
+        return skill;
+    }
+
+    public SkillDefinition setEnabled(String id, boolean enabled) {
+        SkillDefinition skill = getManagedSkill(id);
+        stateService.setEnabled(skill.id(), enabled);
+        return skill;
     }
 
     /**
@@ -374,7 +426,7 @@ public class SkillRegistry {
         try {
             if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
                 // 反注册
-                String skillName = fileName.replace(".md", "").toLowerCase();
+                String skillName = fileName.replace(".md", "").toLowerCase(Locale.ROOT);
                 skills.remove(skillName);
                 log.info("Skill unregistered (file deleted): {}", skillName);
             } else {

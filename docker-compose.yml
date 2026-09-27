@@ -73,6 +73,8 @@ services:
       # - MCP_REGISTRY_PATH=${MCP_REGISTRY_PATH:-/app/configuration/mcp/mcp_capability_registry.json}
       # Persist user MCP enable/disable choices in the existing data volume.
       - MCP_SERVICE_STATE_PATH=/app/data/mcp-service-states.json
+      # Persist backend-wide Skill choices in the same data volume.
+      - SKILL_STATE_PATH=/app/data/skill-states.json
       # ---- Internal ----
       - SPRING_WEB_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/app/static/
       - ZHIKUN_DEFAULT_WORKSPACE=/app/workspace

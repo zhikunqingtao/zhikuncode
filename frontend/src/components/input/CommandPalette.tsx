@@ -30,7 +30,7 @@ const VIEW_DENSITY_BY_NAME = new Map(VIEW_DENSITY_COMMANDS.map(c => [c.name, c.d
 interface CommandPaletteProps {
     commands: Command[];
     filter: string;
-    onSelect: (command: string) => void;
+    onSelect: (command: string, skillId?: string) => void;
     onClose: () => void;
     /** 是否为全局命令面板模式 (Ctrl+K) */
     isGlobal?: boolean;
@@ -74,7 +74,8 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
             onClose();
             return;
         }
-        onSelect(cmd.name);
+        if (cmd.skillId !== undefined) onSelect(cmd.name, cmd.skillId);
+        else onSelect(cmd.name);
     }, [onSelect, onClose]);
 
     // Reset index when filter changes
@@ -176,7 +177,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
                                     const idx = flatIndex++;
                                     return (
                                         <button
-                                            key={cmd.name}
+                                            key={cmd.skillId !== undefined ? `skill:${cmd.skillId}` : `command:${cmd.name}`}
                                             onClick={() => handleSelect(cmd)}
                                             className={`panel-control w-full text-left px-3 py-2 flex items-center justify-between
                                                 text-sm transition-colors

@@ -34,6 +34,9 @@ public interface Command {
     /** 是否从 /help 列表中隐藏（内部命令） */
     default boolean isHidden() { return false; }
 
+    /** Whether this command's runtime dependency is available; independent of help-list visibility. */
+    default boolean isAvailable() { return true; }
+
     /** 是否来自 MCP 服务器注册的命令 */
     default boolean isMcp() { return false; }
 

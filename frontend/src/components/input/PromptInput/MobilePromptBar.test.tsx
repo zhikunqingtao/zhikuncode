@@ -1,9 +1,10 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, expect, it, vi } from 'vitest';
 import PromptInput from './index';
 import { usePromptDraftStore } from '@/store/promptDraftStore';
 import { useModelStore } from '@/store/modelStore';
 import { useTurnViewStore } from '@/store/turnViewStore';
+import { useDialogStore } from '@/store/dialogStore';
 
 const mocks = vi.hoisted(() => ({ available: true, start: vi.fn() }));
 vi.mock('@/hooks/useResponsive', () => ({ useResponsive: () => ({ isMobile: true }) }));
@@ -99,4 +100,13 @@ it('命令位于附件和语音之间，点击打开斜杠命令入口', () => {
     fireEvent.click(screen.getByRole('button', { name: '命令' }));
     expect(screen.getByRole('textbox')).toHaveValue('/');
     HTMLElement.prototype.scrollIntoView = previousScroll;
+});
+
+it('从手机更多操作打开 Skill 管理并关闭底部面板', async () => {
+    useDialogStore.setState({ activeDialog: null });
+    mount();
+    fireEvent.click(screen.getByRole('button', { name: '更多' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Skill 管理' }));
+    expect(useDialogStore.getState().activeDialog).toBe('skills');
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: '更多操作' })).not.toBeInTheDocument());
 });

@@ -26,6 +26,10 @@ public final class PublishMeooCommand implements PromptCommand {
 
     @Override public String getName() { return "publish-meoo"; }
 
+    @Override public boolean isAvailable() { return skills.resolve("publish-meoo") != null; }
+
+    @Override public boolean isHidden() { return !isAvailable(); }
+
     @Override public String getDescription() {
         return "经逐次权限确认，将当前会话中的已验证应用发布到 秒悟";
     }

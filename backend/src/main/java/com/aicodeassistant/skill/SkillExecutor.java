@@ -65,7 +65,7 @@ public class SkillExecutor {
         SkillDefinition skill = skillRegistry.resolve(skillName);
         if (skill == null) {
             return ToolResult.validationError("SKILL_NOT_FOUND", "Skill not found: " + skillName
-                    + ". Available skills: " + skillRegistry.getAllSkills().stream()
+                    + ". Available skills: " + skillRegistry.getEnabledSkills().stream()
                     .map(SkillDefinition::name)
                     .reduce((a, b) -> a + ", " + b)
                     .orElse("none"));

@@ -10,19 +10,26 @@
  * - 忙碌时拦截发送；发送失败时报错且不回报“执行命令”。
  */
 import React from 'react';
-import { act, render } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
 import { sendSlashCommand } from '@/api/stompClient';
 import { useMessageStore } from '@/store/messageStore';
 import { useNotificationStore } from '@/store/notificationStore';
 import { useSessionStore } from '@/store/sessionStore';
+import { useSkillStore } from '@/store/skillStore';
+import { useCommandStore } from '@/store/commandStore';
+import { usePromptDraftStore } from '@/store/promptDraftStore';
+import type { Command } from '@/types';
 
 // ───── 捕获 App 传给 PromptInput 的 props ─────
 const captured = vi.hoisted(() => ({
   promptInputProps: null as null | {
-    onSlashCommand: (command: string) => Promise<boolean>;
+    onSlashCommand: (command: string, skillId?: string) => Promise<boolean>;
+    commands: Command[];
   },
+  selectedSkill: null as null | { skillName: string; onExecute: (name: string, args: string) => Promise<void> },
+  renderRealPromptInput: false,
 }));
 
 vi.mock('@/api/stompClient', () => ({
@@ -31,14 +38,15 @@ vi.mock('@/api/stompClient', () => ({
   sendSlashCommand: vi.fn(() => true),
 }));
 
-vi.mock('@/components/input', () => ({
-  PromptInput: (props: {
-    onSlashCommand: (command: string) => Promise<boolean>;
-  }) => {
-    captured.promptInputProps = props;
-    return null;
-  },
-}));
+vi.mock('@/components/input', async () => {
+  const { default: RealPromptInput } = await import('@/components/input/PromptInput');
+  return {
+    PromptInput: (props: React.ComponentProps<typeof RealPromptInput>) => {
+      captured.promptInputProps = props;
+      return captured.renderRealPromptInput ? <RealPromptInput {...props} /> : null;
+    },
+  };
+});
 
 // ───── 重型子组件打桩 ─────
 vi.mock('@/components/layout', () => ({
@@ -50,7 +58,7 @@ vi.mock('@/components/message', () => ({
 vi.mock('@/components/message/EmptyHero', () => ({ EmptyHero: () => null }));
 vi.mock('@/components/verify/JourneyVerifyPanel', () => ({ JourneyVerifyPanel: () => null }));
 vi.mock('@/components/DialogManager', () => ({ DialogManager: () => null }));
-vi.mock('@/components/skills/SkillDetailModal', () => ({ SkillDetailModal: () => null }));
+vi.mock('@/components/skills/SkillDetailModal', () => ({ SkillDetailModal: (props: { skillName: string; onExecute: (name: string, args: string) => Promise<void> }) => { captured.selectedSkill = props; return null; } }));
 vi.mock('@/components/verify/MobileApprovalSheet', () => ({ MobileApprovalSheet: () => null }));
 vi.mock('@/components/project/ProjectSelectionDialog', () => ({ ProjectSelectionDialog: () => null }));
 vi.mock('@/components/dialog/InterruptConfirmDialog', () => ({ InterruptConfirmDialog: () => null }));
@@ -67,6 +75,10 @@ vi.mock('@/hooks/useResponsive', () => ({
 vi.mock('@/hooks/useVirtualKeyboard', () => ({
   useVirtualKeyboard: () => ({ keyboardHeight: 0 }),
 }));
+vi.mock('@/hooks/useAsrAvailability', () => ({ useAsrAvailability: () => false }));
+vi.mock('@/hooks/useVoiceRecorder', () => ({ useVoiceRecorder: () => ({
+  state: 'idle', elapsedSeconds: 0, error: null, startRecording: vi.fn(), stopRecording: vi.fn(),
+}) }));
 
 // ───── 会话就绪链路打桩（store 中预置 sessionId，直接激活） ─────
 vi.mock('@/services/authorizedSession', () => ({
@@ -95,7 +107,10 @@ class ResizeObserverStub {
 vi.stubGlobal('ResizeObserver', ResizeObserverStub);
 vi.stubGlobal('fetch', vi.fn(async (input: unknown) => {
   const url = String(input);
-  if (url.includes('/api/skills')) {
+  if (url.includes('/api/skills/manage')) {
+    return { ok: true, status: 200, json: async () => ({ skills: useSkillStore.getState().skills }) } as Response;
+  }
+  if (url === '/api/commands') {
     return { ok: true, status: 200, json: async () => [] } as Response;
   }
   return { ok: false, status: 500, json: async () => ({}) } as Response;
@@ -119,14 +134,24 @@ function lastSendCall(): [string, string] {
   return calls[calls.length - 1] as [string, string];
 }
 
+function selectedSkillId(): string | null {
+  return captured.selectedSkill?.skillName ?? null;
+}
+
 describe('App handleSlashCommand — /review 参数保真', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
     captured.promptInputProps = null;
+    captured.selectedSkill = null;
+    captured.renderRealPromptInput = false;
+    Element.prototype.scrollIntoView = vi.fn();
+    usePromptDraftStore.setState({ drafts: {} });
+    useSkillStore.setState({ skills: [], loaded: true, loading: false, pending: {}, error: null });
+    useCommandStore.setState({ loaded: true, commands: [] });
     useSessionStore.setState({ sessionId: 'session-under-test', status: 'idle' });
     useMessageStore.setState({ messages: [] });
     useNotificationStore.setState({ notifications: [] });
-    render(<App />);
+    await act(async () => { render(<App />); });
   });
 
   it('保留多行参数中的换行', async () => {
@@ -194,7 +219,7 @@ describe('App handleSlashCommand — /review 参数保真', () => {
   });
 
   it('会话忙碌时拦截发送', async () => {
-    useSessionStore.getState().setStatus('streaming');
+    act(() => useSessionStore.getState().setStatus('streaming'));
     const ok = await runSlashCommand('/review 只审暂存区');
     expect(ok).toBe(false);
     expect(sendSlashCommandMock).not.toHaveBeenCalled();
@@ -216,5 +241,105 @@ describe('App handleSlashCommand — /review 参数保真', () => {
     expect(messages.some(
       m => 'content' in m && typeof m.content === 'string' && m.content.startsWith('执行命令'),
     )).toBe(false);
+  });
+
+  it('关闭技能后立即移除候选，并拒绝手工输入的技能命令', async () => {
+    const skill = { id: 'internal-skill', name: 'Display Alias', description: '', source: 'PROJECT', enabled: true };
+    act(() => useSkillStore.setState({ skills: [skill] }));
+    expect(captured.promptInputProps?.commands.some(command => command.name === 'skill Display Alias')).toBe(true);
+    act(() => useSkillStore.setState({ skills: [{ ...skill, enabled: false }] }));
+    expect(captured.promptInputProps?.commands.some(command => command.name === 'skill Display Alias')).toBe(false);
+    expect(await runSlashCommand('/skill Display Alias')).toBe(false);
+    expect(captured.selectedSkill).toBeNull();
+    expect(sendSlashCommandMock).not.toHaveBeenCalled();
+  });
+
+  it('带空格的显示别名使用稳定 id 打开详情并执行', async () => {
+    act(() => useSkillStore.setState({ skills: [{ id: 'internal-skill', name: 'Display Alias', description: '', source: 'PROJECT', enabled: true }] }));
+    expect(await runSlashCommand('/skill Display Alias')).toBe(true);
+    expect(captured.selectedSkill?.skillName).toBe('internal-skill');
+    await act(async () => { await captured.selectedSkill!.onExecute('internal-skill', 'review this'); });
+    expect(lastSendCall()).toEqual(['skill', 'internal-skill review this']);
+  });
+
+  it.each(['my skill', ' leading ', 'quoted"name', 'back\\slash'])('完整编码特殊 canonical id：%s', async id => {
+    act(() => useSkillStore.setState({ skills: [
+      { id: 'my', name: 'short', description: '', source: 'PROJECT', enabled: true },
+      { id, name: 'Display Alias', description: '', source: 'PROJECT', enabled: true },
+    ] }));
+    expect(await runSlashCommand('/skill Display Alias')).toBe(true);
+    expect(captured.selectedSkill?.skillName).toBe(id);
+    await act(async () => { await captured.selectedSkill!.onExecute(id, 'work item'); });
+    expect(lastSendCall()).toEqual(['skill', `${JSON.stringify(id)} work item`]);
+  });
+
+  it('技能状态请求超时后释放真实输入框的提交锁', async () => {
+    captured.renderRealPromptInput = true;
+    act(() => useSkillStore.setState({ skills: [
+      { id: 'demo', name: 'demo', description: '测试技能', source: 'PROJECT', enabled: true },
+    ] }));
+    const controller = new AbortController();
+    const timeout = vi.spyOn(AbortSignal, 'timeout').mockReturnValue(controller.signal);
+    try {
+      vi.mocked(fetch).mockImplementationOnce((_input, init) => new Promise<Response>((_resolve, reject) => {
+        init!.signal!.addEventListener('abort', () => reject(init!.signal!.reason), { once: true });
+      }));
+      fireEvent.change(screen.getByRole('textbox'), { target: { value: '/skill demo' } });
+      fireEvent.click(screen.getByRole('option', { name: /\/skill demo/ }));
+      await waitFor(() => expect(timeout).toHaveBeenCalledWith(10000));
+      await act(async () => controller.abort(new DOMException('timed out', 'TimeoutError')));
+      await waitFor(() => expect(captured.selectedSkill?.skillName).toBe('demo'));
+      fireEvent.change(screen.getByRole('textbox'), { target: { value: '/help' } });
+      fireEvent.click(screen.getByRole('option', { name: /\/help/ }));
+      await waitFor(() => expect(sendSlashCommandMock).toHaveBeenCalledWith('help', ''));
+    } finally {
+      timeout.mockRestore();
+    }
+  });
+
+  it.each([true, false])('候选保留 canonical id，不被 enabled=%s 的同名内部 id 劫持', async conflictingEnabled => {
+    captured.renderRealPromptInput = true;
+    act(() => useSkillStore.setState({ skills: [
+      { id: 'collision', name: 'Other skill', description: '内部 id 冲突项', source: 'PROJECT', enabled: conflictingEnabled },
+      { id: 'target-id', name: 'collision', description: '需要执行的候选', source: 'PROJECT', enabled: true },
+    ] }));
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '/skill collision' } });
+    fireEvent.click(screen.getByRole('option', { name: /\/skill collision\s*需要执行的候选/ }));
+    await waitFor(() => expect(captured.selectedSkill?.skillName).toBe('target-id'));
+    await act(async () => { await captured.selectedSkill!.onExecute('target-id', 'work'); });
+    expect(lastSendCall()).toEqual(['skill', 'target-id work']);
+
+    // 手输相同字符串仍按服务端内部 id 优先规则处理，不能套用候选选择规则。
+    captured.selectedSkill = null;
+    expect(await runSlashCommand('/skill collision')).toBe(conflictingEnabled);
+    expect(selectedSkillId()).toBe(conflictingEnabled ? 'collision' : null);
+  });
+
+  it('全局面板中同名别名的两个真实候选分别执行各自的 canonical id', async () => {
+    captured.renderRealPromptInput = true;
+    act(() => useSkillStore.setState({ skills: [
+      { id: 'first-id', name: 'Shared alias', description: '第一个技能', source: 'PROJECT', enabled: true },
+      { id: 'second-id', name: 'Shared alias', description: '第二个技能', source: 'USER', enabled: true },
+    ] }));
+    for (const [description, id] of [['第二个技能', 'second-id'], ['第一个技能', 'first-id']]) {
+      fireEvent.keyDown(window, { key: 'k', ctrlKey: true });
+      fireEvent.click(screen.getByRole('option', { name: new RegExp(`/skill Shared alias\\s*${description}`) }));
+      await waitFor(() => expect(captured.selectedSkill?.skillName).toBe(id));
+      await act(async () => { await captured.selectedSkill!.onExecute(id, ''); });
+      expect(lastSendCall()).toEqual(['skill', id]);
+    }
+  });
+
+  it('详情执行前 canonical id 已移除时，不回退到别人的同名别名', async () => {
+    act(() => useSkillStore.setState({ skills: [
+      { id: 'removed-id', name: 'Original', description: '', source: 'PROJECT', enabled: true },
+    ] }));
+    expect(await runSlashCommand('/skill removed-id')).toBe(true);
+    const execute = captured.selectedSkill!.onExecute;
+    act(() => useSkillStore.setState({ skills: [
+      { id: 'other-id', name: 'removed-id', description: '', source: 'USER', enabled: true },
+    ] }));
+    await act(async () => { await execute('removed-id', ''); });
+    expect(sendSlashCommandMock).not.toHaveBeenCalled();
   });
 });

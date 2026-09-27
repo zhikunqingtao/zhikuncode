@@ -11,6 +11,8 @@ import { useSessionStore } from '@/store/sessionStore';
 import { useConfigStore } from '@/store/configStore';
 import { sendToServer, sendRunInput, sendSlashCommand } from '@/api/stompClient';
 import { SkillDetailModal } from '@/components/skills/SkillDetailModal';
+import { findEnabledSkill, useSkillStore } from '@/store/skillStore';
+import { useSkillSync } from '@/hooks/useSkillSync';
 import { MobileApprovalSheet } from '@/components/verify/MobileApprovalSheet';
 import type {
   SubmitEvent,
@@ -49,12 +51,6 @@ import { useVirtualKeyboard } from '@/hooks/useVirtualKeyboard';
 import { SessionMergePanel } from '@/components/session/SessionMergePanel';
 import { isMergeSource, selectMergeSourceIds, useSessionMergeStore } from '@/store/sessionMergeStore';
 
-interface SkillItem {
-  name: string;
-  description: string;
-  source: string;
-}
-
 /**
  * §7.6 移动态虚拟键盘桥（仅 isMobile 时挂载，桌面零副作用）：
  * 消费 App 统一计算的键盘高度（输入条和 MessageList 共用），
@@ -80,6 +76,7 @@ const MobileKeyboardBridge: React.FC<{
 function App() {
   usePageExitGuard();
   useTabStatus();
+  useSkillSync();
 
   const { messages, addMessage } = useMessageStore();
   const { status, sessionId } = useSessionStore();
@@ -142,7 +139,7 @@ function App() {
   }, []);
 
   // 技能列表
-  const [skills, setSkills] = useState<SkillItem[]>([]);
+  const skills = useSkillStore(state => state.skills);
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
   const [fileReferenceCapability, setFileReferenceCapability] =
     useState<FileReferenceCapability | null>(null);
@@ -169,14 +166,6 @@ function App() {
     return () => { cancelled = true; };
   }, []);
 
-  // 动态加载技能列表
-  useEffect(() => {
-    fetch('/api/skills')
-      .then(r => r.json())
-      .then((data: SkillItem[]) => setSkills(data))
-      .catch(() => {});
-  }, []);
-
   // 内置命令
   const builtinCommands: Command[] = useMemo(() => [
     { name: 'help', description: '显示帮助信息', group: 'Commands' },
@@ -187,11 +176,12 @@ function App() {
 
   // 将技能转换为 Command 格式
   const allCommands: Command[] = useMemo(() => {
-    const skillCommands: Command[] = skills.map(s => ({
+    const skillCommands: Command[] = skills.filter(s => s.enabled).map(s => ({
       name: `skill ${s.name}`,
       description: s.description,
       group: 'Skills',
       hidden: false,
+      skillId: s.id,
     }));
     return [...builtinCommands, ...skillCommands];
   }, [builtinCommands, skills]);
@@ -362,14 +352,25 @@ function App() {
   }, []);
 
   // 处理命令
-  const handleSlashCommand = useCallback(async (command: string) => {
+  const handleSlashCommand = useCallback(async (command: string, selectedSkillId?: string) => {
     if (rejectCommandWhileBusy()) return false;
     const raw = command.startsWith('/') ? command.slice(1) : command;
     // 技能命令：/skill <name> → 打开详情弹窗
     if (raw.startsWith('skill ')) {
       const skillName = raw.slice(6).trim();
       if (skillName) {
-        setSelectedSkill(skillName);
+        await useSkillStore.getState().loadSkills({ background: true });
+        const currentSkills = useSkillStore.getState().skills;
+        // Palette selections identify an exact skill, even if display aliases collide.
+        // Only manually typed commands may resolve aliases using backend id-first semantics.
+        const skill = selectedSkillId === undefined
+          ? findEnabledSkill(currentSkills, skillName)
+          : currentSkills.find(item => item.id === selectedSkillId && item.enabled);
+        if (!skill) {
+          addSessionError('该技能不可用，请在 Skill 管理中检查启用状态。');
+          return false;
+        }
+        setSelectedSkill(skill.id);
         return true;
       }
     }
@@ -407,8 +408,14 @@ function App() {
   }, [addMessage, addSessionError, ensureSessionReady, rejectCommandWhileBusy]);
 
   // 执行技能
-  const executeSkill = useCallback(async (skillName: string, userInput: string) => {
+  const executeSkill = useCallback(async (skillId: string, userInput: string) => {
     if (rejectCommandWhileBusy()) return;
+    await useSkillStore.getState().loadSkills({ background: true });
+    const skill = useSkillStore.getState().skills.find(item => item.id === skillId && item.enabled);
+    if (!skill) {
+      addSessionError('该技能不可用，请在 Skill 管理中检查启用状态。');
+      return;
+    }
     try {
       const sessionId = await ensureSessionReady();
       if (!sessionId) return;
@@ -418,7 +425,8 @@ function App() {
         : '无法执行技能，请检查服务后重试。');
       return;
     }
-    const args = userInput ? `${skillName} ${userInput}` : skillName;
+    const skillToken = /[\s"\\]/u.test(skill.id) ? JSON.stringify(skill.id) : skill.id;
+    const args = userInput ? `${skillToken} ${userInput}` : skillToken;
     if (!sendSlashCommand('skill', args)) {
       addSessionError('技能命令未发送，请检查 WebSocket 连接后重试。');
       return;

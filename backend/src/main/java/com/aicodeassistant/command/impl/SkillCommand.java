@@ -3,6 +3,9 @@ package com.aicodeassistant.command.impl;
 import com.aicodeassistant.command.*;
 import com.aicodeassistant.skill.SkillDefinition;
 import com.aicodeassistant.skill.SkillRegistry;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import java.io.IOException;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -16,6 +19,8 @@ import java.util.Map;
  */
 @Component
 public class SkillCommand implements PromptCommand {
+
+    private static final JsonFactory JSON = new JsonFactory();
 
     private final SkillRegistry skillRegistry;
 
@@ -42,15 +47,33 @@ public class SkillCommand implements PromptCommand {
         }
 
         // 解析技能名称和附加参数
-        String[] parts = args.trim().split("\\s+", 2);
-        String skillName = parts[0];
-        String skillArgs = parts.length > 1 ? parts[1] : "";
+        String input = args.strip();
+        String skillName;
+        String skillArgs;
+        if (input.startsWith("\"")) {
+            // JSON quoting preserves whitespace and escaped characters in a canonical id.
+            try (JsonParser parser = JSON.createParser(input)) {
+                parser.nextToken();
+                skillName = parser.getText();
+                String remaining = input.substring((int) parser.currentLocation().getCharOffset());
+                if (!remaining.isEmpty() && !Character.isWhitespace(remaining.charAt(0))) {
+                    return CommandResult.error("技能名称后需用空格分隔参数");
+                }
+                skillArgs = remaining.stripLeading();
+            } catch (IOException e) {
+                return CommandResult.error("技能名称引号格式无效");
+            }
+        } else {
+            String[] parts = input.split("\\s+", 2);
+            skillName = parts[0];
+            skillArgs = parts.length > 1 ? parts[1] : "";
+        }
 
         // 从 SkillRegistry 解析技能定义
         SkillDefinition skill = skillRegistry.resolve(skillName);
         if (skill == null) {
             return CommandResult.error("技能未找到: " + skillName
-                    + "。可用技能: " + skillRegistry.getAllSkills().stream()
+                    + "。可用技能: " + skillRegistry.getEnabledSkills().stream()
                     .map(SkillDefinition::effectiveName)
                     .reduce((a, b) -> a + ", " + b)
                     .orElse("无"));

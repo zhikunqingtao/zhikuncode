@@ -147,6 +147,9 @@ public class ToolSearchTool implements Tool {
                     .toList();
         }
 
+        // Administrative registration includes disabled tools; never expose or activate them.
+        matchedTools = matchedTools.stream().filter(Tool::isEnabled).toList();
+
         if (matchedTools.isEmpty()) {
             return ToolResult.success("No tools found matching: " + query +
                     "\n\nTry different keywords or use /help to see all available commands.");

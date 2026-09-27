@@ -139,7 +139,8 @@ public class CommandRegistry {
         if (input == null || input.isBlank()) return "Type /help for available commands.";
 
         String lower = input.toLowerCase();
-        List<String> suggestions = commandsByName.keySet().stream()
+        List<String> suggestions = getVisibleCommands().stream()
+                .map(Command::getName)
                 .filter(name -> levenshteinDistance(lower, name) <= 3
                         || name.contains(lower) || lower.contains(name))
                 .sorted(Comparator.comparingInt(name -> levenshteinDistance(lower, name)))

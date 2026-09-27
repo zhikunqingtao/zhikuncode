@@ -41,7 +41,7 @@ import { PROMPT_TEMPLATE_FILL_EVENT } from '@/services/promptTemplateFill';
 export interface UsePromptStateParams {
     sessionId?: string | null;
     onSubmit: (event: SubmitEvent) => Promise<boolean>;
-    onSlashCommand: (command: string) => Promise<boolean>;
+    onSlashCommand: (command: string, skillId?: string) => Promise<boolean>;
     onInterrupt: () => void;
     disabled: boolean;
     runActive: boolean;
@@ -145,13 +145,16 @@ export function usePromptState({
     const submitSlashCommand = useCallback(async (
         command: string,
         clearDraft = true,
+        skillId?: string,
     ) => {
         if (submissionRef.current) return false;
         submissionRef.current = true;
         setIsSubmitting(true);
         const resolveTarget = capturePromptDraftTarget(draftKey);
         try {
-            const accepted = await onSlashCommand(command);
+            const accepted = skillId === undefined
+                ? await onSlashCommand(command)
+                : await onSlashCommand(command, skillId);
             if (!accepted) return false;
             const targetKey = resolveTarget();
             if (clearDraft && targetKey !== undefined) {

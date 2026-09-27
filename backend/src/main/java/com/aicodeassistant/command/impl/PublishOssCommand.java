@@ -26,6 +26,10 @@ public final class PublishOssCommand implements PromptCommand {
 
     @Override public String getName() { return "publish-oss"; }
 
+    @Override public boolean isAvailable() { return skills.resolve("publish-oss") != null; }
+
+    @Override public boolean isHidden() { return !isAvailable(); }
+
     @Override public String getDescription() {
         return "经逐次权限确认，将当前会话中的一个已验证产物发布到 OSS";
     }

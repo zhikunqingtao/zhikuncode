@@ -78,7 +78,8 @@ public class HelpCommand implements Command {
     }
 
     private CommandResult showCommandDetail(String commandName) {
-        Optional<Command> cmdOpt = registry.findCommand(commandName);
+        Optional<Command> cmdOpt = registry.findCommand(commandName)
+                .filter(Command::isAvailable);
         if (cmdOpt.isEmpty()) {
             String suggestion = registry.suggestCommands(commandName);
             return CommandResult.error("Unknown command: /" + commandName + ". " + suggestion);

@@ -546,6 +546,8 @@ export interface Command {
     description: string;
     group?: string;
     hidden?: boolean;
+    /** Canonical Skill identity; name remains the user-facing command label. */
+    skillId?: string;
 }
 
 /** 输入提交事件 — 对齐 §8.2.6a.7 SubmitEvent */

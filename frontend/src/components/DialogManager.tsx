@@ -20,6 +20,7 @@ import { SettingsPanel } from '@/components/dialog/SettingsPanel';
 import { KeyboardShortcutsDialog } from '@/components/dialog/KeyboardShortcutsDialog';
 import { McpManagementPage } from '@/components/mcp/McpManagementPage';
 import { MemoryPage } from '@/components/memory/MemoryPage';
+import { SkillManagementPage } from '@/components/skills/SkillManagementPage';
 import { recoverPendingInteractions } from '@/api/dispatch';
 
 export const DialogManager: React.FC = () => {
@@ -162,6 +163,10 @@ export const DialogManager: React.FC = () => {
 
             {activeDialog === 'memory' && (
                 <MemoryPage onClose={closeDialog} />
+            )}
+
+            {activeDialog === 'skills' && (
+                <SkillManagementPage onClose={closeDialog} />
             )}
         </>
     );
