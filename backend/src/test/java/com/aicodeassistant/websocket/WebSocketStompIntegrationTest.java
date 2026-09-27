@@ -219,15 +219,17 @@ class WebSocketStompIntegrationTest {
 
     // ═══════════════ 4. sendToolResult 推送 ═══════════════
 
-    @Test
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"external-resource/v1", "edit-diff/v1"})
     @DisplayName("sendToolResult — 推送工具执行结果")
-    void sendToolResult_shouldPushToolResult() {
+    void sendToolResult_shouldPushToolResult(String schema) {
         bind("user-1", "session-1");
 
         Map<String, Object> metadata = Map.of(
                 "structuredResult", Map.of(
-                        "schema", "external-resource/v1",
-                        "url", "https://example.oss-cn-beijing.aliyuncs.com/object"),
+                        "schema", schema,
+                        "url", "https://example.oss-cn-beijing.aliyuncs.com/object",
+                        "filePath", "/tmp/edit.txt", "diff", "@@ -1 +1 @@\n-old\n+new", "truncated", false),
                 "internalSecret", "must-not-cross");
         controller.sendToolResult("session-1", "tool-1", "file content", false, metadata);
 

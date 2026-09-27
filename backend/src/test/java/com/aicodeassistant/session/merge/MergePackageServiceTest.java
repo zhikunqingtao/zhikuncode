@@ -12,6 +12,84 @@ import static org.assertj.core.api.Assertions.*;
 
 class MergePackageServiceTest {
     @TempDir Path root;
+
+    @ParameterizedTest
+    @ValueSource(booleans={false,true})
+    void editPreviewStaysInRawButNotInNewOrRecoveredText(boolean recover) throws Exception {
+        var f=new MergeFixture(root);
+        String preview="@@ -1 +1 @@\n-DISPLAY_ONLY_OLD\n+"+"x".repeat(40000)+"DISPLAY_ONLY_NEW";
+        String body="Edited: /repo/edit.txt\n"+"body evidence ".repeat(3000)+"BODY_END";
+        var content=f.json.createArrayNode();
+        var result=content.addObject().put("type","tool_result").put("tool_use_id","edit-call")
+                .put("is_error",false).put("content",body);
+        var metadata=result.putObject("metadata").put("otherEvidence","KEEP_OTHER_METADATA");
+        metadata.putObject("structuredResult").put("schema","edit-diff/v1")
+                .put("filePath","/repo/edit.txt").put("diff",preview).put("truncated",false);
+        f.sessions.addMessageWithId("edit-result","A","user",List.of(new ContentBlock.TextBlock("placeholder")),null,0,0,null);
+        f.jdbc.update("UPDATE messages SET content_json=? WHERE id='edit-result'",content.toString());
+        String stored=f.jdbc.queryForObject("SELECT content_json FROM messages WHERE id='edit-result'",String.class);
+        f.message("A","Keep literal metadata= and edit-diff/v1 in user text.");
+        if(recover) org.springframework.test.util.ReflectionTestUtils.setField(f.packages,"maxRecordMaterializeBytes",1024);
+        String id=UUID.randomUUID().toString(); Path path=f.packages.snapshotPath(id);
+        var snapshot=f.packages.seal(path,List.of("A","B"),1,()->{});
+        assertThat(f.jdbc.queryForObject("SELECT content_json FROM messages WHERE id='edit-result'",String.class)).isEqualTo(stored);
+        String raw=rawContents(path);
+        assertThat(raw).contains("DISPLAY_ONLY_OLD","DISPLAY_ONLY_NEW","KEEP_OTHER_METADATA");
+        if(recover) {
+            assertThat(snapshot.blockedReason()).isNotNull();
+            f.jdbc.update("DELETE FROM messages WHERE session_id='A'");
+            org.springframework.test.util.ReflectionTestUtils.setField(f.packages,"maxRecordMaterializeBytes",1024*1024);
+            f.packages.recoverBlockedProjections(path,()->{});
+        } else assertThat(snapshot.blockedReason()).isNull();
+        String text=projectionContents(f,path);
+        assertThat(text).contains(body,"edit-call","is_error=false","KEEP_OTHER_METADATA",
+                "Keep literal metadata= and edit-diff/v1 in user text.")
+                .doesNotContain("DISPLAY_ONLY_OLD","DISPLAY_ONLY_NEW");
+        assertThat(rawContents(path)).isEqualTo(raw);
+        assertThat(f.packages.validateSnapshot(path,snapshot.hash(),()->{})).isEqualTo(snapshot);
+        if(recover) {
+            String catalog=Files.readString(MergePackageService.projectionCatalogs(path).getLast());
+            f.packages.recoverBlockedProjections(path,()->{});
+            assertThat(Files.readString(MergePackageService.projectionCatalogs(path).getLast())).isEqualTo(catalog);
+            assertThat(projectionContents(f,path)).isEqualTo(text);
+        } else {
+            f.jdbc.update("""
+                    INSERT INTO session_merges(operation_id,idempotency_key,params_json,target_session_id,status,stage,
+                        package_path,created_at,updated_at,protocol_version,snapshot_hash,handoff_hash)
+                    VALUES(?,?,?,'C','completed','completed',?,'now','now',2,?,'test-handoff')
+                    """,id,id,"{}",path.toString(),snapshot.hash());
+            Path next=f.packages.snapshotPath(UUID.randomUUID().toString());
+            var merged=f.packages.seal(next,List.of("C","B"),1,()->{});
+            assertThat(projectionContents(f,next)).contains(body,"KEEP_OTHER_METADATA")
+                    .doesNotContain("DISPLAY_ONLY_OLD","DISPLAY_ONLY_NEW");
+            assertThat(rawContents(next)).contains("DISPLAY_ONLY_OLD","DISPLAY_ONLY_NEW");
+            assertThat(f.packages.validateSnapshot(next,merged.hash(),()->{})).isEqualTo(merged);
+        }
+    }
+
+    private static String rawContents(Path path) throws Exception {
+        StringBuilder raw=new StringBuilder();
+        try(var files=Files.list(path.resolve("snapshot/raw"))) {
+            for(Path file:files.sorted().toList()) raw.append(Files.readString(file));
+        }
+        return raw.toString();
+    }
+
+    private static String projectionContents(MergeFixture f,Path path) throws Exception {
+        StringBuilder text=new StringBuilder();
+        for(Path catalog:MergePackageService.projectionCatalogs(path)) {
+            for(String line:Files.readAllLines(catalog)) {
+                var entry=f.json.readValue(line,MergeHandoffData.FileEntry.class);
+                if(!"text".equals(entry.kind())) continue;
+                Path file=MergePackageService.safeFile(path,entry.path());
+                assertThat(Files.size(file)).isLessThanOrEqualTo(32768);
+                assertThat(MergePackageService.hash(file,()->{})).isEqualTo(entry.sha256());
+                text.append(Files.readString(file));
+            }
+        }
+        return text.toString();
+
+    }
     @Test void legacyPublishedPackageIsCopiedWithoutDependingOnItsOldDirectory() throws Exception {
         var f=new MergeFixture(root); f.message("A","LEGACY_HISTORY_TAIL");
         String oldId=UUID.randomUUID().toString();

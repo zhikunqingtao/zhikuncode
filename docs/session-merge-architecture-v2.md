@@ -151,7 +151,7 @@ sqlite3 -readonly backend/.ai-code-assistant/data.db \
 
 JSONL 顺序读写；list/search 的游标记录清单偏移和文件偏移。不建递归目录树、不把大数组塞进 manifest、不为每个字段制定分页协议。目录展示由清单生成，不维护另一套目录节点状态。manifest 只保留有限的根来源（2～5）及清单描述；子会话和大量记录逐条存在清单。
 
-records 行包含：recordRef、origin（sessionId/recordId/version/kind）、role、createdAt、rawRef、processingPolicy。files 行包含：ref、recordRef（附件也关联所属记录）、part、相对路径、bytes、sha256、kind。字段里不嵌套全部分片/附件列表，按 recordRef 关联扫描即可。工具关联 ID、完整 metadata 保留在原文/文字投影中。
+records 行包含：recordRef、origin（sessionId/recordId/version/kind）、role、createdAt、rawRef、processingPolicy。files 行包含：ref、recordRef（附件也关联所属记录）、part、相对路径、bytes、sha256、kind。字段里不嵌套全部分片/附件列表，按 recordRef 关联扫描即可。工具关联 ID、完整 metadata 保留在原始 JSON 中；新生成的文字投影仅排除工具结果 metadata 中 schema 为 `edit-diff/v1` 的 `structuredResult` 展示快照，其他 metadata、工具正文及状态照常保留。过滤先于分片、文件哈希与引用范围生成，正常封存与阻断记录恢复共用此规则；不修改已封存包。
 
 recordRef 使用来源身份及内容版本的完整 SHA-256；正常记录的版本用现有一致序列化的 role/content/stopReason/语义 metadata 计算，排除 handoffOrigin 包装、复制时间和 usage；无法解析的原始记录先用原始字节哈希标记 raw 版本，不能假装已经完成消息级去重。不建设跨 JSON 序列化形式的语义等价判断。新包导入旧包时保留原身份/版本。同一身份同一版本去重，不同版本和不同事件保留。
 

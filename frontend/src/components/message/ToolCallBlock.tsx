@@ -23,14 +23,14 @@ import { PublicationDisplayContext } from './PublicationDisplayContext';
 import type { ToolCallState } from '@/types';
 import CodeBlock from './CodeBlock';
 import { TerminalRenderer } from './renderers/TerminalRenderer';
-import { DiffRenderer } from './renderers/DiffRenderer';
+import { DiffRenderer, diffStats } from './renderers/DiffRenderer';
 import { SearchResultRenderer } from './renderers/SearchResultRenderer';
 import { FileListRenderer } from './renderers/FileListRenderer';
 import ExternalResourceRenderer from './renderers/ExternalResourceRenderer';
 import SitePublicationRenderer from './renderers/SitePublicationRenderer';
 import ToolProgressBar from '../visualization/shared/ToolProgressBar';
 import MiniLogViewer from '../visualization/shared/MiniLogViewer';
-import { parseExternalResourceResult, parseSitePublicationResult, structuredResultSchema } from '@/utils/structuredToolResult';
+import { parseEditDiffResult, parseExternalResourceResult, parseSitePublicationResult, structuredResultSchema } from '@/utils/structuredToolResult';
 
 interface ToolCallBlockProps {
     toolUseId: string;
@@ -81,9 +81,14 @@ export function extractPrimaryTarget(input: unknown): { target: string; isPath: 
     return null;
 }
 
-/** Edit 类工具的 +n/−n 统计：优先 input 的 old/new_string，其次 result 的 unified diff 行 */
+/** Edit 仅统计完整的实际结果；其他写入工具保留原有输入摘要。 */
 function computeDiffStats(toolCall: ToolCallState): { added: number; removed: number } | null {
     if (!EDIT_TOOL_NAMES.has(toolCall.toolName)) return null;
+    if (toolCall.toolName === 'Edit') {
+        if (!toolCall.result || toolCall.result.isError) return null;
+        const actual = parseEditDiffResult(toolCall.result.metadata);
+        return actual?.diff && !actual.truncated ? diffStats(actual.diff) : null;
+    }
     const input = toolCall.input;
     if (input && typeof input === 'object' && !Array.isArray(input)) {
         const record = input as Record<string, unknown>;
@@ -406,6 +411,20 @@ const ToolResultRenderer: React.FC<ToolResultRendererProps> = ({
         case 'BashTool':
         case 'Bash':
             return <TerminalRenderer content={content} isError={isError} />;
+        case 'Edit': {
+            const actual = parseEditDiffResult(metadata);
+            return (
+                <div>
+                    <CodeBlock code={displayContent} language="text" showLineNumbers={false} maxHeight={180} />
+                    {truncateToggle}
+                    {actual?.diff ? (
+                        <DiffRenderer content={actual.diff} filePath={actual.filePath} truncated={actual.truncated} />
+                    ) : (
+                        <p className="mt-1.5 text-[13px] text-t4">此记录未提供差异预览。</p>
+                    )}
+                </div>
+            );
+        }
         case 'FileEditTool':
         case 'FileEdit':
             return <DiffRenderer content={content} />;

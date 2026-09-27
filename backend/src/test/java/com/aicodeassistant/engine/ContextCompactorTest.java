@@ -45,6 +45,83 @@ class ContextCompactorTest {
         assertEquals(1, projected.stream().filter(m -> m.toString().contains(SUMMARY.trim())).count());
         assertTrue(r.compactedMessages().contains(source.getFirst()));
     }
+    @Test void summaryRequestsExcludeUiSnapshotsFromRemovedAndReferenceRecords() {
+        var source = history();
+        source.set(0, user("goal", "Fix /repo/main.java; preserve the literal structuredResult=USER_VALUE."));
+        for (int index : List.of(2, source.size() - 1)) {
+            var message = (Message.UserMessage) source.get(index);
+            var result = (ContentBlock.ToolResultBlock) message.content().getFirst();
+            var metadata = Map.<String, Object>of("structuredResult", Map.of(
+                    "schema", "edit-diff/v1", "filePath", "/repo/main.java",
+                    "diff", "@@ -1 +1 @@\n-DISPLAY_ONLY_OLD_" + index + "\n+DISPLAY_ONLY_NEW_" + index,
+                    "truncated", false));
+            source.set(index, new Message.UserMessage(message.uuid(), message.timestamp(), List.of(
+                    new ContentBlock.ToolResultBlock(result.toolUseId(), result.content(), index == 2, metadata)),
+                    null, null));
+        }
+        String fingerprint = CompactionHistory.fingerprint(source);
+
+        var compacted = compactor.compact(source, context(12000), false);
+
+        assertEquals("llm_summary", compacted.mode());
+        var request = org.mockito.ArgumentCaptor.forClass(SummaryRequest.class);
+        verify(provider).summarize(request.capture(), any());
+        String input = request.getValue().userContent();
+        int referenceStart = input.indexOf("[只读参考记录]");
+        int removedStart = input.indexOf("[待替换记录]");
+        assertTrue(referenceStart >= 0 && removedStart > referenceStart);
+        assertTrue(input.substring(referenceStart, removedStart).contains("[Tool result id=t7 isError=false]"));
+        assertTrue(input.substring(removedStart).contains("[Tool result id=t0 isError=true]"));
+        assertTrue(input.contains("[Tool call id=t0 name=Bash]"));
+        assertTrue(input.contains("TAIL_UNIQUE_FAILURE"));
+        assertTrue(input.contains("structuredResult=USER_VALUE"));
+        assertFalse(input.contains("DISPLAY_ONLY_"));
+        assertFalse(input.contains("edit-diff/v1"));
+        assertEquals(fingerprint, CompactionHistory.fingerprint(source));
+        assertTrue(compacted.compactedMessages().contains(source.getLast()),
+                "Retained history must keep the original UI snapshot");
+        var retained = (ContentBlock.ToolResultBlock) ((Message.UserMessage) source.getLast()).content().getFirst();
+        assertTrue(retained.metadata().containsKey("structuredResult"));
+    }
+
+    @Test void summaryExcludesExternalResourceUiDataButPreservesBodyAndHistory() {
+        var source = history();
+        String userUrl = "https://example.test/user-provided-reference";
+        source.set(0, user("goal", "Preserve this user-provided URL: " + userUrl));
+        String body = "{\"status\":\"published\",\"fileName\":\"report.html\",\"downloadCardAvailable\":true}";
+        var metadata = Map.<String, Object>of("structuredResult", Map.of(
+                "schema", "external-resource/v1", "kind", "download", "provider", "oss",
+                "url", "https://example.test/UI_ONLY_DOWNLOAD",
+                "objectKey", "UI_ONLY_OBJECT_KEY", "label", "report.html"));
+        for (int index : List.of(2, source.size() - 1)) {
+            var message = (Message.UserMessage) source.get(index);
+            var result = (ContentBlock.ToolResultBlock) message.content().getFirst();
+            source.set(index, new Message.UserMessage(message.uuid(), message.timestamp(), List.of(
+                    new ContentBlock.ToolResultBlock(result.toolUseId(), body, false, metadata)), null, null));
+        }
+        String fingerprint = CompactionHistory.fingerprint(source);
+
+        var compacted = compactor.compact(source, context(12000), false);
+
+        assertEquals("llm_summary", compacted.mode());
+        var request = org.mockito.ArgumentCaptor.forClass(SummaryRequest.class);
+        verify(provider).summarize(request.capture(), any());
+        String input = request.getValue().userContent();
+        assertTrue(input.contains("[Tool result id=t0 isError=false] " + body));
+        assertTrue(input.contains("[Tool result id=t7 isError=false] " + body));
+        assertTrue(input.contains(userUrl));
+        assertFalse(input.contains("external-resource/v1"));
+        assertFalse(input.contains("UI_ONLY_DOWNLOAD"));
+        assertFalse(input.contains("UI_ONLY_OBJECT_KEY"));
+        assertEquals(fingerprint, CompactionHistory.fingerprint(source));
+        for (int index : List.of(2, source.size() - 1)) {
+            var result = (ContentBlock.ToolResultBlock) ((Message.UserMessage) source.get(index)).content().getFirst();
+            assertEquals(metadata, result.metadata());
+        }
+        assertTrue(compacted.compactedMessages().contains(source.getLast()),
+                "Retained history must preserve the download card metadata");
+    }
+
     @Test void incompleteOrMalformedOrOversizeOutputsUseWholeTransactionFallback() {
         for (var result : List.of(new SummaryResult("<summary>" + SUMMARY + "</summary>", "length", null, null, null, null),
                 new SummaryResult("<summary>" + SUMMARY, "stop", null, null, null, null),

@@ -99,3 +99,15 @@ export function parseSitePublicationResult(metadata: Record<string, unknown> | u
         version: r.version as string | undefined, url: r.url as string | undefined, errorCode: r.errorCode as string | undefined, guidance: r.guidance as string | undefined,
     };
 }
+
+/** UI-only snapshot from a completed Edit, not a reconstruction from tool input. */
+export function parseEditDiffResult(metadata: Record<string, unknown> | undefined): {
+    filePath: string; diff: string; truncated: boolean;
+} | null {
+    if (!isRecord(metadata) || !isRecord(metadata.structuredResult)) return null;
+    const raw = metadata.structuredResult;
+    if (raw.schema !== 'edit-diff/v1' || typeof raw.filePath !== 'string' || !raw.filePath.trim()
+        || typeof raw.diff !== 'string' || raw.diff.length > 64 * 1024
+        || raw.diff.split('\n').length > 500 || typeof raw.truncated !== 'boolean') return null;
+    return { filePath: raw.filePath, diff: raw.diff, truncated: raw.truncated };
+}

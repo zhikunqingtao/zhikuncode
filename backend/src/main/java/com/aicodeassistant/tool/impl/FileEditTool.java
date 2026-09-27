@@ -38,6 +38,9 @@ import java.util.stream.Collectors;
 public class FileEditTool implements Tool {
 
     private static final Logger log = LoggerFactory.getLogger(FileEditTool.class);
+    // UI-only preview bounds; never limit the edit or the existing full diff metadata.
+    private static final int MAX_DISPLAY_DIFF_CHARS = 64 * 1024;
+    private static final int MAX_DISPLAY_DIFF_LINES = 500;
     private static final long MAX_EDIT_FILE_SIZE = 1024L * 1024 * 1024; // 1GB
 
     private final FileHistoryService fileHistoryService;
@@ -270,7 +273,7 @@ public class FileEditTool implements Tool {
                 postCommitError = "POST_COMMIT_BOOKKEEPING_FAILED";
             }
 
-            return ToolResult.successWithEffect("Edited: " + filePath, ToolResult.EffectState.APPLIED)
+            ToolResult result = ToolResult.successWithEffect("Edited: " + filePath, ToolResult.EffectState.APPLIED)
                     .withMetadata("type", "update")
                     .withMetadata("filePath", filePath)
                     .withMetadata("diff", diffText)
@@ -279,6 +282,8 @@ public class FileEditTool implements Tool {
                     .withMetadata("historyErrorCode", history.errorCode() == null ? "" : history.errorCode())
                     .withMetadata("postCommitErrorCode", postCommitError)
                     .withMetadata("matchCount", replaceAll ? matchCount : 1);
+            return diffText.isEmpty() ? result
+                    : result.withMetadata("structuredResult", displayDiff(filePath, diffText));
 
         } catch (IOException e) {
             log.error("Failed to edit file: {}", filePath, e);
@@ -291,6 +296,21 @@ public class FileEditTool implements Tool {
                 log.warn("File reference tracking failed for {}: {}", filePath, trackingFailure.getMessage());
             }
         }
+    }
+
+    private static Map<String, Object> displayDiff(String filePath, String diff) {
+        int end = Math.min(diff.length(), MAX_DISPLAY_DIFF_CHARS);
+        // Keep complete lines only, including when a single changed line exceeds the bound.
+        if (end < diff.length()) end = Math.max(0, diff.lastIndexOf('\n', end));
+        int lines = 1;
+        for (int i = 0; i < end; i++) {
+            if (diff.charAt(i) == '\n' && ++lines > MAX_DISPLAY_DIFF_LINES) {
+                end = i;
+                break;
+            }
+        }
+        return Map.of("schema", "edit-diff/v1", "filePath", filePath,
+                "diff", diff.substring(0, end), "truncated", end < diff.length());
     }
 
     private static ToolResult writeFailure(WriteResult result) {

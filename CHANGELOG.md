@@ -46,6 +46,7 @@
 - 压缩摘要默认模型改为 DeepSeek 官方直连 `deepseek-flash`（Provider `deepseek`）：摘要传输通道同时支持百炼 Token Plan 与 DeepSeek 官方端点；可用 `LLM_COMPACT_MODEL` / `LLM_COMPACT_PROVIDER` 覆盖回百炼 `deepseek-v4.1-flash`。
 
 ### Fixed
+- Edit 更新已有文件时展示本次实际写入的 diff，并在会话恢复后保留；增删统计使用实际差异。预览上限为 500 行／65,536 个 UTF-16 单元，超出明确标注部分展示；未提供预览时（如创建文件、旧记录或生成失败）保留原结果并给出中性提示。工具结果的全部 UI `structuredResult`（包括 Edit 预览及 external-resource 下载卡片）不进入压缩摘要输入，工具正文保留；新生成的会话合并文字投影仅排除 Edit 展示快照，其他 schema 保持原行为，完整快照仍保留在原始归档和会话记录中，已有封存包保持不变。文件写入、权限和模型结果正文不变。
 - 修复 Git 大输出填满管道导致 diff／审查读取失败的问题，改为并发读取完整输出。进程退出与输出读完共用 5 秒期限，失败时对当前进程与已知后代增加至多 2 秒的尽力清理等待；成功路径保留后台 hook。Git 已执行成功但输出迟迟不结束时仍可能返回失败，不自动重试；完整输出仍需占用内存。
 - 修正内置 Explore／Plan／Verification 的 `Edit`、`Write` 排除名单及 Guide 的 `Read` 可用名单，并统一代理提示、内置示例和工具说明中的文件与搜索工具名称；保留其他授权规则与通用代理的读写能力。
 - 修复多批次后台代理等待共享运行级截止时间的问题：首个等待周期结束后，超过 `AGENT_TIMEOUT_MAX_WAIT_MINUTES` 的新批次会以 0 预算立即触发 `BACKGROUND_AGENT_WAIT_TIMEOUT` 并终结主 Run，已启动的后台代理结果无法交付。现每个等待周期独立获得完整预算（同一次等待内的唤醒不刷新预算），并新增两波次等待回归测试。

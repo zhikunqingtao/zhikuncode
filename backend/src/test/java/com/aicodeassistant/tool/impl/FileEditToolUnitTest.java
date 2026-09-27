@@ -271,6 +271,115 @@ class FileEditToolUnitTest {
     }
 
     @Test
+    void actualDiffUsesMatchedFileTextAndAllReplacements() throws IOException {
+        Path file = tempDir.resolve("actual.txt");
+        Files.writeString(file, "say \"hello\"\nsay \"hello\"\n");
+        ToolResult result = fileEditTool.call(ToolInput.from(Map.of(
+                "file_path", file.toString(), "old_string", "say “hello”",
+                "new_string", "say \"world\"", "replace_all", true)), context);
+        assertFalse(result.isError());
+        assertEquals("say \"world\"\nsay \"world\"\n", Files.readString(file));
+        Map<?, ?> display = (Map<?, ?>) result.metadata().get("structuredResult");
+        assertEquals("edit-diff/v1", display.get("schema"));
+        assertEquals(file.toString(), display.get("filePath"));
+        assertEquals(result.metadata().get("diff"), display.get("diff"));
+        assertEquals(false, display.get("truncated"));
+        String diff = (String) display.get("diff");
+        assertEquals(2, diff.lines().filter(line -> line.equals("-say \"hello\"")).count());
+        assertEquals(2, diff.lines().filter(line -> line.equals("+say \"world\"")).count());
+        assertFalse(diff.contains("“hello”"));
+        assertEquals("Edited: " + file, result.content());
+        assertEquals(ToolResult.EffectState.APPLIED, result.effectState());
+    }
+
+    @Test
+    void displayBoundsDoNotTruncateTheFileOrOriginalDiff() throws IOException {
+        Path file = tempDir.resolve("large.txt");
+        String original = "before\n".repeat(600);
+        String replacement = "after 中文\n".repeat(600);
+        Files.writeString(file, original);
+        ToolResult result = fileEditTool.call(ToolInput.from(Map.of(
+                "file_path", file.toString(), "old_string", original, "new_string", replacement)), context);
+        assertFalse(result.isError());
+        assertEquals(replacement, Files.readString(file));
+        Map<?, ?> display = (Map<?, ?>) result.metadata().get("structuredResult");
+        String preview = (String) display.get("diff");
+        assertEquals(true, display.get("truncated"));
+        assertEquals(500, preview.split("\n", -1).length);
+        assertTrue(((String) result.metadata().get("diff")).startsWith(preview));
+        assertTrue(((String) result.metadata().get("diff")).contains("+after 中文"));
+    }
+
+    @Test
+    void hugeSingleLinePreviewEndsBeforeTheIncompleteLine() throws IOException {
+        Path file = tempDir.resolve("long-line.txt");
+        String original = "旧".repeat(70_000) + "\n";
+        Files.writeString(file, original);
+        ToolResult result = fileEditTool.call(ToolInput.from(Map.of(
+                "file_path", file.toString(), "old_string", original, "new_string", "new\n")), context);
+        assertFalse(result.isError());
+        assertEquals("new\n", Files.readString(file));
+        Map<?, ?> display = (Map<?, ?>) result.metadata().get("structuredResult");
+        assertEquals(true, display.get("truncated"));
+        String preview = (String) display.get("diff");
+        assertTrue(preview.length() <= 64 * 1024);
+        assertTrue(preview.startsWith("--- " + file));
+        assertTrue(preview.contains("@@"));
+        assertFalse(preview.contains("旧"));
+    }
+
+    @Test
+    void displayRetainsCompleteChangedLineEndingExactlyAtCharacterLimit() throws IOException {
+        Path file = tempDir.resolve("exact-boundary.txt");
+        String header = "--- " + file + "\n+++ " + file + "\n@@ -1,1 +1,1 @@\n";
+        String original = "x".repeat(64 * 1024 - header.length() - 1);
+        Files.writeString(file, original);
+        ToolResult result = fileEditTool.call(ToolInput.from(Map.of(
+                "file_path", file.toString(), "old_string", original, "new_string", "new")), context);
+        assertFalse(result.isError());
+        assertEquals("new", Files.readString(file));
+        String full = (String) result.metadata().get("diff");
+        assertTrue(full.startsWith(header));
+        assertEquals('\n', full.charAt(64 * 1024));
+        Map<?, ?> display = (Map<?, ?>) result.metadata().get("structuredResult");
+        assertEquals(full.substring(0, 64 * 1024), display.get("diff"));
+        assertEquals(true, display.get("truncated"));
+    }
+
+    @Test
+    void displayRetainsExactlyFiveHundredLinesWithoutTruncation() throws IOException {
+        Path file = tempDir.resolve("exact-lines.txt");
+        String original = String.join("\n", java.util.Collections.nCopies(248, "before"));
+        String replacement = String.join("\n", java.util.Collections.nCopies(249, "after"));
+        Files.writeString(file, original);
+        ToolResult result = fileEditTool.call(ToolInput.from(Map.of(
+                "file_path", file.toString(), "old_string", original, "new_string", replacement)), context);
+        assertFalse(result.isError());
+        assertEquals(replacement, Files.readString(file));
+        String full = (String) result.metadata().get("diff");
+        assertEquals(500, full.split("\n", -1).length);
+        Map<?, ?> display = (Map<?, ?>) result.metadata().get("structuredResult");
+        assertEquals(full, display.get("diff"));
+        assertEquals(false, display.get("truncated"));
+    }
+
+    @Test
+    void bookkeepingFailureKeepsAppliedResultWithoutInventingDiff() throws IOException {
+        Path file = tempDir.toRealPath().resolve("history-failure.txt");
+        Files.writeString(file, "before");
+        when(fileHistoryService.trackAppliedEdit(anyString(), anyString(), anyString(), any(), anyString()))
+                .thenThrow(new IllegalStateException("history unavailable"));
+        ToolResult result = fileEditTool.call(ToolInput.from(Map.of(
+                "file_path", file.toString(), "old_string", "before", "new_string", "after")), context);
+        assertFalse(result.isError());
+        assertEquals(ToolResult.EffectState.APPLIED, result.effectState());
+        assertEquals("after", Files.readString(file));
+        assertEquals("POST_COMMIT_BOOKKEEPING_FAILED", result.metadata().get("postCommitErrorCode"));
+        assertEquals("", result.metadata().get("diff"));
+        assertFalse(result.metadata().containsKey("structuredResult"));
+    }
+
+    @Test
     void testToolMetadata() {
         assertEquals("Edit", fileEditTool.getName());
         assertEquals("edit", fileEditTool.getGroup());

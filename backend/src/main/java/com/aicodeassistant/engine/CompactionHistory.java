@@ -173,9 +173,10 @@ public final class CompactionHistory {
             for (var block : blocks(m)) {
                 if (block instanceof ContentBlock.TextBlock b) text.append(m instanceof Message.UserMessage ? "[User text] " : "[Assistant text] ").append(b.text()).append('\n');
                 else if (block instanceof ContentBlock.ToolUseBlock b) text.append("[Tool call id=").append(b.id()).append(" name=").append(b.name()).append("] ").append(b.input()).append('\n');
+                // UI metadata is persisted for display, not evidence for the summary model.
                 else if (block instanceof ContentBlock.ToolResultBlock b) text.append("[Tool result id=").append(b.toolUseId()).append(" isError=")
                         .append(fullHistory.knownResultStatus().contains(b.toolUseId()) ? b.isError() : "unknown")
-                        .append("] ").append(b.content()).append("\nmetadata=").append(b.metadata()).append('\n');
+                        .append("] ").append(b.content()).append('\n');
                 else if (block instanceof ContentBlock.ImageBlock b) text.append("[Image reference; visual content not interpreted] ").append(b.mediaType()).append(" ").append(b.url()).append('\n');
             }
         }

@@ -2,10 +2,12 @@ package com.aicodeassistant.session.merge;
 
 import com.aicodeassistant.engine.*;
 import com.aicodeassistant.llm.*;
+import com.aicodeassistant.model.ContentBlock;
 import com.aicodeassistant.model.Usage;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -70,6 +72,68 @@ class MergeSummaryServiceTest {
         assertThat(repo.units(ledger.operationId(),"extracting")).hasSizeGreaterThan(16);
         assertThat(summary.capacity(prepared.body(),"test-model")).isLessThanOrEqualTo(2048);
         assertThat(Files.readString(Path.of(ledger.packagePath()).resolve("handoff/details.jsonl"))).contains("sha256","sourceId");
+    }
+    @Test void prepareOmitsLargeEditPreviewAndReusesImmutableInputsOnResume() throws Exception {
+        String messageId="edit-result-message";
+        String diff="--- a/main.java\n+++ b/main.java\n@@ -1 +1 @@\n-EDIT_PREVIEW_OLD_"+"x".repeat(18000)
+                +"\n+EDIT_PREVIEW_NEW_"+"y".repeat(18000)+"_EDIT_PREVIEW_TAIL\n";
+        assertThat(diff.getBytes(StandardCharsets.UTF_8).length).isGreaterThan(32768);
+        var editPreview=Map.<String,Object>of("schema","edit-diff/v1","filePath","main.java","diff",diff,"truncated",false);
+        var externalResource=Map.<String,Object>of("schema","external-resource/v1","kind","download",
+                "url","https://example.test/EXTERNAL_RESOURCE_MARKER","label","published report");
+        f.sessions.addMessageWithId(messageId,"A","user",List.of(
+                new ContentBlock.ToolResultBlock("edit-call","EDIT_RESULT_BODY: replaced one occurrence; tests still pending",false,
+                        Map.of("structuredResult",editPreview)),
+                new ContentBlock.ToolResultBlock("publish-call","PUBLISH_RESULT_BODY",false,
+                        Map.of("structuredResult",externalResource))),null,0,0,Map.of());
+        // Persist a historical sibling key directly: ContentBlock's current constructor only keeps structuredResult.
+        var content=f.json.readTree(f.jdbc.queryForObject("SELECT content_json FROM messages WHERE id=?",String.class,messageId));
+        ((com.fasterxml.jackson.databind.node.ObjectNode)content.get(0).path("metadata"))
+                .put("verification","MODEL_VISIBLE_SIBLING_METADATA");
+        String persistedContent=f.json.writeValueAsString(content);
+        f.jdbc.update("UPDATE messages SET content_json=? WHERE id=?",persistedContent,messageId);
+        String literal="USER_LITERAL: keep edit-diff/v1 in the documented API contract";
+        var ledger=ledger(literal);
+        Path packagePath=Path.of(ledger.packagePath());
+        var files=new ArrayList<FileEntry>();
+        try(var lines=Files.lines(packagePath.resolve("snapshot/files.jsonl"))) {
+            for(String line:lines.toList()) files.add(f.json.readValue(line,FileEntry.class));
+        }
+        FileEntry raw=null;
+        for(FileEntry file:files) if(file.kind().equals("raw")) {
+            var record=f.json.readTree(Files.readString(packagePath.resolve(file.path())));
+            if(messageId.equals(record.path("id").asText())) {
+                raw=file;
+                assertThat(record.path("content_json").asText()).isEqualTo(persistedContent);
+                assertThat(f.json.readTree(record.path("content_json").asText()).get(0)
+                        .path("metadata").path("structuredResult").path("diff").asText()).isEqualTo(diff);
+            }
+        }
+        assertThat(raw).isNotNull();
+        var inputs=new ArrayList<String>(); stub(inputs,SessionMergeServiceTest.answer("saved facts"),true);
+
+        var prepared=prepare(ledger);
+
+        assertThat(prepared.body()).contains("HandoffRead");
+        assertThat(inputs).isNotEmpty().allSatisfy(input -> assertThat(input)
+                .doesNotContain("EDIT_PREVIEW_OLD_","EDIT_PREVIEW_NEW_","EDIT_PREVIEW_TAIL"));
+        assertThat(String.join("\n",inputs)).contains("EDIT_RESULT_BODY: replaced one occurrence; tests still pending",
+                "PUBLISH_RESULT_BODY",literal,"MODEL_VISIBLE_SIBLING_METADATA","external-resource/v1","EXTERNAL_RESOURCE_MARKER");
+        String recordRef=raw.recordRef();
+        assertThat(files.stream().filter(file -> file.kind().equals("text") && file.recordRef().equals(recordRef)).toList())
+                .as("display metadata must be omitted before the 32 KiB projection split")
+                .hasSize(1);
+        int calls=inputs.size();
+        assertThat(prepare(ledger)).isEqualTo(prepared);
+        repo.pause(ledger.operationId(),ledger.runEpoch(),"MERGE_INTERRUPTED","synthetic pause before publish");
+        Ledger resumed=repo.resume(ledger.operationId(),ledger.runEpoch(),ledger.execution(),false);
+        assertThat(prepare(resumed)).isEqualTo(prepared);
+        assertThat(inputs).hasSize(calls);
+        verify(provider,times(calls)).streamChat(anyString(),anyList(),anyString(),anyList(),anyInt(),any(),any(),any());
+        assertThat(f.packages.validateSnapshot(packagePath,ledger.snapshotHash(),()->{}).hash()).isEqualTo(ledger.snapshotHash());
+        assertThat(MergePackageService.hash(packagePath.resolve(raw.path()),()->{})).isEqualTo(raw.sha256());
+        assertThat(f.jdbc.queryForObject("SELECT content_json FROM messages WHERE id=?",String.class,messageId))
+                .isEqualTo(persistedContent);
     }
     @Test void provider413SplitsOnlyFailedUnitIntoStrictlySmallerInputs() throws Exception {
         var ledger=ledger("long input ".repeat(2000)); AtomicInteger rejected=new AtomicInteger();

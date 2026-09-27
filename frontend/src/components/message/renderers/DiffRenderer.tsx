@@ -16,29 +16,38 @@ interface DiffLine {
 }
 
 function parseDiff(content: string): DiffLine[] {
-    const lines = content.split('\n');
     const result: DiffLine[] = [];
     let oldLine = 0, newLine = 0;
-    for (const line of lines) {
-        if (line.startsWith('@@')) {
-            const match = line.match(/@@ -(\d+).*\+(\d+)/);
-            if (match) { oldLine = parseInt(match[1]) - 1; newLine = parseInt(match[2]) - 1; }
+    let inHunk = false;
+    for (const line of content.split('\n')) {
+        const hunk = line.match(/^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
+        if (hunk) {
+            oldLine = Number(hunk[1]); newLine = Number(hunk[2]);
+            inHunk = true;
             result.push({ type: 'header', content: line });
-        } else if (line.startsWith('+')) {
-            newLine++;
-            result.push({ type: 'add', content: line.slice(1), newLine });
-        } else if (line.startsWith('-')) {
-            oldLine++;
-            result.push({ type: 'remove', content: line.slice(1), oldLine });
+        } else if (inHunk && line.startsWith('+')) {
+            result.push({ type: 'add', content: line.slice(1), newLine: newLine++ });
+        } else if (inHunk && line.startsWith('-')) {
+            result.push({ type: 'remove', content: line.slice(1), oldLine: oldLine++ });
+        } else if (inHunk && line.startsWith(' ')) {
+            result.push({ type: 'context', content: line.slice(1), oldLine: oldLine++, newLine: newLine++ });
         } else {
-            oldLine++; newLine++;
-            result.push({ type: 'context', content: line.startsWith(' ') ? line.slice(1) : line, oldLine, newLine });
+            // File headers and "no newline" markers are not changed/context lines.
+            result.push({ type: 'header', content: line });
         }
     }
     return result;
 }
 
-export const DiffRenderer: React.FC<{ content: string; filePath?: string }> = ({ content, filePath }) => {
+export function diffStats(content: string): { added: number; removed: number } {
+    const lines = parseDiff(content);
+    return {
+        added: lines.filter(line => line.type === 'add').length,
+        removed: lines.filter(line => line.type === 'remove').length,
+    };
+}
+
+export const DiffRenderer: React.FC<{ content: string; filePath?: string; truncated?: boolean }> = ({ content, filePath, truncated = false }) => {
     const diffLines = useMemo(() => parseDiff(content), [content]);
     const addCount = diffLines.filter(l => l.type === 'add').length;
     const removeCount = diffLines.filter(l => l.type === 'remove').length;
@@ -47,14 +56,16 @@ export const DiffRenderer: React.FC<{ content: string; filePath?: string }> = ({
         <div className="rounded-[14px] border border-hairline overflow-hidden bg-sunken2">
             {filePath && (
                 <div className="bg-surface2 px-3 py-1.5 text-sm flex justify-between border-b border-hairline">
-                    <span className="text-t2 font-mono text-[13px]">{filePath}</span>
-                    <span className="flex items-center gap-1 text-[13px]">
+                    <span className="min-w-0 flex-1 truncate text-t2 font-mono text-[13px]" title={filePath}>{filePath}</span>
+                    <span className="flex shrink-0 items-center gap-1 text-[13px]">
                         <span className="rounded bg-oksoft px-1.5 py-0.5 font-medium tabular-nums text-ok">+{addCount}</span>
                         <span className="rounded bg-errsoft px-1.5 py-0.5 font-medium tabular-nums text-err">−{removeCount}</span>
+                        {truncated && <span className="text-t3">（已展示部分）</span>}
                     </span>
                 </div>
             )}
-            <div className="font-mono panel-code overflow-x-auto">
+            {truncated && <p className="px-3 py-2 text-[13px] text-warn">差异过大，仅展示部分内容；请核对完整文件变更。</p>}
+            <div className="font-mono panel-code max-h-96 overflow-auto">
                 {diffLines.map((line, i) => (
                     <div key={i} className={`flex
                         ${line.type === 'add' ? 'bg-[var(--v2-diff-add-bg)]' : ''}

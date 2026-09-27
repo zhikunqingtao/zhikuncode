@@ -1,7 +1,8 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeAll, describe, expect, it } from 'vitest';
 import ToolCallBlock from './ToolCallBlock';
-import type { ToolCallState } from '@/types';
+import { useMessageStore } from '@/store/messageStore';
+import type { Message, ToolCallState } from '@/types';
 
 // jsdom 无 matchMedia 实现，CodeBlock 的 resolveTheme('system') 依赖它
 beforeAll(() => {
@@ -225,5 +226,106 @@ describe('ToolCallBlock structured result renderer', () => {
         expect(screen.getByTestId('external-resource-card')).toBeInTheDocument();
         expect(screen.getByTestId('external-resource-download').getAttribute('href')).toBe(url);
         expect(screen.queryByText(url)).not.toBeInTheDocument();
+    });
+});
+
+
+const actualDiff = '--- /tmp/demo.ts\n+++ /tmp/demo.ts\n@@ -1,2 +1,2 @@\n-before\n-before\n+after\n+after';
+const editMetadata = { structuredResult: {
+    schema: 'edit-diff/v1', filePath: '/tmp/demo.ts', diff: actualDiff, truncated: false,
+} };
+const editResult = { content: 'Edited: /tmp/demo.ts', isError: false, metadata: editMetadata };
+const editInput = { file_path: '/tmp/demo.ts', old_string: 'requested', new_string: 'replacement', replace_all: true };
+
+describe('Edit actual diff presentation', () => {
+    it.each(['live', 'restored'] as const)('renders actual diff through the %s message store path', mode => {
+        useMessageStore.getState().clearMessages();
+        let call: ToolCallState;
+        if (mode === 'live') {
+            useMessageStore.getState().startToolCall('edit-1', 'Edit', editInput);
+            useMessageStore.getState().completeToolCall('edit-1', editResult);
+            call = useMessageStore.getState().activeToolCalls.get('edit-1')!;
+        } else {
+            const messages: Message[] = [
+                { uuid: 'a', type: 'assistant', timestamp: 1, stopReason: 'tool_use',
+                    usage: { inputTokens: 0, outputTokens: 0, cacheReadInputTokens: 0, cacheCreationInputTokens: 0 }, content: [
+                    { type: 'tool_use', toolUseId: 'edit-1', toolName: 'Edit', input: editInput },
+                ] },
+                { uuid: 'u', type: 'user', timestamp: 2, content: [
+                    { type: 'tool_result', toolUseId: 'edit-1', ...editResult },
+                ] },
+            ];
+            useMessageStore.getState().restoreSessionSnapshot(messages, []);
+            const message = useMessageStore.getState().messages[0];
+            if (message.type !== 'assistant') throw new Error('expected assistant');
+            const block = message.content[0];
+            if (block.type !== 'tool_use') throw new Error('expected tool use');
+            call = makeToolCall({ toolName: block.toolName, input: block.input, result: block.result });
+        }
+        render(<ToolCallBlock toolUseId="edit-1" toolCall={call} />);
+        const header = screen.getByRole('button', { name: /Edit.*Completed/ });
+        expect(header.textContent).toContain('+2');
+        expect(header.textContent).toContain('−2');
+        expect(screen.queryAllByText('after')).toHaveLength(0);
+        expandCardAndResult(/Edit.*Completed/);
+        expect(screen.getAllByText('before')).toHaveLength(2);
+        expect(screen.getAllByText('after')).toHaveLength(2);
+        expect(screen.queryByText('requested')).not.toBeInTheDocument();
+        useMessageStore.getState().clearMessages();
+    });
+
+    it.each([undefined, { structuredResult: { ...editMetadata.structuredResult, diff: '' } },
+        { structuredResult: { ...editMetadata.structuredResult, diff: 123 } }])('falls back without fabricating an actual diff', metadata => {
+        render(<ToolCallBlock toolUseId="edit-fallback" toolCall={makeToolCall({
+            toolName: 'Edit', input: editInput,
+            result: { content: 'Edited: /tmp/demo.ts', isError: false, metadata },
+        })} />);
+        expect(screen.getByRole('button', { name: /Edit.*Completed/ }).textContent).not.toMatch(/[+−]\d/);
+        expandCardAndResult(/Edit.*Completed/);
+        const resultSection = screen.getByRole('button', { name: /Result/ }).parentElement!;
+        const result = within(resultSection);
+        expect(result.getByText('此记录未提供差异预览。')).toBeInTheDocument();
+        expect(result.getByText(/Edited:/)).toBeInTheDocument();
+        expect(result.queryByText('after')).not.toBeInTheDocument();
+        expect(resultSection).not.toHaveTextContent('requested');
+        expect(resultSection).not.toHaveTextContent('replacement');
+    });
+
+    it('preserves Created success without metadata and uses the neutral preview fallback', () => {
+        render(<ToolCallBlock toolUseId="edit-created" toolCall={makeToolCall({
+            toolName: 'Edit', input: { ...editInput, old_string: '' },
+            result: { content: 'Created: /tmp/demo.ts', isError: false },
+        })} />);
+        expect(screen.getByRole('button', { name: /Edit.*Completed/ }).textContent).not.toMatch(/[+−]\d/);
+        expandCardAndResult(/Edit.*Completed/);
+        const resultSection = screen.getByRole('button', { name: /Result/ }).parentElement!;
+        const result = within(resultSection);
+        expect(result.getByText('Created: /tmp/demo.ts')).toBeInTheDocument();
+        expect(result.getByText('此记录未提供差异预览。')).toBeInTheDocument();
+        expect(resultSection).not.toHaveTextContent('replacement');
+    });
+
+    it('keeps failure visible and never renders even supplied diff as a successful edit', () => {
+        render(<ToolCallBlock toolUseId="edit-error" toolCall={makeToolCall({
+            toolName: 'Edit', input: editInput, status: 'error',
+            result: { ...editResult, content: 'Conflict: edit not applied', isError: true },
+        })} />);
+        expect(screen.getByRole('button', { name: /Edit.*Error/ }).textContent).not.toMatch(/[+−]\d/);
+        expandCardAndResult(/Edit.*Error/);
+        expect(screen.getByText('Conflict: edit not applied')).toBeInTheDocument();
+        expect(screen.queryByText('after')).not.toBeInTheDocument();
+    });
+
+    it('does not present truncated counts as complete or interpret source as HTML', () => {
+        render(<ToolCallBlock toolUseId="edit-large" toolCall={makeToolCall({
+            toolName: 'Edit', input: editInput, result: { ...editResult, metadata: { structuredResult: {
+                ...editMetadata.structuredResult, diff: '@@ -0,0 +1 @@\n+<script>bad()</script>', truncated: true,
+            } } },
+        })} />);
+        expect(screen.getByRole('button', { name: /Edit.*Completed/ }).textContent).not.toMatch(/[+−]\d/);
+        expandCardAndResult(/Edit.*Completed/);
+        expect(screen.getByText(/差异过大，仅展示部分内容/)).toBeInTheDocument();
+        expect(screen.getByText('<script>bad()</script>')).toBeInTheDocument();
+        expect(document.querySelector('script')).toBeNull();
     });
 });

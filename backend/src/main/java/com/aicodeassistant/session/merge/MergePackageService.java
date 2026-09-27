@@ -595,7 +595,15 @@ public class MergePackageService {
                     case "tool_use" -> out.append("\n工具调用 "+block.path("name").asText()+" · "+block.path("id").asText()+"\n"+block.path("input"));
                     case "tool_result" -> {
                         out.append("\n工具结果 "+toolUseId(block)+" · is_error="+(block.path("is_error").asBoolean() || block.path("isError").asBoolean())+"\n");
-                        render(block.path("content"),out,source,assets,calls,outputs); out.append("\nmetadata="+block.path("metadata"));
+                        render(block.path("content"),out,source,assets,calls,outputs);
+                        JsonNode metadata=block.path("metadata");
+                        if (metadata.isObject() && "edit-diff/v1".equals(metadata.path("structuredResult").path("schema").asText())) {
+                            // Keep the raw snapshot; omit its UI preview before text splitting and hashing.
+                            var filtered=((com.fasterxml.jackson.databind.node.ObjectNode)metadata).deepCopy();
+                            filtered.remove("structuredResult");
+                            metadata=filtered;
+                        }
+                        out.append("\nmetadata="+metadata);
                     }
                     case "image" -> {
                         String data=block.path("base64Data").asText(block.path("source").path("data").asText());

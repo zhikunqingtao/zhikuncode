@@ -159,6 +159,64 @@ class QueryEngineUnitTest {
     class CoreLoopTests {
 
         @Test
+        void editDiffReachesUiAndPersistedMessagesButNotNextModelRequest() throws Exception {
+            var uiDiff = Map.<String, Object>of("schema", "edit-diff/v1", "filePath", "/tmp/edit.txt",
+                    "diff", "--- file\n+++ file\n@@ -1 +1 @@\n-PRIVATE_OLD_LINE\n+PRIVATE_NEW_LINE",
+                    "truncated", false);
+            var completed = mock(StreamingToolExecutor.TrackedTool.class);
+            when(completed.getToolUseId()).thenReturn("edit-1");
+            when(completed.getResult()).thenReturn(ToolResult.successWithEffect("Edited: /tmp/edit.txt",
+                    ToolResult.EffectState.APPLIED).withMetadata("structuredResult", uiDiff)
+                    .withMetadata("internalSecret", "must-not-cross"));
+            var session = mock(StreamingToolExecutor.ExecutionSession.class);
+            when(streamingToolExecutor.newSession(any())).thenReturn(session);
+            when(session.isAllCompleted()).thenReturn(true);
+            when(session.yieldCompleted()).thenReturn(List.of(completed), List.of());
+            when(messageNormalizer.normalizeTyped(anyList()))
+                    .thenAnswer(inv -> new MessageNormalizer().normalizeTyped(inv.getArgument(0)));
+            when(apiRetryService.executeWithRetry(any(), anyString(), anyString(), any()))
+                    .thenAnswer(inv -> inv.getArgument(0, Supplier.class).get());
+            when(toolResultSummarizer.processToolResults(anyList(), anyInt()))
+                    .thenAnswer(inv -> inv.getArgument(0));
+            when(hookService.executeStopHooks(anyList(), anyString())).thenReturn(HookRegistry.StopHookResult.ok());
+            Tool edit = mock(Tool.class);
+            when(edit.getName()).thenReturn("Edit");
+            var config = QueryConfig.withDefaults("mock-model", "test", List.of(edit), List.of(),
+                    8192, 200000, new ThinkingConfig.Disabled(), 3, "test");
+            List<List<Map<String, Object>>> requests = new ArrayList<>();
+            LlmProvider provider = mock(LlmProvider.class);
+            when(providerRegistry.getProvider(anyString())).thenReturn(provider);
+            doAnswer(inv -> {
+                requests.add(List.copyOf(inv.getArgument(1)));
+                StreamChatCallback callback = inv.getArgument(7);
+                if (requests.size() == 1) {
+                    callback.onEvent(new LlmStreamEvent.ToolUseStart("edit-1", "Edit"));
+                    callback.onEvent(new LlmStreamEvent.ToolInputDelta("edit-1", "{}"));
+                } else callback.onEvent(new LlmStreamEvent.TextDelta("done"));
+                callback.onEvent(new LlmStreamEvent.MessageDelta(new Usage(10, 5, 0, 0),
+                        requests.size() == 1 ? "tool_use" : "end_turn"));
+                callback.onComplete();
+                return null;
+            }).when(provider).streamChat(anyString(), anyList(), anyString(), anyList(),
+                    anyInt(), any(), any(LlmCallContext.class), any(StreamChatCallback.class));
+            var state = buildState("edit the file");
+            List<Message> persisted = new ArrayList<>();
+            state.addMessageListener(persisted::add);
+            assertThat(queryEngine.execute(config, state, handler).isSuccess()).isTrue();
+            assertThat(handler.toolResults).hasSize(1);
+            var result = handler.toolResults.getFirst();
+            assertThat(result.metadata()).containsExactlyEntriesOf(Map.of("structuredResult", uiDiff));
+            assertThat(persisted).anyMatch(message -> message instanceof Message.UserMessage user
+                    && user.content().contains(result));
+            var restored = objectMapper.readValue(objectMapper.writeValueAsString(result), ContentBlock.class);
+            assertThat(restored).isEqualTo(result);
+            assertThat(requests).hasSize(2);
+            assertThat(objectMapper.writeValueAsString(requests.get(1)))
+                    .contains("Edited: /tmp/edit.txt")
+                    .doesNotContain("PRIVATE_OLD_LINE", "PRIVATE_NEW_LINE", "structuredResult", "must-not-cross");
+        }
+
+        @Test
         void resumesIncompleteHistoryWithoutReexecutingOrPersistingHistoricalTool() {
             LlmProvider provider = mock(LlmProvider.class);
             when(providerRegistry.getProvider(anyString())).thenReturn(provider);
