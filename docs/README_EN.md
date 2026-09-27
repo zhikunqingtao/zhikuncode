@@ -826,43 +826,41 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 
 ZhikunCode's Skill System is a **Markdown-driven extensible workflow engine**. Each skill is a `.md` file — YAML frontmatter defines metadata, Markdown body defines execution instructions.
 
-### 15 Built-in Skills
+### 13 Built-in Skills
 
-Ready to use out of the box — type `/skill-name` to invoke:
+In the Web input, enter `/skill <name>` to open the skill dialog, then fill in its arguments and execute. Use the dedicated commands shown below for publishing. Skills provide workflow instructions; direct commands with matching names, such as `/review`, have separate implementations.
 
 | Skill | Command | Description |
 |-------|---------|-------------|
-| **Smart Commit** | `/commit` | Analyzes staged changes, generates commit messages in Conventional Commits format |
-| **Code Review** | `/review` | Reviews uncommitted changes, categorizes issues by P0/P1/P2 severity |
-| **Smart Fix** | `/fix` | Diagnoses root cause from error messages, applies minimal fix and verifies |
-| **Smart Test** | `/test` | Generates/runs tests for specified code or recent changes, covers edge cases |
-| **PR Assistant** | `/pr` | Analyzes branch diff, generates structured PR description and review notes |
-| **Debug** | `/debug` | 8-step closed-loop diagnosis (reproduce→isolate→fix→verify→regression) |
-| **Verify** | `/verify` | Java/TypeScript/Python compilation + test verification |
-| **Stuck** | `/stuck` | Three-path assessment when blocked, recommends optimal unblocking strategy |
-| **Remember** | `/remember` | Manages session-level context (decisions/constraints/preferences/notes) |
-| **Architecture** | `/software-architecture` | Clean Architecture + SOLID + design pattern evaluation |
-| **CSV Summary** | `/csv-data-summarizer` | CSV statistical analysis + charts + Markdown report |
-| **Prompt Engineering** | `/prompt-engineering` | Optimizes prompt structure, clarity and effectiveness |
-| **Test-Driven Dev** | `/test-driven-development` | TDD red→green→refactor cycle methodology guidance |
+| **Smart Commit** | `/skill commit` | Analyzes staged changes, generates commit messages in Conventional Commits format |
+| **Code Review** | `/skill review` | Reviews uncommitted changes, categorizes issues by P0/P1/P2/P3 severity |
+| **Smart Test** | `/skill test` | Generates/runs tests for specified code or recent changes, covers edge cases |
+| **PR Assistant** | `/skill pr` | Analyzes branch diff, generates structured PR description and review notes |
+| **Debug** | `/skill debug` | Diagnoses root causes, applies minimal fixes, or investigates stalled work according to the request |
+| **Verify** | `/skill verify` | Selects builds, tests and static checks based on the project and change risk |
+| **Project Notes** | `/skill remember` | Explicitly saves, retrieves and updates shared project notes; automatic loading in new sessions is not guaranteed |
+| **Architecture** | `/skill software-architecture` | Clean Architecture + SOLID + design pattern evaluation |
+| **CSV Summary** | `/skill csv-data-summarizer` | CSV statistical analysis + charts + Markdown report |
+| **Prompt Engineering** | `/skill prompt-engineering` | Optimizes prompt structure, clarity and effectiveness |
+| **Test-Driven Dev** | `/skill test-driven-development` | TDD red→green→refactor cycle methodology guidance |
 | **OSS Artifact Publishing** | `/publish-oss` | With one-time approval, publishes one verified artifact from the current session as a permanently public OSS download; disabled by default and never automatic |
 | **Meoo App Publishing** | `/publish-meoo` | Each publication creates a new site, preserves existing sites, and consumes platform quota. The result card shows anonymous access verification status. [Setup guide (Chinese)](deployment/meoo.md) |
 
-### 6-Level Loading Priority
+### Skill Loading Sources
 
-Skills with the same name are overridden by priority chain — higher priority automatically shadows lower:
+At startup, built-in, project and user skills load in that order; later definitions replace earlier ones with the same name. This is not a layered registry that automatically restores overridden definitions after deletion:
 
 ```
-managed > user > project > plugin > bundled > mcp
+bundled → project → user
 ```
 
 | Source | Directory | Description | Status |
 |--------|-----------|-------------|--------|
 | **managed** | Policy-managed directory | Enterprise-distributed skills | Reserved |
 | **user** | `~/.zhikun/skills/` | User global custom skills | ✅ Implemented |
-| **project** | `.zhikun/skills/` | Project-level skills, distributed with the codebase | ✅ Implemented |
+| **project** | `.zhikun/skills/` | Project-level skills; Git ignore rules determine whether they are versioned | ✅ Implemented |
 | **plugin** | Plugin-provided | Skills embedded in JAR plugins | Reserved |
-| **bundled** | Built-in | 15 out-of-the-box skills | ✅ Implemented |
+| **bundled** | Built-in | 13 out-of-the-box skills | ✅ Implemented |
 | **mcp** | MCP-built | Skills registered via MCP protocol | Reserved |
 
 ### Custom Skills
@@ -881,7 +879,7 @@ arguments:
 Translate the selected code to {{language}}, preserving original logic and comment style.
 ```
 
-Invoke with: `/translate language=python` or `/translate python`
+In the Web input, enter `/skill translate`, fill in `language=python` or `python` in the dialog's arguments field, then execute.
 
 **Supported frontmatter fields:**
 
@@ -892,7 +890,7 @@ Invoke with: `/translate language=python` or `/translate python`
 | `arguments` | list | Parameter definition list |
 | `argument_hint` | string | Parameter hint text |
 | `when_to_use` | string | Conditions for automatic model invocation |
-| `allowed_tools` | list | Tool allowlist for this skill |
+| `allowed_tools` | list | Tools declared by the skill; does not replace actual tool permission controls |
 | `context` | string | `inline` (default, inject into current conversation) or `fork` (create independent sub-agent) |
 | `model` | string | Specify model (`inherit` uses parent model) |
 | `version` | string | Skill version number |
@@ -904,11 +902,11 @@ Invoke with: `/translate language=python` or `/translate python`
 | `paths` | list | File path glob patterns |
 | `shell` | string | Shell type (bash or powershell, default: bash) |
 
-> Skills support hot reload — changes take effect immediately after saving, no service restart needed. Powered by Java NIO WatchService with 500ms debounce.
+> Files in watched skill directories support hot updates with 500ms debounce. Deleting an override does not automatically restore its built-in definition. After changing bundled resources or removing overrides, rebuild and restart the backend, then refresh the frontend menu.
 
 **Security & Budget Controls:**
 - **Token Budget**: Single Skill ≤5000 tokens / Session total ≤25000 tokens, preventing resource abuse
-- **Tool Whitelist**: Skills can only invoke tools declared in frontmatter `allowed_tools`
+- **Tool Declarations**: `allowed_tools` describes intended tools; runtime enforcement of this list is not guaranteed, and actual tool permissions still apply
 - **Injection Protection**: Shell injection triple-vector interception (`$()` / backticks / pipes), parameter length limit 2000 chars
 - **Fork Depth Control**: Fork-mode Skill nesting depth ≤3 levels, preventing infinite recursion
 

@@ -1,13 +1,19 @@
 package com.aicodeassistant.coordinator;
 
+import com.aicodeassistant.llm.LlmProviderRegistry;
 import com.aicodeassistant.mcp.McpClientManager;
+import com.aicodeassistant.tool.agent.AgentTool;
+import com.aicodeassistant.tool.agent.SubAgentExecutor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -83,6 +89,39 @@ class CoordinatorPromptBuilderTest {
         assertTrue(prompt.contains(
                 com.aicodeassistant.prompt.SystemPromptBuilder
                         .CONTEXT_COMPRESSION_MARKERS_SECTION));
+    }
+
+    @Test
+    @DisplayName("提示词中的 Agent 示例必须使用模型可见 schema 中允许的 subagent_type")
+    void promptAgentExamplesUseSchemaAllowedSubagentTypes() {
+        CoordinatorService coordinatorService = mock(CoordinatorService.class);
+        McpClientManager mcpClientManager = mock(McpClientManager.class);
+        when(coordinatorService.getWorkerToolsContext("session-1"))
+                .thenReturn(Map.of("workerToolsContext", "standard tools"));
+        when(mcpClientManager.getConnectedServers()).thenReturn(List.of());
+
+        CoordinatorPromptBuilder builder =
+                new CoordinatorPromptBuilder(coordinatorService, mcpClientManager);
+        String prompt = builder.buildCoordinatorPrompt(
+                "session-1", Path.of("/tmp/zhikun-scratchpad"));
+
+        LlmProviderRegistry providers = mock(LlmProviderRegistry.class);
+        when(providers.getBuiltinAliases()).thenReturn(List.of("standard"));
+        when(providers.listAvailableModels()).thenReturn(List.of());
+        AgentTool tool = new AgentTool(mock(SubAgentExecutor.class), providers);
+        Map<?, ?> properties = (Map<?, ?>) tool.getInputSchema().get("properties");
+        Map<?, ?> typeSchema = (Map<?, ?>) properties.get("subagent_type");
+        List<?> allowed = (List<?>) typeSchema.get("enum");
+
+        Matcher examples = Pattern.compile(
+                "Agent\\(\\{[^\\r\\n]*subagent_type:\\s*\"([^\"]+)\"")
+                .matcher(prompt);
+        int count = 0;
+        while (examples.find()) {
+            assertTrue(allowed.contains(examples.group(1)), examples.group());
+            count++;
+        }
+        assertEquals(4, count); // guards against vacuous pass if examples are deleted
     }
 
 }

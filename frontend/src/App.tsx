@@ -385,7 +385,11 @@ function App() {
     }
 
     const parts = raw.split(/\s+/);
-    if (!sendSlashCommand(parts[0], parts.slice(1).join(' '))) {
+    // /review 保留首个 token 之后的原始内部格式（换行、连续空格、引号、= 号）。
+    const reviewMatch = /^review(?:\s+([\s\S]*))?$/i.exec(raw);
+    const commandName = reviewMatch ? 'review' : parts[0];
+    const args = reviewMatch ? (reviewMatch[1] ?? '') : parts.slice(1).join(' ');
+    if (!sendSlashCommand(commandName, args)) {
       addSessionError('命令未发送，请检查 WebSocket 连接后重试。');
       return false;
     }

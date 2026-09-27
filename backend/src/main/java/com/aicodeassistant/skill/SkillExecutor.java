@@ -158,14 +158,17 @@ public class SkillExecutor {
     }
 
     /**
-     * Inline 模式 — 将渲染后的提示词作为用户消息注入当前对话。
+     * Inline 模式 — 通过工具结果正文返回渲染后的技能内容。
+     * <p>
+     * 渲染后的提示词直接作为 tool_result 的 content 送达模型；
+     * metadata 中的 injectedPrompt 仅为兼容性保留，没有消费者。
      */
     private ToolResult executeInline(SkillDefinition skill, String renderedPrompt,
                                       ToolUseContext context) {
         log.info("Skill '{}' executing in inline mode", skill.name());
 
         return ToolResult.success(
-                "Skill '" + skill.name() + "' loaded. Prompt injected.",
+                renderedPrompt,
                 Map.of(
                         "injectedPrompt", renderedPrompt,
                         "commandName", skill.name(),

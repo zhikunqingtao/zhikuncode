@@ -53,8 +53,8 @@ public class SkillRegistry {
 
     /** 内置技能列表 */
     private static final List<String> BUILTIN_SKILL_NAMES = List.of(
-            "commit", "review", "fix", "test", "pr",
-            "debug", "verify", "stuck", "remember",
+            "commit", "review", "test", "pr",
+            "debug", "verify", "remember",
             "software-architecture", "csv-data-summarizer",
             "prompt-engineering", "test-driven-development", "publish-oss", "publish-meoo"
     );

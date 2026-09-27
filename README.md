@@ -840,43 +840,41 @@ Web 新会话必须先选择一个已授权目录。远程和 Docker 部署的�
 
 ZhikunCode 的skill技能系统（Skill System）是一个 **Markdown 驱动的可扩展工作流引擎**。每个技能就是一个 `.md` 文件，用 YAML frontmatter 定义元数据，用 Markdown 正文定义执行指令。
 
-### 15 个内置技能
+### 13 个内置技能
 
-开箱即用，输入 `/技能名` 即可调用：
+在 Web 输入框输入 `/skill <技能名>` 打开技能弹窗，再填写参数并执行；发布使用表中的专用命令。技能提供工作流指引，同名直接命令（如 `/review`）有独立实现。
 
 | 技能 | 命令 | 功能 |
 |------|------|------|
-| **智能提交** | `/commit` | 分析暂存区变更，按 Conventional Commits 格式生成 commit message |
-| **代码审查** | `/review` | 审查未提交变更，按 P0/P1/P2 严重程度分类问题 |
-| **智能修复** | `/fix` | 根据错误信息诊断根因，应用最小化修复并验证 |
-| **智能测试** | `/test` | 为指定代码或近期变更生成/运行测试，覆盖边界情况 |
-| **PR 助手** | `/pr` | 分析分支差异，生成结构化 PR 描述和审查说明 |
-| **调试诊断** | `/debug` | 8步闭环诊断（复现→隔离→修复→验证→回归） |
-| **代码验证** | `/verify` | Java/TypeScript/Python 三栈编译+测试验证 |
-| **脱困诊断** | `/stuck` | 卡住时三路径评估，推荐最优破局策略 |
-| **会话记忆** | `/remember` | 管理会话级上下文（决策/约束/偏好/笔记） |
-| **架构分析** | `/software-architecture` | Clean Architecture + SOLID + 设计模式评估 |
-| **数据摘要** | `/csv-data-summarizer` | CSV统计分析+可视化图表+Markdown报告 |
-| **Prompt工程** | `/prompt-engineering` | 优化prompt结构、清晰度和有效性 |
-| **测试驱动开发** | `/test-driven-development` | TDD红→绿→重构循环方法论指导 |
+| **智能提交** | `/skill commit` | 分析暂存区变更，按 Conventional Commits 格式生成 commit message |
+| **代码审查** | `/skill review` | 审查未提交变更，按 P0/P1/P2/P3 严重程度分类问题 |
+| **智能测试** | `/skill test` | 为指定代码或近期变更生成/运行测试，覆盖边界情况 |
+| **PR 助手** | `/skill pr` | 分析分支差异，生成结构化 PR 描述和审查说明 |
+| **调试诊断** | `/skill debug` | 按需求进行根因诊断、最小修复或脱困分析 |
+| **代码验证** | `/skill verify` | 按项目技术栈和改动风险选择构建、测试及静态检查 |
+| **项目笔记** | `/skill remember` | 显式保存、检索和更新项目共享笔记；不保证新会话自动读取 |
+| **架构分析** | `/skill software-architecture` | Clean Architecture + SOLID + 设计模式评估 |
+| **数据摘要** | `/skill csv-data-summarizer` | CSV统计分析+可视化图表+Markdown报告 |
+| **Prompt工程** | `/skill prompt-engineering` | 优化prompt结构、清晰度和有效性 |
+| **测试驱动开发** | `/skill test-driven-development` | TDD红→绿→重构循环方法论指导 |
 | **OSS 产物发布** | `/publish-oss` | 经单次高风险授权，从同一持久化根 Session 的根 Run 或授权后代 Run 中发布目标条目已验证且哈希仍匹配的产物；默认关闭且不会自动上传 |
 | **秒悟应用发布** | `/publish-meoo` | 每次创建新站点、保留旧站点并占用平台额度；结果卡显示匿名访问验证状态。[配置与使用说明](docs/deployment/meoo.md) |
 
-### 6 级加载源优先级
+### 技能加载来源
 
-同名技能按优先级链覆盖，高优先级自动屏蔽低优先级：
+当前启动时依次加载内置、项目和用户技能，同名定义由后加载者覆盖；这不是支持删除后自动回退的分层注册表：
 
 ```
-managed > user > project > plugin > bundled > mcp
+bundled → project → user
 ```
 
 | 来源 | 目录 | 说明 | 状态 |
 |------|------|------|------|
 | **managed** | 策略管理目录 | 企业统一下发的技能 | 预留 |
 | **user** | `~/.zhikun/skills/` | 用户全局自定义技能 | ✅ 已实现 |
-| **project** | `.zhikun/skills/` | 项目级技能，随代码库分发 | ✅ 已实现 |
+| **project** | `.zhikun/skills/` | 项目级技能；是否纳入版本控制取决于 Git 忽略规则 | ✅ 已实现 |
 | **plugin** | 插件提供 | JAR 插件内嵌的技能 | 预留 |
-| **bundled** | 内置 | 15 个开箱即用技能 | ✅ 已实现 |
+| **bundled** | 内置 | 13 个开箱即用技能 | ✅ 已实现 |
 | **mcp** | MCP 构建 | 通过 MCP 协议注册的技能 | 预留 |
 
 ### 自定义技能
@@ -895,7 +893,7 @@ arguments:
 将用户选中的代码翻译为 {{language}}，保持原有逻辑和注释风格。
 ```
 
-调用方式：`/translate language=python` 或 `/translate python`
+Web 调用方式：输入 `/skill translate`，在弹窗参数栏填写 `language=python` 或 `python`，再执行。
 
 **支持的 frontmatter 字段：**
 
@@ -906,7 +904,7 @@ arguments:
 | `arguments` | list | 参数定义列表 |
 | `argument_hint` | string | 参数提示文本 |
 | `when_to_use` | string | 模型自动调用的条件 |
-| `allowed_tools` | list | 允许使用的工具白名单 |
+| `allowed_tools` | list | 技能声明的工具列表；不能替代实际工具权限控制 |
 | `context` | string | `inline`（默认，注入当前对话）或 `fork`（创建独立子代理） |
 | `model` | string | 指定模型（`inherit` 使用父模型） |
 | `version` | string | 技能版本号 |
@@ -918,11 +916,11 @@ arguments:
 | `paths` | list | 文件路径 glob 模式列表 |
 | `shell` | string | Shell 类型（bash 或 powershell，默认 bash） |
 
-> 技能文件支持热重载 — 保存后自动生效，无需重启服务。底层使用 Java NIO WatchService + 500ms 防抖机制监听文件变更。
+> 已监听目录中的技能文件支持热更新（500ms 防抖）。删除同名覆盖文件不会自动恢复内置定义；修改内置资源或清理覆盖文件后，应重新构建并重启后端，再刷新前端菜单。
 
 **安全与预算控制：**
 - **Token 预算限制**：单 Skill ≤5000 tokens / 会话总计 ≤25000 tokens，防止资源滥用
-- **工具白名单**：Skill 只能调用 frontmatter 中 `allowed_tools` 声明的工具
+- **工具声明**：`allowed_tools` 描述预期工具；当前不保证运行时强制执行这份列表，实际工具权限仍然适用
 - **注入防护**：Shell 注入三向量拦截（`$()` / 反引号 / 管道），参数长度限制 2000 字符
 - **Fork 深度控制**：fork 模式 Skill 嵌套深度 ≤3 层，防止无限递归
 

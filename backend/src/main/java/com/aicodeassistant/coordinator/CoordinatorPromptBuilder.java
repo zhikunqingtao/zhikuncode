@@ -194,8 +194,8 @@ public class CoordinatorPromptBuilder {
             You:
               让我对此进行一些研究。
             
-              Agent({ description: "Investigate auth bug", subagent_type: "worker", prompt: "..." })
-              Agent({ description: "Research secure token storage", subagent_type: "worker", prompt: "..." })
+              Agent({ description: "Investigate auth bug", subagent_type: "general-purpose", prompt: "..." })
+              Agent({ description: "Research secure token storage", subagent_type: "general-purpose", prompt: "..." })
             
               正在并行调查两个问题——稍后会汇报结果。
             
@@ -213,8 +213,8 @@ public class CoordinatorPromptBuilder {
             
             ## 3. Workers
             
-            调用 Agent 时，使用 subagent_type `worker`。Worker 自主执行任务\
-            ——尤其是研究、实现或验证类工作。
+            调用 Agent 时，根据任务和当前工具 schema 选择支持的 subagent_type。
+            Worker 是角色称呼；调用参数使用 schema 中列出的类型，不传入 worker。
             
             ## Worker 能力
             %s
@@ -293,14 +293,14 @@ public class CoordinatorPromptBuilder {
             
             ```
             // 启动了一个将 auth 重构为 JWT 的 worker
-            Agent({ description: "Refactor auth to JWT", subagent_type: "worker", prompt: "Replace session-based auth with JWT..." })
+            Agent({ description: "Refactor auth to JWT", subagent_type: "general-purpose", prompt: "Replace session-based auth with JWT..." })
             // ... 返回 task_id: "agent-x7q" ...
             
             // 用户澄清："实际上保留 sessions——只修复空指针"
             TaskStop({ task_id: "agent-x7q" })
             
             // 用自包含、已缩小范围的任务重新启动
-            Agent({ description: "Fix auth null pointer", subagent_type: "worker", prompt: "Keep session-based auth. Fix the null pointer in src/auth/validate.ts:42, run the focused tests, and report the result." })
+            Agent({ description: "Fix auth null pointer", subagent_type: "general-purpose", prompt: "Keep session-based auth. Fix the null pointer in src/auth/validate.ts:42, run the focused tests, and report the result." })
             ```
                     
             ## 5. 编写 Worker 提示
@@ -358,9 +358,10 @@ public class CoordinatorPromptBuilder {
             Cherry-pick only commit abc123 onto it. Push and create a draft PR targeting main. \
             Report the PR URL."
             
-            3. 纠正（继续已有 worker，简短）："The tests failed on the null check you added \u2014 \
-            validate.test.ts:58 expects 'Invalid session' but you changed it to 'Session expired'. \
-            Fix the assertion. Commit and report the hash."
+            3. 纠正（继续已有 worker，简短）："The test expects 'Invalid session' but the implementation now returns 'Session expired'. \
+            Check the agreed error-message contract first. Fix the implementation if it violates that contract; \
+            update assertions only when evidence shows they contradict the agreed contract, including an approved behavior change. \
+            Run the focused test and report the evidence."
             
             **坏的示例：**
             
@@ -408,8 +409,9 @@ public class CoordinatorPromptBuilder {
             
             ```
             // 纠正——worker 刚报告了自己变更导致的测试失败，保持简短
-            SendMessage({ to: "xyz-456", message: "Two tests still failing at lines 58 and 72 \u2014 \
-            update the assertions to match the new error message." })
+            SendMessage({ to: "xyz-456", message: "Two tests are failing at lines 58 and 72. Check the agreed error-message contract before changing assertions. \
+            Fix the implementation if it is wrong; update assertions only when evidence shows they contradict the agreed contract, \
+            including an approved behavior change. Run the focused tests and report the result." })
             ```
             
             ## 快速参考规则

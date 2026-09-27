@@ -469,16 +469,54 @@ class SkillSystemGoldenTest {
     class SkillExecutorTests {
 
         @Test
-        @DisplayName("inline 模式执行")
+        @DisplayName("inline 模式执行 — 渲染正文即工具结果正文")
         void inlineExecution() {
             registerSkill("greet", "inline", "Hello {{name}}!");
 
             ToolResult result = executor.execute("greet", "name=World", defaultContext);
 
             assertFalse(result.isError());
-            assertTrue(result.content().contains("greet"));
+            assertEquals("Hello World!", result.content());
+            assertEquals(1, countOccurrences(result.content(), "Hello World!"));
+            // metadata 兼容性断言：injectedPrompt 仍保留
             assertEquals("inline", result.metadata().get("executionMode"));
             assertEquals("Hello World!", result.metadata().get("injectedPrompt"));
+        }
+
+        @Test
+        @DisplayName("inline 正文按实际 token 计入预算 — 第二次串行调用被单技能预算拒绝")
+        void inlineBodyChargesRealTokensAgainstBudget() {
+            registerSkill("greet", "inline", "Hello {{name}}!");
+            SkillTokenBudget budget = new SkillTokenBudget();
+            TokenCounter exactCounter = Mockito.mock(TokenCounter.class);
+            // 精确正文串估值 3000 tokens — 入场估算与成功记账必须使用同一真实正文
+            when(exactCounter.estimateTokens("Hello World!")).thenReturn(3000);
+            SkillExecutor budgetedExecutor = new SkillExecutor(
+                    registry, new SkillToolValidator(), budget, exactCounter);
+
+            ToolResult first = budgetedExecutor.execute("greet", "name=World", defaultContext);
+            assertFalse(first.isError());
+            assertEquals("Hello World!", first.content());
+            assertEquals(3000, budget.getStatus("test-session", "greet").skillUsed());
+
+            // 3000 + 3000 > 5000（单技能累计上限）→ 第二次调用被预算拒绝
+            ToolResult second = budgetedExecutor.execute("greet", "name=World", defaultContext);
+            assertTrue(second.isError());
+            assertEquals("SKILL_TOKEN_BUDGET_EXCEEDED", second.failureCode());
+            assertTrue(second.content().contains("Skill token budget exceeded"));
+            // 预算拒绝不产生成功记账，累计不变
+            assertEquals(3000, budget.getStatus("test-session", "greet").skillUsed());
+        }
+
+        @Test
+        @DisplayName("危险参数返回错误而非成功正文")
+        void invalidArgsReturnError() {
+            registerSkill("greet", "inline", "Hello {{name}}!");
+
+            ToolResult result = executor.execute("greet", "name=$(reboot)", defaultContext);
+
+            assertTrue(result.isError());
+            assertEquals("SKILL_ARGUMENTS_INVALID", result.failureCode());
         }
 
         @Test
@@ -520,7 +558,7 @@ class SkillSystemGoldenTest {
         }
 
         @Test
-        @DisplayName("SkillTool.call() — 正常执行")
+        @DisplayName("SkillTool.call() — 正常执行，渲染正文即工具结果正文")
         void callSuccess() {
             registerSkill("deploy", "inline", "Deploy {{app}} now.");
 
@@ -532,7 +570,10 @@ class SkillSystemGoldenTest {
             ToolResult result = skillTool.call(input, defaultContext);
 
             assertFalse(result.isError());
-            assertTrue(result.content().contains("deploy"));
+            assertEquals("Deploy myapp now.", result.content());
+            assertEquals(1, countOccurrences(result.content(), "Deploy myapp now."));
+            // metadata 兼容性断言：injectedPrompt 仍保留
+            assertEquals("Deploy myapp now.", result.metadata().get("injectedPrompt"));
         }
 
         @Test
@@ -638,5 +679,15 @@ class SkillSystemGoldenTest {
         SkillDefinition skill = SkillDefinition.fromMarkdown(
                 name + ".md", md, SkillDefinition.SkillSource.PROJECT, null);
         registry.register(skill);
+    }
+
+    private static int countOccurrences(String haystack, String needle) {
+        int count = 0;
+        int index = 0;
+        while ((index = haystack.indexOf(needle, index)) != -1) {
+            count++;
+            index += needle.length();
+        }
+        return count;
     }
 }

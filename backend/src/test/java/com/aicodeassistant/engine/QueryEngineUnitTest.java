@@ -1,5 +1,15 @@
 package com.aicodeassistant.engine;
 
+import com.aicodeassistant.authorization.AuthorizationDiagnostic;
+import com.aicodeassistant.authorization.AuthorizationService;
+import com.aicodeassistant.authorization.AuthorizationSubject;
+import com.aicodeassistant.authorization.AuthorizedOperation;
+import com.aicodeassistant.authorization.EffectClass;
+import com.aicodeassistant.authorization.FrozenToolInputFactory;
+import com.aicodeassistant.authorization.OperationDescriptor;
+import com.aicodeassistant.authorization.PreparedOperation;
+import com.aicodeassistant.authorization.RiskClass;
+import com.aicodeassistant.authorization.ToolExecutionGateway;
 import com.aicodeassistant.config.AgentTimeoutConfig;
 import com.aicodeassistant.config.FeatureFlagService;
 import com.aicodeassistant.engine.ContextCascade;
@@ -13,8 +23,17 @@ import com.aicodeassistant.model.*;
 import com.aicodeassistant.run.RunEnvelope;
 import com.aicodeassistant.run.RunExecutionRegistry;
 import com.aicodeassistant.run.RunTracker;
+import com.aicodeassistant.security.SensitiveDataFilter;
+import com.aicodeassistant.skill.SkillDefinition;
+import com.aicodeassistant.skill.SkillExecutor;
+import com.aicodeassistant.skill.SkillRegistry;
+import com.aicodeassistant.skill.SkillTokenBudget;
+import com.aicodeassistant.skill.SkillTool;
+import com.aicodeassistant.skill.SkillToolValidator;
 import com.aicodeassistant.tool.*;
+import com.aicodeassistant.tool.recovery.ToolRecoveryFramework;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -1453,6 +1472,289 @@ class QueryEngineUnitTest {
             assertThat(executions.offerInputForSession(
                     "test-session", UUID.randomUUID().toString(), "late instruction")
                     .receipt().rejectionCode()).isEqualTo("NO_ACTIVE_RUN");
+        }
+    }
+
+    // ═══════════════ Inline skill 正文投递（请求级） ═══════════════
+
+    @Nested
+    @DisplayName("Inline skill 正文投递（请求级回归）")
+    class InlineSkillDeliveryTests {
+
+        private static final String RENDERED_BODY = "BODY_SENTINEL Hello World!";
+        private static final String CONTROL_MARKER = "CONTROL_METADATA_ONLY_SENTINEL";
+        private static final String CONTROL_CONTENT = "control-tool-visible-content";
+
+        private RunExecutionRegistry executions;
+        private RunEnvelope run;
+        private AtomicReference<RunEnvelope> authority;
+        private final List<List<Map<String, Object>>> requests = new ArrayList<>();
+        private TokenCounter skillTokenCounter;
+        private SkillTokenBudget skillBudget;
+        private Tool skillTool;
+        private Tool controlTool;
+        @org.junit.jupiter.api.io.TempDir java.nio.file.Path workspace;
+
+        @BeforeEach
+        void wireRealSkillToolExecution() {
+            executions = new RunExecutionRegistry();
+            run = RunEnvelope.start("test-session", null, "query", "mock-model");
+            when(runTracker.startRun("test-session", null, "query", "mock-model"))
+                    .thenReturn(run);
+            authority = new AtomicReference<>(run);
+            lenient().when(runTracker.getRun(run.id())).thenAnswer(inv -> Optional.of(authority.get()));
+            lenient().doAnswer(inv -> { authority.set(terminalSnapshot(run, RunEnvelope.RunStatus.COMPLETED,
+                    RunEnvelope.RunExitReason.MODEL_FINISHED, null)); return null; })
+                    .when(runTracker).completeRun(eq(run.id()), anyInt(), anyDouble(), anyInt(), anyInt());
+            lenient().doAnswer(inv -> { authority.set(terminalSnapshot(run, RunEnvelope.RunStatus.FAILED,
+                    RunEnvelope.RunExitReason.INTERNAL_ERROR, inv.getArgument(1))); return null; })
+                    .when(runTracker).failRun(eq(run.id()), anyString());
+            lenient().doAnswer(inv -> { authority.set(terminalSnapshot(run, RunEnvelope.RunStatus.FAILED,
+                    inv.getArgument(1), inv.getArgument(2))); return null; })
+                    .when(runTracker).failRun(eq(run.id()), any(RunEnvelope.RunExitReason.class), anyString());
+            lenient().doAnswer(inv -> { boolean timeout = inv.getArgument(1) == AbortReason.TIMEOUT;
+                authority.set(terminalSnapshot(run, timeout ? RunEnvelope.RunStatus.FAILED : RunEnvelope.RunStatus.CANCELLED,
+                    timeout ? RunEnvelope.RunExitReason.DEADLINE_EXCEEDED : RunEnvelope.RunExitReason.USER_CANCELLED,
+                    inv.getArgument(2))); return null; })
+                    .when(runTracker).abortRun(eq(run.id()), any(), anyString());
+
+            // 真实 skill 栈 — 合成 inline 技能
+            SkillRegistry registry = new SkillRegistry();
+            registry.register(SkillDefinition.fromMarkdown(
+                    "greet.md",
+                    "---\ncontext: inline\n---\nBODY_SENTINEL Hello {{name}}!",
+                    SkillDefinition.SkillSource.PROJECT, null));
+            skillBudget = new SkillTokenBudget();
+            skillTokenCounter = mock(TokenCounter.class);
+            lenient().when(skillTokenCounter.estimateTokens(anyString())).thenReturn(100);
+            SkillExecutor skillExecutor = new SkillExecutor(
+                    registry, new SkillToolValidator(), skillBudget, skillTokenCounter);
+            skillTool = new SkillTool(skillExecutor, registry);
+
+            // 对照工具：标记只存在于 metadata.injectedPrompt，正文中绝不出现
+            controlTool = new Tool() {
+                @Override public String getName() { return "ControlTool"; }
+                @Override public String getDescription() { return "metadata-only marker control"; }
+                @Override public Map<String, Object> getInputSchema() { return Map.of(); }
+                @Override public ToolResult call(ToolInput input, ToolUseContext context) {
+                    return ToolResult.success(CONTROL_CONTENT, Map.of("injectedPrompt", CONTROL_MARKER));
+                }
+            };
+
+            // 真实执行链 — AutoApproveTest 风格 stub 授权/网关；网关真实调用工具本身
+            ObjectMapper json = new ObjectMapper();
+            AuthorizationService authorization = mock(AuthorizationService.class);
+            ToolExecutionGateway gateway = mock(ToolExecutionGateway.class);
+            AuthorizationSubject subject = new AuthorizationSubject(
+                    "session", "run", "run", "workspace", workspace);
+            OperationDescriptor descriptor = new OperationDescriptor(
+                    1, "Skill", "invoke", "input-hash", "generic-v1",
+                    List.of(EffectClass.PROCESS), List.of(), List.of(), List.of(),
+                    RiskClass.HIGH, "operation-hash", "test operation");
+            PreparedOperation prepared = new PreparedOperation(subject, descriptor, "attempt");
+            when(authorization.prepare(any(), any(), any(), any())).thenReturn(prepared);
+            when(authorization.authorizePrepared(any(), any(), any(), any(), any()))
+                    .thenAnswer(invocation -> new AuthorizedOperation(
+                            prepared.subject(), prepared.descriptor(), invocation.getArgument(2),
+                            AuthorizationDiagnostic.Source.MODE, "AUTO_APPROVE",
+                            null, null, null, "attempt"));
+            when(gateway.execute(any(), any(), any(), any(), any()))
+                    .thenAnswer(invocation -> {
+                        Runnable admission = invocation.getArgument(3);
+                        Runnable started = invocation.getArgument(4);
+                        admission.run();
+                        started.run();
+                        Tool executingTool = invocation.getArgument(0);
+                        AuthorizedOperation allowed = invocation.getArgument(1);
+                        ToolUseContext executingContext = invocation.getArgument(2);
+                        return executingTool.call(allowed.executionInput(), executingContext);
+                    });
+            ToolExecutionPipeline pipeline = new ToolExecutionPipeline(
+                    new HookService(new HookRegistry(), null), json, new SensitiveDataFilter(),
+                    new FrozenToolInputFactory(json, 1024, 4096),
+                    authorization, gateway, new ToolRecoveryFramework(List.of()),
+                    null, null);
+            StreamingToolExecutor realToolExecutor =
+                    new StreamingToolExecutor(pipeline, new SimpleMeterRegistry());
+
+            lenient().when(toolResultSummarizer.processToolResults(anyList(), anyInt()))
+                    .thenAnswer(inv -> inv.getArgument(0));
+            lenient().when(apiRetryService.executeWithRetry(any(), anyString(), anyString(), any()))
+                    .thenAnswer(inv -> inv.getArgument(0, Supplier.class).get());
+            lenient().when(hookService.executeStopHooks(anyList(), anyString()))
+                    .thenReturn(HookRegistry.StopHookResult.ok());
+
+            queryEngine = new QueryEngine(
+                    providerRegistry, compactService, apiRetryService, tokenCounter,
+                    objectMapper, realToolExecutor, new MessageNormalizer(), hookService,
+                    snipService, microCompactService, modelRegistry,
+                    thinkingBudgetCalculator, modelTierService, fileHistoryService,
+                    toolResultSummarizer, contextCascade, compactMetrics,
+                    null, null, null, featureFlagService,
+                    new DefaultTerminationStrategy(), new ToolPriorityScheduler(),
+                    null, new AgentTimeoutConfig(), tokenBudgetGuard, imageRefInjector,
+                    runTracker, executions, userImageTranscoder);
+        }
+
+        @Test
+        @DisplayName("inline skill 渲染正文作为 tool_result 正文送达下一轮模型请求，metadata 不外泄")
+        void inlineSkillBodyDeliveredAsToolResultContent() throws Exception {
+            script((call, callback) -> {
+                if (call == 1) {
+                    finish(callback, "tool_use",
+                            new LlmStreamEvent.ToolUseStart("skill-call-1", "Skill"),
+                            new LlmStreamEvent.ToolInputDelta("skill-call-1",
+                                    "{\"skill\":\"greet\",\"args\":\"name=World\"}"),
+                            new LlmStreamEvent.ToolUseStart("control-call-1", "ControlTool"),
+                            new LlmStreamEvent.ToolInputDelta("control-call-1", "{}"));
+                } else {
+                    finish(callback, "end_turn", new LlmStreamEvent.TextDelta("done"));
+                }
+            });
+
+            QueryEngine.QueryResult result = queryEngine.execute(
+                    twoRoundConfig(), buildState("run the greet skill"), handler);
+
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(handler.errors).isEmpty();
+            assertThat(requests).hasSize(2);
+
+            // 第 1 轮出站请求不得包含技能正文
+            String round1Json = objectMapper.writeValueAsString(requests.get(0));
+            assertThat(round1Json).doesNotContain("BODY_SENTINEL");
+
+            String round2Json = objectMapper.writeValueAsString(requests.get(1));
+            // 完整渲染正文恰好出现一次，且包含替换后的参数
+            assertThat(countOccurrences(round2Json, "BODY_SENTINEL")).isEqualTo(1);
+            assertThat(round2Json).contains(RENDERED_BODY);
+            // tool_result 与 tool_use 按 id 正确配对
+            List<Map<String, Object>> toolResults = toolResultBlocks(requests.get(1));
+            assertThat(toolResults).anySatisfy(block -> {
+                assertThat(block.get("tool_use_id")).isEqualTo("skill-call-1");
+                assertThat(block.get("content")).isEqualTo(RENDERED_BODY);
+                assertThat(block.get("is_error")).isNull();
+            });
+            // 对照：只在 metadata 中的标记不得进入请求；内部 metadata 键不外泄
+            assertThat(toolResults).anySatisfy(block -> {
+                assertThat(block.get("tool_use_id")).isEqualTo("control-call-1");
+                assertThat(block.get("content")).isEqualTo(CONTROL_CONTENT);
+            });
+            assertThat(round2Json).doesNotContain(CONTROL_MARKER);
+            assertThat(round2Json).doesNotContain("injectedPrompt");
+            verify(runTracker).completeRun(eq(run.id()), anyInt(), anyDouble(), anyInt(), eq(2));
+        }
+
+        @Test
+        @DisplayName("未知技能返回错误结果而非成功正文")
+        void unknownSkillYieldsErrorNotSuccessBody() throws Exception {
+            script((call, callback) -> {
+                if (call == 1) {
+                    finish(callback, "tool_use",
+                            new LlmStreamEvent.ToolUseStart("skill-call-1", "Skill"),
+                            new LlmStreamEvent.ToolInputDelta("skill-call-1",
+                                    "{\"skill\":\"missing-skill\"}"));
+                } else {
+                    finish(callback, "end_turn", new LlmStreamEvent.TextDelta("done"));
+                }
+            });
+
+            QueryEngine.QueryResult result = queryEngine.execute(
+                    twoRoundConfig(), buildState("run an unknown skill"), handler);
+
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(requests).hasSize(2);
+            String round2Json = objectMapper.writeValueAsString(requests.get(1));
+            assertThat(round2Json).doesNotContain("BODY_SENTINEL");
+            assertThat(round2Json).doesNotContain("loaded. Prompt injected");
+            Map<String, Object> block = toolResultBlocks(requests.get(1)).stream()
+                    .filter(b -> "skill-call-1".equals(b.get("tool_use_id")))
+                    .findFirst().orElseThrow();
+            assertThat(block.get("is_error")).isEqualTo(true);
+            assertThat((String) block.get("content")).contains("Skill not found");
+        }
+
+        @Test
+        @DisplayName("预算拒绝的技能调用返回错误结果而非成功正文")
+        void budgetDeniedSkillCallYieldsErrorNotSuccessBody() throws Exception {
+            // 入场估算精确正文 = 6000 tokens > 单技能预算 5000 → 预算拒绝
+            when(skillTokenCounter.estimateTokens(RENDERED_BODY)).thenReturn(6000);
+            script((call, callback) -> {
+                if (call == 1) {
+                    finish(callback, "tool_use",
+                            new LlmStreamEvent.ToolUseStart("skill-call-1", "Skill"),
+                            new LlmStreamEvent.ToolInputDelta("skill-call-1",
+                                    "{\"skill\":\"greet\",\"args\":\"name=World\"}"));
+                } else {
+                    finish(callback, "end_turn", new LlmStreamEvent.TextDelta("done"));
+                }
+            });
+
+            QueryEngine.QueryResult result = queryEngine.execute(
+                    twoRoundConfig(), buildState("run the greet skill"), handler);
+
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(requests).hasSize(2);
+            String round2Json = objectMapper.writeValueAsString(requests.get(1));
+            assertThat(round2Json).doesNotContain("BODY_SENTINEL");
+            assertThat(round2Json).doesNotContain("loaded. Prompt injected");
+            Map<String, Object> block = toolResultBlocks(requests.get(1)).stream()
+                    .filter(b -> "skill-call-1".equals(b.get("tool_use_id")))
+                    .findFirst().orElseThrow();
+            assertThat(block.get("is_error")).isEqualTo(true);
+            assertThat((String) block.get("content")).contains("Skill token budget exceeded");
+            assertThat(skillBudget.getStatus("test-session", "greet").skillUsed()).isZero();
+        }
+
+        private void script(BiConsumer<Integer, StreamChatCallback> response) {
+            LlmProvider provider = mock(LlmProvider.class);
+            when(providerRegistry.getProvider(anyString())).thenReturn(provider);
+            doAnswer(inv -> {
+                List<Map<String, Object>> messages = inv.getArgument(1);
+                requests.add(List.copyOf(messages));
+                response.accept(requests.size(), inv.getArgument(7));
+                return null;
+            }).when(provider).streamChat(
+                    anyString(), anyList(), anyString(), anyList(),
+                    anyInt(), any(), any(LlmCallContext.class), any(StreamChatCallback.class));
+        }
+
+        private void finish(StreamChatCallback callback, String stopReason, LlmStreamEvent... events) {
+            for (LlmStreamEvent event : events) callback.onEvent(event);
+            callback.onEvent(new LlmStreamEvent.MessageDelta(new Usage(10, 5, 0, 0), stopReason));
+            callback.onComplete();
+        }
+
+        private QueryConfig twoRoundConfig() {
+            return QueryConfig.withDefaults(
+                    "mock-model", "You are a helpful assistant.",
+                    List.of(skillTool, controlTool),
+                    List.of(skillTool.toToolDefinition(), controlTool.toToolDefinition()),
+                    8192, 200000, new ThinkingConfig.Disabled(), 2, "test");
+        }
+
+        private static int countOccurrences(String haystack, String needle) {
+            int count = 0;
+            int index = 0;
+            while ((index = haystack.indexOf(needle, index)) != -1) {
+                count++;
+                index += needle.length();
+            }
+            return count;
+        }
+
+        private static List<Map<String, Object>> toolResultBlocks(List<Map<String, Object>> messages) {
+            List<Map<String, Object>> blocks = new ArrayList<>();
+            for (Map<String, Object> message : messages) {
+                if (!(message.get("content") instanceof List<?> content)) continue;
+                for (Object block : content) {
+                    if (block instanceof Map<?, ?> map && "tool_result".equals(map.get("type"))) {
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> typed = (Map<String, Object>) map;
+                        blocks.add(typed);
+                    }
+                }
+            }
+            return blocks;
         }
     }
 
