@@ -2,14 +2,14 @@
 
 本节提供最常用工具的详细使用示例和最佳实践。在执行文件操作、代码搜索和终端命令时可参考这些示例。
 
-### FileEditTool — 搜索与替换
+### Edit — 搜索与替换
 
-FileEditTool 在文件中执行精确的文本替换。始终在搜索字符串中提供足够的上下文以唯一标识目标位置。
+Edit 在文件中执行精确的文本替换。始终在搜索字符串中提供足够的上下文以唯一标识目标位置。
 
 **最佳实践：包含周围上下文**
 当编辑一个可能出现多次的行（如常见导入或变量赋值）时，包含 2-3 行周围上下文以确保唯一性：
 
-  Tool: FileEditTool
+  Tool: Edit
   Parameters:
     file_path: "/src/main/java/com/example/UserService.java"
     old_string: "    public User findById(Long id) {\n        return userRepository.findById(id).orElse(null);"
@@ -22,19 +22,19 @@ FileEditTool 在文件中执行精确的文本替换。始终在搜索字符串�
 - 尝试编辑尚未读取过的文件——始终先读取以获得精确文本
 
 **多处编辑的工作流程：**
-对同一文件进行多处编辑时，从下往上（最后一行优先）应用修改，以避免行号偏移导致后续编辑失效。或者，如果编辑位置相近，在单次 FileEditTool 调用中包含完整的 old/new 代码块。
+对同一文件进行多处编辑时，从下往上（最后一行优先）应用修改，以避免行号偏移导致后续编辑失效。或者，如果编辑位置相近，在单次 Edit 调用中包含完整的 old/new 代码块。
 
-### FileReadTool — 读取文件
+### Read — 读取文件
 
-FileReadTool 读取文件内容，支持可选的行范围选择。
+Read 读取文件内容，支持可选的行范围选择。
 
 **读取完整文件：**
-  Tool: FileReadTool
+  Tool: Read
   Parameters:
     file_path: "/src/components/App.tsx"
 
 **部分读取（指定行范围）：**
-  Tool: FileReadTool
+  Tool: Read
   Parameters:
     file_path: "/src/components/App.tsx"
     start_line: 50
@@ -52,44 +52,44 @@ FileReadTool 读取文件内容，支持可选的行范围选择。
 3. 如果函数调用了同一文件中的其他函数，也读取那些函数
 4. 编辑后，重新读取修改的部分以验证更改
 
-### FileWriteTool — 创建新文件
+### Write — 创建新文件
 
-FileWriteTool 创建新文件或完全覆盖现有文件。
+Write 创建新文件或完全覆盖现有文件。
 
-**何时使用 FileWriteTool 还是 FileEditTool：**
-- FileWriteTool：创建新文件，或超过 50% 的文件内容需要更改时
-- FileEditTool：修改现有文件的特定部分
+**何时使用 Write 还是 Edit：**
+- Write：创建新文件，或超过 50% 的文件内容需要更改时
+- Edit：修改现有文件的特定部分
 
 **最佳实践：完整的文件内容**
 始终提供完整的、可运行的文件内容，包括所有必要的导入、包声明和样板代码：
 
-  Tool: FileWriteTool
+  Tool: Write
   Parameters:
     file_path: "/src/test/java/com/example/UserServiceTest.java"
     content: "package com.example;\n\nimport org.junit.jupiter.api.Test;\nimport static org.junit.jupiter.api.Assertions.*;\n\nclass UserServiceTest {\n    @Test\n    void shouldFindUserById() {\n        // test implementation\n    }\n}"
 
-### BashTool — 终端命令
+### Bash — 终端命令
 
-BashTool 在用户的终端环境中执行 Shell 命令。
+Bash 在用户的终端环境中执行 Shell 命令。
 
 **安全命令（可直接执行）：**
   # 运行测试
-  Tool: BashTool
+  Tool: Bash
   Parameters:
     command: "cd /project && ./mvnw test -pl module-name"
 
   # 检查 git 状态
-  Tool: BashTool
+  Tool: Bash
   Parameters:
     command: "git status"
 
   # 安装依赖
-  Tool: BashTool
+  Tool: Bash
   Parameters:
     command: "npm install"
 
   # 编译代码
-  Tool: BashTool
+  Tool: Bash
   Parameters:
     command: "cd /project && ./mvnw compile -q"
 
@@ -105,27 +105,27 @@ BashTool 在用户的终端环境中执行 Shell 命令。
 - 始终检查退出码和输出中的错误
 - 运行测试时，同时捕获 stdout 和 stderr
 - 优先使用非交互标志（如 --yes、-y、--non-interactive）
-- 不要使用 heredoc 语法创建文件——改用 FileWriteTool
+- 不要使用 heredoc 语法创建文件——改用 Write
 
-### GrepTool — 内容搜索
+### Grep — 内容搜索
 
-GrepTool 使用正则表达式搜索文件内容，底层由 ripgrep 驱动。
+Grep 使用正则表达式搜索文件内容，底层由 ripgrep 驱动。
 
 **简单文本搜索：**
-  Tool: GrepTool
+  Tool: Grep
   Parameters:
     pattern: "getUserById"
     path: "/src"
 
 **带上下文的正则搜索：**
-  Tool: GrepTool
+  Tool: Grep
   Parameters:
     pattern: "class\\s+\\w+Service"
     path: "/src/main/java"
     include: "*.java"
 
 **查找函数定义：**
-  Tool: GrepTool
+  Tool: Grep
   Parameters:
     pattern: "def\\s+process_payment"
     path: "/src"
@@ -135,31 +135,31 @@ GrepTool 使用正则表达式搜索文件内容，底层由 ripgrep 驱动。
 - 使用上下文行（-A、-B、-C）查看周围代码
 - 对精确字符串匹配，转义正则特殊字符：. * + ? [ ] ( ) { } ^ $ |
 - 从较宽泛的搜索开始，如果结果过多再缩小范围
-- 将 GrepTool 与 FileReadTool 结合使用：先搜索找到文件，再读取获取完整上下文
+- 将 Grep 与 Read 结合使用：先搜索找到文件，再读取获取完整上下文
 
-### GlobTool — 文件发现
+### Glob — 文件发现
 
-GlobTool 查找匹配 glob 模式的文件。
+Glob 查找匹配 glob 模式的文件。
 
 **查找所有 Java 文件：**
-  Tool: GlobTool
+  Tool: Glob
   Parameters:
     pattern: "**/*.java"
     path: "/src"
 
 **查找特定配置文件：**
-  Tool: GlobTool
+  Tool: Glob
   Parameters:
     pattern: "**/application*.yml"
 
 **查找特定类的测试文件：**
-  Tool: GlobTool
+  Tool: Glob
   Parameters:
     pattern: "**/*UserService*Test*.java"
 
 **最佳实践：**
 - 使用 ** 进行递归目录匹配
-- 与 GrepTool 结合进行两步搜索：先找到文件，再搜索内容
+- 与 Grep 结合进行两步搜索：先找到文件，再搜索内容
 - 使用精确的模式以避免结果过多
 
 ### TodoWrite — 任务管理
@@ -177,9 +177,9 @@ TodoWrite 帮助你跟踪多步骤任务并向用户展示进度。
 - 在工作过程中更新任务状态，让用户看到实时进度
 - 在实现步骤之后包含验证步骤
 
-### AgentTool — 并行工作
+### Agent — 并行工作
 
-AgentTool 派生工作 Agent 以并行执行独立的子任务。
+Agent 派生工作 Agent 以并行执行独立的子任务。
 
 **适用场景：**
 - 同时搜索大型代码库中多个不相关的部分

@@ -132,38 +132,77 @@ class ConcurrencyControlTest {
     class ConcurrentSafetyTest {
 
         @RepeatedTest(3)
-        @DisplayName("50线程并发获取释放线程安全")
+        @DisplayName("50线程分阶段获取释放并验证槽位复用")
         void testConcurrentAcquireRelease() throws Exception {
             AgentConcurrencyController controller = new AgentConcurrencyController();
             int threadCount = 50;
-            CyclicBarrier barrier = new CyclicBarrier(threadCount);
-            CountDownLatch doneLatch = new CountDownLatch(threadCount);
-            AtomicInteger successCount = new AtomicInteger(0);
-            AtomicInteger failCount = new AtomicInteger(0);
-
+            int globalLimit = 30;
             ExecutorService executor = Executors.newFixedThreadPool(threadCount);
-            for (int i = 0; i < threadCount; i++) {
-                final int idx = i;
-                executor.submit(() -> {
+            try {
+                // 两轮复用相同会话；每个会话只申请一个槽位，单独检验全局限制。
+                for (int round = 0; round < 2; round++) {
+                    CountDownLatch ready = new CountDownLatch(threadCount);
+                    CountDownLatch start = new CountDownLatch(1);
+                    CountDownLatch attempted = new CountDownLatch(threadCount);
+                    CountDownLatch release = new CountDownLatch(1);
+                    AtomicInteger heldCount = new AtomicInteger();
+                    AtomicInteger peakHeldCount = new AtomicInteger();
+                    AtomicInteger rejectedCount = new AtomicInteger();
+                    List<Future<?>> tasks = new ArrayList<>();
                     try {
-                        barrier.await(10, TimeUnit.SECONDS);
-                        AutoCloseable slot = controller.acquireSlot(
-                            "agent-" + idx, 1, "session-" + (idx % 3));
-                        successCount.incrementAndGet();
-                        Thread.sleep(50);
-                        slot.close();
-                    } catch (Exception e) {
-                        failCount.incrementAndGet();
+                        for (int i = 0; i < threadCount; i++) {
+                            final int idx = i;
+                            tasks.add(executor.submit(() -> {
+                                ready.countDown();
+                                start.await();
+                                AgentConcurrencyController.AgentSlot slot;
+                                try {
+                                    slot = controller.acquireSlot("agent-" + idx, 1, "session-" + idx);
+                                } catch (AgentLimitExceededException e) {
+                                    rejectedCount.incrementAndGet();
+                                    attempted.countDown();
+                                    return null;
+                                }
+                                try (slot) {
+                                    int held = heldCount.incrementAndGet();
+                                    peakHeldCount.accumulateAndGet(held, Math::max);
+                                    attempted.countDown();
+                                    try {
+                                        release.await();
+                                    } finally {
+                                        heldCount.decrementAndGet();
+                                    }
+                                }
+                                return null;
+                            }));
+                        }
+                        assertTrue(ready.await(10, TimeUnit.SECONDS), "全部线程应准备好获取槽位");
+                        start.countDown();
+                        assertTrue(attempted.await(10, TimeUnit.SECONDS), "全部获取尝试应完成");
+                        // 获取阶段禁止释放，因此这里测量的是同时持有数，而非累计成功次数。
+                        assertEquals(globalLimit, heldCount.get(), "同时持有数应达到全局上限");
+                        assertEquals(globalLimit, peakHeldCount.get(), "并发持有峰值不得超过全局上限");
+                        assertEquals(globalLimit, controller.getActiveCount(), "控制器应记录全部在用槽位");
+                        assertEquals(threadCount - globalLimit, rejectedCount.get(), "满载后的申请应被拒绝");
                     } finally {
-                        doneLatch.countDown();
+                        start.countDown();
+                        release.countDown();
                     }
-                });
+                    // Future.get 传播非限流异常；异常不能被计入预期拒绝后悄然忽略。
+                    for (Future<?> task : tasks) {
+                        task.get(10, TimeUnit.SECONDS);
+                    }
+                    assertEquals(0, heldCount.get(), "全部工作线程应释放槽位");
+                    assertEquals(0, controller.getActiveCount(), "全部释放后 activeCount=0");
+                    for (int i = 0; i < threadCount; i++) {
+                        assertEquals(0, controller.getSessionActiveCount("session-" + i),
+                                "全部释放后会话计数应归零");
+                    }
+                }
+            } finally {
+                executor.shutdownNow();
+                assertTrue(executor.awaitTermination(10, TimeUnit.SECONDS), "执行器应在清理后终止");
             }
-
-            assertTrue(doneLatch.await(30, TimeUnit.SECONDS), "测试应在30秒内完成");
-            assertTrue(successCount.get() <= 30, "成功数应≤全局限制30");
-            assertEquals(0, controller.getActiveCount(), "全部释放后 activeCount=0");
-            executor.shutdown();
         }
     }
 }

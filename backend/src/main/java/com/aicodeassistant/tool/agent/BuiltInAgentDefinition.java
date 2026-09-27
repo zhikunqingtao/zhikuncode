@@ -79,7 +79,7 @@ public sealed interface BuiltInAgentDefinition permits
      */
     record ExploreAgent() implements BuiltInAgentDefinition {
         private static final Set<String> DENIED = Set.of(
-                "Agent", "ExitPlanMode", "FileEdit", "FileWrite", "NotebookEdit");
+                "Agent", "ExitPlanMode", "Edit", "Write", "NotebookEdit");
 
         @Override public String type() { return "explore"; }
         @Override public String description() { return "Search and read code, files, documentation"; }
@@ -99,7 +99,7 @@ public sealed interface BuiltInAgentDefinition permits
      */
     record VerificationAgent() implements BuiltInAgentDefinition {
         private static final Set<String> DENIED = Set.of(
-                "Agent", "ExitPlanMode", "FileEdit", "FileWrite", "NotebookEdit");
+                "Agent", "ExitPlanMode", "Edit", "Write", "NotebookEdit");
 
         @Override public String type() { return "verification"; }
         @Override public String description() { return "Test and verify changes with actual commands"; }
@@ -119,7 +119,7 @@ public sealed interface BuiltInAgentDefinition permits
      */
     record PlanAgent() implements BuiltInAgentDefinition {
         private static final Set<String> DENIED = Set.of(
-                "Agent", "ExitPlanMode", "FileEdit", "FileWrite", "NotebookEdit");
+                "Agent", "ExitPlanMode", "Edit", "Write", "NotebookEdit");
 
         @Override public String type() { return "plan"; }
         @Override public String description() { return "Create detailed implementation plans"; }
@@ -139,7 +139,7 @@ public sealed interface BuiltInAgentDefinition permits
      */
     record GuideAgent() implements BuiltInAgentDefinition {
         private static final Set<String> ALLOWED = Set.of(
-                "Glob", "Grep", "FileRead", "WebFetch", "WebSearch");
+                "Glob", "Grep", "Read", "WebFetch", "WebSearch");
 
         @Override public String type() { return "guide"; }
         @Override public String description() { return "Usage guide and documentation expert"; }

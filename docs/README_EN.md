@@ -916,8 +916,8 @@ In the Web input, enter `/skill translate`, fill in `language=python` or `python
 
 > Files in watched skill directories support hot updates with 500ms debounce. Deleting an override does not automatically restore its built-in definition. After changing bundled resources or removing overrides, rebuild and restart the backend, then refresh the frontend menu.
 
-**Security & Budget Controls:**
-- **Token Budget**: Single Skill ≤5000 tokens / Session total ≤25000 tokens, preventing resource abuse
+**Security & Runtime Controls:**
+- **Skill Loading & Context**: Skill loading has no fixed cumulative token quota per skill or session. Model context capacity, turn and output limits still apply; repeated loading still increases actual input token usage.
 - **Tool Declarations**: `allowed_tools` describes intended tools; runtime enforcement of this list is not guaranteed, and actual tool permissions still apply
 - **Injection Protection**: Shell injection triple-vector interception (`$()` / backticks / pipes), parameter length limit 2000 chars
 - **Fork Depth Control**: Fork-mode Skill nesting depth ≤3 levels, preventing infinite recursion
@@ -1216,13 +1216,13 @@ Built on Java 21 sealed interfaces with compile-time exhaustiveness checking. Ea
 
 | Agent Type | Purpose | Toolset | Model Preference |
 |-----------|---------|---------|------------------|
-| **General-Purpose** | Full implementation capability | All tools, unrestricted | Inherits parent |
-| **Explore** | Read-only code search | FileEdit/FileWrite denied | Lightweight (light) |
-| **Verification** | Adversarial test validation | FileEdit/FileWrite denied | Inherits parent |
-| **Plan** | Analysis & solution design | FileEdit/FileWrite denied | Inherits parent |
-| **Guide** | Documentation & usage guidance | Only Glob/Grep/FileRead/WebFetch/WebSearch | Lightweight (light) |
+| **General-Purpose** | Full implementation capability | Enabled tools, subject to sub-agent exclusions and authorization | Inherits parent |
+| **Explore** | Read-only code search | Edit/Write denied | Lightweight (light) |
+| **Verification** | Adversarial test validation | Edit/Write denied | Inherits parent |
+| **Plan** | Analysis & solution design | Edit/Write denied | Inherits parent |
+| **Guide** | Documentation & usage guidance | Only Glob/Grep/Read/WebFetch/WebSearch | Lightweight (light) |
 
-> All sub-agents are blocked from calling Agent/TeamCreate/TeamDelete tools, architecturally preventing infinite recursion.
+> All sub-agents exclude `Agent`, `TeamCreate`, `TeamDelete`, `TaskCreate`, and `VerifyPlanExecution`. The `Edit`/`Write` exclusions above remove those direct tools; Bash/MCP still follow existing authorization, so this is not a complete read-only sandbox.
 
 ### Team Mode — Fixed Roles
 
@@ -1394,19 +1394,19 @@ ZhikunCode provides built-in tools across the development lifecycle and supports
 
 | Category | Tools | Description |
 |----------|-------|-------------|
-| **File Operations** | FileRead, FileWrite, FileEdit, NotebookEdit | Read, write, and edit files (atomic writes + SHA-256 conflict detection), including Jupyter Notebook support; FileRead supports automatic large image externalization (>50KB converted to JSON references, injected on-demand by ImageRefInjector) |
-| **Code Search** | GrepTool, GlobTool, ToolSearch, LspTool, SnipTool | Regex search, file glob matching, tool search, LSP language service (call hierarchy analysis), code snippets, intelligent layered search (scope-aware 4-layer priority routing) |
-| **Command Execution** | BashTool, PowerShellTool, REPLTool | Shell sandbox execution (dynamic timeout classification + exponential backoff recovery), Windows PowerShell, interactive REPL sessions |
-| **Git Operations** | GitTool, Worktree | Git command execution, Worktree management |
+| **File Operations** | Read, Write, Edit, NotebookEdit | Read, write, and edit files (atomic writes + SHA-256 conflict detection), including Jupyter Notebook support; Read supports automatic large image externalization (>50KB converted to JSON references, injected on-demand by ImageRefInjector) |
+| **Code Search** | Grep, Glob, ToolSearch, LSP, Snip | Regex search, file glob matching, tool search, LSP language service (call hierarchy analysis), code snippets, intelligent layered search (scope-aware 4-layer priority routing) |
+| **Command Execution** | Bash, PowerShell, REPL | Shell sandbox execution (dynamic timeout classification + controlled recovery hints, no automatic retry), Windows PowerShell, interactive REPL sessions |
+| **Git Operations** | Git, Worktree | Git command execution, Worktree management |
 | **Web Tools** | WebSearch, WebFetch, WebBrowser | Web search, page fetching, browser automation |
-| **Agent Collaboration** | AgentTool | Create and manage sub-Agents |
+| **Agent Collaboration** | Agent | Create and manage sub-Agents |
 | **Task Management** | Task create/get/list/update/stop/output | SharedTaskList task collaboration |
 | **Interaction** | AskUserQuestion, Brief, Sleep, TodoWrite | User questions, briefings, wait, todo lists |
 | **Scheduled Tasks** | CronCreate, CronList, CronDelete | Cron job management |
-| **Plan Mode** | EnterPlanMode, ExitPlanMode, VerifyPlan | Plan-then-execute workflow |
-| **Configuration** | ConfigTool, SendMessage, SyntheticOutput | Config management, message sending, synthetic output |
-| **Monitoring** | MonitorTool, CtxInspect, TerminalCapture | System monitoring, context inspection, terminal output capture |
-| **Verification** | VerifyJourneyTool, BrowserVerifier, HttpApiVerifier | Runtime verification toolset — end-to-end browser testing, HTTP API assertion chains, hybrid-mode auto-switching |
+| **Plan Mode** | EnterPlanMode, ExitPlanMode, VerifyPlanExecution | Plan-then-execute workflow |
+| **Configuration** | Config, SendMessage, SyntheticOutput | Config management, message sending, synthetic output |
+| **Monitoring** | Monitor, CtxInspect, TerminalCapture | System monitoring, context inspection, terminal output capture |
+| **Verification** | VerifyJourney | Runtime verification — end-to-end browser testing, HTTP API assertion chains, hybrid-mode auto-switching; implemented by internal BrowserVerifier and HttpApiVerifier strategies |
 | **MCP Extensions** | MCP tool adapters | Connect to external MCP services (dynamically registered) |
 
 ---

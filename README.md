@@ -930,8 +930,8 @@ Web 调用方式：输入 `/skill translate`，在弹窗参数栏填写 `languag
 
 > 已监听目录中的技能文件支持热更新（500ms 防抖）。删除同名覆盖文件不会自动恢复内置定义；修改内置资源或清理覆盖文件后，应重新构建并重启后端，再刷新前端菜单。
 
-**安全与预算控制：**
-- **Token 预算限制**：单 Skill ≤5000 tokens / 会话总计 ≤25000 tokens，防止资源滥用
+**安全与运行控制：**
+- **技能加载与上下文**：不设置单技能或会话累计的 token 加载额度；模型上下文容量、运行轮次和输出限制仍然适用，重复加载仍会增加实际输入 token 消耗。
 - **工具声明**：`allowed_tools` 描述预期工具；当前不保证运行时强制执行这份列表，实际工具权限仍然适用
 - **注入防护**：Shell 注入三向量拦截（`$()` / 反引号 / 管道），参数长度限制 2000 字符
 - **Fork 深度控制**：fork 模式 Skill 嵌套深度 ≤3 层，防止无限递归
@@ -1230,13 +1230,13 @@ ZhikunCode 提供三种 Agent 协作模式和五种类型化 Agent，适用于�
 
 | Agent 类型 | 用途 | 工具集 | 模型偏好 |
 |-----------|------|--------|----------|
-| **通用 (general-purpose)** | 完整实现能力 | 全部工具，无限制 | 继承父级 |
-| **探索 (explore)** | 只读代码搜索 | 禁止 FileEdit/FileWrite | 轻量模型 (light) |
-| **验证 (verification)** | 对抗性测试验证 | 禁止 FileEdit/FileWrite | 继承父级 |
-| **规划 (plan)** | 分析与方案设计 | 禁止 FileEdit/FileWrite | 继承父级 |
-| **引导 (guide)** | 文档与使用指南 | 仅 Glob/Grep/FileRead/WebFetch/WebSearch | 轻量模型 (light) |
+| **通用 (general-purpose)** | 完整实现能力 | 当前启用工具，受子代理禁用名单与授权约束 | 继承父级 |
+| **探索 (explore)** | 只读代码搜索 | 禁止 Edit/Write | 轻量模型 (light) |
+| **验证 (verification)** | 对抗性测试验证 | 禁止 Edit/Write | 继承父级 |
+| **规划 (plan)** | 分析与方案设计 | 禁止 Edit/Write | 继承父级 |
+| **引导 (guide)** | 文档与使用指南 | 仅 Glob/Grep/Read/WebFetch/WebSearch | 轻量模型 (light) |
 
-> 所有子 Agent 均禁止调用 Agent/TeamCreate/TeamDelete 工具，从架构层面防止无限递归。
+> 所有子 Agent 均排除 `Agent`、`TeamCreate`、`TeamDelete`、`TaskCreate` 和 `VerifyPlanExecution`。上表的 `Edit`／`Write` 排除仅移除这些直接工具；Bash／MCP 仍遵守现有授权，不代表完整的只读沙箱。
 
 ### Team 模式 — 固定分工
 
@@ -1408,19 +1408,19 @@ ZhikunCode 提供 **40+ 内置工具**，并支持 MCP、插件与平台条件�
 
 | 分类 | 工具 | 说明 |
 |------|------|------|
-| **文件操作** | FileRead、FileWrite、FileEdit、NotebookEdit | 读取、写入、编辑文件（原子写入+SHA-256冲突检测），支持 Jupyter Notebook；FileRead 支持大图片自动外置化（>50KB 转 JSON 引用，由 ImageRefInjector 按需注入） |
-| **代码搜索** | GrepTool、GlobTool、ToolSearch、LspTool、SnipTool | 正则搜索、文件匹配、工具搜索、LSP 语言服务（含调用层级分析）、代码片段、智能分层搜索（作用域感知 4 层优先级路由） |
-| **命令执行** | BashTool、PowerShellTool、REPLTool | Shell 沙箱执行（动态超时分类 + 受控恢复提示，不自动重试）、Windows PowerShell、交互式 REPL 会话 |
-| **Git 操作** | GitTool、Worktree | Git 命令执行、Worktree 管理 |
+| **文件操作** | Read、Write、Edit、NotebookEdit | 读取、写入、编辑文件（原子写入+SHA-256冲突检测），支持 Jupyter Notebook；Read 支持大图片自动外置化（>50KB 转 JSON 引用，由 ImageRefInjector 按需注入） |
+| **代码搜索** | Grep、Glob、ToolSearch、LSP、Snip | 正则搜索、文件匹配、工具搜索、LSP 语言服务（含调用层级分析）、代码片段、智能分层搜索（作用域感知 4 层优先级路由） |
+| **命令执行** | Bash、PowerShell、REPL | Shell 沙箱执行（动态超时分类 + 受控恢复提示，不自动重试）、Windows PowerShell、交互式 REPL 会话 |
+| **Git 操作** | Git、Worktree | Git 命令执行、Worktree 管理 |
 | **Web 工具** | WebSearch、WebFetch、WebBrowser | 网络搜索、网页抓取、浏览器自动化 |
-| **Agent 协作** | AgentTool | 创建和管理子 Agent |
+| **Agent 协作** | Agent | 创建和管理子 Agent |
 | **任务管理** | 任务创建/获取/列表/更新/停止/输出 | SharedTaskList 任务协作 |
 | **交互** | AskUserQuestion、Brief、Sleep、TodoWrite | 用户提问、简报、等待、任务清单 |
 | **定时任务** | CronCreate、CronList、CronDelete | 定时任务管理 |
-| **计划模式** | EnterPlanMode、ExitPlanMode、VerifyPlan | 先规划后执行的工作流 |
-| **配置** | ConfigTool、SendMessage、SyntheticOutput | 配置管理、消息发送、合成输出 |
-| **监控** | MonitorTool、CtxInspect、TerminalCapture | 系统监控、上下文检查、终端输出捕获 |
-| **验证** | VerifyJourneyTool、BrowserVerifier、HttpApiVerifier | 运行时验证工具集 — 浏览器端到端测试、HTTP API 断言链、混合模式自动切换 |
+| **计划模式** | EnterPlanMode、ExitPlanMode、VerifyPlanExecution | 先规划后执行的工作流 |
+| **配置** | Config、SendMessage、SyntheticOutput | 配置管理、消息发送、合成输出 |
+| **监控** | Monitor、CtxInspect、TerminalCapture | 系统监控、上下文检查、终端输出捕获 |
+| **验证** | VerifyJourney | 运行时验证 — 浏览器端到端测试、HTTP API 断言链、混合模式自动切换；内部由 BrowserVerifier、HttpApiVerifier 策略实现 |
 | **MCP 扩展** | MCP 工具适配器 | 连接外部 MCP 服务（动态注册） |
 
 ---

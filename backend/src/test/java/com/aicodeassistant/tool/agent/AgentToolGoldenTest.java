@@ -334,8 +334,8 @@ class AgentToolGoldenTest {
             assertNotNull(SubAgentExecutor.AgentDefinition.GUIDE);
 
             // Explore 应禁止写工具
-            assertTrue(SubAgentExecutor.AgentDefinition.EXPLORE.deniedTools().contains("FileEdit"));
-            assertTrue(SubAgentExecutor.AgentDefinition.EXPLORE.deniedTools().contains("FileWrite"));
+            assertTrue(SubAgentExecutor.AgentDefinition.EXPLORE.deniedTools().contains("Edit"));
+            assertTrue(SubAgentExecutor.AgentDefinition.EXPLORE.deniedTools().contains("Write"));
 
             // General Purpose 应有全工具访问
             assertTrue(SubAgentExecutor.AgentDefinition.GENERAL_PURPOSE.allowedTools().contains("*"));

@@ -81,6 +81,10 @@ public class SkillCommand implements PromptCommand {
 
         // 解析参数并渲染模板
         Map<String, String> params = skill.parseArgs(skillArgs);
+        if (skill.source() == SkillDefinition.SkillSource.BUNDLED && "review".equals(skill.name())) {
+            // Review scope is prose, not the shared positional/key=value parameter grammar.
+            params.put("review_scope", skillArgs);
+        }
         String renderedPrompt = skill.renderTemplate(params);
 
         // 返回渲染后的提示词，由 PROMPT 路径注入 LLM 对话

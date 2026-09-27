@@ -155,7 +155,7 @@ public class BashTool implements Tool {
                 - File search: Use Glob (NOT find or ls)
                 - Content search: Use Grep (NOT grep or rg)
                 - Read files: Use Read (NOT cat/head/tail)
-                - Edit files: Use FileEdit (NOT sed/awk)
+                - Edit files: Use Edit (NOT sed/awk)
                 - Write files: Use Write (NOT echo >/cat <<EOF)
                 - Communication: Output text directly (NOT echo/printf)
                 While the Bash tool can do similar things, it's better to use the built-in tools \

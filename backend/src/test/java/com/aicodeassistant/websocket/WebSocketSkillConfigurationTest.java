@@ -1,6 +1,8 @@
 package com.aicodeassistant.websocket;
 
 import com.aicodeassistant.authorization.OperationAnalyzerRegistry;
+import com.aicodeassistant.command.CommandRegistry;
+import com.aicodeassistant.command.impl.SkillCommand;
 import com.aicodeassistant.config.FeatureFlagService;
 import com.aicodeassistant.config.ProjectPromptLoader;
 import com.aicodeassistant.config.oss.OssPublishProperties;
@@ -11,10 +13,10 @@ import com.aicodeassistant.coordinator.CoordinatorService;
 import com.aicodeassistant.engine.QueryConfig;
 import com.aicodeassistant.engine.QueryEngine;
 import com.aicodeassistant.engine.QueryLoopState;
-import com.aicodeassistant.engine.TokenCounter;
 import com.aicodeassistant.llm.LlmProviderRegistry;
 import com.aicodeassistant.llm.ModelRegistry;
 import com.aicodeassistant.model.Message;
+import com.aicodeassistant.model.ContentBlock;
 import com.aicodeassistant.model.Usage;
 import com.aicodeassistant.permission.PermissionModeManager;
 import com.aicodeassistant.prompt.EffectiveSystemPromptBuilder;
@@ -29,7 +31,7 @@ import com.aicodeassistant.session.SessionManager;
 import com.aicodeassistant.skill.SkillDefinition;
 import com.aicodeassistant.skill.SkillExecutor;
 import com.aicodeassistant.skill.SkillRegistry;
-import com.aicodeassistant.skill.SkillTokenBudget;
+import com.aicodeassistant.skill.SkillStateService;
 import com.aicodeassistant.skill.SkillTool;
 import com.aicodeassistant.skill.SkillToolValidator;
 import com.aicodeassistant.tool.Tool;
@@ -67,6 +69,80 @@ class WebSocketSkillConfigurationTest {
     @TempDir Path workspace;
 
     @Test
+    void reviewScopeReachesTheActualPromptCommandHandlerWithoutChangingSkillAvailability() throws Exception {
+        SkillRegistry skills = new SkillRegistry(new SkillStateService(
+                new ObjectMapper(), workspace.resolve("skill-states.json").toString()));
+        try {
+            SkillDefinition review;
+            try (var resource = java.util.Objects.requireNonNull(
+                    getClass().getResourceAsStream("/skills/bundled/review.md"))) {
+                review = SkillDefinition.fromMarkdown("review.md",
+                        new String(resource.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8),
+                        SkillDefinition.SkillSource.BUNDLED, null);
+            }
+            skills.registerBuiltin(review);
+            CommandRegistry commands = new CommandRegistry(List.of(new SkillCommand(skills)));
+            ToolRegistry tools = mock(ToolRegistry.class);
+            when(tools.getEnabledTools()).thenReturn(List.of());
+            when(tools.getToolDefinitions()).thenReturn(List.of());
+            EffectiveSystemPromptBuilder prompts = mock(EffectiveSystemPromptBuilder.class);
+            when(prompts.buildEffectiveSystemPrompt(any(), anyList(), eq(MODEL), eq(workspace)))
+                    .thenReturn("Test system prompt");
+            LlmProviderRegistry providers = mock(LlmProviderRegistry.class);
+            when(providers.getDefaultModel()).thenReturn(MODEL);
+            when(providers.resolveModelAlias(MODEL)).thenReturn(MODEL);
+            ModelRegistry models = mock(ModelRegistry.class);
+            when(models.getContextWindowForModel(MODEL)).thenReturn(200000);
+            SessionManager sessions = mock(SessionManager.class);
+            DataSource dataSource = mock(DataSource.class);
+            when(sessions.dataSourceIdentity()).thenReturn(dataSource);
+            AtomicReference<List<Message>> history = new AtomicReference<>(List.of());
+            when(sessions.loadSession(SESSION)).thenAnswer(invocation -> Optional.of(new SessionData(
+                    SESSION, MODEL, workspace.toString(), "Test", "active", history.get(), Map.of(),
+                    Usage.zero(), 0, null, Instant.EPOCH, Instant.EPOCH)));
+            ProjectWorkspaceService projectWorkspaces = mock(ProjectWorkspaceService.class);
+            when(projectWorkspaces.requireCurrentBinding(workspace.toString())).thenReturn(workspace);
+            WebSocketSessionManager transports = mock(WebSocketSessionManager.class);
+            when(transports.getSessionForPrincipal("test-user")).thenReturn(SESSION);
+            SessionExecutionGate gate = new SessionExecutionGate();
+            List<String> delivered = new CopyOnWriteArrayList<>();
+            QueryEngine engine = mock(QueryEngine.class);
+            when(engine.execute(any(), any(), any())).thenAnswer(invocation -> {
+                QueryLoopState state = invocation.getArgument(1);
+                List<Message> messages = List.copyOf(state.getMessages());
+                Message.UserMessage last = (Message.UserMessage) messages.getLast();
+                delivered.add(((ContentBlock.TextBlock) last.content().getFirst()).text());
+                history.set(messages);
+                return new QueryEngine.QueryResult(messages, Usage.zero(), "end_turn", null, 1);
+            });
+            WebSocketController controller = new WebSocketController(
+                    mock(SimpMessagingTemplate.class), transports, engine, tools, providers, prompts,
+                    models, sessions, null, commands, null, null, mock(ProjectContextService.class), projectWorkspaces,
+                    mock(PermissionModeManager.class), null, null, new ObjectMapper(), null, null,
+                    null, null, null, null, null, new OssPublishProperties(), gate);
+            String scope = "commit=abc123  排除 docs/**\n只查 \"src/a b.java\" {{args}} review_scope=literal";
+
+            controller.handleSlashCommand(new ClientMessage.SlashCommandPayload(
+                    "skill", "\"review\" " + scope), () -> "test-user");
+            await().atMost(Duration.ofSeconds(5)).until(() -> delivered.size() == 1 && !gate.isBusy(dataSource, SESSION));
+            assertThat(delivered.getFirst()).isEqualTo(review.content().replace("{{review_scope}}", scope))
+                    .containsOnlyOnce(scope);
+
+            skills.setEnabled("review", false);
+            controller.handleSlashCommand(new ClientMessage.SlashCommandPayload(
+                    "skill", "review " + scope), () -> "test-user");
+            verify(engine, times(1)).execute(any(), any(), any());
+            skills.setEnabled("review", true);
+            controller.handleSlashCommand(new ClientMessage.SlashCommandPayload("skill", "review"), () -> "test-user");
+            await().atMost(Duration.ofSeconds(5)).until(() -> delivered.size() == 2 && !gate.isBusy(dataSource, SESSION));
+            assertThat(delivered.get(1)).isEqualTo(review.content().replace("{{review_scope}}", ""))
+                    .doesNotContain("{{review_scope}}", scope);
+        } finally {
+            skills.stopWatching();
+        }
+    }
+
+    @Test
     void successiveUserMessagesUseCurrentSkillsThroughTheRealPromptAndConfigurationBuilders() throws Exception {
         SkillRegistry skills = new SkillRegistry();
         try {
@@ -76,8 +152,7 @@ class WebSocketSkillConfigurationTest {
                     "---\ndescription: " + HIDDEN_DESCRIPTION + "\n---\n" + HIDDEN_BODY,
                     SkillDefinition.SkillSource.USER, null));
             skills.setEnabled(HIDDEN_ID, false);
-            SkillTool skillTool = new SkillTool(new SkillExecutor(skills, mock(SkillToolValidator.class),
-                    mock(SkillTokenBudget.class), mock(TokenCounter.class)), skills);
+            SkillTool skillTool = new SkillTool(new SkillExecutor(skills, mock(SkillToolValidator.class)), skills);
             OperationAnalyzerRegistry analyzers = mock(OperationAnalyzerRegistry.class);
             when(analyzers.isExplicitCoreTool("Skill")).thenReturn(true);
             ToolRegistry tools = new ToolRegistry(List.of(skillTool), analyzers);

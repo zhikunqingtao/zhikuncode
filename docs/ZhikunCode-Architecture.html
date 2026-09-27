@@ -5571,7 +5571,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
           <div class="tree-item"><span class="tn">SkillDefinition</span><span class="tv">record 类型 · SkillSource 枚举 6 值</span></div>
           <div class="tree-item"><span class="tn">FrontmatterParser</span><span class="tv">简化 YAML 解析 (key: value / 列表项)</span></div>
           <div class="tree-item"><span class="tn">FrontmatterData</span><span class="tv">16 个 frontmatter 字段</span></div>
-          <div class="tree-item"><span class="tn">SkillExecutor</span><span class="tv">inline/fork 分发 · 120s 超时 · Token 预算检查</span></div>
+          <div class="tree-item"><span class="tn">SkillExecutor</span><span class="tv">inline/fork 分发 · 120s 超时 · 参数校验</span></div>
           <div class="tree-item"><span class="tn">SkillToolValidator</span><span class="tv">参数注入检测 + fork 嵌套深度 ≤3 (allowed-tools 白名单仅声明，运行时未拦截)</span></div>
         </div>
       </div>
@@ -6237,7 +6237,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
         <div style="color:#9FA4C4;font-size:.72rem;line-height:1.55">
           • <span style="color:#10B981">inline</span> (默认): 渲染后的 prompt 作为用户消息注入当前对话<br>
           • <span style="color:#06B6D4">fork</span>: 返回 prompt + metadata (agent/model/effort) 供外层 AgentService 创建子代理<br>
-          • Token 预算检查: 调用 SkillTokenBudget.canConsume()<br>
+          • Skill 加载不再按会话累计额度拦截；模型上下文容量保护保持不变<br>
           • 超时: <code style="color:#F59E0B">SKILL_TIMEOUT_SECONDS = 120</code> (CompletableFuture.orTimeout)
         </div>
       </div>
@@ -6270,7 +6270,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
 
     <div style="margin-top:14px;padding:10px 12px;background:#0F1221;border-left:3px solid #F59E0B;border-radius:4px;font-size:.72rem;color:#9FA4C4;line-height:1.55">
       <span style="color:#F59E0B;font-weight:700">稳定职责锚点：</span>
-      SkillRegistry（六层来源与热重载） · SkillDefinition（来源和元数据） · SkillExecutor（预算、超时和 fork） · SkillToolValidator（参数、嵌套和注入检查）。具体源码行号随提交变化，不作为架构契约。
+      SkillRegistry（六层来源与热重载） · SkillDefinition（来源和元数据） · SkillExecutor（渲染、超时和 fork） · SkillToolValidator（参数、嵌套和注入检查）。具体源码行号随提交变化，不作为架构契约。
     </div>
   </div>
 

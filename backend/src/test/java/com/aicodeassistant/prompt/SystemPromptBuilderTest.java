@@ -2,6 +2,8 @@ package com.aicodeassistant.prompt;
 
 import com.aicodeassistant.config.ProjectPromptLoader;
 import com.aicodeassistant.config.FeatureFlagService;
+import com.aicodeassistant.coordinator.CoordinatorPromptBuilder;
+import com.aicodeassistant.coordinator.CoordinatorService;
 import com.aicodeassistant.context.ProjectContextService;
 import com.aicodeassistant.context.SystemPromptSectionCache;
 import com.aicodeassistant.service.ProjectMemoryService;
@@ -13,6 +15,13 @@ import com.aicodeassistant.service.GitService;
 import com.aicodeassistant.state.AppState;
 import com.aicodeassistant.state.AppStateStore;
 import com.aicodeassistant.tool.Tool;
+import com.aicodeassistant.tool.impl.BashTool;
+import com.aicodeassistant.tool.impl.FileEditTool;
+import com.aicodeassistant.tool.impl.FileReadTool;
+import com.aicodeassistant.tool.impl.FileWriteTool;
+import com.aicodeassistant.tool.impl.GlobTool;
+import com.aicodeassistant.tool.impl.GrepTool;
+import com.aicodeassistant.tool.powershell.PowerShellTool;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -80,6 +89,42 @@ class SystemPromptBuilderTest {
         assertTrue(prompt.contains("# 执行任务"));
         assertTrue(prompt.contains("# 环境"));
         assertTrue(prompt.contains("gpt-4o"));
+    }
+
+    @Test
+    void effectiveMainPromptAndShellSchemasUseActualToolNamesWithoutChangingOverrides() {
+        Tool read = new FileReadTool(null, null, null, null, null);
+        Tool edit = new FileEditTool(null, null, null, null, null, null);
+        Tool write = new FileWriteTool(null, null, null, null, null);
+        Tool glob = new GlobTool(null);
+        Tool grep = new GrepTool(null, null);
+        // Only schema/prompt methods run: no shell, model, or file operation is executed.
+        List<Tool> tools = List.of(read, edit, write, glob, grep,
+                mock(BashTool.class, CALLS_REAL_METHODS), mock(PowerShellTool.class, CALLS_REAL_METHODS));
+        var effective = new EffectiveSystemPromptBuilder(builder, featureFlags,
+                mock(CoordinatorPromptBuilder.class), mock(CoordinatorService.class));
+
+        String prompt = effective.buildEffectiveSystemPrompt(
+                SystemPromptConfig.defaults(), tools, "stub-model", tempDir);
+        assertAll(
+                () -> assertTrue(prompt.contains("读取文件使用 " + read.getName())),
+                () -> assertTrue(prompt.contains("编辑文件使用 " + edit.getName())),
+                () -> assertTrue(prompt.contains("创建文件使用 " + write.getName())),
+                () -> assertTrue(prompt.contains("搜索文件使用 " + glob.getName())),
+                () -> assertTrue(prompt.contains("搜索文件内容使用 " + grep.getName())));
+        String deliveredGuidance = prompt + tools.stream().map(Tool::toToolDefinition).toList();
+        var legacyName = java.util.regex.Pattern.compile("\\b(?:File(?:Read|Edit|Write)(?:Tool)?|GlobTool|GrepTool)\\b")
+                .matcher(deliveredGuidance);
+        assertFalse(legacyName.find(), () -> "Model-visible guidance contains an unregistered name: "
+                + deliveredGuidance.substring(Math.max(0, legacyName.start() - 60),
+                Math.min(deliveredGuidance.length(), legacyName.end() + 100)));
+
+        assertEquals("OVERRIDE", effective.buildEffectiveSystemPrompt(
+                SystemPromptConfig.defaults().withOverride("OVERRIDE").withCustom("CUSTOM").withAppend("APPEND"),
+                tools, "stub-model", tempDir));
+        assertEquals("CUSTOM\n\nAPPEND", effective.buildEffectiveSystemPrompt(
+                SystemPromptConfig.defaults().withCustom("CUSTOM").withAppend("APPEND"),
+                tools, "stub-model", tempDir));
     }
 
     @Test

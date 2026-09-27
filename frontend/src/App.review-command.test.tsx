@@ -255,11 +255,12 @@ describe('App handleSlashCommand — /review 参数保真', () => {
   });
 
   it('带空格的显示别名使用稳定 id 打开详情并执行', async () => {
+    const scope = '比较  main...HEAD\n仅看 "src/有 空格.ts"，排除=docs；保留 {{args}}';
     act(() => useSkillStore.setState({ skills: [{ id: 'internal-skill', name: 'Display Alias', description: '', source: 'PROJECT', enabled: true }] }));
     expect(await runSlashCommand('/skill Display Alias')).toBe(true);
     expect(captured.selectedSkill?.skillName).toBe('internal-skill');
-    await act(async () => { await captured.selectedSkill!.onExecute('internal-skill', 'review this'); });
-    expect(lastSendCall()).toEqual(['skill', 'internal-skill review this']);
+    await act(async () => { await captured.selectedSkill!.onExecute('internal-skill', scope); });
+    expect(lastSendCall()).toEqual(['skill', `internal-skill ${scope}`]);
   });
 
   it.each(['my skill', ' leading ', 'quoted"name', 'back\\slash'])('完整编码特殊 canonical id：%s', async id => {

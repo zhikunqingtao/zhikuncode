@@ -5,15 +5,12 @@ import com.aicodeassistant.tool.ToolInput;
 import com.aicodeassistant.tool.ToolResult;
 import com.aicodeassistant.tool.ToolUseContext;
 import org.junit.jupiter.api.*;
-import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 
 /**
  * Skill 系统黄金测试 — 
@@ -29,10 +26,7 @@ class SkillSystemGoldenTest {
     void setUp() {
         registry = new SkillRegistry();
         SkillToolValidator validator = new SkillToolValidator();
-        SkillTokenBudget tokenBudget = new SkillTokenBudget();
-        TokenCounter tokenCounter = Mockito.mock(TokenCounter.class);
-        when(tokenCounter.estimateTokens(anyString())).thenReturn(100);
-        executor = new SkillExecutor(registry, validator, tokenBudget, tokenCounter);
+        executor = new SkillExecutor(registry, validator);
         skillTool = new SkillTool(executor, registry);
         defaultContext = ToolUseContext.of("/tmp/workspace", "test-session");
     }
@@ -469,43 +463,47 @@ class SkillSystemGoldenTest {
     class SkillExecutorTests {
 
         @Test
-        @DisplayName("inline 模式执行 — 渲染正文即工具结果正文")
+        @DisplayName("inline 长正文超过旧单技能上限仍完整加载，保留正文与元数据")
         void inlineExecution() {
-            registerSkill("greet", "inline", "Hello {{name}}!");
+            String instructions = "Read the evidence carefully.\n".repeat(1000);
+            registerSkill("greet", "inline", instructions + "Hello {{name}}!");
+            String expected = instructions + "Hello World!";
+            // Only characterize the fixture against the removed cap; loading no longer depends on a counter.
+            assertTrue(new TokenCounter(null, null, null).estimateTokens(expected) > 5000);
 
             ToolResult result = executor.execute("greet", "name=World", defaultContext);
 
             assertFalse(result.isError());
-            assertEquals("Hello World!", result.content());
+            assertEquals(expected, result.content());
             assertEquals(1, countOccurrences(result.content(), "Hello World!"));
             // metadata 兼容性断言：injectedPrompt 仍保留
-            assertEquals("inline", result.metadata().get("executionMode"));
-            assertEquals("Hello World!", result.metadata().get("injectedPrompt"));
+            assertEquals(Map.of("executionMode", "inline", "injectedPrompt", expected,
+                    "commandName", "greet", "model", "inherit"), result.metadata());
         }
 
         @Test
-        @DisplayName("inline 正文按实际 token 计入预算 — 第二次串行调用被单技能预算拒绝")
-        void inlineBodyChargesRealTokensAgainstBudget() {
-            registerSkill("greet", "inline", "Hello {{name}}!");
-            SkillTokenBudget budget = new SkillTokenBudget();
-            TokenCounter exactCounter = Mockito.mock(TokenCounter.class);
-            // 精确正文串估值 3000 tokens — 入场估算与成功记账必须使用同一真实正文
-            when(exactCounter.estimateTokens("Hello World!")).thenReturn(3000);
-            SkillExecutor budgetedExecutor = new SkillExecutor(
-                    registry, new SkillToolValidator(), budget, exactCounter);
+        @DisplayName("同会话多个技能及重复加载超过旧累计上限仍成功")
+        void repeatedAndMultipleSkillLoadsDoNotUseCumulativeBudgets() {
+            String instructions = "Evidence ".repeat(1500);
+            String expected = instructions + "Hello World!";
+            int estimatedTokens = new TokenCounter(null, null, null).estimateTokens(expected);
+            int skillCount = 8;
+            assertTrue(estimatedTokens < 5000, "每次加载本身低于旧单技能上限");
+            assertTrue(estimatedTokens * 2 > 5000, "同技能重复加载应跨过旧累计上限");
+            assertTrue(estimatedTokens * skillCount > 25000, "不同技能合计应跨过旧会话上限");
+            for (int i = 0; i < skillCount; i++) {
+                registerSkill("greet-" + i, "inline", instructions + "Hello {{name}}!");
+            }
 
-            ToolResult first = budgetedExecutor.execute("greet", "name=World", defaultContext);
-            assertFalse(first.isError());
-            assertEquals("Hello World!", first.content());
-            assertEquals(3000, budget.getStatus("test-session", "greet").skillUsed());
-
-            // 3000 + 3000 > 5000（单技能累计上限）→ 第二次调用被预算拒绝
-            ToolResult second = budgetedExecutor.execute("greet", "name=World", defaultContext);
-            assertTrue(second.isError());
-            assertEquals("SKILL_TOKEN_BUDGET_EXCEEDED", second.failureCode());
-            assertTrue(second.content().contains("Skill token budget exceeded"));
-            // 预算拒绝不产生成功记账，累计不变
-            assertEquals(3000, budget.getStatus("test-session", "greet").skillUsed());
+            // Load each skill once, then repeat the first in the very same session.
+            for (int i = 0; i <= skillCount; i++) {
+                String name = "greet-" + (i % skillCount);
+                ToolResult result = executor.execute(name, "name=World", defaultContext);
+                assertFalse(result.isError(), "加载 " + name + " 不应受已移除的累计预算限制");
+                assertEquals(expected, result.content());
+                assertEquals(Map.of("executionMode", "inline", "injectedPrompt", expected,
+                        "commandName", name, "model", "inherit"), result.metadata());
+            }
         }
 
         @Test

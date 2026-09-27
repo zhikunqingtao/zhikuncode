@@ -103,11 +103,11 @@ public class PowerShellTool implements Tool {
                 If not specified, commands will timeout after 120000ms (2 minutes).
                 - Write a clear, concise description of what this command does.
                 - Avoid using PowerShell to run commands that have dedicated tools, unless explicitly instructed:
-                  - File search: Use GlobTool (NOT Get-ChildItem -Recurse)
-                  - Content search: Use GrepTool (NOT Select-String)
-                  - Read files: Use FileRead (NOT Get-Content)
-                  - Edit files: Use FileEdit
-                  - Write files: Use FileWrite (NOT Set-Content/Out-File)
+                  - File search: Use Glob (NOT Get-ChildItem -Recurse)
+                  - Content search: Use Grep (NOT Select-String)
+                  - Read files: Use Read (NOT Get-Content)
+                  - Edit files: Use Edit
+                  - Write files: Use Write (NOT Set-Content/Out-File)
                   - Communication: Output text directly (NOT Write-Output/Write-Host)
                 - When issuing multiple commands:
                   - If the commands are independent, make multiple PowerShell tool calls in a single message.

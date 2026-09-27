@@ -702,8 +702,8 @@ public class SubAgentExecutor {
                 
                 上下文：
                 - 工作目录：%s
-                - 你可以使用文件读写工具、搜索工具和 bash。
-                - 你无法使用：AgentTool、TaskCreateTool、TeamTools。
+                - 工具以当前请求提供的定义为准；使用时遵守上述角色约束和任务授权。
+                - 你无法使用：Agent、TaskCreate、TeamCreate、TeamDelete、VerifyPlanExecution。
                 - 完成任务并返回清晰、简洁的结果。
                 - 如果你修改了文件，在最终回复中列出所有修改的文件路径。
                 - 不要尝试超出上述范围的任务。
@@ -965,7 +965,7 @@ public class SubAgentExecutor {
             ## 约束条件
             - 你不能编辑、创建或删除任何文件
             - 你不能执行修改状态的命令
-            - 你只能使用：FileRead、GlobTool、GrepTool、list_dir、search_codebase、\
+            - 你只能使用：Read、Glob、Grep、search_codebase、\
             search_symbol 以及其他只读工具
             - 如果被要求进行修改，拒绝并说明你是只读模式
             
@@ -973,9 +973,9 @@ public class SubAgentExecutor {
             收到搜索任务时，按以下优先级顺序使用：
             1. **search_codebase** —— 用于语义/概念搜索（"认证是如何工作的？"）
             2. **search_symbol** —— 用于查找特定的类/方法/变量定义
-            3. **GrepTool** —— 用于精确文本模式匹配（错误信息、配置键）
-            4. **GlobTool** —— 用于按文件名/扩展名模式查找文件
-            5. **FileRead** —— 用于读取已经确定的特定文件
+            3. **Grep** —— 用于精确文本模式匹配（错误信息、配置键）
+            4. **Glob** —— 用于按文件名/扩展名模式查找文件
+            5. **Read** —— 用于读取已经确定的特定文件
             
             ## 效率规则
             - 先广后窄。当搜索即可时，不要读取整个文件。
@@ -1248,22 +1248,22 @@ public class SubAgentExecutor {
     ) {
         static final AgentDefinition EXPLORE = new AgentDefinition(
                 "Explore", BuiltInAgentDefinition.DEFAULT_MAX_TURNS, null, null,
-                Set.of("Agent", "ExitPlanMode", "FileEdit", "FileWrite", "NotebookEdit"),
+                Set.of("Agent", "ExitPlanMode", "Edit", "Write", "NotebookEdit"),
                 true, EXPLORE_AGENT_PROMPT);
         static final AgentDefinition VERIFICATION = new AgentDefinition(
                 "Verification", BuiltInAgentDefinition.DEFAULT_MAX_TURNS, null, null,
-                Set.of("Agent", "ExitPlanMode", "FileEdit", "FileWrite", "NotebookEdit"),
+                Set.of("Agent", "ExitPlanMode", "Edit", "Write", "NotebookEdit"),
                 false, VERIFICATION_AGENT_PROMPT);
         static final AgentDefinition PLAN = new AgentDefinition(
                 "Plan", BuiltInAgentDefinition.DEFAULT_MAX_TURNS, null, null,
-                Set.of("Agent", "ExitPlanMode", "FileEdit", "FileWrite", "NotebookEdit"),
+                Set.of("Agent", "ExitPlanMode", "Edit", "Write", "NotebookEdit"),
                 true, PLAN_AGENT_PROMPT);
         static final AgentDefinition GENERAL_PURPOSE = new AgentDefinition(
                 "GeneralPurpose", BuiltInAgentDefinition.DEFAULT_MAX_TURNS, null, Set.of("*"), null,
                 false, GENERAL_PURPOSE_AGENT_PROMPT);
         static final AgentDefinition GUIDE = new AgentDefinition(
                 "Guide", BuiltInAgentDefinition.DEFAULT_MAX_TURNS, null,
-                Set.of("Glob", "Grep", "FileRead", "WebFetch", "WebSearch"), null,
+                Set.of("Glob", "Grep", "Read", "WebFetch", "WebSearch"), null,
                 false, GUIDE_AGENT_PROMPT);
     }
 

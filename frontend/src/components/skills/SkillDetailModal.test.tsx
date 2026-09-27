@@ -42,11 +42,12 @@ describe('SkillDetailModal availability', () => {
 
   it('executes an enabled skill with the supplied arguments', async () => {
     const execute = vi.fn();
+    const scope = '比较  main...HEAD\n仅看 "src/有 空格.ts"，排除=docs；保留 {{args}}';
     render(<SkillDetailModal skillName="Demo" onClose={vi.fn()} onExecute={execute} />);
     await screen.findByText('Skill body');
-    fireEvent.change(screen.getByLabelText('补充说明（可选）'), { target: { value: '  review this  ' } });
+    fireEvent.change(screen.getByLabelText('补充说明（可选）'), { target: { value: `  ${scope}  ` } });
     await act(async () => fireEvent.click(screen.getByRole('button', { name: '执行技能' })));
-    expect(execute).toHaveBeenCalledWith('demo', 'review this');
+    expect(execute).toHaveBeenCalledWith('demo', scope);
   });
 
   it('uses an unambiguous runtime detail path for a skill named manage', async () => {

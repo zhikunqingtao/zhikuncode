@@ -29,7 +29,6 @@ import com.aicodeassistant.skill.SkillDefinition;
 import com.aicodeassistant.skill.SkillExecutor;
 import com.aicodeassistant.skill.SkillRegistry;
 import com.aicodeassistant.skill.SkillStateService;
-import com.aicodeassistant.skill.SkillTokenBudget;
 import com.aicodeassistant.skill.SkillTool;
 import com.aicodeassistant.skill.SkillToolValidator;
 import com.aicodeassistant.tool.*;
@@ -1496,8 +1495,6 @@ class QueryEngineUnitTest {
         private final List<List<Map<String, Object>>> requests = new ArrayList<>();
         private final List<Map<String, Object>> completeRequests = new ArrayList<>();
         private SkillRegistry registry;
-        private TokenCounter skillTokenCounter;
-        private SkillTokenBudget skillBudget;
         private Tool skillTool;
         private Tool controlTool;
         @org.junit.jupiter.api.io.TempDir java.nio.file.Path workspace;
@@ -1532,11 +1529,7 @@ class QueryEngineUnitTest {
                     "greet.md",
                     "---\ncontext: inline\n---\nBODY_SENTINEL Hello {{name}}!",
                     SkillDefinition.SkillSource.PROJECT, null));
-            skillBudget = new SkillTokenBudget();
-            skillTokenCounter = mock(TokenCounter.class);
-            lenient().when(skillTokenCounter.estimateTokens(anyString())).thenReturn(100);
-            SkillExecutor skillExecutor = new SkillExecutor(
-                    registry, new SkillToolValidator(), skillBudget, skillTokenCounter);
+            SkillExecutor skillExecutor = new SkillExecutor(registry, new SkillToolValidator());
             skillTool = new SkillTool(skillExecutor, registry);
 
             // 对照工具：标记只存在于 metadata.injectedPrompt，正文中绝不出现
@@ -1653,6 +1646,46 @@ class QueryEngineUnitTest {
         }
 
         @Test
+        @DisplayName("内置 review 的完整范围经过真实 Skill 链送达下一轮请求")
+        void bundledReviewScopeDeliveredInNextModelRequest() throws Exception {
+            String scope = "commit=abc123  排除 docs/**\n只查 \"src/a b.java\" {{args}} review_scope=literal";
+            SkillDefinition review;
+            try (var resource = java.util.Objects.requireNonNull(
+                    getClass().getResourceAsStream("/skills/bundled/review.md"))) {
+                review = SkillDefinition.fromMarkdown("review.md",
+                        new String(resource.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8),
+                        SkillDefinition.SkillSource.BUNDLED, null);
+            }
+            registry.registerBuiltin(review);
+            String toolInput = objectMapper.writeValueAsString(Map.of("skill", "review", "args", scope));
+            script((call, callback) -> {
+                if (call == 1) {
+                    finish(callback, "tool_use",
+                            new LlmStreamEvent.ToolUseStart("review-scope-call", "Skill"),
+                            new LlmStreamEvent.ToolInputDelta("review-scope-call", toolInput));
+                } else {
+                    finish(callback, "end_turn", new LlmStreamEvent.TextDelta("done"));
+                }
+            });
+
+            QueryEngine.QueryResult result = queryEngine.execute(
+                    twoRoundConfig(), buildState("run the review skill"), handler);
+
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(handler.errors).isEmpty();
+            assertThat(requests).hasSize(2);
+            assertThat(objectMapper.writeValueAsString(requests.getFirst()))
+                    .doesNotContain("commit=abc123", "review_scope=literal");
+            String expected = review.content().replace("{{review_scope}}", scope);
+            List<Map<String, Object>> blocks = toolResultBlocks(requests.get(1));
+            assertThat(blocks).filteredOn(block -> "review-scope-call".equals(block.get("tool_use_id")))
+                    .singleElement().satisfies(block -> {
+                        assertThat(block.get("is_error")).isNull();
+                        assertThat((String) block.get("content")).isEqualTo(expected).containsOnlyOnce(scope);
+                    });
+        }
+
+        @Test
         @DisplayName("未知技能返回错误结果而非成功正文")
         void unknownSkillYieldsErrorNotSuccessBody() throws Exception {
             script((call, callback) -> {
@@ -1682,35 +1715,60 @@ class QueryEngineUnitTest {
         }
 
         @Test
-        @DisplayName("预算拒绝的技能调用返回错误结果而非成功正文")
-        void budgetDeniedSkillCallYieldsErrorNotSuccessBody() throws Exception {
-            // 入场估算精确正文 = 6000 tokens > 单技能预算 5000 → 预算拒绝
-            when(skillTokenCounter.estimateTokens(RENDERED_BODY)).thenReturn(6000);
+        @DisplayName("同一会话技能累计超过旧固定阈值后正文仍送达下一轮请求")
+        void cumulativeSkillContentBeyondFormerLimitsReachesNextModelRequests() throws Exception {
+            List<String> skillNames = new ArrayList<>();
+            List<String> renderedBodies = new ArrayList<>();
+            for (int i = 0; i < 6; i++) {
+                String name = "cumulative-skill-" + i;
+                SkillDefinition skill = SkillDefinition.fromMarkdown(name + ".md",
+                        "---\ncontext: inline\n---\nCUMULATIVE_BODY_" + i + "\n" + "验".repeat(8000),
+                        SkillDefinition.SkillSource.PROJECT, null);
+                registry.register(skill);
+                skillNames.add(name);
+                renderedBodies.add(skill.content());
+            }
+            List<Integer> calls = List.of(0, 0, 1, 2, 3, 4, 5);
+            // 仅测量夹具的旧估算规模，不向 SkillExecutor 或主引擎注入计数器。
+            TokenCounter fixtureCounter = new TokenCounter(null, null, null);
+            assertThat(renderedBodies).allSatisfy(body ->
+                    assertThat(fixtureCounter.estimateTokens(body)).isBetween(2501, 5000));
+            assertThat(fixtureCounter.estimateTokens(renderedBodies.getFirst()) * 2).isGreaterThan(5000);
+            assertThat(calls.stream().mapToInt(i -> fixtureCounter.estimateTokens(renderedBodies.get(i))).sum())
+                    .isGreaterThan(25000);
             script((call, callback) -> {
-                if (call == 1) {
+                if (call <= calls.size()) {
+                    String callId = "cumulative-call-" + call;
+                    String name = skillNames.get(calls.get(call - 1));
                     finish(callback, "tool_use",
-                            new LlmStreamEvent.ToolUseStart("skill-call-1", "Skill"),
-                            new LlmStreamEvent.ToolInputDelta("skill-call-1",
-                                    "{\"skill\":\"greet\",\"args\":\"name=World\"}"));
+                            new LlmStreamEvent.ToolUseStart(callId, "Skill"),
+                            new LlmStreamEvent.ToolInputDelta(callId, "{\"skill\":\"" + name + "\"}"));
                 } else {
                     finish(callback, "end_turn", new LlmStreamEvent.TextDelta("done"));
                 }
             });
+            QueryConfig config = QueryConfig.withDefaults(
+                    "mock-model", "You are a helpful assistant.", List.of(skillTool),
+                    List.of(skillTool.toToolDefinition()),
+                    8192, 200000, new ThinkingConfig.Disabled(), calls.size() + 1, "test");
 
             QueryEngine.QueryResult result = queryEngine.execute(
-                    twoRoundConfig(), buildState("run the greet skill"), handler);
+                    config, buildState("Run the requested skills in this session"), handler);
 
             assertThat(result.isSuccess()).isTrue();
-            assertThat(requests).hasSize(2);
-            String round2Json = objectMapper.writeValueAsString(requests.get(1));
-            assertThat(round2Json).doesNotContain("BODY_SENTINEL");
-            assertThat(round2Json).doesNotContain("loaded. Prompt injected");
-            Map<String, Object> block = toolResultBlocks(requests.get(1)).stream()
-                    .filter(b -> "skill-call-1".equals(b.get("tool_use_id")))
-                    .findFirst().orElseThrow();
-            assertThat(block.get("is_error")).isEqualTo(true);
-            assertThat((String) block.get("content")).contains("Skill token budget exceeded");
-            assertThat(skillBudget.getStatus("test-session", "greet").skillUsed()).isZero();
+            assertThat(handler.errors).isEmpty();
+            assertThat(requests).hasSize(calls.size() + 1);
+            for (int i = 0; i < calls.size(); i++) {
+                String callId = "cumulative-call-" + (i + 1);
+                String expectedBody = renderedBodies.get(calls.get(i));
+                assertThat(toolResultBlocks(requests.get(i + 1)))
+                        .filteredOn(block -> callId.equals(block.get("tool_use_id")))
+                        .singleElement().satisfies(block -> {
+                            assertThat(block.get("is_error")).isNull();
+                            assertThat(block.get("content")).isEqualTo(expectedBody);
+                        });
+            }
+            verify(runTracker).completeRun(eq(run.id()), anyInt(), anyDouble(), anyInt(), eq(calls.size() + 1));
         }
 
         @Test
@@ -1741,13 +1799,11 @@ class QueryEngineUnitTest {
                 assertThat(block.get("is_error")).isEqualTo(true);
                 assertThat((String) block.get("content")).contains("Available skills: greet");
             });
-            assertThat(skillBudget.getStatus("test-session", DISABLED_NAME).sessionUsed()).isZero();
-            verifyNoInteractions(skillTokenCounter);
         }
 
         @Test
-        @DisplayName("配置建立后关闭技能，旧工具通过别名调用也不能渲染正文或消耗预算")
-        void disabledSkillRejectsStaleToolCallsBeforeRenderingOrSpendingBudget() throws Exception {
+        @DisplayName("配置建立后关闭技能，旧工具通过别名调用也不能渲染正文")
+        void disabledSkillRejectsStaleToolCallsBeforeRendering() throws Exception {
             registerIsolatedSkill();
             assertThat(registry.resolve("/Isolated-Alias").name()).isEqualTo(DISABLED_NAME);
             QueryConfig staleConfig = configFromRegistry(realToolRegistry(), false);
@@ -1775,9 +1831,6 @@ class QueryEngineUnitTest {
                 assertThat(block.get("is_error")).isEqualTo(true);
                 assertThat((String) block.get("content")).contains("Skill not found");
             });
-            assertThat(skillBudget.getStatus("test-session", DISABLED_NAME).sessionUsed()).isZero();
-            assertThat(skillBudget.getStatus("test-session", "Isolated-Alias").skillUsed()).isZero();
-            verifyNoInteractions(skillTokenCounter);
         }
 
         @Test
@@ -1833,7 +1886,6 @@ class QueryEngineUnitTest {
                 assertThat(block.get("content")).isEqualTo(RENDERED_BODY);
                 assertThat(block.get("is_error")).isNull();
             });
-            assertThat(skillBudget.getStatus("test-session", "greet").skillUsed()).isEqualTo(100);
         }
 
         private void registerIsolatedSkill() {
