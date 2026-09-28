@@ -148,6 +148,45 @@ public class RunControlService {
         return write(() -> appendEventInCurrentWrite(runId, type, toolUseId, data));
     }
 
+    /**
+     * 更新同一 Run 的累计用量快照（只写用量列，绝不触碰终态/退出原因/终止时间，也不追加事件）。
+     * 序号单调：旧序号忽略；同序号同值幂等、同序号异值冲突。
+     * 补充写入只有限等待写锁，避免挡住调用方后续的终止与本地清理。
+     */
+    public UsageSnapshotOutcome updateUsageSnapshot(String runId, long seq, int cumulativeTokens,
+                                                    int turns, RunEnvelope.UsageStatus status) {
+        if (runId == null) return UsageSnapshotOutcome.NOT_FOUND;
+        RunEnvelope.UsageStatus effective = status == null ? RunEnvelope.UsageStatus.UNKNOWN : status;
+        return executeBoundedWrite(() -> {
+            List<Map<String, Object>> rows = jdbc.queryForList("""
+                    SELECT total_tokens,turn_count,usage_status,usage_snapshot_seq
+                    FROM run_envelopes WHERE id=?
+                    """, runId);
+            if (rows.isEmpty()) return UsageSnapshotOutcome.NOT_FOUND;
+            Map<String, Object> currentRow = rows.getFirst();
+            long currentSeq = ((Number) currentRow.get("usage_snapshot_seq")).longValue();
+            if (seq < currentSeq) return UsageSnapshotOutcome.STALE_IGNORED;
+            int currentTokens = ((Number) currentRow.get("total_tokens")).intValue();
+            int currentTurns = ((Number) currentRow.get("turn_count")).intValue();
+            Object currentStatusValue = currentRow.get("usage_status");
+            RunEnvelope.UsageStatus currentStatus = RunEnvelope.UsageStatus.fromDbValue(
+                    currentStatusValue == null ? null : String.valueOf(currentStatusValue));
+            if (seq == currentSeq) {
+                return currentTokens == cumulativeTokens && currentTurns == turns
+                        && currentStatus == effective
+                        ? UsageSnapshotOutcome.IDEMPOTENT : UsageSnapshotOutcome.CONFLICT;
+            }
+            int updated = jdbc.update("""
+                    UPDATE run_envelopes
+                    SET total_tokens=?, turn_count=?, usage_status=?, usage_snapshot_seq=?,
+                        version=version+1, updated_at=?
+                    WHERE id=? AND usage_snapshot_seq=?
+                    """, cumulativeTokens, turns, effective.dbValue(), seq,
+                    Instant.now().toString(), runId, currentSeq);
+            return updated == 1 ? UsageSnapshotOutcome.APPLIED : UsageSnapshotOutcome.CONFLICT;
+        });
+    }
+
     public RunEvent appendEventBounded(String runId, String type, String toolUseId, Object data) {
         return sqliteConfig.executeWriteBounded(dbPath, Duration.ofSeconds(5),
                 () -> transaction.execute(status -> appendEventInCurrentWrite(runId, type, toolUseId, data)));
@@ -335,4 +374,6 @@ public class RunControlService {
     private static String value(Object value) { return value == null ? "unknown" : String.valueOf(value); }
 
     public enum TransitionResult { APPLIED, ALREADY_TERMINAL, VERSION_CONFLICT, INVALID_TRANSITION, NOT_FOUND }
+
+    public enum UsageSnapshotOutcome { APPLIED, IDEMPOTENT, STALE_IGNORED, CONFLICT, NOT_FOUND }
 }

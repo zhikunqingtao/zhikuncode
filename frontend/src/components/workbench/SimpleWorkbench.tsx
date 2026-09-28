@@ -83,7 +83,7 @@ export function SimpleWorkbench({ sessionId, messages: _messages, status: _statu
     };
 
     return <div className="h-full overflow-y-auto bg-[var(--v2-bg-surface)]"><div className="mx-auto max-w-6xl space-y-4 p-4 md:p-6">
-        <TaskOverviewCard session={data.session.data} request={current?.request ?? null}
+        <TaskOverviewCard session={data.session.data} request={current?.request ?? null} run={current?.rootRun ?? null}
             correlationMode={current?.correlationMode ?? 'LEGACY_FALLBACK'}
             loading={data.session.loading || data.current.loading} error={data.session.error ?? data.current.error} />
         <TaskMilestoneStrip current={current} />

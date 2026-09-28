@@ -51,8 +51,42 @@ public class QueryLoopState {
     private int turnCount = 0;
     private volatile AbortReason abortReason = null;
     private com.aicodeassistant.model.Usage observedUsage = com.aicodeassistant.model.Usage.zero();
+    /** 已收到的报告用量观测次数（显式零值也算一次报告）。 */
+    private int reportedUsageObservations = 0;
+    /** 至少一个响应缺失 usage；不产生估算，只把观测状态降级为 partial。 */
+    private boolean missingUsageObserved = false;
+    /** 单调递增的用量快照序号 — 随 state 生命周期管理；0 保留表示"尚无快照"。 */
+    private long usageSnapshotSeq = 0;
     public com.aicodeassistant.model.Usage getObservedUsage() { return observedUsage; }
     public void setObservedUsage(com.aicodeassistant.model.Usage usage) { observedUsage = usage; }
+
+    /** 观测状态 — known（全部响应都有 usage）/ partial（有缺失）/ unknown（还没有报告）。 */
+    public enum ObservationStatus { KNOWN, PARTIAL, UNKNOWN }
+
+    /**
+     * 记录一次原始 provider usage。raw==null 表示该响应未报告 usage：
+     * 只标记缺失，不累加、不估算。非 null（含显式零值）累加到观测用量。
+     */
+    public void recordRawUsage(com.aicodeassistant.model.Usage raw) {
+        if (raw == null) {
+            missingUsageObserved = true;
+            return;
+        }
+        reportedUsageObservations++;
+        observedUsage = observedUsage.add(raw);
+    }
+
+    public int getReportedUsageObservations() { return reportedUsageObservations; }
+
+    public boolean hasMissingUsageObservation() { return missingUsageObserved; }
+
+    public ObservationStatus observationStatus() {
+        if (reportedUsageObservations == 0) return ObservationStatus.UNKNOWN;
+        return missingUsageObserved ? ObservationStatus.PARTIAL : ObservationStatus.KNOWN;
+    }
+
+    /** 下一个用量快照序号：从 1 开始递增；0 保留表示"尚无快照"，不与迁移默认值混淆。 */
+    public long nextUsageSnapshotSeq() { return ++usageSnapshotSeq; }
     private boolean stopHookActive = false;
     private String lastTransitionReason = null;
 

@@ -1017,6 +1017,36 @@ function handleCompactComplete(data: {
     }
 }
 
+/** 已知的 RunExitReason 集合 — 与后端 run/RunEnvelope.java 对齐。 */
+const RESTORED_RUN_EXIT_REASON_ERROR_CODES: Record<string, string> = {
+    MODEL_FINISHED: 'MODEL_FINISHED',
+    USER_CANCELLED: 'USER_CANCELLED',
+    DEADLINE_EXCEEDED: 'DEADLINE_EXCEEDED',
+    INTERACTION_EXPIRED: 'INTERACTION_EXPIRED',
+    TOOL_FAILURE: 'TOOL_FAILURE',
+    PROVIDER_FAILURE: 'PROVIDER_FAILURE',
+    INTERACTION_CAPACITY_EXCEEDED: 'INTERACTION_CAPACITY_EXCEEDED',
+    PROCESS_TERMINATION_UNCONFIRMED: 'PROCESS_TERMINATION_UNCONFIRMED',
+    TOOL_TERMINATION_UNCONFIRMED: 'TOOL_TERMINATION_UNCONFIRMED',
+    SERVICE_RESTART: 'SERVICE_RESTART',
+    INCOMPLETE: 'INCOMPLETE',
+    INTERNAL_ERROR: 'INTERNAL_ERROR',
+    TOKEN_BUDGET_EXHAUSTED: 'TOKEN_BUDGET_EXHAUSTED',
+    MAX_TURNS: 'MAX_TURNS',
+};
+
+/**
+ * session_restored 快照退出原因 → 错误卡文案码。
+ * 只透传已知的 RunExitReason（含 token_budget_exhausted / max_turns / UNKNOWN 的规范化形式）；
+ * 任何未识别的值一律落到 error 类的 RUN_FAILED，绝不允许未知原因被当作成功/正常结束。
+ */
+function restoredRunErrorCode(exitReason?: string | null): string {
+    if (typeof exitReason !== 'string') return 'RUN_FAILED';
+    const normalized = exitReason.trim().toUpperCase();
+    if (!normalized) return 'RUN_FAILED';
+    return RESTORED_RUN_EXIT_REASON_ERROR_CODES[normalized] ?? 'RUN_FAILED';
+}
+
 /**
  * 断线重连恢复 — 全量同步
  * messageStore + sessionStore + bridgeStore + notificationStore
@@ -1098,7 +1128,7 @@ function handleSessionRestore(data: {
                 content: data.runSnapshot.errorSummary?.trim()
                     || '上次回复未完成，你可以发送消息继续对话',
                 subtype: 'error',
-                errorCode: data.runSnapshot.exitReason || 'RUN_FAILED',
+                errorCode: restoredRunErrorCode(data.runSnapshot.exitReason),
             });
         }
     }

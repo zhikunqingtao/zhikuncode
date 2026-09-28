@@ -268,7 +268,7 @@ export function MobileBottomSheet({
         {assessment && (
           <div className="space-y-2">
             <h4 className="text-[13px] font-semibold text-t3 uppercase tracking-wide">
-              确定性验证
+              确定性验证（执行状态）
             </h4>
             <div className="grid grid-cols-3 gap-2">
               {/* TypeScript Check */}

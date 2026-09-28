@@ -16,7 +16,6 @@ import com.aicodeassistant.llm.ModelRegistry;
 import com.aicodeassistant.llm.ThinkingConfig;
 import com.aicodeassistant.model.ContentBlock;
 import com.aicodeassistant.model.Message;
-import com.aicodeassistant.model.Usage;
 import com.aicodeassistant.service.FileStateCache;
 import com.aicodeassistant.session.SessionManager;
 import com.aicodeassistant.tool.Tool;
@@ -1273,7 +1272,7 @@ public class SubAgentExecutor {
      * 子代理消息处理器 — 静默收集结果，不推送到前端。
      * 同时跟踪轮次和工具调用，触发检查点保存。
      */
-    private static class SubAgentMessageHandler implements QueryMessageHandler {
+    static class SubAgentMessageHandler implements QueryMessageHandler {
         private final List<String> textChunks = new ArrayList<>();
 
         // 检查点相关状态
@@ -1289,7 +1288,6 @@ public class SubAgentExecutor {
         private int toolCallCount = 0;
         private int lastCheckpointTurn = 0;
         private int checkpointSeq = 0;
-        private long tokensConsumed = 0;
 
         SubAgentMessageHandler(CheckpointService checkpointService, ObjectMapper objectMapper, SessionManager sessionManager,
                                QueryLoopState state, String runId, String sessionId,
@@ -1326,10 +1324,7 @@ public class SubAgentExecutor {
 
         @Override
         public void onAssistantMessage(Message.AssistantMessage message) {
-            // 累计 token 使用量
-            if (message.usage() != null) {
-                tokensConsumed += message.usage().totalTokens();
-            }
+            // 用量统一由 QueryLoopState 在持久化前收敛；此处不得再累计，避免与 onUsage 双计。
         }
 
         @Override
@@ -1338,13 +1333,6 @@ public class SubAgentExecutor {
             // 检查是否需要存检查点
             if (checkpointService.shouldCheckpoint(turnCount, toolCallCount, lastCheckpointTurn)) {
                 saveCheckpoint();
-            }
-        }
-
-        @Override
-        public void onUsage(Usage usage) {
-            if (usage != null) {
-                tokensConsumed += usage.totalTokens();
             }
         }
 
@@ -1359,10 +1347,11 @@ public class SubAgentExecutor {
         private void saveCheckpoint() {
             try {
                 String messagesJson = objectMapper.writeValueAsString(state.getMessages());
+                // 已观测用量直接读 QueryLoopState 累计值 — 不再由回调重复累计。
                 AgentCheckpoint cp = AgentCheckpoint.create(
                         runId, sessionId, agentId,
                         checkpointSeq++, messagesJson, null,
-                        toolCallCount, turnCount, tokensConsumed, workDir);
+                        toolCallCount, turnCount, state.getObservedUsage().totalTokens(), workDir);
                 lastCheckpointTurn = turnCount;
                 var lease = sessionManager.acquireBackgroundLease(sessionId);
                 try {

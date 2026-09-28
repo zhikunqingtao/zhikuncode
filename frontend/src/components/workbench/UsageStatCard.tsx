@@ -4,6 +4,8 @@
  * 数据沿用 StatusBar 同源（useCostStore，由 #15 cost_update 权威推送），
  * 零新接口、零虚构统计。无真实数据（Token 与成本全零）→ 不渲染
  * （诚实性规则：无就不显示，不落 0 值图表）。
+ * 口径为"已观测用量"：服务端 UsageStatus 可知时，unknown → 未报告，
+ * partial → 仅统计已报告部分；状态缺失时保持原样，不做任何推断。
  * 排印：Metric 32px / 650 / -0.02em + tabular-nums；sub 12px text-t3。
  */
 
@@ -14,14 +16,25 @@ export function hasUsageData(usage: { inputTokens: number; outputTokens: number 
     return usage.inputTokens + usage.outputTokens > 0 || sessionCost > 0;
 }
 
-export function UsageStatCard() {
+/** 已观测用量状态说明 — unknown 是"未报告"而不是零消费；状态缺失或未知取值不提示。 */
+export function usageStatusNote(usageStatus?: string): string | null {
+    if (typeof usageStatus !== 'string') return null;
+    switch (usageStatus.trim().toLowerCase()) {
+        case 'unknown': return '未报告';
+        case 'partial': return '仅统计已报告部分';
+        default: return null;
+    }
+}
+
+export function UsageStatCard({ usageStatus }: { usageStatus?: string } = {}) {
     const { sessionCost, totalCost, usage } = useCostStore();
     if (!hasUsageData(usage, sessionCost)) return null;
 
     const totalTokens = usage.inputTokens + usage.outputTokens;
+    const statusNote = usageStatusNote(usageStatus);
     return (
         <section className="rounded-[14px] border border-hairline bg-surfacev2 p-4 md:p-6 shadow-e2">
-            <p className="text-[13px] font-semibold uppercase tracking-wider text-t3">用量与成本</p>
+            <p className="text-[13px] font-semibold uppercase tracking-wider text-t3">已观测用量与成本</p>
             <div className="mt-3 grid grid-cols-2 gap-4">
                 <div>
                     <p className="text-[32px] font-[650] leading-none tracking-[-0.02em] tabular-nums text-t1">
@@ -30,6 +43,7 @@ export function UsageStatCard() {
                     <p className="mt-1.5 text-[13px] tabular-nums text-t3">
                         Tokens · ↑ {usage.inputTokens.toLocaleString()} ↓ {usage.outputTokens.toLocaleString()}
                     </p>
+                    {statusNote && <p className="mt-1 text-[12px] text-t3">{statusNote}</p>}
                 </div>
                 <div>
                     <p className="text-[32px] font-[650] leading-none tracking-[-0.02em] tabular-nums text-t1">

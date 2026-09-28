@@ -240,6 +240,7 @@ public class AnthropicProvider implements LlmProvider {
         int outputTokens = 0;
         int cacheReadTokens = 0;
         int cacheCreationTokens = 0;
+        boolean usageReported = false;
         boolean messageStop = false;
         java.util.Set<Integer> openBlocks = new java.util.HashSet<>();
         java.util.Map<Integer, String> toolIdsByBlock = new java.util.HashMap<>();
@@ -281,10 +282,16 @@ public class AnthropicProvider implements LlmProvider {
                             event.at("/message/id").asText()));
                     // Extract initial usage
                     JsonNode msgUsage = event.at("/message/usage");
-                    if (msgUsage != null && !msgUsage.isMissingNode()) {
+                    if (msgUsage.isObject()
+                            && (msgUsage.hasNonNull("input_tokens") || msgUsage.hasNonNull("output_tokens"))) {
+                        usageReported = true;
                         inputTokens = msgUsage.path("input_tokens").asInt(0);
+                        outputTokens = msgUsage.path("output_tokens").asInt(0);
                         cacheReadTokens = msgUsage.path("cache_read_input_tokens").asInt(0);
                         cacheCreationTokens = msgUsage.path("cache_creation_input_tokens").asInt(0);
+                        // Preserve the reported snapshot even if the stream fails before message_delta.
+                        callback.onEvent(new LlmStreamEvent.MessageDelta(
+                                new Usage(inputTokens, outputTokens, cacheReadTokens, cacheCreationTokens), null));
                     }
                 }
                 case "content_block_start" -> {
@@ -328,11 +335,12 @@ public class AnthropicProvider implements LlmProvider {
                     String stopReason = delta.has("stop_reason") && !delta.get("stop_reason").isNull()
                             ? delta.get("stop_reason").asText() : null;
                     JsonNode usage = event.get("usage");
-                    if (usage != null && !usage.isMissingNode()) {
+                    if (usage != null && usage.hasNonNull("output_tokens")) {
+                        usageReported = true;
                         outputTokens = usage.path("output_tokens").asInt(0);
                     }
                     callback.onEvent(new LlmStreamEvent.MessageDelta(
-                            new Usage(inputTokens, outputTokens, cacheReadTokens, cacheCreationTokens),
+                            usageReported ? new Usage(inputTokens, outputTokens, cacheReadTokens, cacheCreationTokens) : null,
                             stopReason));
                 }
                 case "message_stop" -> {

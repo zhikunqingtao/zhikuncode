@@ -41,6 +41,7 @@ public class RunEnvelopeRepository {
                 RunEnvelope.RunExitReason.fromDbValue(rs.getString("exit_reason")),
                 RunEnvelope.RunExitReason.fromDbValue(rs.getString("requested_exit_reason")),
                 RunEnvelope.VerificationStatus.fromDbValue(rs.getString("verification_status")),
+                RunEnvelope.UsageStatus.fromDbValue(rs.getString("usage_status")),
                 rs.getString("terminal_at") == null ? null : Instant.parse(rs.getString("terminal_at")),
                 rs.getString("waiting_reason")
         );

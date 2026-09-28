@@ -5,10 +5,13 @@ import com.aicodeassistant.exception.SessionNotFoundException;
 import com.aicodeassistant.model.Usage;
 import com.aicodeassistant.service.FileSearchService;
 import com.aicodeassistant.service.ProjectWorkspaceService;
+import com.aicodeassistant.service.SessionFileAccessService;
 import com.aicodeassistant.session.SessionData;
 import com.aicodeassistant.session.SessionManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 
 import java.nio.file.Files;
@@ -63,6 +66,37 @@ class FileControllerWorkspaceTest {
                 .contains("README.md")
                 .doesNotContain(
                         "README-secret.md", "README-link.md");
+    }
+
+    @Test
+    void previewsChineseFilenamesWithInlineUtf8Disposition() throws Exception {
+        Path project = Files.createDirectory(
+                workspace.resolve("preview-project")).toRealPath();
+        Path file = Files.writeString(
+                project.resolve("中文报告.txt"), "预览内容");
+        SessionFileAccessService sessionFiles =
+                mock(SessionFileAccessService.class);
+        when(sessionFiles.preview("session-p", "中文报告.txt"))
+                .thenReturn(new SessionFileAccessService.PreviewTarget(
+                        file, "text/plain", Files.size(file)));
+        FileController controller = new FileController(
+                new FileSearchService(), mock(SessionManager.class),
+                mock(ProjectWorkspaceService.class), sessionFiles,
+                new OssPublishProperties());
+
+        var response = controller.preview(
+                "session-p", "session-p", "中文报告.txt");
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getHeaders().getContentType())
+                .isEqualTo(MediaType.TEXT_PLAIN);
+        assertThat(response.getHeaders().getFirst(
+                HttpHeaders.CONTENT_DISPOSITION))
+                .isEqualTo("inline; filename=\"????.txt\";"
+                        + " filename*=UTF-8''%E4%B8%AD%E6%96%87%E6%8A%A5%E5%91%8A.txt");
+        assertThat(response.getHeaders().getFirst("X-Content-Type-Options"))
+                .isEqualTo("nosniff");
+        assertThat(response.getBody()).isNotNull();
     }
 
     @Test

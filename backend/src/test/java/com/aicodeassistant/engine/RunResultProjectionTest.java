@@ -36,6 +36,31 @@ class RunResultProjectionTest {
         assertTrue(RunResultProjection.resolve(partial, null, null, AbortReason.TIMEOUT).error().contains("UNCONFIRMED"));
         assertTrue(RunResultProjection.resolve(partial, null, null, null).isSuccess());
     }
+    @Test void unknownExitReasonFailsClosedAsError() {
+        // 未识别的退出原因不得推导为成功。
+        var run = terminal("FAILED", "UNKNOWN");
+        when(tracker.getRun("run")).thenReturn(Optional.of(run));
+        var result = RunResultProjection.resolve(partial, tracker, "run", AbortReason.ERROR);
+        assertEquals("error", result.stopReason());
+        assertFalse(result.isSuccess());
+        assertEquals("UNKNOWN", result.error());
+    }
+    @Test void maxTurnsExitReasonProjectsAsMaxTurnsNotSuccess() {
+        var run = terminal("FAILED", "MAX_TURNS");
+        when(tracker.getRun("run")).thenReturn(Optional.of(run));
+        var result = RunResultProjection.resolve(partial, tracker, "run", AbortReason.ERROR);
+        assertEquals("max_turns", result.stopReason());
+        assertFalse(result.isSuccess());
+        assertTrue(result.error().startsWith("MAX_TURNS:"));
+    }
+    @Test void tokenBudgetExhaustedExitReasonIsAnErrorNotSuccess() {
+        var run = terminal("FAILED", "TOKEN_BUDGET_EXHAUSTED");
+        when(tracker.getRun("run")).thenReturn(Optional.of(run));
+        var result = RunResultProjection.resolve(partial, tracker, "run", AbortReason.ERROR);
+        assertEquals("error", result.stopReason());
+        assertFalse(result.isSuccess());
+        assertTrue(result.error().startsWith("TOKEN_BUDGET_EXHAUSTED:"));
+    }
     @Test void missingOrUnreadableOrNonterminalRunFailsClosed() {
         when(tracker.getRun("run")).thenReturn(Optional.empty());
         assertUnconfirmed();

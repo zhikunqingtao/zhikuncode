@@ -2,7 +2,8 @@ import { Eye, FileCheck2, FileClock, FileCode2, FileImage, FileText, FileX2, Fol
 import type { DeliveryFileView } from '@/hooks/useSimpleWorkbenchData';
 
 function fileStatus(state: string, verified: boolean) {
-    if (verified) return { label: '已核对', icon: FileCheck2, color: 'text-ok' };
+    // 正向结果只限定在“上次完整性检查”的范围，不暗示当前文件版本仍被验证。
+    if (verified) return { label: '上次完整性检查通过', icon: FileCheck2, color: 'text-ok' };
     if (state === 'failed') return { label: '有问题', icon: FileX2, color: 'text-err' };
     return { label: '待核对', icon: FileClock, color: 'text-warnstrong dark:text-warn' };
 }

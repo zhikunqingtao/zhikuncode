@@ -1,5 +1,6 @@
 package com.aicodeassistant.verify;
 
+import com.aicodeassistant.util.ContentDispositionEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -78,7 +79,7 @@ public class EvidenceController {
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"" + sha256 + "\"")
+                        ContentDispositionEncoder.header("attachment", sha256, sha256))
                 .contentLength(bytes.length)
                 .body(bytes);
     }

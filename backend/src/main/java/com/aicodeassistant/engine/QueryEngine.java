@@ -391,7 +391,8 @@ public class QueryEngine {
                             ? "TURN_LIMIT_REACHED"
                             : "RUN_NOT_ACCEPTING_INPUT",
                     handler);
-            // ★ RunTracker: 异常路径 — 标记为 FAILED
+            // ★ RunTracker: 异常路径 — 标记为 FAILED（先补一次已观测用量快照；失败不影响清理）
+            recordUsageSnapshotBestEffort(state);
             if (currentRunId != null && runTracker != null) {
                 try {
                     if (cancelled) {
@@ -433,6 +434,9 @@ public class QueryEngine {
         // the query loop's real exit reason (for example MAX_TURNS).
         boolean abortedBeforeTerminalTransition = aborted.get();
 
+        // 终止分派前补一次已观测用量快照；失败不影响权威终态与退出原因。
+        recordUsageSnapshotBestEffort(state);
+
         // ★ RunTracker: 根据实际结束原因选择正确的状态转换
         if (!runFailureRecorded && currentRunId != null && runTracker != null) {
             try {
@@ -445,7 +449,13 @@ public class QueryEngine {
                     String detail = loopOutcome == null
                             ? "INTERNAL_ERROR: query loop returned no outcome"
                             : loopError(loopOutcome.reason(), state);
-                    runTracker.failRun(currentRunId, RunEnvelope.RunExitReason.INCOMPLETE, detail);
+                    LoopExit exit = loopOutcome == null ? LoopExit.INTERNAL_ERROR : loopOutcome.reason();
+                    RunEnvelope.RunExitReason exitReason = switch (exit) {
+                        case TOKEN_BUDGET_EXHAUSTED -> RunEnvelope.RunExitReason.TOKEN_BUDGET_EXHAUSTED;
+                        case MAX_TURNS -> RunEnvelope.RunExitReason.MAX_TURNS;
+                        default -> RunEnvelope.RunExitReason.INCOMPLETE;
+                    };
+                    runTracker.failRun(currentRunId, exitReason, detail);
                 } else {
                     // 正常完成 — 标记为 COMPLETED
                     runTracker.completeRun(currentRunId, totalUsage.totalTokens(),
@@ -517,6 +527,31 @@ public class QueryEngine {
     private static String currentRunId(QueryLoopState state) {
         return state.getToolUseContext() == null
                 ? null : state.getToolUseContext().currentRunId();
+    }
+
+    /**
+     * 已观测用量快照 — best-effort 补充写入：任何异常都被吞掉并告警，
+     * 计量失败绝不阻断终止/取消清理，也不改变权威终态。
+     */
+    private void recordUsageSnapshotBestEffort(QueryLoopState state) {
+        try {
+            String runId = currentRunId(state);
+            if (runId == null || runTracker == null) return;
+            runTracker.recordUsageSnapshotBestEffort(runId, state.nextUsageSnapshotSeq(),
+                    state.getObservedUsage().totalTokens(), state.getTurnCount(),
+                    toRunUsageStatus(state.observationStatus()));
+        } catch (Throwable failure) {
+            log.warn("Usage snapshot write failed: {}", failure.getMessage());
+        }
+    }
+
+    /** 引擎观测状态 → Run 用量状态：编译期穷尽映射，避免按枚举名转换的运行时脆弱性。 */
+    private static RunEnvelope.UsageStatus toRunUsageStatus(QueryLoopState.ObservationStatus status) {
+        return switch (status) {
+            case KNOWN -> RunEnvelope.UsageStatus.KNOWN;
+            case PARTIAL -> RunEnvelope.UsageStatus.PARTIAL;
+            case UNKNOWN -> RunEnvelope.UsageStatus.UNKNOWN;
+        };
     }
 
     private int applyRunInputs(
@@ -658,6 +693,8 @@ public class QueryEngine {
     private Usage retainPartialResponse(StreamCollector collector, QueryLoopState state,
                                         QueryMessageHandler handler, Usage accumulated) {
         Message.AssistantMessage partial = collector.partialTextSnapshot();
+        // 用量已在 API 调用的 finally 边界收敛；此处只保留正文并通知消费者。
+        Usage rawUsage = collector.rawUsage();
         // Pending tool calls have no confirmed result: retain received prose without inventing tool outcomes.
         var text = partial.content().stream().filter(ContentBlock.TextBlock.class::isInstance).toList();
         if (!text.isEmpty()) {
@@ -666,9 +703,8 @@ public class QueryEngine {
             state.recordCurrentRunAssistant(message);
             handler.onAssistantMessage(message);
         }
-        Usage usage = partial.usage() == null ? accumulated : accumulated.add(partial.usage());
-        state.setObservedUsage(usage);
-        if (partial.usage() != null) handler.onUsage(partial.usage());
+        Usage usage = rawUsage == null ? accumulated : state.getObservedUsage();
+        if (rawUsage != null) handler.onUsage(rawUsage);
         return usage;
     }
 
@@ -1011,39 +1047,48 @@ public class QueryEngine {
                                 || state.getToolUseContext().currentRunId() == null
                                 ? null : runExecutions.acquireWork(
                                         state.getToolUseContext().currentRunId(), "llm", llmRequestId);
+                boolean streamReturned = false;
                 try (MdcScope ignoredLlmScope = MdcScope.open(Map.of("llmRequestId", llmRequestId));
                      llmLease) {
-                apiRetryService.executeWithRetry(() -> {
-                    if (callCancellation.isCancelled()) {
-                        throw new LlmApiException("LLM_CALL_CANCELLED", false, 0,
-                                "cancelled", 0);
-                    }
-                    collector.clearTerminalError(); // P0-2: 每次 retry 前重置
-                    provider.streamChat(
-                            effectiveModel,
-                            finalApiMessages,
-                            config.systemPrompt(),
-                            config.toolDefinitions(),
-                            effectiveMaxTokens,
-                            resolvedThinking,
-                            new com.aicodeassistant.llm.LlmCallContext(
-                                    llmRequestId,
-                                    callCancellation),
-                            collector
-                    );
-                    // P0-2: streamChat 正常返回后，检查 collector 是否收到了 terminal error
-                    // （provider 通过 callback.onError 报告但未同步抛出的错误）
-                    LlmApiException terminalError = collector.getTerminalError();
-                    if (terminalError != null) {
-                        if (collector.hasReceivedEvents()) {
-                            // 已接收流事件，禁止透明重试（状态已污染）
-                            throw terminalError.withRetryable(false);
+                    apiRetryService.executeWithRetry(() -> {
+                        if (callCancellation.isCancelled()) {
+                            throw new LlmApiException("LLM_CALL_CANCELLED", false, 0,
+                                    "cancelled", 0);
                         }
-                        throw terminalError;
+                        collector.clearTerminalError(); // P0-2: 每次 retry 前重置
+                        provider.streamChat(
+                                effectiveModel,
+                                finalApiMessages,
+                                config.systemPrompt(),
+                                config.toolDefinitions(),
+                                effectiveMaxTokens,
+                                resolvedThinking,
+                                new com.aicodeassistant.llm.LlmCallContext(
+                                        llmRequestId,
+                                        callCancellation),
+                                collector
+                        );
+                        // P0-2: streamChat 正常返回后，检查 collector 是否收到了 terminal error
+                        // （provider 通过 callback.onError 报告但未同步抛出的错误）
+                        LlmApiException terminalError = collector.getTerminalError();
+                        if (terminalError != null) {
+                            if (collector.hasReceivedEvents()) {
+                                // 已接收流事件，禁止透明重试（状态已污染）
+                                throw terminalError.withRetryable(false);
+                            }
+                            throw terminalError;
+                        }
+                        return null;
+                    }, config.querySource(), effectiveModel, callCancellation);
+                    streamReturned = true;
+                    llmAttemptCount[0] = Math.max(0, apiRetryService.lastAttemptCount());
+                } finally {
+                    // One observation per response, before cancellation/error handlers or message parsing.
+                    // Local rejection and pre-send cancellation have no response to mark as missing.
+                    if (streamReturned || collector.hasReceivedResponse()) {
+                        state.recordRawUsage(collector.rawUsage());
                     }
-                    return null;
-                }, config.querySource(), effectiveModel, callCancellation);
-                llmAttemptCount[0] = Math.max(0, apiRetryService.lastAttemptCount());
+                    totalUsage = state.getObservedUsage();
                 }
             } catch (LlmApiException e) {
                 llmAttemptCount[0] = Math.max(0, apiRetryService.lastAttemptCount());
@@ -1213,6 +1258,8 @@ public class QueryEngine {
                 llmCompleted.put("cacheCreationInputTokens", callUsage == null ? 0 : callUsage.cacheCreationInputTokens());
                 return llmCompleted;
             });
+            // 累计责任位于 API 调用边界；这里仅保留后续通知所需的原始报告。
+            Usage observedRawUsage = collector.rawUsage();
             state.addMessage(assistantMessage);
             state.recordCurrentRunAssistant(assistantMessage);
             handler.onAssistantMessage(assistantMessage);
@@ -1245,9 +1292,8 @@ public class QueryEngine {
                     assistantMessage.content() != null ? assistantMessage.content().size() : 0,
                     assistantMessage.usage() != null ? assistantMessage.usage().totalTokens() : 0);
 
-            if (assistantMessage.usage() != null) {
-                totalUsage = totalUsage.add(assistantMessage.usage());
-                state.setObservedUsage(totalUsage);
+            if (observedRawUsage != null) {
+                // 本响应已在持久化前收敛进 state.observedUsage；这里只做回调与事件，不再重复相加。
                 handler.onUsage(assistantMessage.usage());
                 if (eventRunId != null && runTracker != null) {
                     runTracker.recordEvent(eventRunId, "cost_snapshot", Map.of(
@@ -2465,6 +2511,7 @@ public class QueryEngine {
         private String stopReason;
         private volatile LlmApiException terminalError;
         private volatile boolean hasReceivedEvents;
+        private boolean hasReceivedResponse;
 
         private static final class PendingTool {
             final String id;
@@ -2491,6 +2538,8 @@ public class QueryEngine {
 
         @Override
         public void onEvent(LlmStreamEvent event) {
+            // Separate from hasReceivedEvents: keep the existing transparent-retry policy unchanged.
+            if (!(event instanceof LlmStreamEvent.Error)) hasReceivedResponse = true;
             switch (event) {
                 case LlmStreamEvent.TextDelta delta -> {
                     hasReceivedEvents = true;
@@ -2531,7 +2580,8 @@ public class QueryEngine {
                     handler.onToolInputDelta(delta.toolUseId(), delta.jsonDelta());
                 }
                 case LlmStreamEvent.MessageDelta delta -> {
-                    this.usage = delta.usage();
+                    // Providers publish cumulative response snapshots, not additive chunk usage.
+                    if (delta.usage() != null) this.usage = delta.usage();
                     if (delta.stopReason() != null && !delta.stopReason().isBlank()) {
                         this.stopReason = delta.stopReason();
                     }
@@ -2571,6 +2621,10 @@ public class QueryEngine {
         void clearTerminalError() { this.terminalError = null; }
         LlmApiException getTerminalError() { return terminalError; }
         boolean hasReceivedEvents() { return hasReceivedEvents; }
+        boolean hasReceivedResponse() { return hasReceivedResponse; }
+
+        /** 原始 usage（nullable）— 保留"缺 usage"与"显式零值"的区别。 */
+        Usage rawUsage() { return usage; }
 
         private void flushThinkingBlock() {
             if (!currentThinking.isEmpty()) {

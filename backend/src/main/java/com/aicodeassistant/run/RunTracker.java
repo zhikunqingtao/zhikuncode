@@ -60,6 +60,21 @@ public class RunTracker {
         return recordEventBestEffort(runId, eventType, null, data);
     }
 
+    /** 已观测用量快照的补充写入路径：绝不抛出，失败只返回 false，不阻断终止/取消清理。 */
+    public boolean recordUsageSnapshotBestEffort(String runId, long seq, int tokens, int turns,
+                                                 RunEnvelope.UsageStatus status) {
+        try {
+            RunControlService.UsageSnapshotOutcome outcome =
+                    control.updateUsageSnapshot(runId, seq, tokens, turns, status);
+            return outcome == RunControlService.UsageSnapshotOutcome.APPLIED
+                    || outcome == RunControlService.UsageSnapshotOutcome.IDEMPOTENT;
+        } catch (Throwable failure) {
+            log.warn("Usage snapshot write failed: run={}, seq={}, error={}", runId, seq,
+                    failure.getMessage());
+            return false;
+        }
+    }
+
     public boolean recordEventBestEffort(
             String runId, String eventType, String toolUseId, Object data) {
         try {

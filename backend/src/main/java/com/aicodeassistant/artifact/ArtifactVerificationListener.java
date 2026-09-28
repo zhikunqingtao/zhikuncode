@@ -24,25 +24,38 @@ public class ArtifactVerificationListener {
     @Async("artifactVerificationExecutor")
     @EventListener
     public void onRunCompleted(RunCompletedEvent event) {
+        ArtifactManifest manifest;
         try {
-            artifactManifestService.getManifest(event.getRunId()).ifPresent(manifest -> {
-                if (manifest.totalFiles() > 0) {
-                    runs.setVerification(event.getRunId(), RunEnvelope.VerificationStatus.NOT_REQUESTED,
-                            RunEnvelope.VerificationStatus.PENDING, "artifact_manifest");
-                    VerificationResult result=artifactManifestService.verify(manifest.id());
-                    RunEnvelope.VerificationStatus terminal=switch(result.status()){
-                        case "verified" -> RunEnvelope.VerificationStatus.VERIFIED;
-                        case "unverified" -> RunEnvelope.VerificationStatus.UNVERIFIED;
-                        default -> RunEnvelope.VerificationStatus.FAILED;
-                    };
-                    runs.setVerification(event.getRunId(),RunEnvelope.VerificationStatus.PENDING,
-                            terminal,result.status());
-                }
-            });
+            manifest = artifactManifestService.getManifest(event.getRunId()).orElse(null);
         } catch (Exception e) {
             log.warn("Artifact verification failed for run {}: {}", event.getRunId(), e.getMessage());
             runs.setVerification(event.getRunId(), RunEnvelope.VerificationStatus.PENDING,
-                    RunEnvelope.VerificationStatus.FAILED, "verification_exception");
+                    RunEnvelope.VerificationStatus.FAILED, verificationDetail(null, "verification_exception"));
+            return;
         }
+        if (manifest == null || manifest.totalFiles() == 0) return;
+        String manifestId = manifest.id();
+        try {
+            runs.setVerification(event.getRunId(), RunEnvelope.VerificationStatus.NOT_REQUESTED,
+                    RunEnvelope.VerificationStatus.PENDING, verificationDetail(manifestId, "pending"));
+            VerificationResult result=artifactManifestService.verify(manifestId);
+            RunEnvelope.VerificationStatus terminal=switch(result.status()){
+                case "verified" -> RunEnvelope.VerificationStatus.VERIFIED;
+                case "unverified" -> RunEnvelope.VerificationStatus.UNVERIFIED;
+                default -> RunEnvelope.VerificationStatus.FAILED;
+            };
+            runs.setVerification(event.getRunId(),RunEnvelope.VerificationStatus.PENDING,
+                    terminal, verificationDetail(manifestId, result.status()));
+        } catch (Exception e) {
+            log.warn("Artifact verification failed for run {}: {}", event.getRunId(), e.getMessage());
+            runs.setVerification(event.getRunId(), RunEnvelope.VerificationStatus.PENDING,
+                    RunEnvelope.VerificationStatus.FAILED, verificationDetail(manifestId, "verification_exception"));
+        }
+    }
+
+    /** 自动产物验证事件统一附带范围与 manifestId，便于事件读取方判定覆盖范围。 */
+    static String verificationDetail(String manifestId, String result) {
+        return "scope=artifact_manifest;manifestId=" + (manifestId == null ? "unknown" : manifestId)
+                + ";result=" + result;
     }
 }

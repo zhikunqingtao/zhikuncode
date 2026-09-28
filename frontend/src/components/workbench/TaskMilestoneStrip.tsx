@@ -36,7 +36,7 @@ export function TaskMilestoneStrip({ current }: { current: CurrentWorkbenchView 
     const execution = run?.status === 'COMPLETED' ? '本轮执行已结束'
         : runFinished ? '本轮执行未成功'
             : run ? '本轮正在执行' : '等待开始执行';
-    const verificationLabels = { PASSED: '要求已检查通过', FAILED: '检查发现问题', PARTIAL: '部分要求已检查', NOT_VERIFIED: '尚未完成检查' } as const;
+    const verificationLabels: Record<string, string> = { PASSED: '所列检查已通过', FAILED: '检查发现问题', PARTIAL: '核验未完成', NOT_VERIFIED: '尚未完成检查' };
 
     const stages: Stage[] = [
         {
@@ -57,7 +57,7 @@ export function TaskMilestoneStrip({ current }: { current: CurrentWorkbenchView 
         },
         {
             key: 'verify', label: '核验',
-            value: verificationLabels[verification],
+            value: verificationLabels[verification] ?? '核验范围未知',
             done: verification === 'PASSED',
             active: verification === 'PARTIAL',
         },

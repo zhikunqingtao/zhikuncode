@@ -19,6 +19,8 @@
 - 同一 LLM Provider 支持逗号分隔多 API Key（ZenMux 订阅 Key `sk-ss-v1-` 优先、按量 Key `sk-ai-v1-` 兜底），402 quote_exceeded / 404 model_not_available / 429 时自动冷却切换。
 - 新增 OpenRouter Provider：`stealth/union-alpha`（Union Alpha，当前免费预览）及强推理模型 `openrouter/openai/gpt-6-astra`、`openrouter/anthropic/claude-fable-5.1`（默认 `reasoning.effort=max`）；内部 `openrouter/` 前缀用于渠道隔离，复用 OpenAI 兼容链路与 Key 轮换。
 - 新增可选的删除会话二次确认验证码：配置 `ZHIKUN_DELETE_CONFIRM_CODE` 后，Web 删除会话须在确认气泡中输入该验证码（随 `X-Delete-Confirm-Code` 请求头由后端校验）；未配置时维持原确认流程，配置查询失败不缓存失败结果，下次挂载重试。
+- Run API 新增 `usageStatus`（`known/partial/unknown`）与 `verificationScope`（`artifact_manifest/unknown`）字段：用量口径限定为「本 Run 的已观测消费」，任务概览按同一 Run 联展示用量与状态，unknown 显示未报告、partial 仅统计已报告部分，不估算、不归集子 Run；产物验证字段范围限定为 `artifact_manifest`，未知状态安全标为范围未知。
+- 附件存储新增 `.metadata/<uuid>.json` 侧车文件保存原始显示名（版本、UUID、存储文件名、原名，不新增数据库表）；上传改为同文件系统临时文件 + 先发布元数据、再原子发布 payload，失败只清理本次文件。
 
 ### Changed
 - 内置 `review` 技能将用户指定的比较对象、路径与排除项送达提示正文；仅作用于最终解析为内置 `review` 的定义，保留用户／项目同名覆盖。模型工具入口对完整范围执行既有 2000 字符单参数限制；命令入口保留原有校验行为。
@@ -44,6 +46,9 @@
 - ZenMux 多 API Key 选择策略改为 `PRIORITY_FAILOVER`（配置顺序中首个健康 Key 优先，冷却时故障转移，恢复后重新优先）；其余 Provider 保持既有轮询。
 - 移除内部压缩标记（`[final]` / `[skeleton]` / `[collapsed]` 等）的正文剥离规则：用户可见正文原样保留，避免误伤 INI 段名等合法方括号内容；流式与历史展示同步不再过滤。整段最终答复仅为系统折叠占位符时仍按无可见正文处理，触发一次补请求恢复。
 - 压缩摘要默认模型改为 DeepSeek 官方直连 `deepseek-flash`（Provider `deepseek`）：摘要传输通道同时支持百炼 Token Plan 与 DeepSeek 官方端点；可用 `LLM_COMPACT_MODEL` / `LLM_COMPACT_PROVIDER` 覆盖回百炼 `deepseek-v4.1-flash`。
+- 附件下载改为按完整规范 UUID 精确定位（拒绝短前缀、多候选返回冲突，排除元数据、临时文件与符号链接）；新上传仅保留 `[A-Za-z0-9]{1,16}` 的扩展名；配置的上传根目录可以是符号链接，目录内的符号链接文件仍不可下载。旧附件及其合法文件后缀不受影响，无有效元数据时回退安全 UUID 文件名。
+- Evidence Viewer、Journey 面板、移动提示与 Workbench 的验证结果统一为有限范围口径（所列步骤、文件完整性、执行状态、访问检查或范围未知），区分 failed / unavailable / inconclusive / unknown，部分核验统一显示为「核验未完成」；空证据或未知类型只保留记录自身结论，不推断检查范围。文件交付正向结果改用「上次完整性检查通过」，不再暗示当前文件版本仍被验证，未知值不再导致页面崩溃。
+- 新增非破坏性数据库迁移：`run_envelopes` 增加 `usage_status` 与 `usage_snapshot_seq` 列；旧数据保留 `unknown`，不回填历史零值为已知。
 
 ### Fixed
 - Edit 更新已有文件时展示本次实际写入的 diff，并在会话恢复后保留；增删统计使用实际差异。预览上限为 500 行／65,536 个 UTF-16 单元，超出明确标注部分展示；未提供预览时（如创建文件、旧记录或生成失败）保留原结果并给出中性提示。工具结果的全部 UI `structuredResult`（包括 Edit 预览及 external-resource 下载卡片）不进入压缩摘要输入，工具正文保留；新生成的会话合并文字投影仅排除 Edit 展示快照，其他 schema 保持原行为，完整快照仍保留在原始归档和会话记录中，已有封存包保持不变。文件写入、权限和模型结果正文不变。
@@ -60,6 +65,10 @@
 - 规范化远端 MCP Schema 中的非标准类型别名（如 `bool` → `boolean`），避免 Moonshot/Kimi 因任一工具 Schema 非法而拒绝包含智谱搜索在内的整批工具。
 - Python 健康恢复改为异步且防重入，避免异常重启阻塞 WebSocket 心跳、授权重投及其他定时任务。
 - 修复 Responses API 多轮对话中 assistant 历史文本被编码为 input_text 导致的跨模型 400 错误，现按规范编码为 output_text。
+- 修复子代理 checkpoint 的 token 用量双计：`onAssistantMessage`/`onUsage` 双回调不再各自累计，checkpoint 直接读取运行累计的已观测用量。QueryEngine 在消息持久化与业务回调之前记录已收到的原始 usage（同一响应只收敛一次，异常及工具参数解析失败仍保留已收到用量；缺 usage 与显式零值严格区分，已确认未发起调用不标成缺失、不估算）；已观测用量在终止前按递增序号保存快照，补充写入有限等待写锁以保留后续本地清理路径，外部取消写入终态后仍可补齐最终观测值，且不改动终态、退出原因与终止时间或重复发送完成事件。
+- 修复未知退出原因导致 Run 读取失败的问题：未知值安全读取为 `UNKNOWN`（数据库原文保留、不推导为成功）；预算与轮次耗尽分别记录为 `token_budget_exhausted`/`max_turns`，仍为非正常完成，取消、超时及未确认停止的权威结果优先。
+- 修复中文、emoji 等文件名下载时丢失或乱码：新增无状态 Content-Disposition 编码（同时输出 ASCII `filename` 与 UTF-8 `filename*`，移除控制字符、≤200 UTF-8 字节且不切断字符，超长名保留完整的短安全扩展名），接入文件预览、附件下载、OSS 下载、会话导出与 Evidence 下载。
+- 修复 Workbench 将证据 claim 与业务要求文字相同直接判为通过的问题：现在仅建立关联、最多表示部分覆盖，实际失败保留在对应检查项；运行时技术检查只聚合具有有效步骤数据的 Journey 证据，空证据、未知类型与模型自报不再产生通过结论，hash 通过仅表示对应记录的文件完整性检查。
 
 ### Security
 - 内置文件搜索、写入、Glob、Grep、LSP 与 Snip 以单一 Session 根解析相对路径；范围外绝对路径进入常规授权，并在执行前复检路径、符号链接和 Project 状态。

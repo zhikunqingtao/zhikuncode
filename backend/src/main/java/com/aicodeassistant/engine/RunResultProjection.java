@@ -22,6 +22,11 @@ final class RunResultProjection {
             return with(proposed, "error", reason + ": requested=" + run.requestedExitReason()
                     + (run.errorSummary() == null ? "" : "; " + run.errorSummary()));
         }
+        if (reason == RunEnvelope.RunExitReason.UNKNOWN) {
+            // 未识别的退出原因不得推导为成功。
+            return with(proposed, "error",
+                    run.errorSummary() != null ? run.errorSummary() : "UNKNOWN");
+        }
         if (run.status() == RunEnvelope.RunStatus.COMPLETED) {
             return with(proposed, "max_turns".equals(proposed.stopReason()) ? "max_turns" : "end_turn", null);
         }
@@ -33,11 +38,21 @@ final class RunResultProjection {
         if (reason == RunEnvelope.RunExitReason.DEADLINE_EXCEEDED) {
             return with(proposed, "timeout", "DEADLINE_EXCEEDED");
         }
+        if (reason == RunEnvelope.RunExitReason.MAX_TURNS) {
+            String error = run.errorSummary() != null
+                    ? run.errorSummary() : "MAX_TURNS: maximum turn count reached";
+            return with(proposed, "max_turns", error);
+        }
         if (reason == RunEnvelope.RunExitReason.INCOMPLETE
                 && "max_turns".equals(proposed.stopReason())) {
             String error = run.errorSummary() != null
                     ? run.errorSummary() : "MAX_TURNS: maximum turn count reached";
             return with(proposed, "max_turns", error);
+        }
+        if (reason == RunEnvelope.RunExitReason.TOKEN_BUDGET_EXHAUSTED) {
+            String error = run.errorSummary() != null
+                    ? run.errorSummary() : "TOKEN_BUDGET_EXHAUSTED: token budget exhausted";
+            return with(proposed, "error", error);
         }
         String error = run.errorSummary() != null ? run.errorSummary()
                 : proposed.error() != null ? proposed.error() : String.valueOf(reason);

@@ -66,7 +66,8 @@ class SessionControllerListTest {
         Instant now = Instant.now();
         return new RunEnvelope("r1", "s1", null, status, "agent", "model", null,
                 now, null, null, 0, 0.0, 0, 0, null, now, now, 0,
-                null, null, RunEnvelope.VerificationStatus.NOT_REQUESTED, null, null);
+                null, null, RunEnvelope.VerificationStatus.NOT_REQUESTED,
+                RunEnvelope.UsageStatus.UNKNOWN, null, null);
     }
 
     private static SessionController controller(SessionManager sessions, RunEnvelopeRepository runs) {

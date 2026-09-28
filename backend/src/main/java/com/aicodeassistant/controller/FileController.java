@@ -8,6 +8,7 @@ import com.aicodeassistant.service.ProjectWorkspaceService;
 import com.aicodeassistant.service.SessionFileAccessService;
 import com.aicodeassistant.session.SessionData;
 import com.aicodeassistant.session.SessionManager;
+import com.aicodeassistant.util.ContentDispositionEncoder;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -111,12 +112,12 @@ public class FileController {
             @RequestParam String path) {
         requireMatchingSession(sessionId, assertedSessionId);
         var target = sessionFiles.preview(sessionId, path);
-        String safeName = target.path().getFileName().toString().replace("\"", "");
+        String displayName = target.path().getFileName().toString();
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(target.contentType()))
                 .contentLength(target.size())
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "inline; filename=\"" + safeName + "\"")
+                        ContentDispositionEncoder.header("inline", displayName, "file"))
                 .header("X-Content-Type-Options", "nosniff")
                 .body(new FileSystemResource(target.path()));
     }

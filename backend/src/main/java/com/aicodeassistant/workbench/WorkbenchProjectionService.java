@@ -8,6 +8,7 @@ import com.aicodeassistant.interaction.InteractionView;
 import com.aicodeassistant.run.RunEnvelope;
 import com.aicodeassistant.run.RunEnvelopeRepository;
 import com.aicodeassistant.verify.EvidenceBundle;
+import com.aicodeassistant.verify.EvidenceItem;
 import com.aicodeassistant.verify.EvidenceStore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -167,12 +168,20 @@ public class WorkbenchProjectionService {
                 """, (rs, row) -> {
             String text = rs.getString("source_text");
             EvidenceBundle matched = exactClaims.get(normalize(text));
-            CriterionStatus status = matched == null
-                    ? CriterionStatus.valueOf(rs.getString("status").toUpperCase(Locale.ROOT))
-                    : statusForVerdict(matched.verdict());
+            if (matched == null) {
+                return new CriterionView(rs.getString("criterion_id"), "business", text,
+                        CriterionStatus.valueOf(rs.getString("status").toUpperCase(Locale.ROOT)),
+                        "尚无明确关联的确定性证据", rs.getString("evidence_bundle_id"));
+            }
+            // 文字相同只建立关联；关联证据绝不能直接把业务要求判为通过。
+            CriterionStatus status = statusForVerdict(matched.verdict());
+            String detail = "failed".equalsIgnoreCase(matched.verdict())
+                    ? "关联证据已明确失败，不能视为通过"
+                    : hasValidStepData(matched)
+                        ? "关联证据仅覆盖所列步骤，不等同于业务要求全部通过"
+                        : "关联证据缺少有效步骤数据，覆盖范围未知";
             return new CriterionView(rs.getString("criterion_id"), "business", text,
-                    status, matched == null ? "尚无明确关联的确定性证据" : matched.claim(),
-                    matched == null ? rs.getString("evidence_bundle_id") : matched.bundleId());
+                    status, detail, matched.bundleId());
         }, rootRunId);
     }
 
@@ -203,15 +212,30 @@ public class WorkbenchProjectionService {
                 manifests.isEmpty() ? "当前Root Run没有Manifest"
                         : "只统计当前Root Run及递归子Run的Manifest", null));
 
-        CriterionStatus runtime = evidence.isEmpty() ? CriterionStatus.NOT_VERIFIED
-                : evidence.stream().anyMatch(bundle -> "failed".equals(bundle.verdict()))
-                    ? CriterionStatus.FAILED
-                    : evidence.stream().allMatch(bundle -> "verified".equals(bundle.verdict()))
-                        ? CriterionStatus.PASSED : CriterionStatus.PARTIAL;
+        // 只聚合具有有效步骤数据的 Journey 证据；空证据、未知类型、模型自报不得生成通过结论。
+        List<EvidenceBundle> eligibleRuntime = evidence.stream()
+                .filter(WorkbenchProjectionService::hasValidStepData).toList();
+        boolean explicitRuntimeFailure = evidence.stream()
+                .anyMatch(bundle -> "failed".equals(bundle.verdict()));
+        CriterionStatus runtime;
+        String runtimeDetail;
+        if (explicitRuntimeFailure) {
+            runtime = CriterionStatus.FAILED;
+            runtimeDetail = "当前Run树存在明确失败的运行时证据";
+        } else if (eligibleRuntime.isEmpty()) {
+            runtime = CriterionStatus.NOT_VERIFIED;
+            runtimeDetail = evidence.isEmpty()
+                    ? "当前Run树没有运行时验收证据；没有可用的步骤数据，不能据此判定通过"
+                    : "存在证据但缺少有效步骤数据，不能据此判定通过";
+        } else if (eligibleRuntime.stream().allMatch(bundle -> "verified".equals(bundle.verdict()))) {
+            runtime = CriterionStatus.PASSED;
+            runtimeDetail = "所列步骤的运行时检查在该次执行中全部通过，仅代表所列步骤";
+        } else {
+            runtime = CriterionStatus.PARTIAL;
+            runtimeDetail = "仅部分所列步骤通过，不等同于全部要求已通过";
+        }
         checks.add(new CriterionView("technical-runtime-verification", "technical",
-                "页面或程序完成运行时检查", runtime,
-                evidence.isEmpty() ? "当前Run树没有运行时验收证据"
-                        : "仅使用明确绑定到当前Run树的证据", null));
+                "页面或程序完成运行时检查", runtime, runtimeDetail, null));
 
         long failedChildRuns = tree.stream()
                 .filter(run -> run.parentRunId() != null)
@@ -469,12 +493,27 @@ public class WorkbenchProjectionService {
         return CriterionStatus.NOT_VERIFIED;
     }
 
+    /** 关联证据最多只能证明对应检查项部分覆盖，绝不能直接判通过。 */
     private static CriterionStatus statusForVerdict(String verdict) {
-        return switch (verdict == null ? "" : verdict.toLowerCase(Locale.ROOT)) {
-            case "verified", "passed" -> CriterionStatus.PASSED;
-            case "failed" -> CriterionStatus.FAILED;
-            default -> CriterionStatus.PARTIAL;
-        };
+        return "failed".equalsIgnoreCase(verdict == null ? "" : verdict)
+                ? CriterionStatus.FAILED : CriterionStatus.PARTIAL;
+    }
+
+    /**
+     * 只有带可判定步骤数据的 Journey 证据才算有效运行时证据：
+     * 空 items、非 journey 类型、以及没有步骤状态/动作数据的模型自报都不算。
+     */
+    private static boolean hasValidStepData(EvidenceBundle bundle) {
+        if (bundle == null || !"journey".equals(bundle.kind())) return false;
+        List<EvidenceItem> items = bundle.items();
+        if (items == null || items.isEmpty()) return false;
+        return items.stream().anyMatch(WorkbenchProjectionService::hasDecidableStepData);
+    }
+
+    private static boolean hasDecidableStepData(EvidenceItem item) {
+        if (item == null || item.meta() == null) return false;
+        if (item.meta().get("ok") instanceof Boolean) return true;
+        return item.meta().get("action") instanceof String action && !action.isBlank();
     }
 
     private static int extensionRank(String path) {

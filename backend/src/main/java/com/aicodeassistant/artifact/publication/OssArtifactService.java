@@ -2,6 +2,7 @@ package com.aicodeassistant.artifact.publication;
 
 import com.aicodeassistant.config.oss.OssPublishProperties;
 import com.aicodeassistant.tool.ToolResult;
+import com.aicodeassistant.util.ContentDispositionEncoder;
 import com.aliyun.credentials.Client;
 import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.provider.DefaultCredentialsProvider;
@@ -22,8 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Locale;
 import java.util.Map;
@@ -247,8 +246,7 @@ public class OssArtifactService {
     }
 
     private static String contentDisposition(String fileName) {
-        String encoded = URLEncoder.encode(fileName, StandardCharsets.UTF_8).replace("+", "%20");
-        return "attachment; filename*=UTF-8''" + encoded;
+        return ContentDispositionEncoder.header("attachment", fileName, fileName);
     }
 
     private enum Phase { LOOKUP, UPLOAD_PRIVATE, VERIFY_PRIVATE, MAKE_PUBLIC }

@@ -111,23 +111,42 @@ export const EvidenceBundleView: React.FC<EvidenceBundleViewProps> = ({ bundleId
 // ==================== Header ====================
 
 const Header: React.FC<{ bundle: EvidenceBundle }> = ({ bundle }) => (
-    <div className="flex items-center justify-between gap-2">
-        <div className="min-w-0">
-            <div className="flex items-center gap-2">
-                <h3 className="truncate text-base font-semibold">
-                    {bundle.claim || `Evidence Bundle ${shortId(bundle.bundleId)}`}
-                </h3>
-                <span className="px-1.5 py-0.5 text-[13px] rounded bg-surface2 text-t2 uppercase">
-                    {bundle.kind}
-                </span>
+    <div>
+        <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                    <h3 className="truncate text-base font-semibold">
+                        {bundle.claim || `Evidence Bundle ${shortId(bundle.bundleId)}`}
+                    </h3>
+                    <span className="px-1.5 py-0.5 text-[13px] rounded bg-surface2 text-t2 uppercase">
+                        {bundle.kind}
+                    </span>
+                </div>
+                <div className="text-[13px] text-t2 mt-0.5 font-mono truncate">
+                    {shortId(bundle.bundleId)} · {formatTimestamp(bundle.createdAt)}
+                </div>
             </div>
-            <div className="text-[13px] text-t2 mt-0.5 font-mono truncate">
-                {shortId(bundle.bundleId)} · {formatTimestamp(bundle.createdAt)}
-            </div>
+            <VerdictBadge verdict={bundle.verdict} />
         </div>
-        <VerdictBadge verdict={bundle.verdict} />
+        {scopeNote(bundle) && (
+            <p className="mt-2 text-[13px] text-t2">{scopeNote(bundle)}</p>
+        )}
     </div>
 );
+
+/** 有限范围口径：正向结论只限定在可识别的检查范围；未知值不崩溃、不显示 undefined。 */
+function scopeNote(bundle: EvidenceBundle): string | null {
+    const v = (bundle.verdict || '').toLowerCase();
+    if (v === 'verified' || v === 'passed') {
+        return bundle.kind === 'journey' && bundle.items?.length > 0
+            ? '范围有限：仅表示所列步骤在该次执行中通过'
+            : '该记录标记为通过；检查覆盖范围未知';
+    }
+    if (v === 'unavailable') return '该次检查未执行，不能据此判定通过';
+    if (v === 'inconclusive') return '结论不确定，不能据此判定通过';
+    if (v === 'failed') return null;
+    return '范围未知，不能据此判定通过';
+}
 
 const VerdictBadge: React.FC<{ verdict: string }> = ({ verdict }) => {
     const v = (verdict || '').toLowerCase();
@@ -140,7 +159,10 @@ const VerdictBadge: React.FC<{ verdict: string }> = ({ verdict }) => {
     if (v === 'inconclusive') {
         return <span className="px-2 py-0.5 text-[13px] rounded bg-warnsoft text-warn">Inconclusive</span>;
     }
-    return <span className="px-2 py-0.5 text-[13px] rounded bg-accent2-soft text-accent2-ink">{verdict || 'Unknown'}</span>;
+    if (v === 'unavailable') {
+        return <span className="px-2 py-0.5 text-[13px] rounded bg-warnsoft text-warn">Unavailable</span>;
+    }
+    return <span className="px-2 py-0.5 text-[13px] rounded bg-accent2-soft text-accent2-ink">Unknown</span>;
 };
 
 // ==================== Item Group Renderer ====================

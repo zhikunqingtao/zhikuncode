@@ -1,12 +1,13 @@
 import { Folder, History, MessageSquareText } from 'lucide-react';
-import type { SessionDetail, WorkbenchMessage } from '@/hooks/useSimpleWorkbenchData';
+import type { RunSummary, SessionDetail, WorkbenchMessage } from '@/hooks/useSimpleWorkbenchData';
 import { taskTitle } from '@/utils/workbenchPresentation';
 
 export function TaskOverviewCard({
-    session, request, correlationMode, loading, error,
+    session, request, run, correlationMode, loading, error,
 }: {
     session: SessionDetail | null;
     request: WorkbenchMessage | null;
+    run: RunSummary | null;
     correlationMode: 'EXACT' | 'LEGACY_FALLBACK';
     loading: boolean;
     error: string | null;
@@ -15,6 +16,12 @@ export function TaskOverviewCard({
     const derivedTitle = taskTitle(session?.title, [], session?.workingDir, request?.text ?? undefined);
     const title = derivedTitle;
     const folder = session?.workingDir?.split('/').filter(Boolean).at(-1) ?? '尚未选择';
+    const usageStatus = run?.usageStatus?.trim().toLowerCase();
+    const tokens = run?.totalTokens;
+    const usageText = (usageStatus === 'known' || usageStatus === 'partial')
+        && typeof tokens === 'number' && Number.isFinite(tokens) && tokens >= 0
+        ? `${tokens.toLocaleString()} Tokens${usageStatus === 'partial' ? '（仅已报告部分）' : ''}`
+        : '未报告';
 
     return (
         <section className="rounded-[14px] border border-[var(--v2-border-hairline)] bg-[var(--v2-bg-sunken)] p-4 md:p-6 shadow-e1">
@@ -33,6 +40,7 @@ export function TaskOverviewCard({
                 <span className="inline-flex items-center gap-1.5 text-[13px] text-[var(--v2-text-2)]" title={session?.workingDir}><Folder className="h-4 w-4" />{folder}</span>
             </div>
             {!loading && error && <p className="mt-3 rounded-[14px] border border-err bg-errsoft p-3 text-sm text-err">无法读取当前任务：{error}</p>}
+            {run && <p className="mt-3 text-[13px] tabular-nums text-[var(--v2-text-2)]">本轮已观测用量：{usageText}</p>}
             <div className="mt-4 flex gap-3 rounded-[14px] bg-[var(--v2-bg-surface)] p-4">
                 <MessageSquareText className="mt-0.5 h-4 w-4 shrink-0 text-accent2-ink dark:text-accent2-ink" />
                 <div className="min-w-0">

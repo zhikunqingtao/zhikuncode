@@ -174,12 +174,14 @@ class QueryEngineMediaRecoveryTest {
         lenient().doAnswer(inv -> { String id = inv.getArgument(0); var run = runs.get(id);
             runs.put(id, new RunEnvelope(id,run.sessionId(),null,RunEnvelope.RunStatus.COMPLETED,run.agentType(),run.model(),null,
                 run.startedAt(),Instant.now(),null,0,0,0,0,null,run.createdAt(),Instant.now(),1,
-                RunEnvelope.RunExitReason.MODEL_FINISHED,null,RunEnvelope.VerificationStatus.NOT_REQUESTED,Instant.now(),null)); return null; })
+                RunEnvelope.RunExitReason.MODEL_FINISHED,null,RunEnvelope.VerificationStatus.NOT_REQUESTED,
+                RunEnvelope.UsageStatus.UNKNOWN,Instant.now(),null)); return null; })
             .when(runTracker).completeRun(anyString(),anyInt(),anyDouble(),anyInt(),anyInt());
         lenient().doAnswer(inv -> { String id = inv.getArgument(0); var run = runs.get(id);
             runs.put(id, new RunEnvelope(id,run.sessionId(),null,RunEnvelope.RunStatus.FAILED,run.agentType(),run.model(),null,
                 run.startedAt(),Instant.now(),null,0,0,0,0,inv.getArgument(1),run.createdAt(),Instant.now(),1,
-                RunEnvelope.RunExitReason.INTERNAL_ERROR,null,RunEnvelope.VerificationStatus.NOT_REQUESTED,Instant.now(),null)); return null; })
+                RunEnvelope.RunExitReason.INTERNAL_ERROR,null,RunEnvelope.VerificationStatus.NOT_REQUESTED,
+                RunEnvelope.UsageStatus.UNKNOWN,Instant.now(),null)); return null; })
             .when(runTracker).failRun(anyString(),anyString());
         // 默认 ContextCascade mock: 直接返回原消息列表（无压缩）
         lenient().when(contextCascade.executePreApiCascade(anyList(), anyString(), any(), any()))

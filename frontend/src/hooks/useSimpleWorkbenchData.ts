@@ -23,6 +23,10 @@ export interface RunSummary {
     updatedAt: string;
     verificationStatus: string;
     errorSummary: string | null;
+    /** 已观测用量状态 known/partial/unknown；旧快照可能缺失 → 视为未报告，不做数字推断。 */
+    usageStatus?: string;
+    /** 已观测累计 token；unknown 时表示未报告，而不是零消费。 */
+    totalTokens?: number;
 }
 
 export interface ArtifactEntrySummary {

@@ -16,9 +16,21 @@ interface TokenCostPanelProps {
     totalCost: number;
     usage: TokenUsage;
     history?: CostSnapshot[];
+    /** 服务端 UsageStatus（known/partial/unknown）；缺省或未知取值不提示，不做数字推断。 */
+    usageStatus?: string;
 }
 
-export function TokenCostPanel({ sessionCost, totalCost, usage, history: _history }: TokenCostPanelProps) {
+/** 已观测用量状态说明 — unknown 是"未报告"而不是零消费；状态缺失或未知取值不提示。 */
+function usageStatusNote(usageStatus?: string): string | null {
+    if (typeof usageStatus !== 'string') return null;
+    switch (usageStatus.trim().toLowerCase()) {
+        case 'unknown': return '未报告';
+        case 'partial': return '仅统计已报告部分';
+        default: return null;
+    }
+}
+
+export function TokenCostPanel({ sessionCost, totalCost, usage, history: _history, usageStatus }: TokenCostPanelProps) {
     const formatCost = (cost: number) => `$${cost.toFixed(4)}`;
     const formatTokens = (tokens: number) => tokens.toLocaleString();
 
@@ -31,10 +43,12 @@ export function TokenCostPanel({ sessionCost, totalCost, usage, history: _histor
     const pct = (value: number) =>
         totalTokens > 0 ? (value / totalTokens) * 100 : 0;
 
+    const statusNote = usageStatusNote(usageStatus);
+
     return (
         <div className="rounded-[14px] border border-[var(--v2-border-hairline)] bg-[var(--v2-bg-sunken)] p-4">
             <h3 className="text-[var(--v2-text-1)] mb-3 text-base font-semibold">
-                Token & Cost
+                Token &amp; Cost
             </h3>
 
             {/* Cost Summary */}
@@ -52,7 +66,7 @@ export function TokenCostPanel({ sessionCost, totalCost, usage, history: _histor
                     </div>
                 </div>
                 <div className="bg-accent2-soft rounded-[10px] p-3">
-                    <div className="text-[13px] text-accent2-ink">Total Tokens</div>
+                    <div className="text-[13px] text-accent2-ink">已观测用量</div>
                     <div className="text-lg font-semibold text-accent2-ink">
                         {formatTokens(totalTokens)}
                     </div>
@@ -64,6 +78,9 @@ export function TokenCostPanel({ sessionCost, totalCost, usage, history: _histor
                     </div>
                 </div>
             </div>
+            {statusNote && (
+                <p className="mb-3 text-[12px] text-[var(--v2-text-3)]">{statusNote}</p>
+            )}
 
             {/* Token Usage Bar */}
             <div className="space-y-2">

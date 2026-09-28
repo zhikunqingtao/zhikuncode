@@ -111,7 +111,7 @@ public class ArtifactController {
         // 5. 执行验证
         RunEnvelope.VerificationStatus current = runOpt.get().verificationStatus();
         RunControlService.TransitionResult started = runs.setVerification(runId, current,
-                RunEnvelope.VerificationStatus.PENDING, "manual_artifact_verification");
+                RunEnvelope.VerificationStatus.PENDING, manualVerificationDetail(manifest.id(), "pending"));
         if (started != RunControlService.TransitionResult.APPLIED) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
@@ -120,7 +120,8 @@ public class ArtifactController {
             result = artifactManifestService.verify(manifest.id());
         } catch (RuntimeException failure) {
             runs.setVerification(runId, RunEnvelope.VerificationStatus.PENDING,
-                    RunEnvelope.VerificationStatus.FAILED, "verification_exception");
+                    RunEnvelope.VerificationStatus.FAILED,
+                    manualVerificationDetail(manifest.id(), "verification_exception"));
             throw failure;
         }
         RunEnvelope.VerificationStatus terminal = switch (result.status()) {
@@ -128,8 +129,14 @@ public class ArtifactController {
             case "unverified" -> RunEnvelope.VerificationStatus.UNVERIFIED;
             default -> RunEnvelope.VerificationStatus.FAILED;
         };
-        runs.setVerification(runId, RunEnvelope.VerificationStatus.PENDING, terminal, result.status());
+        runs.setVerification(runId, RunEnvelope.VerificationStatus.PENDING, terminal,
+                manualVerificationDetail(manifest.id(), result.status()));
         return ResponseEntity.ok(result);
+    }
+
+    /** 手动产物验证事件与自动路径同格式，统一附带范围与 manifestId。 */
+    private static String manualVerificationDetail(String manifestId, String result) {
+        return "scope=artifact_manifest;manifestId=" + manifestId + ";phase=manual;result=" + result;
     }
 
     // ───── 内部安全方法 ─────

@@ -1,13 +1,19 @@
 import { AlertTriangle, CheckCircle2, CircleDashed, MinusCircle } from 'lucide-react';
 import type { CriterionStatus, WorkbenchCriterion } from '@/hooks/useSimpleWorkbenchData';
 
-const labels: Record<CriterionStatus, string> = { PASSED: '已通过', FAILED: '有问题', PARTIAL: '部分通过', NOT_VERIFIED: '未验证' };
-const meta = {
+const labels: Record<string, string> = { PASSED: '已通过', FAILED: '有问题', PARTIAL: '核验未完成', NOT_VERIFIED: '未验证' };
+const meta: Record<string, { icon: typeof CheckCircle2; color: string }> = {
     PASSED: { icon: CheckCircle2, color: 'text-ok' },
     FAILED: { icon: AlertTriangle, color: 'text-err' },
     PARTIAL: { icon: MinusCircle, color: 'text-warnstrong dark:text-warn' },
     NOT_VERIFIED: { icon: CircleDashed, color: 'text-[var(--v2-text-2)]' },
-} as const;
+};
+/** 未知状态的安全兜底：不崩溃，显示范围未知的中性文案。 */
+const unknownMeta = { icon: CircleDashed, color: 'text-[var(--v2-text-2)]' } as const;
+
+function presentation(status: CriterionStatus) {
+    return { config: meta[status] ?? unknownMeta, label: labels[status] ?? '范围未知' };
+}
 
 export function AcceptanceCriteriaView({ business, technical, overall }: {
     business: WorkbenchCriterion[];
@@ -23,8 +29,8 @@ export function AcceptanceCriteriaView({ business, technical, overall }: {
 }
 
 function Criterion({ item }: { item: WorkbenchCriterion }) {
-    const config = meta[item.status]; const Icon = config.icon;
-    return <li className="flex items-start gap-3 rounded-[14px] bg-[var(--v2-bg-surface)] p-3"><Icon className={`mt-0.5 h-4 w-4 shrink-0 ${config.color}`} /><div className="min-w-0 flex-1"><p className="text-[15px] max-md:text-base leading-[1.7] max-md:leading-[1.7] text-[var(--v2-text-1)]">{item.text}</p>{item.detail && <p className="mt-1 text-[13px] text-[var(--v2-text-2)]">{item.detail}</p>}</div><span className={`shrink-0 text-[13px] ${config.color}`}>{labels[item.status]}</span></li>;
+    const { config, label } = presentation(item.status); const Icon = config.icon;
+    return <li className="flex items-start gap-3 rounded-[14px] bg-[var(--v2-bg-surface)] p-3"><Icon className={`mt-0.5 h-4 w-4 shrink-0 ${config.color}`} /><div className="min-w-0 flex-1"><p className="text-[15px] max-md:text-base leading-[1.7] max-md:leading-[1.7] text-[var(--v2-text-1)]">{item.text}</p>{item.detail && <p className="mt-1 text-[13px] text-[var(--v2-text-2)]">{item.detail}</p>}</div><span className={`shrink-0 text-[13px] ${config.color}`}>{label}</span></li>;
 }
 
-function Status({ status }: { status: CriterionStatus }) { const config = meta[status]; const Icon = config.icon; return <span className={`inline-flex items-center gap-1.5 text-sm font-medium ${config.color}`}><Icon className="h-4 w-4" />{labels[status]}</span>; }
+function Status({ status }: { status: CriterionStatus }) { const { config, label } = presentation(status); const Icon = config.icon; return <span className={`inline-flex items-center gap-1.5 text-sm font-medium ${config.color}`}><Icon className="h-4 w-4" />{label}</span>; }

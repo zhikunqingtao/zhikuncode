@@ -40,6 +40,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -144,7 +145,7 @@ class QueryEngineUnitTest {
                                                RunEnvelope.RunExitReason reason, String error) {
         return new RunEnvelope(run.id(),run.sessionId(),null,status,run.agentType(),run.model(),null,
                 run.startedAt(),Instant.now(),null,0,0,0,0,error,run.createdAt(),Instant.now(),1,reason,reason,
-                RunEnvelope.VerificationStatus.NOT_REQUESTED,Instant.now(),null);
+                RunEnvelope.VerificationStatus.NOT_REQUESTED,RunEnvelope.UsageStatus.UNKNOWN,Instant.now(),null);
     }
 
     private static ModelCapabilities testModelCapabilities() {
@@ -541,7 +542,7 @@ class QueryEngineUnitTest {
             verify(hookService).executeStopHooks(anyList(), eq("test-session"));
             assertThat(result.isSuccess()).isFalse();
             assertThat(result.error()).startsWith("MAX_TURNS:");
-            verify(runTracker).failRun(eq(run.id()), eq(RunEnvelope.RunExitReason.INCOMPLETE),
+            verify(runTracker).failRun(eq(run.id()), eq(RunEnvelope.RunExitReason.MAX_TURNS),
                     startsWith("MAX_TURNS:"));
             verify(runTracker, never()).completeRun(anyString(), anyInt(), anyDouble(), anyInt(), anyInt());
             assertRunAdmissionClosed();
@@ -562,7 +563,7 @@ class QueryEngineUnitTest {
             assertThat(requests).hasSize(1);
             assertThat(result.isSuccess()).isFalse();
             assertThat(result.error()).startsWith("TOKEN_BUDGET_EXHAUSTED:");
-            verify(runTracker).failRun(eq(run.id()), eq(RunEnvelope.RunExitReason.INCOMPLETE),
+            verify(runTracker).failRun(eq(run.id()), eq(RunEnvelope.RunExitReason.TOKEN_BUDGET_EXHAUSTED),
                     startsWith("TOKEN_BUDGET_EXHAUSTED:"));
             verify(runTracker, never()).completeRun(anyString(), anyInt(), anyDouble(), anyInt(), anyInt());
             assertRunAdmissionClosed();
@@ -900,7 +901,7 @@ class QueryEngineUnitTest {
             assertThat(requests).hasSize(2);
             assertThat(result.isSuccess()).isFalse();
             assertThat(result.error()).startsWith("MAX_TURNS:");
-            verify(runTracker).failRun(eq(run.id()), eq(RunEnvelope.RunExitReason.INCOMPLETE),
+            verify(runTracker).failRun(eq(run.id()), eq(RunEnvelope.RunExitReason.MAX_TURNS),
                     startsWith("MAX_TURNS:"));
             verify(runTracker, never()).completeRun(anyString(), anyInt(), anyDouble(), anyInt(), anyInt());
             assertRunAdmissionClosed();
@@ -914,10 +915,10 @@ class QueryEngineUnitTest {
                     new LlmStreamEvent.ToolInputDelta("review-tool-1", "{}")));
             doAnswer(inv -> {
                 authority.set(terminalSnapshot(run, RunEnvelope.RunStatus.FAILED,
-                        RunEnvelope.RunExitReason.INCOMPLETE, inv.getArgument(2)));
+                        RunEnvelope.RunExitReason.MAX_TURNS, inv.getArgument(2)));
                 executions.abortRun(run.id(), AbortReason.ERROR);
                 return null;
-            }).when(runTracker).failRun(eq(run.id()), eq(RunEnvelope.RunExitReason.INCOMPLETE),
+            }).when(runTracker).failRun(eq(run.id()), eq(RunEnvelope.RunExitReason.MAX_TURNS),
                     startsWith("MAX_TURNS:"));
 
             QueryEngine.QueryResult result = queryEngine.execute(
@@ -1531,6 +1532,432 @@ class QueryEngineUnitTest {
             assertThat(executions.offerInputForSession(
                     "test-session", UUID.randomUUID().toString(), "late instruction")
                     .receipt().rejectionCode()).isEqualTo("NO_ACTIVE_RUN");
+        }
+    }
+
+    // ═══════════════ 已观测用量收敛（R-03） ═══════════════
+
+    @Nested
+    @DisplayName("已观测用量与快照（R-03）")
+    class ObservedUsageTests {
+        private RunExecutionRegistry executions;
+        private RunEnvelope run;
+        private AtomicReference<RunEnvelope> authority;
+        private StreamingToolExecutor.ExecutionSession toolSession;
+        private Tool bashTool;
+
+        @BeforeEach
+        void wireEngineWithRunAuthority() {
+            executions = new RunExecutionRegistry();
+            run = RunEnvelope.start("test-session", null, "query", "mock-model");
+            when(runTracker.startRun("test-session", null, "query", "mock-model")).thenReturn(run);
+            authority = new AtomicReference<>(run);
+            lenient().when(runTracker.getRun(run.id())).thenAnswer(inv -> Optional.of(authority.get()));
+            lenient().doAnswer(inv -> { authority.set(terminalSnapshot(run, RunEnvelope.RunStatus.COMPLETED,
+                    RunEnvelope.RunExitReason.MODEL_FINISHED, null)); return null; })
+                    .when(runTracker).completeRun(eq(run.id()), anyInt(), anyDouble(), anyInt(), anyInt());
+            lenient().doAnswer(inv -> { authority.set(terminalSnapshot(run, RunEnvelope.RunStatus.FAILED,
+                    RunEnvelope.RunExitReason.INTERNAL_ERROR, inv.getArgument(1))); return null; })
+                    .when(runTracker).failRun(eq(run.id()), anyString());
+            lenient().doAnswer(inv -> { authority.set(terminalSnapshot(run, RunEnvelope.RunStatus.FAILED,
+                    inv.getArgument(1), inv.getArgument(2))); return null; })
+                    .when(runTracker).failRun(eq(run.id()), any(RunEnvelope.RunExitReason.class), anyString());
+            lenient().doAnswer(inv -> { boolean timeout = inv.getArgument(1) == AbortReason.TIMEOUT;
+                authority.set(terminalSnapshot(run, timeout ? RunEnvelope.RunStatus.FAILED : RunEnvelope.RunStatus.CANCELLED,
+                    timeout ? RunEnvelope.RunExitReason.DEADLINE_EXCEEDED : RunEnvelope.RunExitReason.USER_CANCELLED,
+                    inv.getArgument(2))); return null; })
+                    .when(runTracker).abortRun(eq(run.id()), any(), anyString());
+            queryEngine = new QueryEngine(
+                    providerRegistry, compactService, apiRetryService, tokenCounter,
+                    objectMapper, streamingToolExecutor, new MessageNormalizer(), hookService,
+                    snipService, microCompactService, modelRegistry,
+                    thinkingBudgetCalculator, modelTierService, fileHistoryService,
+                    toolResultSummarizer, contextCascade, compactMetrics,
+                    null, null, null, featureFlagService,
+                    new DefaultTerminationStrategy(), new ToolPriorityScheduler(),
+                    null, new AgentTimeoutConfig(), tokenBudgetGuard, imageRefInjector,
+                    runTracker, executions, userImageTranscoder);
+            toolSession = mock(StreamingToolExecutor.ExecutionSession.class);
+            when(streamingToolExecutor.newSession(any())).thenReturn(toolSession);
+            bashTool = mock(Tool.class);
+            lenient().when(bashTool.getName()).thenReturn("Bash");
+            lenient().when(bashTool.getAliases()).thenReturn(List.of());
+            lenient().when(apiRetryService.executeWithRetry(any(), anyString(), anyString(), any()))
+                    .thenAnswer(inv -> inv.getArgument(0, Supplier.class).get());
+            lenient().when(hookService.executeStopHooks(anyList(), anyString()))
+                    .thenReturn(HookRegistry.StopHookResult.ok());
+        }
+
+        private void script(BiConsumer<Integer, StreamChatCallback> response) {
+            LlmProvider provider = mock(LlmProvider.class);
+            when(providerRegistry.getProvider(anyString())).thenReturn(provider);
+            AtomicInteger calls = new AtomicInteger();
+            doAnswer(inv -> {
+                response.accept(calls.incrementAndGet(), inv.getArgument(7));
+                return null;
+            }).when(provider).streamChat(anyString(), anyList(), anyString(), anyList(),
+                    anyInt(), any(), any(LlmCallContext.class), any(StreamChatCallback.class));
+        }
+
+        private void finish(StreamChatCallback callback, String stopReason, LlmStreamEvent... events) {
+            for (LlmStreamEvent event : events) callback.onEvent(event);
+            callback.onEvent(new LlmStreamEvent.MessageDelta(new Usage(10, 5, 0, 0), stopReason));
+            callback.onComplete();
+        }
+
+        private QueryConfig buildConfig() {
+            return QueryConfig.withDefaults("mock-model", "You are a helpful assistant.",
+                    List.of(bashTool), List.of(), 8192, 200000,
+                    new ThinkingConfig.Disabled(), 10, "test");
+        }
+
+        @Test
+        @DisplayName("多轮累计：两轮报告相加（15 + 10 = 25），且快照随轮次单调推进")
+        void accumulatesReportedUsageAcrossTurnsAndPushesSnapshots() {
+            when(toolSession.isAllCompleted()).thenReturn(true);
+            StreamingToolExecutor.TrackedTool completed = mock(StreamingToolExecutor.TrackedTool.class);
+            when(completed.getToolUseId()).thenReturn("tool-1");
+            when(completed.getResult()).thenReturn(ToolResult.success("tool result"));
+            when(toolSession.yieldCompleted()).thenReturn(List.of(completed), List.of());
+            when(toolResultSummarizer.processToolResults(anyList(), anyInt()))
+                    .thenAnswer(inv -> inv.getArgument(0));
+            script((call, callback) -> {
+                if (call == 1) {
+                    callback.onEvent(new LlmStreamEvent.ToolUseStart("tool-1", "Bash"));
+                    callback.onEvent(new LlmStreamEvent.ToolInputDelta("tool-1", "{}"));
+                    callback.onEvent(new LlmStreamEvent.MessageDelta(new Usage(10, 5, 0, 0), "tool_use"));
+                    callback.onComplete();
+                } else {
+                    callback.onEvent(new LlmStreamEvent.TextDelta("done"));
+                    callback.onEvent(new LlmStreamEvent.MessageDelta(new Usage(4, 6, 0, 0), "end_turn"));
+                    callback.onComplete();
+                }
+            });
+
+            QueryLoopState state = buildState("question");
+            QueryEngine.QueryResult result = queryEngine.execute(buildConfig(), state, handler);
+
+            assertThat(result.isSuccess()).isTrue();
+            // 第一轮 15（10+5），第二轮再报告 10（4+6），累计 25。
+            assertThat(result.totalUsage().totalTokens()).isEqualTo(25);
+            assertThat(state.getObservedUsage().totalTokens()).isEqualTo(25);
+            assertThat(handler.usageEvents).extracting(Usage::totalTokens).containsExactly(15, 10);
+            assertThat(state.observationStatus()).isEqualTo(QueryLoopState.ObservationStatus.KNOWN);
+
+            ArgumentCaptor<Long> seqs = ArgumentCaptor.forClass(Long.class);
+            ArgumentCaptor<Integer> tokens = ArgumentCaptor.forClass(Integer.class);
+            ArgumentCaptor<RunEnvelope.UsageStatus> statuses =
+                    ArgumentCaptor.forClass(RunEnvelope.UsageStatus.class);
+            verify(runTracker, atLeastOnce()).recordUsageSnapshotBestEffort(
+                    eq(run.id()), seqs.capture(), tokens.capture(), anyInt(), statuses.capture());
+            assertThat(tokens.getAllValues().getLast()).isEqualTo(25);
+            // 序号从 1 开始（0 保留为"尚无快照"，否则与迁移默认值相撞会被误判为冲突丢弃）。
+            assertThat(seqs.getAllValues().getFirst()).isEqualTo(1L);
+            assertThat(seqs.getAllValues()).isSorted();
+            assertThat(statuses.getAllValues()).containsOnly(RunEnvelope.UsageStatus.KNOWN);
+        }
+
+        @Test
+        @DisplayName("显式零值算一次报告：状态 KNOWN，总量为 0 也不估算")
+        void explicitZeroUsageCountsAsReported() {
+            script((call, callback) -> {
+                callback.onEvent(new LlmStreamEvent.TextDelta("answer"));
+                callback.onEvent(new LlmStreamEvent.MessageDelta(new Usage(0, 0, 0, 0), "end_turn"));
+                callback.onComplete();
+            });
+
+            QueryLoopState state = buildState("question");
+            QueryEngine.QueryResult result = queryEngine.execute(buildConfig(), state, handler);
+
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(state.getObservedUsage().totalTokens()).isZero();
+            assertThat(state.observationStatus()).isEqualTo(QueryLoopState.ObservationStatus.KNOWN);
+            assertThat(handler.usageEvents).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("缺 usage 不估算：状态 UNKNOWN，不回填任何 token")
+        void missingUsageIsMarkedUnknownWithoutEstimation() {
+            script((call, callback) -> {
+                callback.onEvent(new LlmStreamEvent.TextDelta("answer without usage metadata"));
+                callback.onEvent(new LlmStreamEvent.MessageDelta(null, "end_turn"));
+                callback.onComplete();
+            });
+
+            QueryLoopState state = buildState("question");
+            QueryEngine.QueryResult result = queryEngine.execute(buildConfig(), state, handler);
+
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(state.getObservedUsage().totalTokens()).isZero();
+            assertThat(state.observationStatus()).isEqualTo(QueryLoopState.ObservationStatus.UNKNOWN);
+            assertThat(handler.usageEvents).isEmpty();
+            ArgumentCaptor<RunEnvelope.UsageStatus> statuses =
+                    ArgumentCaptor.forClass(RunEnvelope.UsageStatus.class);
+            verify(runTracker, atLeastOnce()).recordUsageSnapshotBestEffort(
+                    eq(run.id()), anyLong(), anyInt(), anyInt(), statuses.capture());
+            assertThat(statuses.getAllValues()).containsOnly(RunEnvelope.UsageStatus.UNKNOWN);
+        }
+
+        @Test
+        @DisplayName("同一响应的两个回调只收敛一次：10+5 记 15 而不是 30")
+        void singleResponseIsConvergedExactlyOnceAcrossCallbacks() {
+            script((call, callback) -> finish(callback, "end_turn",
+                    new LlmStreamEvent.TextDelta("answer")));
+
+            QueryLoopState state = buildState("question");
+            QueryEngine.QueryResult result = queryEngine.execute(buildConfig(), state, handler);
+
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(state.getObservedUsage().totalTokens()).isEqualTo(15);
+            assertThat(state.getObservedUsage()).isEqualTo(new Usage(10, 5, 0, 0));
+            assertThat(result.totalUsage().totalTokens()).isEqualTo(15);
+            assertThat(handler.assistantMessages).hasSize(1);
+            assertThat(handler.usageEvents).hasSize(1)
+                    .allSatisfy(usage -> assertThat(usage.totalTokens()).isEqualTo(15));
+        }
+
+        @Test
+        @DisplayName("partial 响应只加一次：中断前完整报告的 usage 只收敛一次")
+        void partialResponseUsageIsRetainedExactlyOnce() {
+            script((call, callback) -> {
+                finish(callback, "end_turn", new LlmStreamEvent.TextDelta("partial result"));
+                queryEngine.abort("test-session", AbortReason.TIMEOUT);
+            });
+
+            QueryLoopState state = buildState("question");
+            QueryEngine.QueryResult result = queryEngine.execute(buildConfig(), state, handler);
+
+            assertThat(state.getObservedUsage().totalTokens()).isEqualTo(15);
+            assertThat(result.totalUsage().totalTokens()).isEqualTo(15);
+            assertThat(state.observationStatus()).isEqualTo(QueryLoopState.ObservationStatus.KNOWN);
+            assertThat(handler.usageEvents).hasSize(1)
+                    .allSatisfy(usage -> assertThat(usage.totalTokens()).isEqualTo(15));
+
+            // 取消/超时路径的最终观测值必须在终止前落库；首个快照序号为 1（seq=0 会与默认值冲突被丢弃）。
+            ArgumentCaptor<Long> snapshotSeqs = ArgumentCaptor.forClass(Long.class);
+            verify(runTracker, atLeastOnce()).recordUsageSnapshotBestEffort(
+                    eq(run.id()), snapshotSeqs.capture(), eq(15), anyInt(),
+                    eq(RunEnvelope.UsageStatus.KNOWN));
+            assertThat(snapshotSeqs.getAllValues().getFirst()).isEqualTo(1L);
+        }
+
+        @Test
+        void responseKeepsLatestCumulativeUsageAcrossNullAndRepeatedDeltas() {
+            script((call, callback) -> {
+                callback.onEvent(new LlmStreamEvent.MessageDelta(new Usage(10, 2, 0, 0), null));
+                callback.onEvent(new LlmStreamEvent.TextDelta("answer"));
+                callback.onEvent(new LlmStreamEvent.MessageDelta(new Usage(10, 5, 0, 0), null));
+                callback.onEvent(new LlmStreamEvent.MessageDelta(new Usage(10, 5, 0, 0), null));
+                callback.onEvent(new LlmStreamEvent.MessageDelta(null, "end_turn"));
+                callback.onComplete();
+            });
+            QueryLoopState state = buildState("question");
+            var result = queryEngine.execute(buildConfig(), state, handler);
+
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(result.totalUsage().totalTokens()).isEqualTo(15);
+            assertThat(state.getReportedUsageObservations()).isEqualTo(1);
+            assertThat(state.observationStatus()).isEqualTo(QueryLoopState.ObservationStatus.KNOWN);
+            assertThat(handler.usageEvents).containsExactly(new Usage(10, 5, 0, 0));
+        }
+
+        @Test
+        void compatibleProviderMissingUsageRemainsUnknownThroughEngine() throws Exception {
+            var provider = new com.aicodeassistant.llm.impl.OpenAiCompatibleProvider(
+                    "test", objectMapper, new LlmHttpProperties(
+                            new LlmHttpProperties.PoolProperties(2, 30), 10, 10, false),
+                    new ApiKeyRotationManager("fixture"), "fixture", "http://127.0.0.1:1/v1",
+                    "mock-model", List.of("mock-model"));
+            var parse = provider.getClass().getDeclaredMethod("processChunk",
+                    String.class, Map.class, StreamChatCallback.class, AtomicBoolean.class);
+            parse.setAccessible(true);
+            script((call, callback) -> {
+                try {
+                    parse.invoke(provider,
+                            "{\"choices\":[{\"delta\":{\"content\":\"answer\"},\"finish_reason\":\"stop\"}]}",
+                            new LinkedHashMap<>(), callback, new AtomicBoolean());
+                    callback.onComplete();
+                } catch (ReflectiveOperationException failure) {
+                    throw new AssertionError(failure);
+                }
+            });
+            QueryLoopState state = buildState("question");
+            var result = queryEngine.execute(buildConfig(), state, handler);
+
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(state.getReportedUsageObservations()).isZero();
+            assertThat(state.observationStatus()).isEqualTo(QueryLoopState.ObservationStatus.UNKNOWN);
+            assertThat(handler.usageEvents).isEmpty();
+        }
+
+        @Test
+        void reportedUsageBeforeProviderErrorIsRetained() {
+            script((call, callback) -> {
+                callback.onEvent(new LlmStreamEvent.TextDelta("partial"));
+                callback.onEvent(new LlmStreamEvent.MessageDelta(new Usage(10, 5, 0, 0), null));
+                callback.onError(new LlmApiException("provider failure after usage", false));
+            });
+            QueryLoopState state = buildState("question");
+            var result = queryEngine.execute(buildConfig(), state, handler);
+
+            assertThat(result.isSuccess()).isFalse();
+            assertThat(result.totalUsage().totalTokens()).isEqualTo(15);
+            assertThat(state.getReportedUsageObservations()).isEqualTo(1);
+            verify(runTracker).recordUsageSnapshotBestEffort(eq(run.id()), anyLong(), eq(15), anyInt(),
+                    eq(RunEnvelope.UsageStatus.KNOWN));
+        }
+
+        @Test
+        void reportedUsageBeforeRuntimeFailureIsRetained() {
+            script((call, callback) -> {
+                callback.onEvent(new LlmStreamEvent.MessageDelta(new Usage(10, 5, 0, 0), null));
+                throw new IllegalStateException("failure after usage");
+            });
+            QueryLoopState state = buildState("question");
+            var result = queryEngine.execute(buildConfig(), state, handler);
+
+            assertThat(result.isSuccess()).isFalse();
+            assertThat(result.totalUsage().totalTokens()).isEqualTo(15);
+            assertThat(state.getReportedUsageObservations()).isEqualTo(1);
+        }
+
+        @Test
+        void invalidToolJsonDoesNotDiscardAlreadyReportedUsage() {
+            script((call, callback) -> {
+                callback.onEvent(new LlmStreamEvent.ToolUseStart("invalid-tool", "Bash"));
+                callback.onEvent(new LlmStreamEvent.ToolInputDelta("invalid-tool", "{"));
+                callback.onEvent(new LlmStreamEvent.MessageDelta(new Usage(10, 5, 0, 0), "tool_use"));
+                callback.onComplete();
+            });
+            QueryLoopState state = buildState("question");
+            var result = queryEngine.execute(buildConfig(), state, handler);
+
+            assertThat(result.isSuccess()).isFalse();
+            assertThat(result.totalUsage().totalTokens()).isEqualTo(15);
+            assertThat(state.getReportedUsageObservations()).isEqualTo(1);
+            verify(toolSession, never()).addTool(any(), any(), anyString(), any());
+        }
+
+        @Test
+        void unreportedFailureAfterKnownTurnMarksPartial() {
+            completedToolTurn();
+            script((call, callback) -> {
+                if (call == 1) finish(callback, "tool_use",
+                        new LlmStreamEvent.ToolUseStart("tool-1", "Bash"),
+                        new LlmStreamEvent.ToolInputDelta("tool-1", "{}"));
+                else {
+                    callback.onEvent(new LlmStreamEvent.TextDelta("partial response without usage"));
+                    callback.onError(new LlmApiException("failure without usage", false));
+                }
+            });
+            QueryLoopState state = buildState("question");
+            var result = queryEngine.execute(buildConfig(), state, handler);
+
+            assertThat(result.isSuccess()).isFalse();
+            assertThat(result.totalUsage().totalTokens()).isEqualTo(15);
+            assertThat(state.observationStatus()).isEqualTo(QueryLoopState.ObservationStatus.PARTIAL);
+        }
+
+        @Test
+        void localPayloadRejectionDoesNotInventAnUnreportedResponse() {
+            completedToolTurn();
+            script((call, callback) -> {
+                if (call == 1) finish(callback, "tool_use",
+                        new LlmStreamEvent.ToolUseStart("tool-1", "Bash"),
+                        new LlmStreamEvent.ToolInputDelta("tool-1", "{}"));
+                else throw new LlmApiException("local payload too large", false, 413,
+                        "CONTEXT_BUDGET_EXCEEDED", 0);
+            });
+            QueryLoopState state = buildState("question");
+            var result = queryEngine.execute(buildConfig(), state, handler);
+
+            assertThat(result.isSuccess()).isFalse();
+            assertThat(result.totalUsage().totalTokens()).isEqualTo(15);
+            assertThat(state.observationStatus()).isEqualTo(QueryLoopState.ObservationStatus.KNOWN);
+            assertThat(state.hasMissingUsageObservation()).isFalse();
+        }
+
+        @Test
+        void cancellationBeforeStreamChatDoesNotInventAnUnreportedResponse() {
+            completedToolTurn();
+            AtomicInteger providerCalls = new AtomicInteger();
+            script((call, callback) -> {
+                providerCalls.incrementAndGet();
+                finish(callback, "tool_use", new LlmStreamEvent.ToolUseStart("tool-1", "Bash"),
+                        new LlmStreamEvent.ToolInputDelta("tool-1", "{}"));
+            });
+            AtomicInteger retryCalls = new AtomicInteger();
+            doAnswer(inv -> {
+                if (retryCalls.incrementAndGet() == 2) {
+                    queryEngine.abort("test-session", AbortReason.USER_INTERRUPT);
+                }
+                return inv.getArgument(0, Supplier.class).get();
+            }).when(apiRetryService).executeWithRetry(any(), anyString(), anyString(), any());
+            QueryLoopState state = buildState("question");
+            var result = queryEngine.execute(buildConfig(), state, handler);
+
+            assertThat(result.stopReason()).isEqualTo("cancelled");
+            assertThat(providerCalls.get()).isEqualTo(1);
+            assertThat(result.totalUsage().totalTokens()).isEqualTo(15);
+            assertThat(state.observationStatus()).isEqualTo(QueryLoopState.ObservationStatus.KNOWN);
+            assertThat(state.hasMissingUsageObservation()).isFalse();
+            assertThat(handler.usageEvents).hasSize(1);
+        }
+
+        @Test
+        void cancellationExceptionAfterUsageDoesNotDoubleCount() {
+            script((call, callback) -> {
+                callback.onEvent(new LlmStreamEvent.TextDelta("partial"));
+                callback.onEvent(new LlmStreamEvent.MessageDelta(new Usage(10, 5, 0, 0), null));
+                throw new java.util.concurrent.CancellationException("cancelled stream");
+            });
+            QueryLoopState state = buildState("question");
+            var result = queryEngine.execute(buildConfig(), state, handler);
+
+            assertThat(result.stopReason()).isEqualTo("cancelled");
+            assertThat(result.totalUsage().totalTokens()).isEqualTo(15);
+            assertThat(state.getReportedUsageObservations()).isEqualTo(1);
+            assertThat(handler.usageEvents).containsExactly(new Usage(10, 5, 0, 0));
+        }
+
+        private void completedToolTurn() {
+            when(toolSession.isAllCompleted()).thenReturn(true);
+            StreamingToolExecutor.TrackedTool completed = mock(StreamingToolExecutor.TrackedTool.class);
+            when(completed.getToolUseId()).thenReturn("tool-1");
+            when(completed.getResult()).thenReturn(ToolResult.success("tool result"));
+            when(toolSession.yieldCompleted()).thenReturn(List.of(completed), List.of());
+            when(toolResultSummarizer.processToolResults(anyList(), anyInt()))
+                    .thenAnswer(inv -> inv.getArgument(0));
+        }
+
+        @Test
+        @DisplayName("消息持久化失败：usage 在持久化前已收敛且快照已推进，失败路径不重复累计、不判成功")
+        void usageIsConvergedBeforeMessagePersistenceFailure() {
+            script((call, callback) -> finish(callback, "end_turn", new LlmStreamEvent.TextDelta("answer")));
+
+            QueryLoopState state = buildState("question");
+            AtomicInteger assistantPersistAttempts = new AtomicInteger();
+            state.setPersistenceSink(message -> {
+                if (message instanceof Message.AssistantMessage) {
+                    assistantPersistAttempts.incrementAndGet();
+                    throw new com.aicodeassistant.session.MessagePersistenceException(
+                            "TEST_WRITE_FAILED", "injected assistant write failure");
+                }
+            });
+
+            QueryEngine.QueryResult result = queryEngine.execute(buildConfig(), state, handler);
+
+            assertThat(result.isSuccess()).isFalse();
+            assertThat(result.error()).contains("PERSISTENCE_FAILED", "TEST_WRITE_FAILED");
+            assertThat(assistantPersistAttempts.get()).isEqualTo(1);
+            // 原始 usage（10+5=15）在持久化之前收敛并已推送快照；失败不清零、不重复。
+            assertThat(state.getObservedUsage().totalTokens()).isEqualTo(15);
+            assertThat(state.observationStatus()).isEqualTo(QueryLoopState.ObservationStatus.KNOWN);
+            verify(runTracker, atLeastOnce()).recordUsageSnapshotBestEffort(
+                    eq(run.id()), anyLong(), eq(15), anyInt(), eq(RunEnvelope.UsageStatus.KNOWN));
+            verify(runTracker).failRun(eq(run.id()), eq(RunEnvelope.RunExitReason.INCOMPLETE),
+                    startsWith("PERSISTENCE_FAILED:"));
+            verify(runTracker, never()).completeRun(anyString(), anyInt(), anyDouble(), anyInt(), anyInt());
         }
     }
 
@@ -2587,11 +3014,13 @@ class QueryEngineUnitTest {
         final List<Message.AssistantMessage> assistantMessages = new CopyOnWriteArrayList<>();
         final List<Throwable> errors = new CopyOnWriteArrayList<>();
         final List<ContentBlock.ToolResultBlock> toolResults = new CopyOnWriteArrayList<>();
+        final List<Usage> usageEvents = new CopyOnWriteArrayList<>();
         @Override public void onTextDelta(String text) { textDeltas.add(text); }
         @Override public void onToolUseStart(String id, String name) {}
         @Override public void onToolUseComplete(String id, ContentBlock.ToolUseBlock toolUse) {}
         @Override public void onToolResult(String id, ContentBlock.ToolResultBlock result) { toolResults.add(result); }
         @Override public void onAssistantMessage(Message.AssistantMessage message) { assistantMessages.add(message); }
+        @Override public void onUsage(Usage usage) { usageEvents.add(usage); }
         @Override public void onError(Throwable error) { errors.add(error); }
     }
     @org.junit.jupiter.api.Test

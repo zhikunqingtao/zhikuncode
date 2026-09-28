@@ -264,6 +264,36 @@ describe('transport-scoped bind recovery', () => {
         ]);
     });
 
+    it.each([
+        { exitReason: 'TOKEN_BUDGET_EXHAUSTED', expectedCode: 'TOKEN_BUDGET_EXHAUSTED' },
+        { exitReason: 'MAX_TURNS', expectedCode: 'MAX_TURNS' },
+        { exitReason: 'token_budget_exhausted', expectedCode: 'TOKEN_BUDGET_EXHAUSTED' },
+        { exitReason: ' max_turns ', expectedCode: 'MAX_TURNS' },
+    ])('maps restored exit reason $exitReason to its own error code', async ({ exitReason, expectedCode }) => {
+        const { bound, restored } = startRestore('session-failed', {
+            id: 'run-failed', status: 'FAILED', errorSummary: '预算或轮次耗尽', exitReason,
+        });
+        dispatch(restored);
+        await expect(bound).resolves.toBe(true);
+        expect(useMessageStore.getState().messages).toEqual([
+            expect.objectContaining({ subtype: 'error', errorCode: expectedCode }),
+        ]);
+    });
+
+    it.each(['UNKNOWN', 'not_a_real_reason', ''])(
+        'never maps unrecognized restored exit reason %s to success', async (exitReason) => {
+            const { bound, restored } = startRestore('session-failed', {
+                id: 'run-failed', status: 'FAILED', errorSummary: '未知退出原因', exitReason,
+            });
+            dispatch(restored);
+            await expect(bound).resolves.toBe(true);
+            // 未知原因必须仍是 error 卡（映射到 error 类），不得被当作正常结束。
+            expect(useMessageStore.getState().messages).toEqual([
+                expect.objectContaining({ subtype: 'error', errorCode: 'RUN_FAILED' }),
+            ]);
+            expect(useSessionStore.getState().status).toBe('idle');
+        });
+
     it.each(['COMPLETED', 'CANCELLED', 'INTERRUPTED', 'RUNNING', 'CANCELLING', 'WAITING_INTERACTION'])
     ('does not display a failure for a %s run', async (status) => {
         const { bound, restored } = startRestore('session-current', {

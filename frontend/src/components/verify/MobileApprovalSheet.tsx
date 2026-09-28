@@ -124,6 +124,10 @@ const AttentionCard: React.FC<AttentionCardProps> = ({ attention, onApprove, onR
             <div className="text-[13px] text-t2 mt-1 line-clamp-3">{attention.summary}</div>
         )}
 
+        {attentionScopeNote(attention.verdict) && (
+            <div className="text-[13px] text-t3 mt-1">{attentionScopeNote(attention.verdict)}</div>
+        )}
+
         <div className="text-[13px] text-t3 mt-1 font-mono truncate">
             bundle: {attention.bundleId}
         </div>
@@ -173,8 +177,21 @@ const VerdictBadge: React.FC<{ verdict: string }> = ({ verdict }) => {
     if (v === 'inconclusive') {
         return <span className="px-2 py-0.5 text-[13px] rounded bg-warnsoft text-warnstrong">Inconclusive</span>;
     }
-    return <span className="px-2 py-0.5 text-[13px] rounded bg-accent2-soft text-accent2-ink">{verdict || 'Pending'}</span>;
+    if (v === 'unavailable') {
+        return <span className="px-2 py-0.5 text-[13px] rounded bg-warnsoft text-warnstrong">Unavailable</span>;
+    }
+    return <span className="px-2 py-0.5 text-[13px] rounded bg-accent2-soft text-accent2-ink">范围未知</span>;
 };
+
+/** 与 Workbench/Evidence Viewer 相同的有限范围口径；未知值安全兜底。 */
+function attentionScopeNote(verdict: string): string | null {
+    const v = (verdict || '').toLowerCase();
+    if (v === 'verified' || v === 'passed') return '范围有限：仅表示所列步骤在该次检查中通过';
+    if (v === 'unavailable') return '该次检查未执行，不能据此判定通过';
+    if (v === 'inconclusive') return '结论不确定，不能据此判定通过';
+    if (v === 'failed' || !v) return null;
+    return '判定范围未知';
+}
 
 function formatRelative(iso: string): string {
     const t = new Date(iso).getTime();

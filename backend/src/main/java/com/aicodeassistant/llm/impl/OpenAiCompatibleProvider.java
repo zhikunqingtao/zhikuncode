@@ -722,6 +722,10 @@ public class OpenAiCompatibleProvider implements LlmProvider {
     }
 
     private Usage parseResponsesUsage(JsonNode usage) {
+        if (usage == null || !usage.isObject()
+                || (!usage.hasNonNull("input_tokens") && !usage.hasNonNull("output_tokens"))) {
+            return null;
+        }
         return new Usage(
                 usage.path("input_tokens").asInt(0),
                 usage.path("output_tokens").asInt(0),
@@ -1256,9 +1260,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                         entry.getValue().stopEmitted = true;
                     }
                 }
-                Usage usage = chunk.has("usage")
-                        ? parseUsage(chunk.get("usage"))
-                        : Usage.zero();
+                Usage usage = parseUsage(chunk.get("usage"));
                 callback.onEvent(new LlmStreamEvent.MessageDelta(usage, finishReason));
             }
 
@@ -1366,6 +1368,10 @@ public class OpenAiCompatibleProvider implements LlmProvider {
     // ═══════════════════════════════════════════
 
     private Usage parseUsage(JsonNode usageNode) {
+        if (usageNode == null || !usageNode.isObject()
+                || (!usageNode.hasNonNull("prompt_tokens") && !usageNode.hasNonNull("completion_tokens"))) {
+            return null;
+        }
         return new Usage(
                 usageNode.path("prompt_tokens").asInt(0),
                 usageNode.path("completion_tokens").asInt(0),

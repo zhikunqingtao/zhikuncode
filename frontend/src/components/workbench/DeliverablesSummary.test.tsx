@@ -20,4 +20,12 @@ describe('DeliverablesSummary', () => {
         fireEvent.click(screen.getByRole('button', { name: '在文件夹中显示' }));
         expect(onOpenFile).toHaveBeenCalledWith('/workspace/report.html');
     });
+
+    it('limits positive file wording to the last integrity check', () => {
+        render(<DeliverablesSummary files={files} loading={false} error={null} />);
+
+        expect(screen.getByText(/上次完整性检查通过/)).toBeInTheDocument();
+        expect(screen.getByText(/待核对/)).toBeInTheDocument();
+        expect(screen.queryByText(/已核对/)).not.toBeInTheDocument();
+    });
 });

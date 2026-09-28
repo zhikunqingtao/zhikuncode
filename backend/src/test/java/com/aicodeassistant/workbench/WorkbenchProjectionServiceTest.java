@@ -9,6 +9,7 @@ import com.aicodeassistant.interaction.InteractionView;
 import com.aicodeassistant.run.RunEnvelope;
 import com.aicodeassistant.run.RunEnvelopeRepository;
 import com.aicodeassistant.verify.EvidenceBundle;
+import com.aicodeassistant.verify.EvidenceItem;
 import com.aicodeassistant.verify.EvidenceStore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -121,8 +123,11 @@ class WorkbenchProjectionServiceTest {
         });
         assertThat(view.verification().businessCriteria()).extracting(WorkbenchCurrentView.CriterionView::text)
                 .containsExactly("必须生成当前报告");
+        // 文字相同的证据只建立关联：不能直接把业务要求判为通过。
         assertThat(view.verification().businessCriteria().getFirst().status())
-                .isEqualTo(WorkbenchCurrentView.CriterionStatus.PASSED);
+                .isEqualTo(WorkbenchCurrentView.CriterionStatus.PARTIAL);
+        assertThat(view.verification().businessCriteria().getFirst().detail())
+                .contains("覆盖范围未知");
         assertThat(view.verification().businessCriteria().getFirst().evidenceBundleId())
                 .isEqualTo("ev-current");
         verify(artifacts).getManifestsForRunTree("root-current");
@@ -250,13 +255,192 @@ class WorkbenchProjectionServiceTest {
         dataSource.destroy();
     }
 
+    // ───────── R-13：关联证据不等于业务要求通过；运行时检查只聚合有效步骤证据 ─────────
+
+    @Test
+    void matchedClaimFromFailedEvidenceRemainsFailed() throws Exception {
+        JdbcTemplate jdbc = projectionJdbc();
+        seedBoundRoot(jdbc, "必须生成当前报告");
+        WorkbenchCurrentView view = projectWithEvidence(jdbc, List.of(
+                EvidenceBundle.builder().bundleId("ev-failed").sessionId("session-1").runId("root-current")
+                        .kind("journey").claim("必须生成当前报告").verdict("failed").build()));
+
+        WorkbenchCurrentView.CriterionView criterion = view.verification().businessCriteria().getFirst();
+        assertThat(criterion.status()).isEqualTo(WorkbenchCurrentView.CriterionStatus.FAILED);
+        assertThat(criterion.evidenceBundleId()).isEqualTo("ev-failed");
+    }
+
+    @Test
+    void matchedClaimWithValidStepsIsPartialNotPassed() throws Exception {
+        JdbcTemplate jdbc = projectionJdbc();
+        seedBoundRoot(jdbc, "必须生成当前报告");
+        WorkbenchCurrentView view = projectWithEvidence(jdbc, List.of(
+                journeyBundle("ev-steps", "必须生成当前报告", "verified")));
+
+        WorkbenchCurrentView.CriterionView criterion = view.verification().businessCriteria().getFirst();
+        assertThat(criterion.status()).isEqualTo(WorkbenchCurrentView.CriterionStatus.PARTIAL);
+        assertThat(criterion.detail()).contains("所列步骤");
+        assertThat(criterion.evidenceBundleId()).isEqualTo("ev-steps");
+    }
+
+    @Test
+    void matchedClaimWithoutValidStepDataIsPartialWithUnknownScope() throws Exception {
+        JdbcTemplate jdbc = projectionJdbc();
+        seedBoundRoot(jdbc, "必须生成当前报告", "必须完成复核");
+        WorkbenchCurrentView view = projectWithEvidence(jdbc, List.of(
+                EvidenceBundle.builder().bundleId("ev-empty").sessionId("session-1").runId("root-current")
+                        .kind("journey").claim("必须生成当前报告").verdict("verified").build(),
+                EvidenceBundle.builder().bundleId("ev-qa").sessionId("session-1").runId("root-current")
+                        .kind("qa").claim("必须完成复核").verdict("verified")
+                        .items(List.of(new EvidenceItem("item-1", "command", "model self report", null,
+                                Map.of("ok", true)))).build()));
+
+        assertThat(view.verification().businessCriteria()).hasSize(2)
+                .allSatisfy(criterion -> {
+                    assertThat(criterion.status()).isEqualTo(WorkbenchCurrentView.CriterionStatus.PARTIAL);
+                    assertThat(criterion.detail()).contains("覆盖范围未知");
+                });
+        assertThat(view.verification().businessCriteria())
+                .extracting(WorkbenchCurrentView.CriterionView::status)
+                .doesNotContain(WorkbenchCurrentView.CriterionStatus.PASSED);
+    }
+
+    @Test
+    void runtimeCheckWithoutEvidenceDoesNotPass() throws Exception {
+        JdbcTemplate jdbc = projectionJdbc();
+        seedBoundRoot(jdbc, "必须生成当前报告");
+        WorkbenchCurrentView view = projectWithEvidence(jdbc, List.of());
+
+        WorkbenchCurrentView.CriterionView check = runtimeCheckCriterion(view);
+        assertThat(check.status()).isEqualTo(WorkbenchCurrentView.CriterionStatus.NOT_VERIFIED);
+        assertThat(check.detail()).contains("没有可用的步骤数据");
+    }
+
+    @Test
+    void runtimeCheckIgnoresEmptyItemsAndUnknownTypes() throws Exception {
+        JdbcTemplate jdbc = projectionJdbc();
+        seedBoundRoot(jdbc, "必须生成当前报告");
+        WorkbenchCurrentView view = projectWithEvidence(jdbc, List.of(
+                EvidenceBundle.builder().bundleId("ev-empty").sessionId("session-1").runId("root-current")
+                        .kind("journey").verdict("verified").build(),
+                EvidenceBundle.builder().bundleId("ev-unknown").sessionId("session-1").runId("root-current")
+                        .kind("mystery").verdict("verified")
+                        .items(List.of(new EvidenceItem("item-1", "note", "model self report", null,
+                                Map.of("text", "looks fine")))).build()));
+
+        WorkbenchCurrentView.CriterionView check = runtimeCheckCriterion(view);
+        assertThat(check.status()).isEqualTo(WorkbenchCurrentView.CriterionStatus.NOT_VERIFIED);
+        assertThat(check.detail()).contains("缺少有效步骤数据");
+    }
+
+    @Test
+    void runtimeCheckPassesOnlyWithVerifiedStepEvidence() throws Exception {
+        JdbcTemplate jdbc = projectionJdbc();
+        seedBoundRoot(jdbc, "必须生成当前报告");
+        WorkbenchCurrentView view = projectWithEvidence(jdbc, List.of(
+                journeyBundle("ev-steps", null, "verified")));
+
+        WorkbenchCurrentView.CriterionView check = runtimeCheckCriterion(view);
+        assertThat(check.status()).isEqualTo(WorkbenchCurrentView.CriterionStatus.PASSED);
+        assertThat(check.detail()).contains("所列步骤");
+    }
+
+    @Test
+    void runtimeCheckIsPartialWhenValidStepsAreNotAllVerified() throws Exception {
+        JdbcTemplate jdbc = projectionJdbc();
+        seedBoundRoot(jdbc, "必须生成当前报告");
+        WorkbenchCurrentView view = projectWithEvidence(jdbc, List.of(
+                journeyBundle("ev-steps", null, "verified"),
+                journeyBundle("ev-inconclusive", null, "inconclusive")));
+
+        WorkbenchCurrentView.CriterionView check = runtimeCheckCriterion(view);
+        assertThat(check.status()).isEqualTo(WorkbenchCurrentView.CriterionStatus.PARTIAL);
+    }
+
+    @Test
+    void runtimeCheckKeepsExplicitFailureVisible() throws Exception {
+        JdbcTemplate jdbc = projectionJdbc();
+        seedBoundRoot(jdbc, "必须生成当前报告");
+        WorkbenchCurrentView view = projectWithEvidence(jdbc, List.of(
+                journeyBundle("ev-steps", null, "verified"),
+                EvidenceBundle.builder().bundleId("ev-failed").sessionId("session-1").runId("root-current")
+                        .kind("journey").verdict("failed").build()));
+
+        WorkbenchCurrentView.CriterionView check = runtimeCheckCriterion(view);
+        assertThat(check.status()).isEqualTo(WorkbenchCurrentView.CriterionStatus.FAILED);
+    }
+
+    private static EvidenceBundle journeyBundle(String bundleId, String claim, String verdict) {
+        return EvidenceBundle.builder().bundleId(bundleId).sessionId("session-1").runId("root-current")
+                .kind("journey").claim(claim).verdict(verdict)
+                .items(List.of(new EvidenceItem("item-1", "command", "Step 1 [navigate]: ok", null,
+                        Map.of("action", "navigate", "ok", true))))
+                .build();
+    }
+
+    private static WorkbenchCurrentView.CriterionView runtimeCheckCriterion(WorkbenchCurrentView view) {
+        return view.verification().technicalChecks().stream()
+                .filter(item -> "technical-runtime-verification".equals(item.id()))
+                .findFirst().orElseThrow();
+    }
+
+    private static WorkbenchCurrentView projectWithEvidence(JdbcTemplate jdbc, List<EvidenceBundle> evidenceList) {
+        RunEnvelopeRepository runs = mock(RunEnvelopeRepository.class);
+        ArtifactManifestService artifacts = mock(ArtifactManifestService.class);
+        EvidenceStore evidenceStore = mock(EvidenceStore.class);
+        RunEnvelope root = scopeRoot();
+        when(runs.findLatestRootBySession("session-1")).thenReturn(Optional.of(root));
+        when(runs.findTree("root-current")).thenReturn(List.of(root));
+        when(artifacts.getManifestsForRunTree("root-current")).thenReturn(List.of());
+        when(evidenceStore.findByRunIds(List.of("root-current"))).thenReturn(evidenceList);
+        return new WorkbenchProjectionService(jdbc, new ObjectMapper(), runs, artifacts, evidenceStore,
+                new StructuredSummaryExtractor(), new AcceptanceCriteriaExtractor(),
+                mock(DurableInteractionService.class)).current("session-1");
+    }
+
+    private static JdbcTemplate projectionJdbc() throws Exception {
+        var dataSource = new SingleConnectionDataSource(
+                DriverManager.getConnection("jdbc:sqlite::memory:"), true);
+        JdbcTemplate jdbc = new JdbcTemplate(dataSource);
+        jdbc.execute("CREATE TABLE run_workbench_bindings(root_run_id TEXT PRIMARY KEY, request_message_id TEXT, result_message_id TEXT)");
+        jdbc.execute("CREATE TABLE messages(id TEXT PRIMARY KEY, session_id TEXT, seq_num INTEGER, role TEXT, content_json TEXT, created_at TEXT)");
+        jdbc.execute("CREATE TABLE run_acceptance_criteria(criterion_id TEXT, root_run_id TEXT, ordinal INTEGER, source_text TEXT, status TEXT, evidence_bundle_id TEXT)");
+        jdbc.execute("CREATE TABLE interaction_requests(interaction_id TEXT, run_id TEXT, session_id TEXT, status TEXT, created_at TEXT)");
+        jdbc.execute("CREATE TABLE run_event_log(id INTEGER PRIMARY KEY AUTOINCREMENT, run_id TEXT, seq INTEGER, event_type TEXT, event_data TEXT, ts INTEGER)");
+        return jdbc;
+    }
+
+    private static void seedBoundRoot(JdbcTemplate jdbc, String... claimTexts) {
+        jdbc.update("INSERT INTO messages VALUES (?,?,?,?,?,?)", "request-current", "session-1", 1, "user",
+                "[{\"type\":\"text\",\"text\":\"生成当前报告\"}]", "2026-08-12T01:00:00Z");
+        jdbc.update("INSERT INTO messages VALUES (?,?,?,?,?,?)", "result-current", "session-1", 2, "assistant",
+                "[{\"type\":\"text\",\"text\":\"报告已生成。\"}]", "2026-08-12T01:01:00Z");
+        jdbc.update("INSERT INTO run_workbench_bindings VALUES (?,?,?)",
+                "root-current", "request-current", "result-current");
+        for (int index = 0; index < claimTexts.length; index++) {
+            jdbc.update("INSERT INTO run_acceptance_criteria VALUES (?,?,?,?,?,?)",
+                    "criterion-" + (index + 1), "root-current", index, claimTexts[index], "not_verified", null);
+        }
+    }
+
+    private static RunEnvelope scopeRoot() {
+        Instant now = Instant.parse("2026-08-12T01:00:00Z");
+        return new RunEnvelope("root-current", "session-1", null, RunEnvelope.RunStatus.COMPLETED,
+                "query", "model", null, now, now.plusSeconds(60), null,
+                0, 0, 0, 0, null, now, now.plusSeconds(60), 1,
+                RunEnvelope.RunExitReason.MODEL_FINISHED, null,
+                RunEnvelope.VerificationStatus.NOT_REQUESTED, RunEnvelope.UsageStatus.UNKNOWN,
+                now.plusSeconds(60), null);
+    }
+
     private static RunEnvelope completedRoot(String id, String sessionId) {
         Instant now = Instant.parse("2026-08-12T01:00:00Z");
         return new RunEnvelope(id, sessionId, null, RunEnvelope.RunStatus.COMPLETED,
                 "query", "model", null, now, now.plusSeconds(60), null,
                 0, 0, 0, 0, null, now, now.plusSeconds(60), 1,
                 RunEnvelope.RunExitReason.MODEL_FINISHED, null,
-                RunEnvelope.VerificationStatus.NOT_REQUESTED, now.plusSeconds(60), null);
+                RunEnvelope.VerificationStatus.NOT_REQUESTED, RunEnvelope.UsageStatus.UNKNOWN,
+                now.plusSeconds(60), null);
     }
 
     private static RunEnvelope failedChild(String id, String sessionId, String parentRunId) {
@@ -265,6 +449,7 @@ class WorkbenchProjectionServiceTest {
                 "subagent", "model", null, now, now.plusSeconds(60), null,
                 0, 0, 0, 0, "worker reached its limit", now, now.plusSeconds(60), 1,
                 RunEnvelope.RunExitReason.DEADLINE_EXCEEDED, null,
-                RunEnvelope.VerificationStatus.NOT_REQUESTED, now.plusSeconds(60), null);
+                RunEnvelope.VerificationStatus.NOT_REQUESTED, RunEnvelope.UsageStatus.UNKNOWN,
+                now.plusSeconds(60), null);
     }
 }

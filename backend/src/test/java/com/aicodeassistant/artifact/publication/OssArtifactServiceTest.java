@@ -79,6 +79,25 @@ class OssArtifactServiceTest {
     }
 
     @Test
+    void contentDispositionCarriesUtf8NameAndAsciiFallback() throws Exception {
+        ArtifactPublicationPolicy.Snapshot artifact = snapshot("报告 100%.html", "<h1>x</h1>");
+        OSSClient client = mock(OSSClient.class);
+        ServiceException notFound = serviceException(404, "NoSuchKey", null);
+        HeadObjectResult verified = verifiedRemote(artifact);
+        when(client.headObject(any(HeadObjectRequest.class)))
+                .thenThrow(notFound)
+                .thenReturn(verified);
+
+        service(client).publish(artifact);
+
+        ArgumentCaptor<PutObjectRequest> put = ArgumentCaptor.forClass(PutObjectRequest.class);
+        verify(client).putObject(put.capture());
+        assertThat(put.getValue().contentDisposition()).isEqualTo(
+                "attachment; filename=\"?? 100%.html\";"
+                        + " filename*=UTF-8''%E6%8A%A5%E5%91%8A%20100%25.html");
+    }
+
+    @Test
     void matchingDeterministicObjectIsReusedWithoutUploadingAgain() throws Exception {
         ArtifactPublicationPolicy.Snapshot artifact = snapshot("report.txt", "safe report");
         OSSClient client = mock(OSSClient.class);

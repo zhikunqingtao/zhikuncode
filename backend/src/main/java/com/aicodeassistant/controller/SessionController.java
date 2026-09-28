@@ -17,6 +17,7 @@ import com.aicodeassistant.session.SessionExecutionBusyException;
 import com.aicodeassistant.session.SessionPage;
 import com.aicodeassistant.service.ProjectWorkspaceService;
 import com.aicodeassistant.service.PublicMessageProjection;
+import com.aicodeassistant.util.ContentDispositionEncoder;
 import com.aicodeassistant.websocket.WebSocketSessionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -301,7 +302,7 @@ public class SessionController {
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"" + filename + "\"")
+                        ContentDispositionEncoder.header("attachment", filename, filename))
                 .contentType(contentType)
                 .body(exportData);
     }
