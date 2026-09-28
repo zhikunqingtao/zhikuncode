@@ -9,7 +9,7 @@ fastapi==0.115.6
 uvicorn[standard]==0.32.1
 pydantic==2.10.3
 httpx==0.28.1
-sse-starlette==2.1.3
+sse-starlette==3.4.11
 
 # ──── CODE_INTEL 域 ────
 # tree-sitter 0.21.x 与 tree-sitter-languages 1.10.x 是唯一兼容组合
