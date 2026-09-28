@@ -11,7 +11,7 @@ import { GlassMaterial } from '@/components/theme/GlassMaterial';
  */
 
 import { useEffect } from 'react';
-import { Menu, Sun, Moon, Sparkles, Keyboard, ChevronDown, Coins, Loader2 } from 'lucide-react';
+import { Menu, Sun, Moon, Sparkles, Rocket, Keyboard, ChevronDown, Coins, Loader2 } from 'lucide-react';
 import { useSessionStore } from '@/store/sessionStore';
 import { useCostStore } from '@/store/costStore';
 import { useDialogStore } from '@/store/dialogStore';
@@ -23,6 +23,7 @@ import { McpIcon } from '@/components/mcp/McpIcon';
 import { MemoryIcon } from '@/components/memory/MemoryIcon';
 import { SkillIcon } from '@/components/skills/SkillIcon';
 import { SessionStatusCapsule } from '@/components/status/SessionStatusCapsule';
+import { DriftSyncBadge } from '@/components/theme/DriftSyncBadge';
 
 /** §7.4 头部按钮共性：hover/active/焦点环（ring-accent2-ring） */
 const HEADER_BUTTON_CLASS =
@@ -81,6 +82,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
         light: { label: '浅色', icon: Sun },
         dark: { label: '深色', icon: Moon },
         glass: { label: '液态玻璃', icon: Sparkles },
+        spaceship: { label: '星舰', icon: Rocket },
     }[normalizeThemeMode(theme.mode)];
     const ThemeIcon = currentTheme.icon;
     const currentModelName = availableModels.find(item => item.id === model)?.displayName ?? model ?? '';
@@ -151,6 +153,8 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                 {/* 会话状态 + 用量指标（自底部状态栏右簇上移；指标细节 ≥lg 展示，空间不足时让位） */}
                 <div className="flex items-center gap-2.5 pr-1 text-[13px] font-mono tabular-nums text-t3">
                     <SessionStatusCapsule />
+                    {/* 星舰 HUD 事件特效：streaming 时呈现 DRIFT SYNCED 徽章（内部三重门控，其他主题返回 null） */}
+                    <DriftSyncBadge />
                     <MetricDivider className="hidden lg:block" />
                     <div className="hidden lg:flex items-center gap-2 tabular-nums">
                         <span title="输入 Tokens">↑ {usage.inputTokens.toLocaleString()}</span>

@@ -513,12 +513,23 @@ export interface PermissionRequest {
 
 // ==================== 配置相关 ====================
 
+/** 星舰 HUD 主题专属特效开关（仅 mode='spaceship' 时生效） */
+export interface SpaceshipFxConfig {
+    /** 电影级视觉：雷达/框架/刻度尺等装饰层 */
+    cinematic: boolean;
+    /** 事件特效：TOKEN 警告/开机自检/DRIFT 同步 */
+    eventFx: boolean;
+    /** 动效档：full 完整 / reduced 精简 / off 关闭 */
+    motion: 'full' | 'reduced' | 'off';
+}
+
 export interface ThemeConfig {
-    mode: 'light' | 'dark' | 'glass';
+    mode: 'light' | 'dark' | 'glass' | 'spaceship';
     accentColor: string;
     fontSize?: string;
     fontFamily?: string;
     borderRadius?: string;
+    spaceshipFx?: SpaceshipFxConfig;
 }
 
 export interface OutputStyleDef {

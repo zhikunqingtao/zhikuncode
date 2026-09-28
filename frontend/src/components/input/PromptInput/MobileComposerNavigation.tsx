@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { X, Sun, Moon, Sparkles, Blocks, CircleHelp, ChevronRight, Brain, Check, Zap } from 'lucide-react';
+import { X, Sun, Moon, Sparkles, Rocket, Blocks, CircleHelp, ChevronRight, Brain, Check, Zap } from 'lucide-react';
 import { SheetShell } from '@/components/apos/MobileBottomSheet';
 import { ModelChip, PermissionModeChip, MobileChoice } from './PromptComposerChips';
 import { useTurnViewStore, type TurnDensity } from '@/store/turnViewStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { useDialogStore } from '@/store/dialogStore';
 import { useConfigStore } from '@/store/configStore';
+import { SpaceshipFxControls } from '@/components/theme/SpaceshipFxControls';
 import { ACCENT_PRESETS, normalizeAccentHex } from '@/theme/accents';
 
 const action = 'min-h-11 rounded-[10px] px-1.5 text-sm text-t2 hover:bg-hover2 active:bg-hover2 transition-interactive duration-fast focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent2-ink';
@@ -39,12 +40,14 @@ export function MobileComposerNavigation() {
                 {panel === 'more' && <>
                     <section>
                         <h3 className="mb-2 text-[13px] font-medium text-t2">外观</h3>
-                        <div className="grid grid-cols-3 gap-2">{(['light', 'dark', 'glass'] as const).map((mode, i) => {
-                            const Icon = [Sun, Moon, Sparkles][i];
+                        <div className="grid grid-cols-4 gap-2">{(['light', 'dark', 'glass', 'spaceship'] as const).map((mode, i) => {
+                            const Icon = [Sun, Moon, Sparkles, Rocket][i];
                             const selected = theme.mode === mode;
-                            return <button key={mode} className={`flex min-h-[72px] flex-col items-center justify-center gap-2 rounded-[14px] border text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent2-ink ${selected ? 'border-accent2-ink bg-accent2-soft text-accent2-ink' : 'border-hairline bg-surface2 text-t2 hover:bg-hover2'}`} aria-pressed={selected} onClick={() => setTheme({ mode })}><Icon size={20} aria-hidden="true" /><span>{['浅色', '深色', '液态玻璃'][i]}</span></button>;
+                            return <button key={mode} className={`flex min-h-[72px] flex-col items-center justify-center gap-2 rounded-[14px] border text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent2-ink ${selected ? 'border-accent2-ink bg-accent2-soft text-accent2-ink' : 'border-hairline bg-surface2 text-t2 hover:bg-hover2'}`} aria-pressed={selected} onClick={() => setTheme({ mode })}><Icon size={20} aria-hidden="true" /><span>{['浅色', '深色', '液态玻璃', '星舰'][i]}</span></button>;
                         })}</div>
                     </section>
+                    {/* 星舰特效：仅 spaceship 主题可见（紧凑形态，与桌面外观设置同一控件） */}
+                    {theme.mode === 'spaceship' && <section><SpaceshipFxControls compact /></section>}
                     <section>
                         <h3 className="mb-2 text-[13px] font-medium text-t2">强调色</h3>
                         <div className="flex flex-wrap gap-2" role="group" aria-label="强调色">

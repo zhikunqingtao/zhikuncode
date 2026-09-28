@@ -16,7 +16,7 @@
  * 派生（globals.css），无需写入。未知 hex 一律回退青瓷（默认色）。
  */
 
-export type EffectiveTheme = 'light' | 'dark' | 'glass';
+export type EffectiveTheme = 'light' | 'dark' | 'glass' | 'spaceship';
 
 export interface AccentLightValues {
     accent: string;
@@ -39,6 +39,8 @@ export interface AccentPreset {
     light: AccentLightValues;
     dark: AccentVariantValues;
     glass: AccentVariantValues;
+    /** 星舰 HUD 档：深空暗色系，值复用 dark 档 */
+    spaceship: AccentVariantValues;
 }
 
 export const DEFAULT_ACCENT_HEX = '#12967F';
@@ -74,6 +76,7 @@ export const ACCENT_PRESETS: readonly AccentPreset[] = [
         light: { accent: '#12967F', strong: '#0C7563', soft: 'rgba(18,150,127,.10)', ring: 'rgba(18,150,127,.32)' },
         dark: { accent: '#7FD4E8', soft: 'rgba(18,150,127,.16)', ring: 'rgba(18,150,127,.42)' },
         glass: { accent: '#0EA088', soft: 'rgba(14,160,136,.12)', ring: 'rgba(14,160,136,.35)' },
+        spaceship: { accent: '#7FD4E8', soft: 'rgba(18,150,127,.16)', ring: 'rgba(18,150,127,.42)' },
     },
     {
         // 柔夜墨蓝稿（D）的 accent #7FD4E8 为深底亮色：light/glass 档必须配深变体（白底 ≥3:1）
@@ -81,12 +84,14 @@ export const ACCENT_PRESETS: readonly AccentPreset[] = [
         light: { accent: '#2492AC', strong: '#1A6E84', soft: 'rgba(36,146,172,.10)', ring: 'rgba(36,146,172,.32)' },
         dark: { accent: '#7FD4E8', soft: 'rgba(127,212,232,.16)', ring: 'rgba(127,212,232,.42)' },
         glass: { accent: '#259AB5', soft: 'rgba(37,154,181,.12)', ring: 'rgba(37,154,181,.35)' },
+        spaceship: { accent: '#7FD4E8', soft: 'rgba(127,212,232,.16)', ring: 'rgba(127,212,232,.42)' },
     },
     {
         hex: '#2589D6', label: '蔚蓝',
         light: { accent: '#2589D6', strong: '#1A6BA8', soft: 'rgba(37,137,214,.10)', ring: 'rgba(37,137,214,.32)' },
         dark: { accent: '#74B9EE', soft: 'rgba(37,137,214,.16)', ring: 'rgba(37,137,214,.42)' },
         glass: { accent: '#1B96E4', soft: 'rgba(27,150,228,.12)', ring: 'rgba(27,150,228,.35)' },
+        spaceship: { accent: '#74B9EE', soft: 'rgba(37,137,214,.16)', ring: 'rgba(37,137,214,.42)' },
     },
     {
         // 基准值采纳云白冰川稿（A）的 #5B6BE0（与旧 #5E63DE 肉眼不可辨，旧值经 LEGACY 映射）
@@ -94,6 +99,7 @@ export const ACCENT_PRESETS: readonly AccentPreset[] = [
         light: { accent: '#5B6BE0', strong: '#5054C8', soft: 'rgba(91,107,224,.10)', ring: 'rgba(91,107,224,.32)' },
         dark: { accent: '#8A8FF0', soft: 'rgba(91,107,224,.16)', ring: 'rgba(91,107,224,.42)' },
         glass: { accent: '#6C73EC', soft: 'rgba(108,115,236,.12)', ring: 'rgba(108,115,236,.35)' },
+        spaceship: { accent: '#8A8FF0', soft: 'rgba(91,107,224,.16)', ring: 'rgba(91,107,224,.42)' },
     },
     {
         // 薄藤紫稿（C）的 accent：AI 品牌紫调，与紫罗兰同族但更鲜亮
@@ -101,24 +107,28 @@ export const ACCENT_PRESETS: readonly AccentPreset[] = [
         light: { accent: '#7B61E8', strong: '#6B4EE0', soft: 'rgba(123,97,232,.10)', ring: 'rgba(123,97,232,.32)' },
         dark: { accent: '#A78BFA', soft: 'rgba(123,97,232,.16)', ring: 'rgba(123,97,232,.42)' },
         glass: { accent: '#8A6FF2', soft: 'rgba(138,111,242,.12)', ring: 'rgba(138,111,242,.35)' },
+        spaceship: { accent: '#A78BFA', soft: 'rgba(123,97,232,.16)', ring: 'rgba(123,97,232,.42)' },
     },
     {
         hex: '#8A63C9', label: '紫罗兰',
         light: { accent: '#8A63C9', strong: '#7451B5', soft: 'rgba(138,99,201,.10)', ring: 'rgba(138,99,201,.32)' },
         dark: { accent: '#B58CD6', soft: 'rgba(138,99,201,.16)', ring: 'rgba(138,99,201,.42)' },
         glass: { accent: '#9D6FDD', soft: 'rgba(157,111,221,.12)', ring: 'rgba(157,111,221,.35)' },
+        spaceship: { accent: '#B58CD6', soft: 'rgba(138,99,201,.16)', ring: 'rgba(138,99,201,.42)' },
     },
     {
         hex: '#C9578A', label: '品红',
         light: { accent: '#C9578A', strong: '#B34677', soft: 'rgba(201,87,138,.10)', ring: 'rgba(201,87,138,.32)' },
         dark: { accent: '#E58AB5', soft: 'rgba(201,87,138,.16)', ring: 'rgba(201,87,138,.42)' },
         glass: { accent: '#D86399', soft: 'rgba(216,99,153,.12)', ring: 'rgba(216,99,153,.35)' },
+        spaceship: { accent: '#E58AB5', soft: 'rgba(201,87,138,.16)', ring: 'rgba(201,87,138,.42)' },
     },
     {
         hex: '#566678', label: '石墨',
         light: { accent: '#566678', strong: '#42506A', soft: 'rgba(86,102,120,.10)', ring: 'rgba(86,102,120,.32)' },
         dark: { accent: '#9AA8BC', soft: 'rgba(86,102,120,.16)', ring: 'rgba(86,102,120,.42)' },
         glass: { accent: '#5F7A94', soft: 'rgba(95,122,148,.12)', ring: 'rgba(95,122,148,.35)' },
+        spaceship: { accent: '#9AA8BC', soft: 'rgba(86,102,120,.16)', ring: 'rgba(86,102,120,.42)' },
     },
 ];
 
@@ -130,13 +140,17 @@ export const ACCENT_PRESETS: readonly AccentPreset[] = [
 export function applyAccent(hex: string, effectiveTheme: EffectiveTheme): void {
     const normalized = normalizeAccentHex(hex);
     const preset = ACCENT_PRESETS.find((p) => p.hex === normalized) ?? ACCENT_PRESETS[0];
-    const variant = effectiveTheme === 'dark' ? preset.dark : effectiveTheme === 'glass' ? preset.glass : null;
+    const variant = effectiveTheme === 'dark' ? preset.dark
+        : effectiveTheme === 'glass' ? preset.glass
+        : effectiveTheme === 'spaceship' ? preset.spaceship
+        : null;
     const values: AccentLightValues = variant
         ? { accent: variant.accent, strong: preset.light.strong, soft: variant.soft, ring: variant.ring }
         : preset.light;
     const style = document.documentElement.style;
     style.setProperty('--v2-accent', values.accent);
-    style.setProperty('--v2-accent-ink', effectiveTheme === 'dark' ? values.accent : `color-mix(in srgb, ${values.strong} 80%, black)`);
+    // 深底主题（dark/spaceship）accent 本身即亮色调，ink 直接取 accent；浅底取 strong 压暗
+    style.setProperty('--v2-accent-ink', effectiveTheme === 'dark' || effectiveTheme === 'spaceship' ? values.accent : `color-mix(in srgb, ${values.strong} 80%, black)`);
     style.setProperty('--v2-accent-strong', values.strong);
     style.setProperty('--v2-accent-soft', values.soft);
     style.setProperty('--v2-accent-ring', values.ring);

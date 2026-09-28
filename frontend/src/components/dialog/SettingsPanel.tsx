@@ -1,7 +1,8 @@
 /** 外观设置：主题立即生效，由 ConfigStore 持久化。 */
-import { Moon, Sun, Sparkles, Check } from 'lucide-react';
+import { Moon, Sun, Sparkles, Check, Rocket } from 'lucide-react';
 import { useConfigStore } from '@/store/configStore';
 import { Button, Dialog, cn } from '@/components/ui';
+import { SpaceshipFxControls } from '@/components/theme/SpaceshipFxControls';
 import { ACCENT_PRESETS, normalizeAccentHex } from '@/theme/accents';
 import type { ThemeConfig } from '@/types';
 
@@ -9,15 +10,17 @@ const THEMES: { mode: ThemeConfig['mode']; label: string; icon: typeof Sun }[] =
     { mode: 'light', label: '浅色', icon: Sun },
     { mode: 'dark', label: '深色', icon: Moon },
     { mode: 'glass', label: '液态玻璃', icon: Sparkles },
+    { mode: 'spaceship', label: '星舰', icon: Rocket },
 ];
 
 export function SettingsPanel({ onClose }: { onClose: () => void }) {
     const { theme, setTheme } = useConfigStore();
+    const spaceshipMode = theme.mode === 'spaceship';
 
     return (
         <Dialog open title="外观设置" onClose={onClose} className="max-w-lg border border-hairline">
             <div className="p-5">
-                <div className="grid grid-cols-3 gap-3" role="group" aria-label="主题">
+                <div className="grid grid-cols-4 gap-3" role="group" aria-label="主题">
                     {THEMES.map(({ mode, label, icon: Icon }) => (
                         <button
                             key={mode}
@@ -37,6 +40,8 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
                         </button>
                     ))}
                 </div>
+                {/* 星舰特效：仅 spaceship 主题可见（其他主题隐藏） */}
+                {spaceshipMode && <SpaceshipFxControls className="mt-5 border-t border-hairline pt-5" />}
                 <div className="mt-5">
                     <div className="text-sm font-medium text-t2 mb-3">强调色</div>
                     <div className="flex gap-2 flex-wrap" role="group" aria-label="强调色">

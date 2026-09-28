@@ -50,6 +50,7 @@ import { useResponsive } from '@/hooks/useResponsive';
 import { useVirtualKeyboard } from '@/hooks/useVirtualKeyboard';
 import { SessionMergePanel } from '@/components/session/SessionMergePanel';
 import { isMergeSource, selectMergeSourceIds, useSessionMergeStore } from '@/store/sessionMergeStore';
+import { SpaceshipHudLayer } from '@/components/theme/SpaceshipHudLayer';
 
 /**
  * §7.6 移动态虚拟键盘桥（仅 isMobile 时挂载，桌面零副作用）：
@@ -500,6 +501,8 @@ function App() {
   return (
     <>
       <SessionMergePanel />
+      {/* 星舰 HUD 电影级装饰层：spaceship + cinematic 门控，fixed overlay，与 GlassMaterial 并存不冲突 */}
+      <SpaceshipHudLayer />
       <AppLayout>
         <div className="chat-workspace h-full flex flex-col">
           <div className="chat-content flex-1 overflow-hidden">

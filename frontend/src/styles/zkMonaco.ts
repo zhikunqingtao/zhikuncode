@@ -6,7 +6,7 @@
  *   每次按当前 store 的 accentColor 重新 defineTheme，accent 变化时编辑器跟随。
  * - 首次注册后订阅 configStore 的 theme.mode / theme.accentColor：
  *   变化时重注册两主题并 `monaco.editor.setTheme(...)` 热切换全部已挂载编辑器。
- * - `getEffectiveTheme()`：以 documentElement 已应用的类为准（dark→dark，其余含 glass→light），
+ * - `getEffectiveTheme()`：以 documentElement 已应用的类为准（dark/spaceship→dark，其余含 glass→light），
  *   与 ThemeProvider/resolveTheme 语义一致；`zkMonacoTheme()` 返回当前应使用的主题名。
  */
 import type * as MonacoNS from 'monaco-editor';
@@ -44,10 +44,11 @@ function subscribeThemeChanges(): void {
     );
 }
 
-/** 当前生效主题（DOM 类为准；glass 无 dark 类 → light；system 由应用方落类） */
+/** 当前生效主题（DOM 类为准；spaceship 等同 dark 基准，glass 无 dark 类 → light；system 由应用方落类） */
 export function getEffectiveTheme(): 'light' | 'dark' {
     if (typeof document === 'undefined') return 'light';
-    return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+    const cls = document.documentElement.classList;
+    return cls.contains('dark') || cls.contains('spaceship') ? 'dark' : 'light';
 }
 
 /** 当前应使用的 Monaco zk 主题名 */

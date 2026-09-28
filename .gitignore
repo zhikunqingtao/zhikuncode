@@ -58,6 +58,8 @@ Thumbs.db
 *.db-wal
 *.db-shm
 backend/.ai-code-assistant/
+# 本机运行时配置目录（仓库根级）
+.ai-code-assistant/
 backend/.agentskills/
 backend/.scratchpad/
 backend/workspace/

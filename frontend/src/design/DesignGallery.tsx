@@ -32,16 +32,17 @@ import { ACCENT_PRESETS, applyAccent, DEFAULT_ACCENT_HEX } from '@/theme/accents
 
 /* ===== 主题与强调色（值取自指南 §3.4 终值表，与 ThemePicker 共用 @/theme/accents 同一写入机制） ===== */
 
-type ThemeName = 'light' | 'dark' | 'glass';
+type ThemeName = 'light' | 'dark' | 'glass' | 'spaceship';
 const THEMES: { name: ThemeName; label: string }[] = [
     { name: 'light', label: 'Light' },
     { name: 'dark', label: 'Dark' },
     { name: 'glass', label: 'Glass' },
+    { name: 'spaceship', label: '星舰 HUD' },
 ];
 
 function applyTheme(theme: ThemeName) {
     const root = document.documentElement;
-    root.classList.remove('light', 'dark', 'glass');
+    root.classList.remove('light', 'dark', 'glass', 'spaceship');
     root.classList.add(theme);
 }
 

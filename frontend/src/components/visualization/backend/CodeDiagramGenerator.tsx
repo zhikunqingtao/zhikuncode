@@ -25,6 +25,7 @@ import {
 import Editor from '@monaco-editor/react';
 import { useResponsive } from '@/hooks/useResponsive';
 import { ensureZkMonacoThemes } from '@/styles/zkMonaco';
+import { resolveTheme } from '@/styles/design-tokens';
 import { useConfigStore } from '@/store/configStore';
 import MermaidBlock from '@/components/visualization/shared/MermaidBlock';
 import { useDiagramStore } from '@/store/diagramStore';
@@ -307,7 +308,7 @@ export const CodeDiagramGenerator: React.FC = () => {
                 value={editorValue}
                 onChange={handleEditorChange}
                 beforeMount={ensureZkMonacoThemes}
-                theme={themeMode === 'dark' ? 'zk-dark' : 'zk-light'}
+                theme={resolveTheme(themeMode) === 'dark' ? 'zk-dark' : 'zk-light'}
                 options={{
                   minimap: { enabled: false },
                   fontSize: isMobile ? 14 : 13,

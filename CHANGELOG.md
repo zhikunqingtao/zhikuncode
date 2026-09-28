@@ -21,6 +21,7 @@
 - 新增可选的删除会话二次确认验证码：配置 `ZHIKUN_DELETE_CONFIRM_CODE` 后，Web 删除会话须在确认气泡中输入该验证码（随 `X-Delete-Confirm-Code` 请求头由后端校验）；未配置时维持原确认流程，配置查询失败不缓存失败结果，下次挂载重试。
 - Run API 新增 `usageStatus`（`known/partial/unknown`）与 `verificationScope`（`artifact_manifest/unknown`）字段：用量口径限定为「本 Run 的已观测消费」，任务概览按同一 Run 联展示用量与状态，unknown 显示未报告、partial 仅统计已报告部分，不估算、不归集子 Run；产物验证字段范围限定为 `artifact_manifest`，未知状态安全标为范围未知。
 - 附件存储新增 `.metadata/<uuid>.json` 侧车文件保存原始显示名（版本、UUID、存储文件名、原名，不新增数据库表）；上传改为同文件系统临时文件 + 先发布元数据、再原子发布 payload，失败只清理本次文件。
+- 新增第四主题「星舰 HUD」：深空 HUD 视觉（切角面板/机械角标/罗盘雷达/网格地板/扫描线）、三个独立特效开关（电影级视觉/事件特效/动效三档）、TOKEN 警告琥珀脉冲、开机自检过渡、DRIFT 同步徽章；支持移动端面板开关。
 
 ### Changed
 - 内置 `review` 技能将用户指定的比较对象、路径与排除项送达提示正文；仅作用于最终解析为内置 `review` 的定义，保留用户／项目同名覆盖。模型工具入口对完整范围执行既有 2000 字符单参数限制；命令入口保留原有校验行为。

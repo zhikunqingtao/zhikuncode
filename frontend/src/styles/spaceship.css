@@ -1,0 +1,572 @@
+/* ============================================================
+   星舰 HUD 主题（spaceship）
+   设计参考：spaceship-hud-theme-demo.html（环太平洋驾驶舱 × 阿凡达全息屏）
+   色板：电青蓝 #00E5FF/#35D5FF · 高光 #7FDFFF · 琥珀 #FFB454
+        底 #04080F→#0A1420 · 面板 rgba(10,24,38,.72) · 文本 #D8F0FF/#7AA3B8/#64899E
+
+   门控 class（ThemeProvider 按 theme.spaceshipFx 写入 <html>）：
+     fx-cinematic —— 电影级视觉（网格/星点/晕影等装饰层；关闭后仅留深空渐变）
+     fx-event     —— 事件特效（TOKEN 警告/开机自检/DRIFT 同步；组件接入后消费）
+     motion-full | motion-reduced | motion-off —— 动效三档（见文件末门控块）
+   ============================================================ */
+
+html.spaceship {
+  /* ---------- 专属 HUD 变量 ---------- */
+  --hud-cyan: #00E5FF;
+  --hud-cyan-hi: #7FDFFF;
+  --hud-amber: #FFB454;
+  --hud-glow: 0 0 8px rgba(0, 229, 255, .35), 0 0 22px rgba(0, 229, 255, .16);
+
+  /* ---------- 旧版 §8.6 变量（对齐 globals.css .dark 块清单） ---------- */
+  --bg-primary: #04080F;
+  --bg-secondary: #0A1420;
+  --text-primary: #D8F0FF;
+  --text-secondary: #7AA3B8;
+  --border: rgba(0, 229, 255, .18);
+  --code-bg: #050D18;
+  --diff-add: rgba(57, 231, 95, .14);
+  --diff-remove: rgba(255, 90, 90, .16);
+  --bg-hover: rgba(0, 229, 255, .07);
+  --text-muted: #64899E;
+
+  /* 扩展色板 — Tailwind 集成 */
+  --color-surface: #0A1420;
+  --color-surface-elevated: #0F1E30;
+  --color-surface-sunken: #03060C;
+  --color-muted: #7AA3B8;
+  --color-border: rgba(0, 229, 255, .20);
+  --color-text: #D8F0FF;
+  --color-text-secondary: #7AA3B8;
+  --color-text-muted: #64899E;
+  --color-code-bg: #050D18;
+  --color-code-border: rgba(0, 229, 255, .24);
+  --color-success: #39E75F;
+  --color-success-bg: rgba(57, 231, 95, .12);
+  --color-warning: #FFB454;
+  --color-warning-bg: rgba(255, 180, 84, .10);
+  --color-danger: #FF5A5A;
+  --color-danger-bg: rgba(255, 90, 90, .12);
+  --color-scrollbar: rgba(0, 229, 255, .24);
+  --color-scrollbar-hover: rgba(0, 229, 255, .40);
+  --color-skeleton: rgba(0, 229, 255, .10);
+  --color-overlay: rgba(2, 6, 11, .72);
+
+  /* ---------- v2 全套（对齐 globals.css .dark 块清单） ---------- */
+  --v2-bg-app: #04080F;
+  --v2-bg-surface: #0A1420;
+  --v2-bg-surface-2: #10202F;
+  --v2-bg-sunken: #03070D;
+  --v2-bg-hover: rgba(0, 229, 255, .06);
+  --v2-bg-active: rgba(0, 229, 255, .10);
+  --v2-border-hairline: rgba(0, 229, 255, .14);
+  --v2-border-strong: rgba(0, 229, 255, .25);
+  --v2-overlay: rgba(1, 5, 10, .66);
+  --v2-text-1: #D8F0FF;
+  --v2-text-2: #7AA3B8;
+  /* t3/t4 弱化槽位：WCAG AA 实算（相对亮度公式）#04080F 5.36 / #0A1420 4.95 / #0D1B2B 4.64，均 ≥4.5:1；
+     与 t2（#7AA3B8）对比度 1.38:1，层级保留 */
+  --v2-text-3: #64899E;
+  --v2-text-4: #64899E;
+  --v2-ok: #39E75F; --v2-ok-soft: rgba(57, 231, 95, .13); --v2-ok-strong: #6FF29B;
+  --v2-warn: #FFB454; --v2-warn-soft: rgba(255, 180, 84, .13); --v2-warn-strong: #FFCB8A;
+  --v2-err: #FF5A5A; --v2-err-soft: rgba(255, 90, 90, .13); --v2-err-strong: #FF8585;
+  --v2-diff-add-bg: rgba(57, 231, 95, .12);
+  --v2-diff-remove-bg: rgba(255, 90, 90, .14);
+  --v2-code-bg: #050D18;
+  /* accent 令牌由 applyAccent 按 spaceship 档运行时写入；焦点环锁定电青蓝 */
+  --focus-ring: var(--hud-cyan);
+  /* 阴影：深空投影 + 青蓝外发光 */
+  --v2-shadow-xs: 0 1px 2px rgba(0, 0, 0, .5);
+  --v2-shadow-sm: 0 1px 2px rgba(0, 0, 0, .5), 0 2px 10px rgba(0, 229, 255, .05);
+  --v2-shadow-md: 0 2px 6px rgba(0, 0, 0, .5), 0 0 22px rgba(0, 229, 255, .07), 0 10px 28px rgba(0, 0, 0, .45);
+  --v2-shadow-lg: 0 4px 12px rgba(0, 0, 0, .55), 0 0 30px rgba(0, 229, 255, .10), 0 20px 56px rgba(0, 0, 0, .60);
+  --v2-shadow-inset: inset 0 0 20px rgba(0, 229, 255, .05);
+  --v2-shadow-raised: inset 0 1px 0 rgba(127, 223, 255, .08), 0 0 10px rgba(0, 229, 255, .10);
+  --v2-shadow-raised-hover: inset 0 1px 0 rgba(127, 223, 255, .10), 0 0 14px rgba(0, 229, 255, .16);
+  --v2-shadow-pressed: inset 0 0 12px rgba(0, 229, 255, .08);
+  --v2-shadow-soft: none; --v2-shadow-soft-sm: none;
+  /* 切角第 ② 层：rounded-panel（21 处）圆角变量归零 → 直角面板 */
+  --v2-r-panel: 0;
+  /* 图表：青蓝-琥珀-紫系 */
+  --v2-chart-1: #00E5FF; --v2-chart-2: #FFB454; --v2-chart-3: #A78BFA; --v2-chart-4: #35D5FF;
+  --v2-chart-5: #39E75F; --v2-chart-6: #7FDFFF; --v2-chart-7: #FF8A5A; --v2-chart-8: #7AA3B8;
+}
+
+/* ---------- 选中文本 ---------- */
+html.spaceship ::selection {
+  background: rgba(0, 229, 255, .28);
+  color: #EAF8FF;
+}
+
+/* ============================================================
+   氛围背景：深空渐变 + 青色细网格 + 星点点阵 + 径向晕影
+   （demo .bg-grid/.bg-stars/.bg-stars2/.vignette 合并为单层多背景）
+   ============================================================ */
+.spaceship .app-workspace {
+  background-image:
+    /* 晕影（最上层压暗四角） */
+    radial-gradient(ellipse 92% 78% at 50% 42%, transparent 56%, rgba(1, 4, 8, .52) 100%),
+    /* 星点点阵 ×7（250px / 380px 两种周期平铺） */
+    radial-gradient(1px 1px at 26px 40px, rgba(216, 240, 255, .55) 50%, transparent 52%),
+    radial-gradient(1px 1px at 138px 96px, rgba(0, 229, 255, .50) 50%, transparent 52%),
+    radial-gradient(1.4px 1.4px at 84px 168px, rgba(255, 180, 84, .40) 50%, transparent 52%),
+    radial-gradient(1px 1px at 196px 30px, rgba(216, 240, 255, .32) 50%, transparent 52%),
+    radial-gradient(1px 1px at 60px 120px, rgba(216, 240, 255, .35) 50%, transparent 52%),
+    radial-gradient(1.2px 1.2px at 240px 210px, rgba(53, 213, 255, .40) 50%, transparent 52%),
+    radial-gradient(1px 1px at 320px 70px, rgba(216, 240, 255, .28) 50%, transparent 52%),
+    /* 青色细网格 ~0.03 透明度，44px 间距 */
+    repeating-linear-gradient(0deg, rgba(0, 229, 255, .03) 0 1px, transparent 1px 44px),
+    repeating-linear-gradient(90deg, rgba(0, 229, 255, .03) 0 1px, transparent 1px 44px),
+    /* 深空底色渐变 */
+    linear-gradient(158deg, #04080F 0%, #06101E 48%, #0A1420 100%);
+  background-size:
+    auto,
+    250px 250px, 250px 250px, 250px 250px, 250px 250px,
+    380px 380px, 380px 380px, 380px 380px,
+    auto, auto, auto;
+  background-repeat: repeat;
+}
+
+/* fx-cinematic 关闭：装饰层（网格/星点/晕影）退场，仅留深空渐变 */
+html.spaceship:not(.fx-cinematic) .app-workspace {
+  background-image: linear-gradient(158deg, #04080F 0%, #06101E 48%, #0A1420 100%);
+  background-size: auto;
+}
+
+/* ============================================================
+   切角第 ① 层：硬编码圆角 → 斜切（border-radius 归零 + clip-path 8~10px）
+   第 ② 层 --v2-r-panel:0 见上方变量块；第 ③ 层 rounded-full 不处理（保留）
+   ============================================================ */
+html.spaceship [class*="rounded-[10px]"] {
+  border-radius: 0;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+}
+html.spaceship [class*="rounded-[14px]"] {
+  border-radius: 0;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+
+/* 焦点态：clip-path 会裁掉外侧 focus ring，切角元素改为 inset 发光 */
+html.spaceship [class*="rounded-[10px]"]:focus-visible,
+html.spaceship [class*="rounded-[14px]"]:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--hud-cyan), inset 0 0 14px rgba(0, 229, 255, .18);
+}
+/* 未切角元素保持 outline 方案，但统一为电青蓝 */
+html.spaceship *:focus-visible {
+  outline-color: var(--hud-cyan);
+}
+
+/* ============================================================
+   组件级特化（参照 liquid-glass.css 的 .glass .app-* 写法）
+   HUD 边框：1px rgba(0,229,255,.25) + 青蓝外发光
+   ============================================================ */
+.spaceship .app-header {
+  border-bottom: 1px solid rgba(0, 229, 255, .25);
+  background:
+    linear-gradient(180deg, rgba(0, 229, 255, .07), rgba(0, 229, 255, 0) 75%),
+    rgba(6, 15, 26, .65);
+  box-shadow: 0 0 18px rgba(0, 229, 255, .06);
+}
+
+.spaceship .app-sidebar {
+  border-right: 1px solid rgba(0, 229, 255, .18);
+  background: rgba(4, 11, 20, .50);
+  box-shadow: 0 0 18px rgba(0, 229, 255, .05);
+}
+
+.spaceship .app-sidebar .session-card {
+  border-color: rgba(0, 229, 255, .20);
+  background: rgba(9, 22, 38, .55);
+  box-shadow: inset 0 0 14px rgba(0, 229, 255, .04);
+}
+.spaceship .app-sidebar .session-card:hover {
+  border-color: rgba(0, 229, 255, .40);
+  box-shadow: inset 0 0 14px rgba(0, 229, 255, .05), 0 0 12px rgba(0, 229, 255, .10);
+}
+/* 选中 pill：电青蓝染色 + 双发光（accent 切换时仍跟随 --v2-accent） */
+.spaceship .app-sidebar .session-active-pill {
+  box-shadow:
+    0 0 12px -1px color-mix(in srgb, var(--v2-accent) 35%, transparent),
+    inset 0 0 12px rgba(0, 229, 255, .06);
+}
+
+/* 代码块：深空底 + 青蓝描边发光 */
+.spaceship pre,
+.spaceship code {
+  scrollbar-color: var(--color-scrollbar) transparent;
+}
+
+/* ============================================================
+   动效门控（html.motion-* 由 ThemeProvider 按 spaceshipFx.motion 写入）
+   分档语义（与 demo v5 对齐）：
+   - motion-full    完整：ENV-FX 环境循环 + EVENT-FX 事件特效全部启用
+   - motion-reduced 精简：关闭 ENV-FX 环境循环，保留 EVENT-FX 事件/瞬态反馈
+   - motion-off     关闭：全部动画与过渡静止（切角/发光/网格等静态视觉三档全保留）
+   另：系统 prefers-reduced-motion: reduce 时强制按 reduced 处理（末尾 media query）。
+   ============================================================ */
+
+/* ---------- ENV-FX（仅 motion-full 播放；reduced/off 关闭） ----------
+   Cinematic Layer 环境循环动画登记（reduced 关闭；off 由下方全局硬关闭覆盖）：
+   扫描线 / 罗盘双环 / 地板脉冲环 / 滚动数字带 */
+html.motion-reduced .hud-scanline,
+html.motion-reduced .hud-radar-rotor-outer,
+html.motion-reduced .hud-radar-rotor-inner,
+html.motion-reduced .hud-floor::after,
+html.motion-reduced .hud-numscroll-track { animation: none; }
+
+/* ---------- EVENT-FX（full + reduced 保留；仅 motion-off 关闭） ----------
+   事件特效动画登记（v4 已接入，见文末「Event FX」区块）：
+   hud-amberpulse / hud-amberpulse-inset（TOKEN 警告）、hud-boot-*（开机自检）、
+   hud-drift-breathe / hud-drift-dot（DRIFT 徽章）。
+   full + reduced 播放；motion-off 由下方全局硬关闭覆盖（徽章等信息本体保留，仅静止）。 */
+
+/* motion-off：全元素动画/过渡静止（与 demo 对齐的硬关闭；fx class 仅 spaceship 模式存在） */
+html.spaceship.motion-off *,
+html.spaceship.motion-off *::before,
+html.spaceship.motion-off *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* motion-off 豁免：状态信息动画恢复播放（装饰动画仍冻结；transition 冻结不豁免）。
+   .animate-spin          —— Tailwind 加载旋转（Header/侧边栏/对话框各处 Loader2 指示）；
+   .animate-pulse         —— Tailwind 骨架屏 / 流式光标（StreamingText/ThinkingBlock/TextBlock）/ 状态点；
+   .animate-accent-pulse  —— 自定义「运行中呼吸点」（globals.css accentPulse：AssistantMessage/TaskSection 等）；
+   .motion-safe:animate-pulse —— 会话状态脉冲点（Header/SessionStatus*），包 media query 保持 OS 级 reduced-motion 门控。 */
+html.spaceship.motion-off .animate-spin {
+  animation: spin 1s linear infinite !important;
+}
+html.spaceship.motion-off .animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+}
+html.spaceship.motion-off .animate-accent-pulse {
+  animation: accentPulse 1.6s ease-in-out infinite !important;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html.spaceship.motion-off .motion-safe\:animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+  }
+}
+
+/* 系统级降级：prefers-reduced-motion 时即便 motion-full 也关闭环境循环。 */
+@media (prefers-reduced-motion: reduce) {
+  html.spaceship .app-sidebar .session-card { transition: none; }
+  /* Cinematic Layer 环境循环动画兜底关闭（与 motion-reduced 登记对齐） */
+  html.spaceship .hud-scanline,
+  html.spaceship .hud-radar-rotor-outer,
+  html.spaceship .hud-radar-rotor-inner,
+  html.spaceship .hud-floor::after,
+  html.spaceship .hud-numscroll-track { animation: none; }
+}
+
+/* ============================================================
+   ===== Cinematic Layer (fx-cinematic 门控) =====
+   组件 SpaceshipHudLayer 仅在 spaceship + cinematic 时挂载；
+   设计值移植自 spaceship-hud-theme-demo.html v3。
+   ============================================================ */
+.hud-layer {
+  position: fixed; inset: 0; z-index: 30; /* 低于 toast(z-40)/弹窗(z-50) */
+  pointer-events: none; overflow: hidden;
+}
+
+/* ---------- 四角机械角标：双线 L（亮青 2px + 内缩细线）+ 铆钉圆点 ---------- */
+.hud-corners s {
+  position: absolute; width: 40px; height: 40px;
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 0 6px rgba(0, 229, 255, .6));
+}
+.hud-corners s::before { content: ""; position: absolute; inset: 0; border: 0 solid var(--hud-cyan); }
+.hud-corners s::after  { content: ""; position: absolute; border: 0 solid rgba(127, 223, 255, .75); }
+.hud-corners .tl { top: 10px; left: 10px; }
+.hud-corners .tl::before { border-top-width: 2px; border-left-width: 2px; }
+.hud-corners .tl::after  { top: 8px; left: 8px; right: 0; bottom: 0; border-top-width: 1.5px; border-left-width: 1.5px; }
+.hud-corners .tr { top: 10px; right: 10px; }
+.hud-corners .tr::before { border-top-width: 2px; border-right-width: 2px; }
+.hud-corners .tr::after  { top: 8px; right: 8px; left: 0; bottom: 0; border-top-width: 1.5px; border-right-width: 1.5px; }
+.hud-corners .bl { bottom: 10px; left: 10px; }
+.hud-corners .bl::before { border-bottom-width: 2px; border-left-width: 2px; }
+.hud-corners .bl::after  { bottom: 8px; left: 8px; right: 0; top: 0; border-bottom-width: 1.5px; border-left-width: 1.5px; }
+.hud-corners .br { bottom: 10px; right: 10px; }
+.hud-corners .br::before { border-bottom-width: 2px; border-right-width: 2px; }
+.hud-corners .br::after  { bottom: 8px; right: 8px; left: 0; top: 0; border-bottom-width: 1.5px; border-right-width: 1.5px; }
+/* 铆钉节点：肘部亮青白 + 两臂端琥珀 */
+.hud-corners .tl { background-image:
+  radial-gradient(circle 3px at 4px 4px, #EAFDFF 0 1.5px, rgba(127,223,255,.4) 2.1px, transparent 3px),
+  radial-gradient(circle 2.6px at 36px 2px, rgba(255,180,84,.95) 0 1.3px, rgba(255,180,84,.35) 1.9px, transparent 2.6px),
+  radial-gradient(circle 2.6px at 2px 36px, rgba(255,180,84,.95) 0 1.3px, rgba(255,180,84,.35) 1.9px, transparent 2.6px); }
+.hud-corners .tr { background-image:
+  radial-gradient(circle 3px at 36px 4px, #EAFDFF 0 1.5px, rgba(127,223,255,.4) 2.1px, transparent 3px),
+  radial-gradient(circle 2.6px at 4px 2px, rgba(255,180,84,.95) 0 1.3px, rgba(255,180,84,.35) 1.9px, transparent 2.6px),
+  radial-gradient(circle 2.6px at 38px 36px, rgba(255,180,84,.95) 0 1.3px, rgba(255,180,84,.35) 1.9px, transparent 2.6px); }
+.hud-corners .bl { background-image:
+  radial-gradient(circle 3px at 4px 36px, #EAFDFF 0 1.5px, rgba(127,223,255,.4) 2.1px, transparent 3px),
+  radial-gradient(circle 2.6px at 36px 38px, rgba(255,180,84,.95) 0 1.3px, rgba(255,180,84,.35) 1.9px, transparent 2.6px),
+  radial-gradient(circle 2.6px at 2px 4px, rgba(255,180,84,.95) 0 1.3px, rgba(255,180,84,.35) 1.9px, transparent 2.6px); }
+.hud-corners .br { background-image:
+  radial-gradient(circle 3px at 36px 36px, #EAFDFF 0 1.5px, rgba(127,223,255,.4) 2.1px, transparent 3px),
+  radial-gradient(circle 2.6px at 4px 38px, rgba(255,180,84,.95) 0 1.3px, rgba(255,180,84,.35) 1.9px, transparent 2.6px),
+  radial-gradient(circle 2.6px at 38px 4px, rgba(255,180,84,.95) 0 1.3px, rgba(255,180,84,.35) 1.9px, transparent 2.6px); }
+
+/* ---------- 顶边 HUD 刻度尺（瞄准镜标尺，透明度 .25） ---------- */
+.hud-ruler {
+  position: absolute; top: 0; left: 0; right: 0; height: 13px;
+  overflow: hidden; opacity: .25;
+  border-bottom: 1px solid rgba(0, 229, 255, .16);
+  background: rgba(0, 229, 255, .02);
+}
+.hud-ruler svg { display: block; height: 13px; }
+
+/* ---------- 罗盘雷达（主内容区右上，避开 header 按钮区） ---------- */
+.hud-radar { position: absolute; top: 70px; right: 20px; width: 64px; height: 64px; opacity: .85; }
+.hud-radar circle, .hud-radar line { fill: none; stroke: var(--hud-cyan); }
+.hud-radar .hud-rr1 { stroke-width: 1; opacity: .55; }
+.hud-radar .hud-rr-tick { stroke-width: 2.6; stroke-dasharray: 1.6 7.04; opacity: .5; }
+.hud-radar .hud-rr2 { stroke-width: .7; opacity: .35; }
+.hud-radar .hud-rlab {
+  font-family: "JetBrains Mono", "SF Mono", Menlo, monospace;
+  font-size: 4.4px; fill: var(--hud-cyan-hi); stroke: none; text-anchor: middle; opacity: .92;
+}
+.hud-radar-rotor-outer { transform-box: view-box; transform-origin: 22px 22px; animation: hud-radarspin 20s linear infinite; }
+.hud-radar-rotor-inner { transform-box: view-box; transform-origin: 22px 22px; animation: hud-radarspin 8s linear infinite reverse; }
+.hud-radar .hud-needle { stroke: var(--hud-cyan-hi); stroke-width: 1.3; filter: drop-shadow(0 0 2px rgba(127,223,255,.8)); }
+.hud-radar .hud-sweep { fill: rgba(0, 229, 255, .16); stroke: none; }
+.hud-radar .hud-cross { stroke: var(--hud-cyan-hi); stroke-width: .8; opacity: .75; }
+.hud-radar .hud-rc { fill: var(--hud-cyan); stroke: none; }
+.hud-radar .hud-blip { fill: var(--hud-amber); stroke: none; opacity: .9; }
+@keyframes hud-radarspin { to { transform: rotate(360deg); } }
+
+/* ---------- 扫描线：2px 青色光带 10s 上下循环（透明度 .12，仅 motion-full） ---------- */
+.hud-scanline {
+  position: absolute; left: 0; right: 0; top: -2%; height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0,229,255,.5) 22%, rgba(0,229,255,.85) 50%, rgba(0,229,255,.5) 78%, transparent);
+  opacity: .12;
+  animation: hud-scan 10s linear infinite;
+}
+@keyframes hud-scan { 0% { top: -2%; } 100% { top: 102%; } }
+
+/* ---------- 透视网格地板（环太平洋驾驶舱甲板；静态三档保留，mask 向上渐隐） ---------- */
+.hud-floor { position: absolute; inset: 0; perspective: 600px; overflow: hidden; }
+.hud-floor::before {
+  content: ""; position: absolute; left: -18%; right: -18%; top: 26%; bottom: -18%;
+  transform-origin: 50% 100%;
+  transform: rotateX(61deg);
+  background-image:
+    repeating-linear-gradient(0deg,  rgba(0,229,255,.075) 0 1px, transparent 1px 170px),
+    repeating-linear-gradient(90deg, rgba(0,229,255,.075) 0 1px, transparent 1px 170px),
+    repeating-linear-gradient(0deg,  rgba(0,229,255,.045) 0 1px, transparent 1px 34px),
+    repeating-linear-gradient(90deg, rgba(0,229,255,.045) 0 1px, transparent 1px 34px);
+  -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,.95) 0%, transparent 60%);
+  mask-image: linear-gradient(to top, rgba(0,0,0,.95) 0%, transparent 60%);
+}
+/* 地板脉冲环（12s 一次，峰值透明度 ≤.1，仅 motion-full） */
+.hud-floor::after {
+  content: ""; position: absolute; left: 50%; top: 60%; width: 150px; height: 150px;
+  margin: -75px 0 0 -75px; border-radius: 50%;
+  border: 2px solid rgba(0, 229, 255, .55);
+  box-shadow: 0 0 26px rgba(0,229,255,.35), inset 0 0 22px rgba(0,229,255,.22);
+  opacity: 0; animation: hud-floorpulse 12s ease-out infinite;
+}
+@keyframes hud-floorpulse {
+  0% { transform: scale(.18); opacity: 0; }
+  7% { opacity: .1; }
+  55% { opacity: .07; }
+  100% { transform: scale(3.4); opacity: 0; }
+}
+
+/* ---------- 角落滚动十六进制数字带（18s 无缝循环，透明度 .5，仅 motion-full） ---------- */
+.hud-numscroll {
+  position: absolute; right: 16px; bottom: 48px; height: 132px;
+  overflow: hidden; opacity: .5;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 28%, #000 72%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 28%, #000 72%, transparent);
+}
+.hud-numscroll-track {
+  display: flex; flex-direction: column; align-items: flex-end;
+  font-family: "JetBrains Mono", "SF Mono", Menlo, monospace;
+  font-size: 8px; line-height: 1.7; letter-spacing: .1em; color: #35D5FF;
+  animation: hud-numscroll 18s linear infinite;
+}
+@keyframes hud-numscroll { to { transform: translateY(-50%); } }
+
+/* ---------- 响应式：<768px 精简装饰层 ----------
+   保留：透视网格地板（静态背景，脉冲环关闭）+ 小号四角角标（24px 单线、去铆钉）；
+   隐藏：刻度尺/雷达/数字带/扫描线（拥挤 + 动画性能）。
+   角标叠加 env(safe-area-inset) 偏移：hud-layer 相对视口 fixed，
+   不随 .app-root 的安全区 padding，需自行避开刘海/Home 指示条与底部输入区。 */
+@media (max-width: 767px) {
+  .hud-ruler, .hud-radar, .hud-numscroll, .hud-scanline { display: none; }
+  .hud-floor::after { animation: none; }
+  .hud-corners s {
+    width: 24px; height: 24px;
+    filter: drop-shadow(0 0 4px rgba(0, 229, 255, .5));
+  }
+  .hud-corners s::after { content: none; } /* 去内缩细线，仅留单线 L */
+  /* 去铆钉（per-corner background-image 优先级更高，需逐角覆盖）+ 安全区偏移 */
+  .hud-corners .tl { top: calc(10px + env(safe-area-inset-top, 0px)); left: calc(10px + env(safe-area-inset-left, 0px)); background-image: none; }
+  .hud-corners .tr { top: calc(10px + env(safe-area-inset-top, 0px)); right: calc(10px + env(safe-area-inset-right, 0px)); background-image: none; }
+  .hud-corners .bl { bottom: calc(10px + env(safe-area-inset-bottom, 0px)); left: calc(10px + env(safe-area-inset-left, 0px)); background-image: none; }
+  .hud-corners .br { bottom: calc(10px + env(safe-area-inset-bottom, 0px)); right: calc(10px + env(safe-area-inset-right, 0px)); background-image: none; }
+}
+
+/* ============================================================
+   ===== Event FX (fx-event 门控) =====
+   事件特效三件套（v4）：① TOKEN 警告态 ② 开机自检 ③ DRIFT SYNCED 徽章。
+   class 维护：token-warning 由 useTokenWarningClass 按 messageStore 写入；
+   spaceship-boot 由 ThemeProvider 在 非spaceship→spaceship 切换时写入（1.2s 移除）。
+   视觉门控：全部使用 html.spaceship(.fx-event).* 组合选择器收口，
+   非星舰主题 / 关闭事件特效时零泄漏。
+   动效分类（沿用上方门控约定登记）：
+   - EVENT-FX：琥珀脉冲 / 徽章呼吸 —— motion-full + motion-reduced 播放；
+     motion-off 由全局硬关闭覆盖（信息本体保留，仅静止）。
+   - 开机自检为一次性动画（forwards/1 次，不循环），ThemeProvider 仅
+     fx-event && motion !== 'off' 时加 class，无需额外动效门控。
+   ============================================================ */
+
+/* ---------- ① TOKEN 警告态（EVENT-FX：琥珀脉冲 2s） ---------- */
+html.spaceship.fx-event.token-warning {
+  --hud-amber-deep: #FF8A3D;
+}
+
+/* 主框架边框：青蓝 → 琥珀 2s 脉冲（header / sidebar / statusbar） */
+@keyframes hud-amberpulse {
+  0%, 100% {
+    border-color: rgba(255, 180, 84, .32);
+    box-shadow: 0 0 10px rgba(255, 180, 84, .10), inset 0 0 14px rgba(255, 180, 84, .04);
+  }
+  50% {
+    border-color: rgba(255, 180, 84, .85);
+    box-shadow: 0 0 22px rgba(255, 180, 84, .30), 0 0 44px rgba(255, 138, 61, .14),
+      inset 0 0 18px rgba(255, 180, 84, .10);
+  }
+}
+html.spaceship.fx-event.token-warning .app-header,
+html.spaceship.fx-event.token-warning .app-sidebar,
+html.spaceship.fx-event.token-warning .app-status {
+  animation: hud-amberpulse 2s ease-in-out infinite;
+}
+
+/* 工作区内沿琥珀警戒环（1px 内描边 + 内发光脉冲；不动文本色，保证可读性） */
+@keyframes hud-amberpulse-inset {
+  0%, 100% { box-shadow: inset 0 0 0 1px rgba(255, 180, 84, .20), inset 0 0 64px rgba(255, 138, 61, .05); }
+  50% { box-shadow: inset 0 0 0 1px rgba(255, 180, 84, .48), inset 0 0 96px rgba(255, 138, 61, .13); }
+}
+html.spaceship.fx-event.token-warning .app-workspace {
+  animation: hud-amberpulse-inset 2s ease-in-out infinite;
+}
+
+/* 面板：会话卡片边框/发光转琥珀系（静态转色，不叠加脉冲避免嘈杂） */
+html.spaceship.fx-event.token-warning .app-sidebar .session-card {
+  border-color: rgba(255, 180, 84, .42);
+  box-shadow: inset 0 0 14px rgba(255, 180, 84, .06);
+}
+html.spaceship.fx-event.token-warning .app-sidebar .session-card:hover {
+  border-color: rgba(255, 180, 84, .65);
+  box-shadow: inset 0 0 14px rgba(255, 180, 84, .07), 0 0 12px rgba(255, 180, 84, .12);
+}
+
+/* HUD 装饰层转琥珀（cinematic 开启时同步告警氛围） */
+html.spaceship.fx-event.token-warning .hud-corners s {
+  filter: drop-shadow(0 0 6px rgba(255, 180, 84, .65));
+}
+html.spaceship.fx-event.token-warning .hud-ruler {
+  border-bottom-color: rgba(255, 180, 84, .30);
+}
+
+/* ---------- ② 开机自检（一次性 BOOT-FX，归类 EVENT-FX，不循环） ----------
+   html.spaceship.spaceship-boot 组合选择器：boot class 仅在切入 spaceship 瞬间存在，
+   双保险确保 light/dark/glass 零泄漏。动画用 from-only 关键帧 + backwards 填充，
+   结束即回元素自然态，class 移除时无跳变。 */
+
+/* 主框架/面板快速淡入：header → sidebar/statusbar → 主内容 三级 stagger */
+@keyframes hud-boot-fade {
+  from { opacity: 0; transform: translateY(6px); }
+}
+html.spaceship.spaceship-boot .app-header { animation: hud-boot-fade .45s cubic-bezier(.2, .7, .3, 1) backwards; }
+html.spaceship.spaceship-boot .app-sidebar,
+html.spaceship.spaceship-boot .app-status { animation: hud-boot-fade .45s cubic-bezier(.2, .7, .3, 1) .12s backwards; }
+html.spaceship.spaceship-boot .app-workspace main { animation: hud-boot-fade-in .55s ease-out .24s backwards; }
+@keyframes hud-boot-fade-in {
+  from { opacity: 0; }
+}
+
+/* 扫描线一次性自上而下扫过（body::after 免 DOM；cinematic 关闭时同样生效） */
+@keyframes hud-boot-scan {
+  0% { top: -2%; opacity: .55; }
+  85% { opacity: .55; }
+  100% { top: 102%; opacity: 0; }
+}
+html.spaceship.spaceship-boot body::after {
+  content: ""; position: fixed; left: 0; right: 0; top: -2%; height: 3px; z-index: 45;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(0, 229, 255, .55) 20%,
+    rgba(127, 223, 255, .95) 50%, rgba(0, 229, 255, .55) 80%, transparent);
+  box-shadow: 0 0 18px rgba(0, 229, 255, .45), 0 0 44px rgba(0, 229, 255, .20);
+  animation: hud-boot-scan .95s linear .08s both;
+}
+
+/* HUD 仪表（刻度尺/雷达/地板）中段入场 */
+html.spaceship.spaceship-boot .hud-ruler,
+html.spaceship.spaceship-boot .hud-radar,
+html.spaceship.spaceship-boot .hud-floor { animation: hud-boot-fade-in .5s ease-out .5s backwards; }
+
+/* 角标最后锁定（0.78s + 0.4s ≈ 1.18s，对齐 ThemeProvider 1.2s 移除） */
+@keyframes hud-boot-lock {
+  0% { opacity: 0; transform: scale(1.35); }
+  60% { opacity: 1; transform: scale(.96); }
+  100% { transform: scale(1); }
+}
+html.spaceship.spaceship-boot .hud-corners s { animation: hud-boot-lock .4s ease-out .78s backwards; }
+html.spaceship.spaceship-boot .hud-corners .tl { transform-origin: top left; }
+html.spaceship.spaceship-boot .hud-corners .tr { transform-origin: top right; }
+html.spaceship.spaceship-boot .hud-corners .bl { transform-origin: bottom left; }
+html.spaceship.spaceship-boot .hud-corners .br { transform-origin: bottom right; }
+
+/* ---------- ③ DRIFT SYNCED 徽章（EVENT-FX：呼吸光环；motion-off 静止显示） ----------
+   组件 DriftSyncBadge 内部三重门控（spaceship + eventFx + streaming），
+   与 .hud-* 区块同约定：选择器不加 html 前缀。 */
+.drift-sync-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 2px 8px;
+  font-family: "JetBrains Mono", "SF Mono", Menlo, monospace;
+  font-size: 10px; letter-spacing: .12em; line-height: 16px;
+  color: var(--hud-cyan-hi);
+  border: 1px solid rgba(0, 229, 255, .45);
+  background: rgba(0, 229, 255, .06);
+  /* 切角（6px 双斜切，与面板切角同语言）；外发光用 filter（clip-path 会裁掉 box-shadow） */
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+  animation: hud-drift-breathe 2s ease-in-out infinite;
+}
+@keyframes hud-drift-breathe {
+  0%, 100% { border-color: rgba(0, 229, 255, .35); filter: drop-shadow(0 0 2px rgba(0, 229, 255, .25)); }
+  50% { border-color: rgba(127, 223, 255, .9); filter: drop-shadow(0 0 7px rgba(0, 229, 255, .55)); }
+}
+.drift-sync-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--hud-cyan);
+  box-shadow: 0 0 5px rgba(0, 229, 255, .8);
+  animation: hud-drift-dot 1.1s ease-in-out infinite;
+}
+@keyframes hud-drift-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .35; }
+}
+
+/* 响应式：<768px 徽章隐藏（header 桌面状态区此时已整体让位移动簇） */
+@media (max-width: 767px) {
+  .drift-sync-badge { display: none; }
+}
+
+/* 系统级降级兜底：prefers-reduced-motion 时关闭自检动画（扫描线停于屏外起点，
+   面板/角标直接呈现自然态）；EVENT-FX 琥珀脉冲/徽章呼吸按约定保留播放。 */
+@media (prefers-reduced-motion: reduce) {
+  html.spaceship.spaceship-boot .app-header,
+  html.spaceship.spaceship-boot .app-sidebar,
+  html.spaceship.spaceship-boot .app-status,
+  html.spaceship.spaceship-boot .app-workspace main,
+  html.spaceship.spaceship-boot .hud-ruler,
+  html.spaceship.spaceship-boot .hud-radar,
+  html.spaceship.spaceship-boot .hud-floor,
+  html.spaceship.spaceship-boot .hud-corners s { animation: none; }
+  html.spaceship.spaceship-boot body::after { animation: none; content: none; }
+}
