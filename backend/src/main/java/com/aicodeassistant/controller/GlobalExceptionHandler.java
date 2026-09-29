@@ -9,6 +9,7 @@ import com.aicodeassistant.llm.LlmApiException;
 import com.aicodeassistant.session.SessionExecutionBusyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -38,10 +39,16 @@ public class GlobalExceptionHandler {
 
     /**
      * 资源未找到 (404)。
+     * <p>
+     * 显式 JSON contentType：错误响应不得依赖 Accept 协商。SSE 入口在纯
+     * {@code Accept: text/event-stream} 下（如会话不存在）必须仍能写出 JSON 404，
+     * 否则消息转换器协商失败会逃逸为 ServletException/500。
      */
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleNotFound(ResourceNotFoundException ex) {
-        return ResponseEntity.status(404).body(errorBody(ex.getCode(), ex.getMessage(), null));
+        return ResponseEntity.status(404)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(errorBody(ex.getCode(), ex.getMessage(), null));
     }
 
     @ExceptionHandler(WorkspaceException.class)
@@ -55,14 +62,22 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handlePermissionModeMismatch(
             PermissionModeMismatchException ex) {
         return ResponseEntity.status(409)
-                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
                 .body(errorBody("PERMISSION_MODE_MISMATCH", ex.getMessage(), null));
     }
 
+    /**
+     * 请求校验失败 (400)。
+     * <p>
+     * 显式 JSON contentType：SSE 入口在纯 {@code Accept: text/event-stream} 下
+     * （如 QUERY_BUDGET_USD_UNSUPPORTED）必须仍返回约定的 JSON 400，
+     * 不能因无可写 Map 的转换器而协商失败。
+     */
     @ExceptionHandler(RequestValidationException.class)
     public ResponseEntity<Map<String, Object>> handleRequestValidation(
             RequestValidationException ex) {
         return ResponseEntity.badRequest()
+                .contentType(MediaType.APPLICATION_JSON)
                 .body(errorBody(ex.getCode(), ex.getMessage(), null));
     }
 

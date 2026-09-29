@@ -49,6 +49,7 @@ public class TokenBudgetGuard {
     public record FinalBudgetResult(
             List<Map<String, Object>> apiMessages,
             Set<String> retainedImageHashes,
+            Set<String> retainedSourceImageHashes,
             int estimatedTokens,
             int inputBudget,
             boolean fitsBudget,
@@ -105,56 +106,132 @@ public class TokenBudgetGuard {
      * 超限时按梯度降级策略依次尝试。
      */
     public FinalBudgetResult enforcePhase2(List<Map<String, Object>> apiMessages, int inputBudget) {
-        return enforcePhase2(apiMessages, inputBudget, collectImageHashes(apiMessages), TEXT_TOKEN_RATIO);
+        // 无注入身份记录的路径：payload 中每张图片都视为可降级，其保留身份即自身载荷哈希。
+        Map<String, String> allImages = new HashMap<>();
+        for (String hash : collectImageHashes(apiMessages)) {
+            allImages.put(hash, hash);
+        }
+        return enforcePhase2(apiMessages, inputBudget, allImages, new HashSet<>(allImages.keySet()), TEXT_TOKEN_RATIO);
     }
 
     public FinalBudgetResult enforcePhase2(List<Map<String, Object>> apiMessages, int inputBudget,
-                                           Set<String> transientImageHashes) {
-        return enforcePhase2(apiMessages, inputBudget, transientImageHashes, TEXT_TOKEN_RATIO);
+                                           Map<String, String> injectedSourceToPayloadHashes, double textTokenRatio) {
+        return enforcePhase2(apiMessages, inputBudget, injectedSourceToPayloadHashes,
+                new HashSet<>(injectedSourceToPayloadHashes.keySet()), textTokenRatio);
     }
 
+    /**
+     * @param injectedSourceToPayloadHashes 本次成功注入的"源身份 → 注入图片字节哈希"映射。降级策略仅作用于
+     *                                      这些图片；返回的保留源身份也只可能来自这些源身份。
+     *                                      多个源身份可能对应同一载荷字节（如两张同像素 BMP 转码出同一 PNG）。
+     * @param degradableImageSourceHashes   可降级集合：上述源身份中允许被降级策略处理的子集
+     *                                      （与 mandatory 附件相撞的源身份已由调用方移除，仍可确认但不可降级）。
+     *                                      判定规则为"载荷源集合全量在集合内才可降级"：同一载荷的所有出现字节
+     *                                      相同，任何按块降级都作用于全部源，故只要存在受保护源即不可降级。
+     * @param textTokenRatio                文本 token 比例。
+     */
     public FinalBudgetResult enforcePhase2(List<Map<String, Object>> apiMessages, int inputBudget,
-                                           Set<String> transientImageHashes, double textTokenRatio) {
+                                           Map<String, String> injectedSourceToPayloadHashes,
+                                           Set<String> degradableImageSourceHashes, double textTokenRatio) {
         validateRatio(textTokenRatio);
+        // 按块跟踪身份所需的映射：注入图片字节哈希 → 全部源身份（注入记录的镜像，多源同载荷时为集合）。
+        Map<String, Set<String>> trackedPayloadToSource = invertImageIdentity(injectedSourceToPayloadHashes);
         int estimated = estimateApiTokens(apiMessages, textTokenRatio);
 
         if (estimated <= inputBudget) {
             Set<String> hashes = collectImageHashes(apiMessages);
-            return new FinalBudgetResult(apiMessages, hashes, estimated, inputBudget, true, "无需降级");
+            Set<String> retainedSources = retainedSourceImageHashes(apiMessages, trackedPayloadToSource);
+            return new FinalBudgetResult(apiMessages, hashes, retainedSources, estimated, inputBudget, true, "无需降级");
         }
 
         log.warn("Phase2 超限: estimated={} budget={}, 开始梯度降级", estimated, inputBudget);
         List<Map<String, Object>> current = deepCopyApiMessages(apiMessages);
         StringBuilder summary = new StringBuilder();
 
-        // 策略1: 缩略图替换 (640px, quality=0.6)
-        current = replaceImagesWithThumbnails(current, 640, 0.6f, transientImageHashes);
+        // 策略1: 缩略图替换 (640px, quality=0.6)。缩略改变字节，须在变换时登记 resize 后哈希→源身份（并集）。
+        Map<String, Set<String>> thumbnailIdentity = new HashMap<>(trackedPayloadToSource);
+        current = replaceImagesWithThumbnails(current, 640, 0.6f, thumbnailIdentity, degradableImageSourceHashes);
         estimated = estimateApiTokens(current, textTokenRatio);
         summary.append("策略1-缩略图替换;");
         if (estimated <= inputBudget) {
             Set<String> hashes = collectImageHashes(current);
-            return new FinalBudgetResult(current, hashes, estimated, inputBudget, true, summary.toString());
+            Set<String> retainedSources = retainedSourceImageHashes(current, thumbnailIdentity);
+            return new FinalBudgetResult(current, hashes, retainedSources, estimated, inputBudget, true, summary.toString());
         }
 
-        // 策略2: 替换图片为文本摘要
-        current = replaceImagesWithTextSummary(deepCopyApiMessages(apiMessages), transientImageHashes);
+        // 策略2: 替换图片为文本摘要（从原始 payload 独立重算，不复用已放弃的缩略结果）
+        current = replaceImagesWithTextSummary(deepCopyApiMessages(apiMessages),
+                trackedPayloadToSource, degradableImageSourceHashes);
         estimated = estimateApiTokens(current, textTokenRatio);
         summary.append("策略2-图片替换为文本;");
         if (estimated <= inputBudget) {
             Set<String> hashes = collectImageHashes(current);
-            return new FinalBudgetResult(current, hashes, estimated, inputBudget, true, summary.toString());
+            Set<String> retainedSources = retainedSourceImageHashes(current, trackedPayloadToSource);
+            return new FinalBudgetResult(current, hashes, retainedSources, estimated, inputBudget, true, summary.toString());
         }
 
-        // 策略3: 移除所有注入的图片
-        current = removeAllInjectedImages(deepCopyApiMessages(apiMessages), transientImageHashes);
+        // 策略3: 移除所有可降级的注入图片（同样从原始 payload 独立重算）
+        current = removeAllInjectedImages(deepCopyApiMessages(apiMessages),
+                trackedPayloadToSource, degradableImageSourceHashes);
         estimated = estimateApiTokens(current, textTokenRatio);
         summary.append("策略3-移除所有图片;");
         Set<String> hashes = collectImageHashes(current);
+        Set<String> retainedSources = retainedSourceImageHashes(current, trackedPayloadToSource);
         boolean fits = estimated <= inputBudget;
         if (!fits) {
             log.error("Phase2 所有降级策略执行后仍超限: estimated={} budget={}", estimated, inputBudget);
         }
-        return new FinalBudgetResult(current, hashes, estimated, inputBudget, fits, summary.toString());
+        return new FinalBudgetResult(current, hashes, retainedSources, estimated, inputBudget, fits, summary.toString());
+    }
+
+    /** 注入记录的镜像映射：注入图片字节哈希 → 该字节对应的全部源身份（多源同载荷时为集合）。 */
+    private static Map<String, Set<String>> invertImageIdentity(Map<String, String> injectedSourceToPayloadHashes) {
+        if (injectedSourceToPayloadHashes == null || injectedSourceToPayloadHashes.isEmpty()) return Map.of();
+        Map<String, Set<String>> payloadToSources = new HashMap<>();
+        for (Map.Entry<String, String> entry : injectedSourceToPayloadHashes.entrySet()) {
+            if (entry.getKey() != null && entry.getValue() != null) {
+                payloadToSources.computeIfAbsent(entry.getValue(), payload -> new LinkedHashSet<>())
+                        .add(entry.getKey());
+            }
+        }
+        return payloadToSources;
+    }
+
+    /**
+     * 该 image 块是否为可降级策略的目标；是则返回其载荷对应的全部源身份，否则返回 null。
+     * 规则：块可降级 ⇔ 该载荷源集合全部在可降级集合内（空集/未知 → 不可降级）。
+     * 只依据块当前字节哈希在按块跟踪表中的登记，不对最终哈希做反查。
+     */
+    private Set<String> degradableSourceIdentities(Map<String, Object> blockMap,
+                                                   Map<String, Set<String>> trackedPayloadToSource,
+                                                   Set<String> degradableImageSourceHashes) {
+        if (!"image".equals(blockMap.get("type"))) return null;
+        Set<String> sources = trackedPayloadToSource.get(hashImageBlock(blockMap));
+        if (sources == null || sources.isEmpty()) return null;
+        return degradableImageSourceHashes.containsAll(sources) ? sources : null;
+    }
+
+    /**
+     * 扫描最终 payload，按块取回仍以 image 形式存在的注入图片源身份（集合内全部源）。
+     * trackedPayloadToSource 必须包含缩略策略在变换时登记的 resize 后哈希。
+     */
+    private Set<String> retainedSourceImageHashes(List<Map<String, Object>> apiMessages,
+                                                  Map<String, Set<String>> trackedPayloadToSource) {
+        Set<String> retained = new LinkedHashSet<>();
+        if (trackedPayloadToSource.isEmpty()) return retained;
+        for (Map<String, Object> msg : apiMessages) {
+            Object contentObj = msg.get("content");
+            if (!(contentObj instanceof List<?> contentList)) continue;
+            for (Object item : contentList) {
+                if (item instanceof Map<?, ?> block) {
+                    Map<String, Object> blockMap = toStringObjectMap(block);
+                    if (!"image".equals(blockMap.get("type"))) continue;
+                    Set<String> sources = trackedPayloadToSource.get(hashImageBlock(blockMap));
+                    if (sources != null) retained.addAll(sources);
+                }
+            }
+        }
+        return retained;
     }
 
     // ==================== Phase1 辅助方法 ====================
@@ -236,7 +313,7 @@ public class TokenBudgetGuard {
 
     private List<Map<String, Object>> replaceImagesWithThumbnails(
             List<Map<String, Object>> apiMessages, int maxDim, float quality,
-            Set<String> transientImageHashes) {
+            Map<String, Set<String>> trackedPayloadToSource, Set<String> degradableImageSourceHashes) {
         List<Map<String, Object>> result = new ArrayList<>(apiMessages.size());
         for (Map<String, Object> msg : apiMessages) {
             Object contentObj = msg.get("content");
@@ -245,9 +322,20 @@ public class TokenBudgetGuard {
                 for (Object item : contentList) {
                     if (item instanceof Map<?, ?> block) {
                         Map<String, Object> blockMap = toStringObjectMap(block);
-                        if ("image".equals(blockMap.get("type"))
-                                && transientImageHashes.contains(hashImageBlock(blockMap))) {
+                        Set<String> sourceIdentities = degradableSourceIdentities(
+                                blockMap, trackedPayloadToSource, degradableImageSourceHashes);
+                        if (sourceIdentities != null) {
                             Map<String, Object> resized = resizeImageBlock(blockMap, maxDim, quality);
+                            if ("image".equals(resized.get("type"))) {
+                                // 变换时并集登记 resize 后哈希 → 源集合：字节已变，不能靠最终哈希反查；
+                                // 同载荷多源缩为同字节时全部源都须能由此确认。
+                                String resizedHash = hashImageBlock(resized);
+                                if (resizedHash != null) {
+                                    trackedPayloadToSource
+                                            .computeIfAbsent(resizedHash, hash -> new LinkedHashSet<>())
+                                            .addAll(sourceIdentities);
+                                }
+                            }
                             newContent.add(resized);
                         } else {
                             newContent.add(new LinkedHashMap<>(blockMap));
@@ -346,7 +434,8 @@ public class TokenBudgetGuard {
     }
 
     private List<Map<String, Object>> replaceImagesWithTextSummary(List<Map<String, Object>> apiMessages,
-                                                                    Set<String> transientImageHashes) {
+                                                                    Map<String, Set<String>> trackedPayloadToSource,
+                                                                    Set<String> degradableImageSourceHashes) {
         List<Map<String, Object>> result = new ArrayList<>(apiMessages.size());
         for (Map<String, Object> msg : apiMessages) {
             Object contentObj = msg.get("content");
@@ -355,8 +444,8 @@ public class TokenBudgetGuard {
                 for (Object item : contentList) {
                     if (item instanceof Map<?, ?> block) {
                         Map<String, Object> blockMap = toStringObjectMap(block);
-                        if ("image".equals(blockMap.get("type"))
-                                && transientImageHashes.contains(hashImageBlock(blockMap))) {
+                        if (degradableSourceIdentities(blockMap, trackedPayloadToSource,
+                                degradableImageSourceHashes) != null) {
                             Map<String, Object> textBlock = new LinkedHashMap<>();
                             textBlock.put("type", "text");
                             textBlock.put("text", "[图片已移除以减少上下文]");
@@ -377,7 +466,8 @@ public class TokenBudgetGuard {
     }
 
     private List<Map<String, Object>> removeAllInjectedImages(List<Map<String, Object>> apiMessages,
-                                                               Set<String> transientImageHashes) {
+                                                               Map<String, Set<String>> trackedPayloadToSource,
+                                                               Set<String> degradableImageSourceHashes) {
         List<Map<String, Object>> result = new ArrayList<>(apiMessages.size());
         for (Map<String, Object> msg : apiMessages) {
             Object contentObj = msg.get("content");
@@ -386,8 +476,8 @@ public class TokenBudgetGuard {
                 for (Object item : contentList) {
                     if (item instanceof Map<?, ?> block) {
                         Map<String, Object> blockMap = toStringObjectMap(block);
-                        if (!"image".equals(blockMap.get("type"))
-                                || !transientImageHashes.contains(hashImageBlock(blockMap))) {
+                        if (degradableSourceIdentities(blockMap, trackedPayloadToSource,
+                                degradableImageSourceHashes) == null) {
                             newContent.add(new LinkedHashMap<>(blockMap));
                         }
                     }

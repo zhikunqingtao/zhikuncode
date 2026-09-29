@@ -1,5 +1,7 @@
 package com.aicodeassistant.verify;
 
+import com.aicodeassistant.config.database.DatabaseResolver;
+import com.aicodeassistant.config.database.SqliteConfig;
 import com.aicodeassistant.security.SensitiveDataFilter;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,12 +10,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 
@@ -27,27 +32,43 @@ public class EvidenceStore {
 
     private static final Logger log = LoggerFactory.getLogger(EvidenceStore.class);
 
+    /** 运行时写锁等待上限；不是整个保存操作的硬截止，拿到锁后事务正常提交完成。 */
+    private static final Duration WRITE_LOCK_TIMEOUT = Duration.ofSeconds(5);
+
     private final JdbcTemplate jdbcTemplate;
+    private final SqliteConfig sqliteConfig;
+    private final Path dbPath;
+    private final TransactionTemplate transaction;
     private final ObjectMapper objectMapper;
     private final SensitiveDataFilter sensitiveDataFilter;
     private final Path blobRoot;
 
     @org.springframework.beans.factory.annotation.Autowired
     public EvidenceStore(@Qualifier("projectJdbcTemplate") JdbcTemplate jdbcTemplate,
+                         SqliteConfig sqliteConfig,
+                         DatabaseResolver databaseResolver,
+                         @Qualifier("projectTransactionManager") PlatformTransactionManager transactionManager,
                          ObjectMapper objectMapper,
                          SensitiveDataFilter sensitiveDataFilter) {
-        this.jdbcTemplate = jdbcTemplate;
-        this.objectMapper = objectMapper;
-        this.sensitiveDataFilter = sensitiveDataFilter;
-        this.blobRoot = Path.of(System.getProperty("user.dir"), ".ai-code-assistant", "blobs");
+        this(jdbcTemplate, sqliteConfig, databaseResolver, transactionManager, objectMapper,
+                sensitiveDataFilter,
+                Path.of(System.getProperty("user.dir"), ".ai-code-assistant", "blobs"));
     }
 
     /**
      * 测试专用构造函数 — 允许显式注入 blobRoot 路径，避免测试依赖 System.getProperty("user.dir")。
      */
-    EvidenceStore(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper,
-                  SensitiveDataFilter sensitiveDataFilter, Path blobRoot) {
+    EvidenceStore(JdbcTemplate jdbcTemplate,
+                  SqliteConfig sqliteConfig,
+                  DatabaseResolver databaseResolver,
+                  PlatformTransactionManager transactionManager,
+                  ObjectMapper objectMapper,
+                  SensitiveDataFilter sensitiveDataFilter,
+                  Path blobRoot) {
         this.jdbcTemplate = jdbcTemplate;
+        this.sqliteConfig = sqliteConfig;
+        this.dbPath = databaseResolver.getProjectDbPath(Path.of(System.getProperty("user.dir")));
+        this.transaction = new TransactionTemplate(transactionManager);
         this.objectMapper = objectMapper;
         this.sensitiveDataFilter = sensitiveDataFilter;
         this.blobRoot = blobRoot;
@@ -55,55 +76,81 @@ public class EvidenceStore {
 
     /**
      * 保存证据包及其关联条目。
+     * <p>
+     * 完整保存或完整失败：元数据序列化、文本过滤与缺失 ID 生成都在写锁与事务之外完成，
+     * 任一步失败都不产生任何写入；bundle 与全部 items 在同一个事务内使用普通 INSERT 写入，
+     * 重复 ID 直接失败，不覆盖旧数据、不自动换 ID 重试、不把冲突当成功。
      */
     public EvidenceBundle save(EvidenceBundle bundle) {
         String bundleId = bundle.bundleId() != null
                 ? bundle.bundleId()
-                : "ev-" + UUID.randomUUID().toString().substring(0, 8);
+                : "ev-" + UUID.randomUUID();
         Instant createdAt = bundle.createdAt() != null ? bundle.createdAt() : Instant.now();
+        String filteredClaim = filterText(bundle.claim());
 
-        jdbcTemplate.update("""
-                INSERT OR REPLACE INTO evidence_bundles
-                    (bundle_id, session_id, run_id, agent_id, kind, claim, verdict, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                bundleId,
-                bundle.sessionId(),
-                bundle.runId(),
-                bundle.agentId(),
-                bundle.kind(),
-                filterText(bundle.claim()),
-                bundle.verdict(),
-                createdAt.toString()
-        );
-
-        List<EvidenceItem> savedItems = new ArrayList<>();
+        List<PreparedItem> preparedItems = new ArrayList<>();
         if (bundle.items() != null) {
             int sortOrder = 0;
             for (EvidenceItem item : bundle.items()) {
-                String itemId = item.id() != null ? item.id() : UUID.randomUUID().toString();
-                String metaJson = serializeMeta(item.meta());
-
-                jdbcTemplate.update("""
-                        INSERT OR REPLACE INTO evidence_items
-                            (id, bundle_id, type, summary, blob_sha256, meta_json, sort_order)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)
-                        """,
-                        itemId,
-                        bundleId,
-                        item.type(),
+                preparedItems.add(new PreparedItem(
+                        item.id() != null ? item.id() : UUID.randomUUID().toString(),
+                        item,
                         filterText(item.summary()),
-                        item.blobSha256(),
-                        metaJson,
+                        serializeMeta(item.meta()),
                         sortOrder++
-                );
-                savedItems.add(new EvidenceItem(itemId, item.type(), item.summary(), item.blobSha256(), item.meta()));
+                ));
             }
         }
 
+        // 先有界获取写锁（最多等待 5 秒），拿到锁后再开启事务写入 bundle 与全部 items；
+        // 锁忙或等待被中断时不产生任何新记录，中断标志由 executeWriteBounded 保留。
+        sqliteConfig.executeWriteBounded(dbPath, WRITE_LOCK_TIMEOUT, () -> transaction.execute(status -> {
+            jdbcTemplate.update("""
+                    INSERT INTO evidence_bundles
+                        (bundle_id, session_id, run_id, agent_id, kind, claim, verdict, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    bundleId,
+                    bundle.sessionId(),
+                    bundle.runId(),
+                    bundle.agentId(),
+                    bundle.kind(),
+                    filteredClaim,
+                    bundle.verdict(),
+                    createdAt.toString()
+            );
+
+            for (PreparedItem prepared : preparedItems) {
+                jdbcTemplate.update("""
+                        INSERT INTO evidence_items
+                            (id, bundle_id, type, summary, blob_sha256, meta_json, sort_order)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        prepared.itemId(),
+                        bundleId,
+                        prepared.item().type(),
+                        prepared.summary(),
+                        prepared.item().blobSha256(),
+                        prepared.metaJson(),
+                        prepared.sortOrder()
+                );
+            }
+            return null;
+        }));
+
+        List<EvidenceItem> savedItems = new ArrayList<>(preparedItems.size());
+        for (PreparedItem prepared : preparedItems) {
+            EvidenceItem item = prepared.item();
+            savedItems.add(new EvidenceItem(prepared.itemId(), item.type(), item.summary(),
+                    item.blobSha256(), item.meta()));
+        }
         return new EvidenceBundle(bundleId, bundle.sessionId(), bundle.runId(), bundle.agentId(),
                 bundle.kind(), bundle.claim(), bundle.verdict(), savedItems, createdAt);
     }
+
+    /** 事务外准备好的证据条目写入参数。 */
+    private record PreparedItem(String itemId, EvidenceItem item, String summary,
+                                String metaJson, int sortOrder) { }
 
     /**
      * 按 bundleId 查询单个证据包（含关联条目）。
@@ -166,17 +213,23 @@ public class EvidenceStore {
     /**
      * 读取 Blob 内容。
      * <p>
-     * 入参防御：合法的 SHA-256 哈希为 64 个十六进制字符；非法输入直接返回空，
-     * 避免 {@link #blobPath(String)} 的 substring 越界，防止 API 层 HTTP 500。
+     * 入参防御（两层）：① 格式白名单——合法 SHA-256 必须是 64 个十六进制字符，其余输入
+     * （包括 {@code ".." + 62 个字符} 这类长度恰为 64 的路径形态字符串）直接返回空，
+     * 同时避免 {@link #blobPath(String)} 的 substring 越界；② 纵深防御——规范化后的
+     * blob 路径必须仍位于 blobRoot 之内，否则返回空，防止目录逃逸读取 blob 根目录之外的文件。
      */
     public Optional<byte[]> readBlob(String sha256) {
-        if (sha256 == null || sha256.length() != 64) {
+        if (sha256 == null || !sha256.matches("[0-9a-fA-F]{64}")) {
             return Optional.empty();
         }
-        Path blobPath = blobPath(sha256);
-        if (!Files.exists(blobPath)) return Optional.empty();
+        Path root = blobRoot.toAbsolutePath().normalize();
+        Path target = blobPath(sha256).toAbsolutePath().normalize();
+        if (!target.startsWith(root)) {
+            return Optional.empty();
+        }
+        if (!Files.exists(target)) return Optional.empty();
         try {
-            return Optional.of(Files.readAllBytes(blobPath));
+            return Optional.of(Files.readAllBytes(target));
         } catch (IOException e) {
             log.warn("Failed to read blob: {}", sha256, e);
             return Optional.empty();
@@ -226,8 +279,8 @@ public class EvidenceStore {
         try {
             return objectMapper.writeValueAsString(meta);
         } catch (Exception e) {
-            log.warn("Failed to serialize meta", e);
-            return null;
+            // 证据必须完整保存：元数据无法序列化时明确失败，不能静默丢弃。
+            throw new IllegalArgumentException("EVIDENCE_META_SERIALIZATION_FAILED", e);
         }
     }
 

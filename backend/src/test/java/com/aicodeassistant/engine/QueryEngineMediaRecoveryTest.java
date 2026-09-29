@@ -157,13 +157,13 @@ class QueryEngineMediaRecoveryTest {
         lenient().when(tokenBudgetGuard.enforcePhase1(anyList(), anyInt(), anyDouble(), nullable(String.class)))
                 .thenAnswer(inv -> new TokenBudgetGuard.GuardResult(inv.getArgument(0), false, 0, 0));
         lenient().when(tokenBudgetGuard.enforcePhase2(anyList(), anyInt()))
-                .thenAnswer(inv -> new TokenBudgetGuard.FinalBudgetResult(inv.getArgument(0), Set.of(), 0, inv.getArgument(1), true, ""));
-        lenient().when(tokenBudgetGuard.enforcePhase2(anyList(), anyInt(), anySet(), anyDouble()))
-                .thenAnswer(inv -> new TokenBudgetGuard.FinalBudgetResult(inv.getArgument(0), Set.of(), 0, inv.getArgument(1), true, ""));
+                .thenAnswer(inv -> new TokenBudgetGuard.FinalBudgetResult(inv.getArgument(0), Set.of(), Set.of(), 0, inv.getArgument(1), true, ""));
+        lenient().when(tokenBudgetGuard.enforcePhase2(anyList(), anyInt(), anyMap(), anySet(), anyDouble()))
+                .thenAnswer(inv -> new TokenBudgetGuard.FinalBudgetResult(inv.getArgument(0), Set.of(), Set.of(), 0, inv.getArgument(1), true, ""));
         // 默认 ImageRefInjector mock: 直接返回原消息
         lenient().when(imageRefInjector.injectForApiCall(
                         anyList(), anyInt(), anyInt(), anySet(), anyMap(), nullable(String.class), anyInt()))
-                .thenAnswer(inv -> new ImageRefInjector.InjectResult(inv.getArgument(0), Set.of()));
+                .thenAnswer(inv -> new ImageRefInjector.InjectResult(inv.getArgument(0), Set.of(), Map.of()));
         // 默认 UserImageTranscoder mock: 直接返回原消息
         lenient().when(userImageTranscoder.transcode(anyList(), any(), nullable(String.class), any(), anyInt()))
                 .thenAnswer(inv -> new UserImageTranscoder.TranscodeResult(inv.getArgument(0), 0, List.of()));

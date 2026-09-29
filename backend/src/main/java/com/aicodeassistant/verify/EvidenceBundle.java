@@ -59,7 +59,7 @@ public record EvidenceBundle(
         public Builder createdAt(Instant createdAt) { this.createdAt = createdAt; return this; }
 
         public EvidenceBundle build() {
-            if (bundleId == null) bundleId = "ev-" + java.util.UUID.randomUUID().toString().substring(0, 8);
+            if (bundleId == null) bundleId = "ev-" + java.util.UUID.randomUUID();
             if (createdAt == null) createdAt = Instant.now();
             return new EvidenceBundle(bundleId, sessionId, runId, agentId, kind, claim, verdict, items, createdAt);
         }

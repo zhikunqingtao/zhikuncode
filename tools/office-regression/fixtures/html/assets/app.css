@@ -1,0 +1,7 @@
+body { font-family: "Noto Sans CJK SC", "Helvetica Neue", Arial, sans-serif; margin: 24px; }
+.screen-hidden { display: none; }
+#screen-only { display: block; }
+@media print {
+  .screen-hidden { display: block; }
+  #screen-only { display: none; }
+}

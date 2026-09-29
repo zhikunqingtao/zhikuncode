@@ -121,13 +121,13 @@ class QueryEngineUnitTest {
         lenient().when(tokenBudgetGuard.enforcePhase1(anyList(), anyInt(), anyDouble(), nullable(String.class)))
                 .thenAnswer(inv -> new TokenBudgetGuard.GuardResult(inv.getArgument(0), false, 0, 0));
         lenient().when(tokenBudgetGuard.enforcePhase2(anyList(), anyInt()))
-                .thenAnswer(inv -> new TokenBudgetGuard.FinalBudgetResult(inv.getArgument(0), Set.of(), 0, inv.getArgument(1), true, ""));
-        lenient().when(tokenBudgetGuard.enforcePhase2(anyList(), anyInt(), anySet(), anyDouble()))
-                .thenAnswer(inv -> new TokenBudgetGuard.FinalBudgetResult(inv.getArgument(0), Set.of(), 0, inv.getArgument(1), true, ""));
+                .thenAnswer(inv -> new TokenBudgetGuard.FinalBudgetResult(inv.getArgument(0), Set.of(), Set.of(), 0, inv.getArgument(1), true, ""));
+        lenient().when(tokenBudgetGuard.enforcePhase2(anyList(), anyInt(), anyMap(), anySet(), anyDouble()))
+                .thenAnswer(inv -> new TokenBudgetGuard.FinalBudgetResult(inv.getArgument(0), Set.of(), Set.of(), 0, inv.getArgument(1), true, ""));
         // 默认 ImageRefInjector mock: 直接返回原消息
         lenient().when(imageRefInjector.injectForApiCall(
                         anyList(), anyInt(), anyInt(), anySet(), anyMap(), nullable(String.class), anyInt()))
-                .thenAnswer(inv -> new ImageRefInjector.InjectResult(inv.getArgument(0), Set.of()));
+                .thenAnswer(inv -> new ImageRefInjector.InjectResult(inv.getArgument(0), Set.of(), Map.of()));
         // 默认 UserImageTranscoder mock: 直接返回原消息
         lenient().when(userImageTranscoder.transcode(anyList(), any(), nullable(String.class), any(), anyInt()))
                 .thenAnswer(inv -> new UserImageTranscoder.TranscodeResult(inv.getArgument(0), 0, List.of()));
@@ -1240,9 +1240,9 @@ class QueryEngineUnitTest {
         void mandatoryContextOverBudgetFailsBeforeProviderCallWithActionableMessage() {
             LlmProvider provider = mock(LlmProvider.class);
             when(providerRegistry.getProvider(anyString())).thenReturn(provider);
-            when(tokenBudgetGuard.enforcePhase2(anyList(), anyInt(), anySet(), anyDouble()))
+            when(tokenBudgetGuard.enforcePhase2(anyList(), anyInt(), anyMap(), anySet(), anyDouble()))
                     .thenAnswer(inv -> new TokenBudgetGuard.FinalBudgetResult(
-                            inv.getArgument(0), Set.of(), 20_000, inv.getArgument(1), false,
+                            inv.getArgument(0), Set.of(), Set.of(), 20_000, inv.getArgument(1), false,
                             "mandatory context exceeds budget"));
             CompactService.CompactResult cannotCompact = new CompactService.CompactResult(
                     List.of(), 20_000, 20_000, 0, 1.0,
@@ -2848,7 +2848,7 @@ class QueryEngineUnitTest {
             assertThat(state.getCompactionContext().model()).isEqualTo("fallback-model");
             assertThat(state.getCompactionContext().contextWindow()).isEqualTo(32000);
             int fallbackBudget = 32000 - 8192 - (int)("You are helpful.".length()/3.5) - 1600;
-            verify(tokenBudgetGuard).enforcePhase2(anyList(),eq(fallbackBudget),anySet(),eq(3.5));
+            verify(tokenBudgetGuard).enforcePhase2(anyList(),eq(fallbackBudget),anyMap(),anySet(),eq(3.5));
             // Verify fallback provider was used
             verify(fallbackProvider).streamChat(
                     eq("fallback-model"), anyList(), anyString(), anyList(),
@@ -2984,7 +2984,7 @@ class QueryEngineUnitTest {
         var phase1=org.mockito.ArgumentCaptor.forClass(Integer.class);
         var phase2=org.mockito.ArgumentCaptor.forClass(Integer.class);
         verify(tokenBudgetGuard).enforcePhase1(anyList(),phase1.capture(),anyDouble(),nullable(String.class));
-        verify(tokenBudgetGuard).enforcePhase2(anyList(),phase2.capture(),anySet(),anyDouble());
+        verify(tokenBudgetGuard).enforcePhase2(anyList(),phase2.capture(),anyMap(),anySet(),anyDouble());
         assertThat(phase2.getValue()-phase1.getValue()).isEqualTo(merged ? 200 : 0);
         assertThat(state.getCompactionContext().historyBudget()).isEqualTo(phase1.getValue());
     }

@@ -1,5 +1,7 @@
 package com.aicodeassistant.verify;
 
+import com.aicodeassistant.config.database.DatabaseResolver;
+import com.aicodeassistant.config.database.SqliteConfig;
 import com.aicodeassistant.security.SensitiveDataFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -7,6 +9,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.SimpleTransactionStatus;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -37,15 +41,11 @@ class EvidenceStoreTest {
     private SensitiveDataFilter sensitiveDataFilter;
     private EvidenceStore store;
 
-    private String origUserDir;
     private Path tempUserDir;
 
     @BeforeEach
     void setUp() throws IOException {
-        // EvidenceStore 构造时使用 user.dir 拼接 blobRoot，临时切换到独立目录避免污染工作区。
-        origUserDir = System.getProperty("user.dir");
         tempUserDir = Files.createTempDirectory("evidence-store-test-");
-        System.setProperty("user.dir", tempUserDir.toString());
 
         jdbcTemplate = mock(JdbcTemplate.class);
         objectMapper = new ObjectMapper();
@@ -53,14 +53,18 @@ class EvidenceStoreTest {
         // 默认不改写文本，便于断言原始值传入 SQL。
         when(sensitiveDataFilter.filter(anyString())).thenAnswer(inv -> inv.getArgument(0));
 
-        store = new EvidenceStore(jdbcTemplate, objectMapper, sensitiveDataFilter);
+        // 真实 SqliteConfig 提供有界写锁；事务管理器用直通 mock，SQL 断言仍在 mock JdbcTemplate 上。
+        DatabaseResolver resolver = new DatabaseResolver("", tempUserDir.toString());
+        SqliteConfig sqliteConfig = new SqliteConfig(resolver);
+        PlatformTransactionManager transactionManager = mock(PlatformTransactionManager.class);
+        when(transactionManager.getTransaction(any())).thenReturn(new SimpleTransactionStatus());
+        store = new EvidenceStore(jdbcTemplate, sqliteConfig, resolver, transactionManager,
+                objectMapper, sensitiveDataFilter,
+                tempUserDir.resolve(".ai-code-assistant").resolve("blobs"));
     }
 
     @AfterEach
     void tearDown() throws IOException {
-        if (origUserDir != null) {
-            System.setProperty("user.dir", origUserDir);
-        }
         if (tempUserDir != null && Files.exists(tempUserDir)) {
             try (var stream = Files.walk(tempUserDir)) {
                 stream.sorted(Comparator.reverseOrder()).forEach(p -> {
@@ -92,7 +96,8 @@ class EvidenceStoreTest {
         assertTrue(saved.items().isEmpty());
 
         verify(jdbcTemplate, times(1)).update(
-                argThat((String sql) -> sql.contains("INSERT OR REPLACE INTO evidence_bundles")
+                argThat((String sql) -> sql.contains("INSERT INTO evidence_bundles")
+                        && !sql.contains("INSERT OR REPLACE")
                         && sql.contains("bundle_id")
                         && sql.contains("created_at")),
                 eq("ev-001"),
@@ -131,12 +136,14 @@ class EvidenceStoreTest {
         verify(jdbcTemplate, times(3)).update(anyString(), any(Object[].class));
 
         verify(jdbcTemplate).update(
-                argThat((String sql) -> sql.contains("INSERT OR REPLACE INTO evidence_items")),
+                argThat((String sql) -> sql.contains("INSERT INTO evidence_items")
+                        && !sql.contains("INSERT OR REPLACE")),
                 eq("item-1"), eq("ev-002"), eq("screenshot"), eq("Step 1 ok"),
                 eq("sha-aaa"), argThat((String json) -> json != null && json.contains("\"k\"")), eq(0)
         );
         verify(jdbcTemplate).update(
-                argThat((String sql) -> sql.contains("INSERT OR REPLACE INTO evidence_items")),
+                argThat((String sql) -> sql.contains("INSERT INTO evidence_items")
+                        && !sql.contains("INSERT OR REPLACE")),
                 eq("item-2"), eq("ev-002"), eq("command"), eq("Step 2 ok"),
                 eq((String) null), eq((String) null), eq(1)
         );
@@ -269,6 +276,44 @@ class EvidenceStoreTest {
         verify(jdbcTemplate).queryForList(
                 eq("SELECT * FROM evidence_bundles WHERE session_id = ? ORDER BY created_at DESC"),
                 eq("sess-9"));
+    }
+
+    @Test
+    @DisplayName("TC-ES-07 save - bundleId 缺失时生成 ev- + 完整 UUID，与 builder 默认一致")
+    void save_missingBundleId_generatesFullUuid() {
+        EvidenceBundle bundle = new EvidenceBundle(
+                null, "session-1", "agent-1", "journey", "claim text", "verified",
+                List.of(), Instant.parse("2026-06-05T10:00:00Z"));
+
+        EvidenceBundle saved = store.save(bundle);
+
+        assertTrue(saved.bundleId().matches(
+                        "ev-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"),
+                "应为 ev- + 完整 UUID，实际：" + saved.bundleId());
+        verify(jdbcTemplate).update(
+                argThat((String sql) -> sql.contains("INSERT INTO evidence_bundles")),
+                eq(saved.bundleId()),
+                eq("session-1"),
+                eq((String) null),
+                eq("agent-1"),
+                eq("journey"),
+                eq("claim text"),
+                eq("verified"),
+                eq("2026-06-05T10:00:00Z")
+        );
+    }
+
+    @Test
+    @DisplayName("TC-ES-08 builder - 默认 bundleId 为 ev- + 完整 UUID，显式 ID 原样保留")
+    void builder_defaultBundleId_isFullUuid() {
+        String generated = EvidenceBundle.builder()
+                .sessionId("s").kind("journey").verdict("verified").build().bundleId();
+        assertTrue(generated.matches(
+                        "ev-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"),
+                "builder 默认 ID 应为 ev- + 完整 UUID，实际：" + generated);
+
+        assertEquals("ev-explicit", EvidenceBundle.builder().bundleId("ev-explicit")
+                .sessionId("s").kind("journey").verdict("verified").build().bundleId());
     }
 
     private static String sha256Hex(byte[] data) throws Exception {

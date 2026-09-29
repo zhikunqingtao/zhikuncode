@@ -188,7 +188,7 @@ def main(
     max_turns: Optional[int] = typer.Option(
         None, "--max-turns", help="最大轮次"),
     max_budget: Optional[float] = typer.Option(
-        None, "--max-budget", help="预算上限 USD"),
+        None, "--max-budget", help="当前不支持金额预算；设置后服务端将拒绝请求"),
     json_schema: Optional[str] = typer.Option(
         None, "--json-schema", help="JSON Schema 约束输出结构"),
     # 权限

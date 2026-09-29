@@ -957,7 +957,7 @@ public class QueryEngine {
             // injection is an optimization and must never break the query loop.
             if (injectResult == null) {
                 log.warn("ImageRefInjector returned null; continuing without transient images");
-                injectResult = new ImageRefInjector.InjectResult(imagePreparedMessages, Set.of());
+                injectResult = new ImageRefInjector.InjectResult(imagePreparedMessages, Set.of(), Map.of());
             }
             List<Message> apiReadyMessages = injectResult.messages();
             if (modelCaps.imageInputMode() == ModelCapabilities.ImageInputMode.BASE64_ONLY) {
@@ -975,10 +975,23 @@ public class QueryEngine {
                     throw failure;
                 }
             }
-            Set<String> pendingHashes = new HashSet<>(injectResult.pendingHashes());
-            // A tool reference can have the same bytes as a mandatory attachment. Hash-based
-            // degradation must not remove either occurrence in that case.
-            pendingHashes.removeAll(UserImageTranscoder.imageHashes(imagePreparedMessages, currentImageRequestId));
+            // 图片注入身份分两组（均为本 run 的内存态状态，绝不进入 payload 或历史）：
+            // - 可确认集合：全部已注入的源身份（含与 mandatory 附件相撞的工具图）；
+            // - 可降级集合：可确认集合中允许 Phase2 降级策略处理的子集。
+            // 守卫侧按「载荷 → 全部源身份」集合判定：块可降级 ⇔ 该载荷的全部源都在可降级集合内
+            // （任一源受保护则整块不可降级），多源同载荷不会被单值覆盖丢源。
+            Map<String, String> injectedImageHashes = injectResult.injectedSourceToPayloadHashes();
+            Set<String> degradableImageHashes = new HashSet<>(injectedImageHashes.keySet());
+            // 相撞判定在注入载荷哈希侧进行：按注入记录把「源身份 → 载荷哈希」的载荷与 mandatory
+            // 附件逐字节相撞的源身份全部移出可降级集合；源≠载荷形态（如 BMP 转码）同样受保护。
+            // 同一载荷的所有源共享载荷哈希，因此要么全被保护、要么全可降级，与守卫的全集合规则一致。
+            // A tool reference can have the same bytes as a mandatory attachment: hash-based
+            // degradation must not remove either occurrence; confirmation still follows the bytes
+            // actually retained in the final payload.
+            Set<String> mandatoryPayloadHashes = UserImageTranscoder.imageHashes(imagePreparedMessages, currentImageRequestId);
+            if (!mandatoryPayloadHashes.isEmpty()) {
+                degradableImageHashes.removeIf(source -> mandatoryPayloadHashes.contains(injectedImageHashes.get(source)));
+            }
 
             List<MessageParam> typedMessages = messageNormalizer.normalizeTyped(CompactionHistory.forRequest(com.aicodeassistant.engine.HandoffContextService.inject(apiReadyMessages,handoff)));
             List<Map<String, Object>> apiMessages = MessageParamConverter.toMaps(typedMessages);
@@ -986,13 +999,11 @@ public class QueryEngine {
                     turn, apiMessages.size(), typedMessages.size());
 
             // === Phase2: 最终 payload 校验 ===
-            // Keep the established two-argument path when no transient image
-            // was injected. Besides preserving extension compatibility, this
-            // makes the important boundary explicit: only transient images
-            // may be degraded by the hash-aware overload.
-            TokenBudgetGuard.FinalBudgetResult finalCheck = pendingHashes.isEmpty()
-                    ? tokenBudgetGuard.enforcePhase2(apiMessages, inputBudget, Set.of(), tokenCharRatio)
-                    : tokenBudgetGuard.enforcePhase2(apiMessages, inputBudget, pendingHashes, tokenCharRatio);
+            // The identity-aware overload receives the complete injected identity map plus the
+            // degradable subset: only injected images may be degraded, and the guard derives the
+            // retained source identities from the final payload itself.
+            TokenBudgetGuard.FinalBudgetResult finalCheck = tokenBudgetGuard.enforcePhase2(
+                    apiMessages, inputBudget, injectedImageHashes, degradableImageHashes, tokenCharRatio);
             if (!finalCheck.fitsBudget()) {
                 log.warn("[ImageOpt] Local budget guard triggered: {} > {}", finalCheck.estimatedTokens(), inputBudget);
                 handler.onRecovery(RecoveryEvent.of413(1, "local budget guard"));
@@ -1227,8 +1238,8 @@ public class QueryEngine {
                 throw e;
             }
 
-            // === 图片注入确认: API 调用成功，将本轮 pending hashes 标记为已确认 ===
-            confirmedImageHashes.addAll(pendingHashes);
+            // === 图片注入确认: 请求成功送达后，仅确认最终 payload 中仍以图片形式保留的源身份 ===
+            confirmedImageHashes.addAll(finalCheck.retainedSourceImageHashes());
 
             if (aborted.get()) {
                 log.info("[ABORT] Turn {} Step4: abort detected after streamChat", turn);

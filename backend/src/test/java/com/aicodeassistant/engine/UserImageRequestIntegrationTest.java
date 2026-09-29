@@ -40,7 +40,7 @@ class UserImageRequestIntegrationTest {
             var messages = MessageParamConverter.toMaps(new MessageNormalizer().normalizeTyped(prepared.messages()));
             int maxOutput = QueryConfig.getRecommendedMaxTokens(models, model);
             int inputBudget = models.getContextWindowForModel(model) - maxOutput - models.getContextWindowForModel(model) / 20;
-            var checked = new TokenBudgetGuard().enforcePhase2(messages, inputBudget, Set.of(), 3.5);
+            var checked = new TokenBudgetGuard().enforcePhase2(messages, inputBudget, Map.of(), Set.of(), 3.5);
             assertThat(checked.fitsBudget()).isTrue();
             api.enqueue(new MockResponse().addHeader("Content-Type", "text/event-stream").setBody(
                     "data: {\"id\":\"test\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ok\"},\"finish_reason\":null}]}\n\n" +

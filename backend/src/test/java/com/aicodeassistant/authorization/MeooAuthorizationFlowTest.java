@@ -104,7 +104,7 @@ class MeooAuthorizationFlowTest {
                 Files.writeString(credentials,"{\"apiBaseUrl\":\"https://meoo.com\",\"credentialType\":\"api_key\",\"apiKey\":\"meoo_ak_test_fixture_only\",\"userId\":\"test-account\"}");
                 Files.setPosixFilePermissions(credentials,PosixFilePermissions.fromString("rw-------"));props.setCredentialsFile(credentials.toString());
             }
-            evidence=new EvidenceStore(jdbc,json,new SensitiveDataFilter());policy=new MeooPublicationPolicy(props,evidence);
+            evidence=new EvidenceStore(jdbc,sqlite,resolver,tx,json,new SensitiveDataFilter());policy=new MeooPublicationPolicy(props,evidence);
             context=ToolUseContext.of(root.toString(),session).withCurrentRunId(run.id());
             String runtime="static";
             com.fasterxml.jackson.databind.JsonNode report=null;

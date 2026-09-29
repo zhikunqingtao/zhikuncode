@@ -1,5 +1,7 @@
 package com.aicodeassistant.verify;
 
+import com.aicodeassistant.config.database.DatabaseResolver;
+import com.aicodeassistant.config.database.SqliteConfig;
 import com.aicodeassistant.security.SensitiveDataFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -7,6 +9,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.SimpleTransactionStatus;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -60,7 +64,13 @@ class EvidenceStoreEdgeCaseTest {
         sensitiveDataFilter = mock(SensitiveDataFilter.class);
         when(sensitiveDataFilter.filter(anyString())).thenAnswer(inv -> inv.getArgument(0));
 
-        store = new EvidenceStore(jdbcTemplate, objectMapper, sensitiveDataFilter, blobRoot);
+        // 真实 SqliteConfig 提供有界写锁；事务管理器用直通 mock，SQL 断言仍在 mock JdbcTemplate 上。
+        DatabaseResolver resolver = new DatabaseResolver("", tempDir.toString());
+        SqliteConfig sqliteConfig = new SqliteConfig(resolver);
+        PlatformTransactionManager transactionManager = mock(PlatformTransactionManager.class);
+        when(transactionManager.getTransaction(any())).thenReturn(new SimpleTransactionStatus());
+        store = new EvidenceStore(jdbcTemplate, sqliteConfig, resolver, transactionManager,
+                objectMapper, sensitiveDataFilter, blobRoot);
     }
 
     // ─── Blob 写入类 ──────────────────────────────────────────────
@@ -150,27 +160,62 @@ class EvidenceStoreEdgeCaseTest {
     }
 
     @Test
-    @DisplayName("TC-EC-06 readBlob - 路径穿越输入被长度校验拦截，不触达文件系统")
+    @DisplayName("TC-EC-06 readBlob - 64 字符路径形态输入（穿越/绝对路径）即使逃逸目标真实存在也被拒绝")
     void readBlob_pathTraversal_returnsEmpty() throws IOException {
-        // 在工作目录之外写入一个诱饵文件，验证不会被读到
-        Path bait = Files.createTempFile("evidence-bait-", ".txt");
+        // 在 blobRoot 之外真实创建逃逸目标位置的诱饵文件：blobPath(".."+"a"*62) 会被拼成
+        // blobRoot/../..aaa…，交给内核解析后正是 blobRoot.getParent() 下的这个文件。
+        Path decoy = blobRoot.getParent().resolve(".." + "a".repeat(62));
+        Files.createDirectories(decoy.getParent());
         try {
-            Files.writeString(bait, "secret");
+            Files.writeString(decoy, "TOP-SECRET-OUTSIDE-BLOBROOT");
 
-            // 短路径穿越（长度 != 64），由长度校验直接拒绝
-            assertTrue(store.readBlob("../../etc/passwd").isEmpty());
-            assertTrue(store.readBlob("..").isEmpty());
-            assertTrue(store.readBlob("/" + "a".repeat(63)).isEmpty(),
-                    "前导斜杠 + 63 字符虽长度=64 也应通过文件不存在路径返回空");
-
-            // 即便构造长度恰为 64 的路径形态字符串，blobPath() 也只会落到 blobRoot 子树
-            // 这里 substring(0,2)="..", 其余作为文件名；blobs/../<rest> 仍位于 blobRoot 上层但文件并不存在
+            // [A] 单段一级逃逸形态：目标文件真实存在，修复前会读出 blobRoot 之外的内容，
+            // 现在必须被格式白名单 + 路径包含校验直接拒绝。
             String paddedTraversal = ".." + "a".repeat(62);
             assertEquals(64, paddedTraversal.length());
             assertTrue(store.readBlob(paddedTraversal).isEmpty(),
-                    "构造的 64 字符路径形态字符串不指向任何已存在的 blob，应返回空");
+                    "逃逸目标真实存在时也必须被拒绝，不得读出 blobRoot 之外的文件");
+
+            // [D] 前导斜杠 + 冗余斜杠的绝对路径形态（64 字符）：修复前整串会被当作绝对路径
+            // 交给内核解析（/etc/passwd 在类 Unix 系统真实存在），现在必须被格式白名单拒绝。
+            String absoluteForm = "/".repeat(54) + "etc/passwd";
+            assertEquals(64, absoluteForm.length());
+            assertTrue(store.readBlob(absoluteForm).isEmpty(),
+                    "绝对路径形态的 64 字符输入必须被拒绝，而非依赖目标不存在");
+
+            // [F] "../"×18 + "etc/passwd"（64 字符）相对穿越形态，规范化后同样指向 /etc/passwd
+            String traversalForm = "../".repeat(18) + "etc/passwd";
+            assertEquals(64, traversalForm.length());
+            assertTrue(store.readBlob(traversalForm).isEmpty(),
+                    "含 ../ 段的穿越输入必须被拒绝，而非依赖目标不存在");
+
+            // 短穿越与长度不足输入仍被拒绝（长度/格式校验）
+            assertTrue(store.readBlob("../../etc/passwd").isEmpty());
+            assertTrue(store.readBlob("..").isEmpty());
+            // 前导斜杠 + 63 个字符（长度=64）：修复前会被当作绝对路径 /aaa… 交付内核解析，
+            // 之前的断言"返回空"只是因为该路径不存在，属伪安全；现在由格式白名单直接拒绝。
+            assertTrue(store.readBlob("/" + "a".repeat(63)).isEmpty(),
+                    "前导斜杠 + 非 hex 的 64 字符必须被格式白名单拒绝，而非依赖目标不存在");
         } finally {
-            Files.deleteIfExists(bait);
+            Files.deleteIfExists(decoy);
+        }
+    }
+
+    @Test
+    @DisplayName("TC-EC-06B readBlob - 合法 64 位 hex 可正常读出，非 hex 的 64 字符被格式白名单拒绝")
+    void readBlob_hexWhitelist_acceptsValidHexAndRejectsNonHex() throws IOException {
+        String validHex = "ab12".repeat(16);
+        Path blobPath = blobRoot.resolve(validHex.substring(0, 2)).resolve(validHex);
+        Files.createDirectories(blobPath.getParent());
+        byte[] payload = "legit blob content".getBytes();
+        Files.write(blobPath, payload);
+        try {
+            assertArrayEquals(payload, store.readBlob(validHex).orElseThrow(),
+                    "合法 64 位 hex 必须可正常读出");
+            assertTrue(store.readBlob("g".repeat(64)).isEmpty(),
+                    "非 hex 的 64 字符输入必须被格式白名单拒绝");
+        } finally {
+            Files.deleteIfExists(blobPath);
         }
     }
 
@@ -292,8 +337,8 @@ class EvidenceStoreEdgeCaseTest {
     }
 
     @Test
-    @DisplayName("TC-EC-14 save - meta 含循环引用时序列化降级为 null，不抛异常")
-    void save_metaWithCircularReference_serializesAsNullGracefully() {
+    @DisplayName("TC-EC-14 save - meta 序列化失败必须明确报错，不允许静默丢弃元数据或产生写入")
+    void save_metaSerializationFailure_failsWithoutAnyWrite() {
         Map<String, Object> cyclicMeta = new HashMap<>();
         cyclicMeta.put("self", cyclicMeta);
 
@@ -303,20 +348,14 @@ class EvidenceStoreEdgeCaseTest {
                 "ev-cyc", "sess", "agent", "journey", "claim", "verified",
                 List.of(item), Instant.parse("2026-06-05T10:00:00Z"));
 
-        assertDoesNotThrow(() -> store.save(bundle),
-                "循环引用必须被 catch 包住降级，不得抛到调用方");
+        IllegalArgumentException failure = assertThrows(IllegalArgumentException.class,
+                () -> store.save(bundle), "序列化失败必须抛到调用方");
+        assertTrue(failure.getMessage().contains("EVIDENCE_META_SERIALIZATION_FAILED"),
+                "应携带明确错误码，实际：" + failure.getMessage());
+        assertNotNull(failure.getCause(), "原始序列化异常必须作为 cause 保留");
 
-        // bundle 写入正常
-        verify(jdbcTemplate).update(
-                argThat((String sql) -> sql.contains("INSERT OR REPLACE INTO evidence_bundles")),
-                eq("ev-cyc"), eq("sess"), eq((String) null), eq("agent"), eq("journey"),
-                eq("claim"), eq("verified"), eq("2026-06-05T10:00:00Z"));
-
-        // item 写入时 meta_json 列为 null
-        verify(jdbcTemplate).update(
-                argThat((String sql) -> sql.contains("INSERT OR REPLACE INTO evidence_items")),
-                eq("it-cyc"), eq("ev-cyc"), eq("screenshot"), eq("circular meta"),
-                eq((String) null), eq((String) null), eq(0));
+        // 序列化在事务外失败：bundle 与 item 都不得落库
+        verify(jdbcTemplate, never()).update(anyString(), any(Object[].class));
     }
 
     // ─── 并发安全类 ──────────────────────────────────────────────

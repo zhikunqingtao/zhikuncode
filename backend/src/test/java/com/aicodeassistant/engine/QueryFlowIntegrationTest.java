@@ -112,14 +112,14 @@ class QueryFlowIntegrationTest {
         when(tokenBudgetGuard.enforcePhase1(any(), anyInt(), anyDouble(), nullable(String.class)))
                 .thenAnswer(inv -> new TokenBudgetGuard.GuardResult(inv.getArgument(0), false, 0, 0));
         when(tokenBudgetGuard.enforcePhase2(any(), anyInt()))
-                .thenAnswer(inv -> new TokenBudgetGuard.FinalBudgetResult(inv.getArgument(0), Set.of(), 0, inv.getArgument(1), true, ""));
-        when(tokenBudgetGuard.enforcePhase2(any(), anyInt(), anySet(), anyDouble()))
-                .thenAnswer(inv -> new TokenBudgetGuard.FinalBudgetResult(inv.getArgument(0), Set.of(), 0, inv.getArgument(1), true, ""));
+                .thenAnswer(inv -> new TokenBudgetGuard.FinalBudgetResult(inv.getArgument(0), Set.of(), Set.of(), 0, inv.getArgument(1), true, ""));
+        when(tokenBudgetGuard.enforcePhase2(any(), anyInt(), anyMap(), anySet(), anyDouble()))
+                .thenAnswer(inv -> new TokenBudgetGuard.FinalBudgetResult(inv.getArgument(0), Set.of(), Set.of(), 0, inv.getArgument(1), true, ""));
 
         ImageRefInjector imageRefInjector = mock(ImageRefInjector.class);
         when(imageRefInjector.injectForApiCall(
                         anyList(), anyInt(), anyInt(), anySet(), anyMap(), nullable(String.class), anyInt()))
-                .thenAnswer(inv -> new ImageRefInjector.InjectResult(inv.getArgument(0), Set.of()));
+                .thenAnswer(inv -> new ImageRefInjector.InjectResult(inv.getArgument(0), Set.of(), Map.of()));
 
         UserImageTranscoder userImageTranscoder = mock(UserImageTranscoder.class);
         lenient().when(userImageTranscoder.transcode(anyList(), any(), nullable(String.class), any(), anyInt()))

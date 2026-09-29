@@ -64,6 +64,20 @@ public class VerifyJourneyTool implements Tool {
     private static final Duration CLOSE_SESSION_TIMEOUT = Duration.ofSeconds(5);
     private static final Duration FAILURE_SNAPSHOT_TIMEOUT = Duration.ofSeconds(2);
 
+    /**
+     * 证据持久化失败时的结果文案（每次按真实 verdict 组装）：正文是模型唯一可见通道，
+     * 必须直接携带真实 verdict，并明确"验证结果未能持久化"这一事实。
+     * 脱敏：不得回拼任何异常 message/SQL/堆栈；metadata 中的 verdict 仅作旁证，
+     * 不再作为载体（metadata 不会进入下一轮模型消息）。
+     */
+    private static String evidencePersistFailedMessage(JourneyResult result) {
+        String verdict = result != null && result.verdict() != null ? result.verdict() : "unknown";
+        return "The runtime verification finished with verdict '" + verdict
+                + "', but its evidence bundle could not be persisted (storage failure). "
+                + "The verdict quoted above is the real result of the executed verification. "
+                + "Do not automatically rerun the journey - side effects may already have occurred.";
+    }
+
     private final PythonCapabilityAwareClient pythonClient;
     private final DevServerLauncher devServerLauncher;
     private final VerifierFactory verifierFactory;
@@ -468,7 +482,20 @@ public class VerifyJourneyTool implements Tool {
                 .claim(evidenceClaim)
                 .items(publicationItems)
                 .build();
-        EvidenceBundle saved = evidenceStore.save(bundle);
+        EvidenceBundle saved;
+        try {
+            saved = evidenceStore.save(bundle);
+        } catch (Exception e) {
+            // 验证已实际执行完成，仅持久化失败：不得让异常外溢到 pipeline（会回拼原始 message/SQL），
+            // 也不得把已完成的旅程记为 verdict=failed；正文携带真实 verdict（模型唯一可见通道）+ 独立结果码。
+            log.warn("VerifyJourney evidence persistence failed: errorType={}, errorLength={}, errorFingerprint={}",
+                    SafeLogValue.errorType(e), SafeLogValue.length(e.getMessage()),
+                    SafeLogValue.fingerprint(e.getMessage()));
+            recordVerificationPersistFailed(runId, mode, stepCount, result, startedNanos);
+            return ToolResult.failed(ToolResult.ToolFailureType.INTERNAL, "EVIDENCE_PERSIST_FAILED",
+                    evidencePersistFailedMessage(result), ToolResult.Retryability.IDEMPOTENCY_REQUIRED,
+                    ToolResult.EffectState.UNKNOWN, null, Map.of("verdict", result.verdict()));
+        }
         recordVerificationCompleted(runId, mode, stepCount, result, saved, startedNanos);
 
         // STOMP 推送最终结果
@@ -560,6 +587,25 @@ public class VerifyJourneyTool implements Tool {
                     "mode", mode, "stepCount", stepCount, "verdict", verdict,
                     "durationMs", elapsedMillis(startedNanos),
                     "errorType", SafeLogValue.errorType(error)));
+        } catch (Throwable ignored) { }
+    }
+
+    /**
+     * 记录"验证实际完成、但证据持久化失败"的观测事件：沿用既有事件类型
+     * {@code runtime_verification_completed} 与字段风格，以 {@code persisted=false} +
+     * {@code errorType=EVIDENCE_PERSIST_FAILED} 表达真实情况，绝不把已完成的旅程记为 verdict=failed。
+     */
+    private void recordVerificationPersistFailed(String runId, String mode, int stepCount,
+                                                 JourneyResult result, long startedNanos) {
+        try {
+            Map<String, Object> event = new HashMap<>();
+            event.put("mode", mode);
+            event.put("stepCount", stepCount);
+            event.put("verdict", result.verdict());
+            event.put("persisted", false);
+            event.put("errorType", "EVIDENCE_PERSIST_FAILED");
+            event.put("durationMs", elapsedMillis(startedNanos));
+            recordVerificationEvent(runId, "runtime_verification_completed", event);
         } catch (Throwable ignored) { }
     }
 

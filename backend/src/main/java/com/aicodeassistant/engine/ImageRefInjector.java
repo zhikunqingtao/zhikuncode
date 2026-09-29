@@ -57,8 +57,12 @@ public class ImageRefInjector {
      *
      * @param messages      注入后的消息列表（深拷贝）
      * @param pendingHashes 本次尝试注入但尚未确认的哈希集合
+     * @param injectedSourceToPayloadHashes 本次成功注入的"源文件哈希 → 注入图片字节哈希"映射。仅成功挂到
+     *                      payload 的图片才记录；BMP→PNG 记录转码后载荷哈希；省略或失败的引用不记录。
+     *                      仅供内存内的确认流程使用，绝不进入请求 JSON、持久化消息或用户历史。
      */
-    public record InjectResult(List<Message> messages, Set<String> pendingHashes) {}
+    public record InjectResult(List<Message> messages, Set<String> pendingHashes,
+                               Map<String, String> injectedSourceToPayloadHashes) {}
 
     /**
      * 候选引用记录，记录每个待注入图片的位置信息。
@@ -104,12 +108,13 @@ public class ImageRefInjector {
         // 模型不支持图片，直接返回原消息（不注入）
         if (modelMaxImages <= 0) {
             log.debug("Model does not support images (maxImages={}), skipping injection", modelMaxImages);
-            return new InjectResult(deepCopyMessages(messages), Set.of());
+            return new InjectResult(deepCopyMessages(messages), Set.of(), Map.of());
         }
         // 实际上限 = min(绝对安全上限, 模型能力上限)
         int effectiveMaxImages = Math.min(MAX_IMAGES_PER_CALL, modelMaxImages);
         List<Message> result = deepCopyMessages(messages);
         Set<String> pendingHashes = new HashSet<>();
+        Map<String, String> injectedSourceToPayloadHashes = new HashMap<>();
 
         // ========== 阶段1：正向扫描，收集所有候选引用 ==========
         List<CandidateRef> candidates = new ArrayList<>();
@@ -211,6 +216,10 @@ public class ImageRefInjector {
                                 }
                                 newContent.add(imageBlock);
                                 pendingHashes.add(ref.sha256());
+                                String payloadHash = imagePayloadHash(ib);
+                                if (payloadHash != null) {
+                                    injectedSourceToPayloadHashes.put(ref.sha256(), payloadHash);
+                                }
                                 budgetLeft -= dataLen;
                                 actualInjectedBytes += dataLen;
                                 modified = true;
@@ -229,7 +238,7 @@ public class ImageRefInjector {
             }
         }
 
-        return new InjectResult(result, pendingHashes);
+        return new InjectResult(result, pendingHashes, injectedSourceToPayloadHashes);
     }
 
     /**
@@ -385,6 +394,20 @@ public class ImageRefInjector {
         } catch (IOException e) {
             log.debug("Failed to compute SHA-256 for {}: {}", path, e.getMessage());
             return "";
+        }
+    }
+
+    /**
+     * 计算 ImageBlock 载荷字节（base64 解码后）的 SHA-256，与 TokenBudgetGuard 的块哈希语义一致。
+     * 返回 null 表示载荷不可解码，此时不记录注入身份。
+     */
+    private static String imagePayloadHash(ImageBlock block) {
+        if (block.base64Data() == null) return null;
+        try {
+            byte[] decoded = Base64.getDecoder().decode(block.base64Data());
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(decoded));
+        } catch (IllegalArgumentException | NoSuchAlgorithmException invalid) {
+            return null;
         }
     }
 

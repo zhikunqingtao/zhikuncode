@@ -1,0 +1,9 @@
+# R-12 office-regression python packages (pinned; mirror of pins.env).
+# Installed into /opt/r12/venv inside the regression image.
+playwright==1.58.0
+pytest==8.3.4
+pytest-timeout==2.3.1
+fastapi==0.115.6
+starlette==0.41.3
+uvicorn==0.32.1
+pydantic==2.10.3

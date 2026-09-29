@@ -1,6 +1,7 @@
 package com.aicodeassistant.verify;
 
 import com.aicodeassistant.config.FeatureFlagService;
+import com.aicodeassistant.config.database.SqliteConfig;
 import com.aicodeassistant.notify.NotificationService;
 import com.aicodeassistant.service.ActivityRepository;
 import com.aicodeassistant.service.PythonCapabilityAwareClient;
@@ -457,8 +458,41 @@ class VerifyJourneyEdgeCaseTest {
     // ─────────────────────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("EC-13 EvidenceStore.save 抛异常 → 浏览器模式由外层 catch 兜底，返回错误而非崩溃")
-    void testEvidenceStoreSaveThrows_doesNotCrashTool() {
+    @DisplayName("EC-13 EvidenceStore.save 抛写锁忙异常 → 返回 EVIDENCE_PERSIST_FAILED，正文保留真实 verdict，不把已完成的验证记为失败")
+    void testEvidenceStoreSaveThrows_returnsEvidencePersistFailed() {
+        prepareBrowserModeStubs();
+        DevServerHandle handle = mockHandle();
+        when(devServerLauncher.start(any(), anyString(), anyInt(), any())).thenReturn(handle);
+
+        BrowserVerifier mockBrowser = mock(BrowserVerifier.class);
+        when(verifierFactory.selectVerifier(any(), eq("auto"))).thenReturn(mockBrowser);
+        when(mockBrowser.verify(any(), anyString()))
+                .thenReturn(new JourneyResult("verified", null, List.of(), Map.of()));
+        when(evidenceStore.save(any()))
+                .thenThrow(new SqliteConfig.DatabaseWriteUnavailableException("AUTHORIZATION_STORE_BUSY"));
+
+        ToolResult result = tool.call(browserInput(null), browserCtx());
+
+        // 验证确实跑完后仅持久化失败：独立结果码 + 正文携带真实 verdict 的脱敏文案，而非旧的外层兜底文案
+        verify(mockBrowser, times(1)).verify(any(), anyString());
+        assertTrue(result.isError(), "持久化失败必须表现为错误结果而非未捕获异常");
+        assertEquals("EVIDENCE_PERSIST_FAILED", result.failureCode());
+        assertTrue(result.content().contains("verdict 'verified'"),
+                "正文必须保留真实 verdict（模型唯一可见通道），实际：" + result.content());
+        assertTrue(result.content().contains("could not be persisted"),
+                "正文必须明确验证结果未能持久化，实际：" + result.content());
+        assertFalse(result.content().contains("AUTHORIZATION_STORE_BUSY"),
+                "固定脱敏文案不得包含底层异常文本，实际：" + result.content());
+        assertFalse(result.content().contains("VerifyJourney failed"),
+                "不得复用会把存储失败误报为验证失败的旧文案，实际：" + result.content());
+        // 不得把已完成的旅程按"验证失败"上报（通知 / 清理仍照常）
+        verify(notificationService, never()).sendVerifyAttention(any(), any());
+        verify(devServerLauncher, times(1)).stop(handle);
+    }
+
+    @Test
+    @DisplayName("EC-13b EvidenceStore.save 抛含 SQL 的通用异常 → EVIDENCE_PERSIST_FAILED 且正文含真实 verdict、不含 SQL/异常文本")
+    void testEvidenceStoreSaveGenericFailure_returnsSanitizedPersistError() {
         prepareBrowserModeStubs();
         when(devServerLauncher.start(any(), anyString(), anyInt(), any())).thenReturn(mockHandle());
 
@@ -466,14 +500,109 @@ class VerifyJourneyEdgeCaseTest {
         when(verifierFactory.selectVerifier(any(), eq("auto"))).thenReturn(mockBrowser);
         when(mockBrowser.verify(any(), anyString()))
                 .thenReturn(new JourneyResult("verified", null, List.of(), Map.of()));
-        when(evidenceStore.save(any())).thenThrow(new RuntimeException("DB connection lost"));
+        // 真实 DataAccessException 形态：message 内嵌完整 SQL 与约束名
+        when(evidenceStore.save(any())).thenThrow(new RuntimeException(
+                "PreparedStatementCallback; uncategorized SQLException for SQL "
+                + "[INSERT INTO evidence_bundles (bundle_id, session_id) VALUES (?, ?)]; "
+                + "[SQLITE_CONSTRAINT_PRIMARYKEY] A PRIMARY KEY constraint failed"));
 
         ToolResult result = tool.call(browserInput(null), browserCtx());
 
-        // 浏览器路径外层 try/catch 会捕获 → 返回 error 而非抛出
-        assertTrue(result.isError(), "save 异常应被兜底为错误结果而非未捕获异常");
-        assertTrue(result.content().contains("VerifyJourney failed"),
-                "错误前缀应一致，实际：" + result.content());
+        assertTrue(result.isError());
+        assertEquals("EVIDENCE_PERSIST_FAILED", result.failureCode());
+        assertTrue(result.content().contains("verdict 'verified'"),
+                "正文必须保留真实 verdict，实际：" + result.content());
+        assertFalse(result.content().contains("SQL"), "不得回传 SQL 文本，实际：" + result.content());
+        assertFalse(result.content().contains("INSERT"), "不得回传 SQL 语句，实际：" + result.content());
+        assertFalse(result.content().contains("PreparedStatementCallback"),
+                "不得回传异常文本，实际：" + result.content());
+        assertFalse(result.content().contains("SQLite"),
+                "不得回传底层存储实现细节，实际：" + result.content());
+    }
+
+    @Test
+    @DisplayName("EC-13c HTTP 模式证据保存失败 → 与浏览器模式一致的 EVIDENCE_PERSIST_FAILED 且正文含真实 verdict")
+    void testEvidencePersistFailure_httpMode_matchesBrowserBehavior() {
+        when(pythonClient.isCapabilityAvailable("HTTP_API")).thenReturn(true);
+        HttpApiVerifier mockHttp = mock(HttpApiVerifier.class);
+        when(verifierFactory.selectVerifier(any(), eq("http_api"))).thenReturn(mockHttp);
+        when(mockHttp.verify(any(), anyString()))
+                .thenReturn(new JourneyResult("verified", null, List.of(), Map.of()));
+        when(evidenceStore.save(any()))
+                .thenThrow(new SqliteConfig.DatabaseWriteUnavailableException("AUTHORIZATION_STORE_BUSY"));
+
+        ToolInput input = ToolInput.from(Map.of(
+                "journey", List.of(Map.of("action", "http_get", "url", "/ping")),
+                "verification_mode", "http_api",
+                "base_url", "http://127.0.0.1:8080"
+        ));
+        ToolResult result = tool.call(input, ToolUseContext.of(workspace.toString(), "session-http-persist"));
+
+        verify(mockHttp, times(1)).verify(any(), anyString());
+        assertTrue(result.isError());
+        assertEquals("EVIDENCE_PERSIST_FAILED", result.failureCode());
+        assertTrue(result.content().contains("verdict 'verified'"),
+                "HTTP 模式正文同样必须保留真实 verdict，实际：" + result.content());
+        assertTrue(result.content().contains("could not be persisted"),
+                "HTTP 模式正文必须明确验证结果未能持久化，实际：" + result.content());
+        assertFalse(result.content().contains("AUTHORIZATION_STORE_BUSY"),
+                "HTTP 模式同样不得回传底层异常文本，实际：" + result.content());
+        verifyNoInteractions(devServerLauncher);
+    }
+
+    @Test
+    @DisplayName("EC-13d 落库失败时真实 verdict=failed → 正文含 'failed'，不丢失真实结论")
+    void testEvidencePersistFailure_browserFailedVerdict_keepsRealVerdictInContent() {
+        prepareBrowserModeStubs();
+        when(devServerLauncher.start(any(), anyString(), anyInt(), any())).thenReturn(mockHandle());
+
+        BrowserVerifier mockBrowser = mock(BrowserVerifier.class);
+        when(verifierFactory.selectVerifier(any(), eq("auto"))).thenReturn(mockBrowser);
+        when(mockBrowser.verify(any(), anyString()))
+                .thenReturn(JourneyResult.failed("ASSERTION_FAILED", "missing button"));
+        when(evidenceStore.save(any()))
+                .thenThrow(new SqliteConfig.DatabaseWriteUnavailableException("AUTHORIZATION_STORE_BUSY"));
+
+        ToolResult result = tool.call(browserInput(null), browserCtx());
+
+        assertTrue(result.isError());
+        assertEquals("EVIDENCE_PERSIST_FAILED", result.failureCode());
+        assertTrue(result.content().contains("verdict 'failed'"),
+                "failed 旅程落库失败时正文必须保留真实 verdict，实际：" + result.content());
+        assertTrue(result.content().contains("could not be persisted"),
+                "正文必须明确验证结果未能持久化，实际：" + result.content());
+        assertFalse(result.content().contains("AUTHORIZATION_STORE_BUSY"),
+                "不得回传底层异常文本，实际：" + result.content());
+        verify(notificationService, never()).sendVerifyAttention(any(), any());
+    }
+
+    @Test
+    @DisplayName("EC-13e 落库失败时真实 verdict=unavailable → 正文含 'unavailable'（HTTP 与浏览器模式一致）")
+    void testEvidencePersistFailure_httpUnavailableVerdict_keepsRealVerdictInContent() {
+        when(pythonClient.isCapabilityAvailable("HTTP_API")).thenReturn(true);
+        HttpApiVerifier mockHttp = mock(HttpApiVerifier.class);
+        when(verifierFactory.selectVerifier(any(), eq("http_api"))).thenReturn(mockHttp);
+        when(mockHttp.verify(any(), anyString()))
+                .thenReturn(new JourneyResult("unavailable", "target service unavailable", List.of(), Map.of()));
+        when(evidenceStore.save(any()))
+                .thenThrow(new SqliteConfig.DatabaseWriteUnavailableException("AUTHORIZATION_STORE_BUSY"));
+
+        ToolInput input = ToolInput.from(Map.of(
+                "journey", List.of(Map.of("action", "http_get", "url", "/ping")),
+                "verification_mode", "http_api",
+                "base_url", "http://127.0.0.1:8080"
+        ));
+        ToolResult result = tool.call(input, ToolUseContext.of(workspace.toString(), "session-http-unavailable"));
+
+        assertTrue(result.isError());
+        assertEquals("EVIDENCE_PERSIST_FAILED", result.failureCode());
+        assertTrue(result.content().contains("verdict 'unavailable'"),
+                "unavailable 旅程落库失败时正文必须保留真实 verdict，实际：" + result.content());
+        assertTrue(result.content().contains("could not be persisted"),
+                "正文必须明确验证结果未能持久化，实际：" + result.content());
+        assertFalse(result.content().contains("AUTHORIZATION_STORE_BUSY"),
+                "不得回传底层异常文本，实际：" + result.content());
+        verifyNoInteractions(devServerLauncher);
     }
 
     @Test

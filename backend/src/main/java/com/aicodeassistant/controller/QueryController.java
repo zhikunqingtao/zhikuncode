@@ -118,6 +118,7 @@ public class QueryController {
      */
     @PostMapping
     public ResponseEntity<QueryResponse> query(@RequestBody QueryRequest request) {
+        rejectUnsupportedMaxBudgetUsd(request.maxBudgetUsd());
         // 1. 创建或复用会话
         try (LockedSession locked = resolveSessionLocked(request)) {
         SessionData session = locked.session();
@@ -206,6 +207,7 @@ public class QueryController {
      */
     @PostMapping("/stream")
     public SseEmitter streamQuery(@RequestBody QueryRequest request) {
+        rejectUnsupportedMaxBudgetUsd(request.maxBudgetUsd());
         long timeoutMs = (request.timeoutSeconds() != null
                 ? request.timeoutSeconds() : 600) * 1000L;
         SseEmitter emitter = new SseEmitter(timeoutMs);
@@ -304,6 +306,7 @@ public class QueryController {
     public ResponseEntity<QueryResponse> conversationQuery(
             @RequestBody ConversationRequest request) {
 
+        rejectUnsupportedMaxBudgetUsd(request.maxBudgetUsd());
         rejectClientWorkingDirectory(request.workingDirectory());
         try (SessionExecutionGate.Token ignored = acquireSession(request.sessionId())) {
 
@@ -458,6 +461,14 @@ public class QueryController {
                     "QUERY_WORKING_DIRECTORY_UNSUPPORTED",
                     "Use projectId or an existing sessionId instead "
                             + "of workingDirectory");
+        }
+    }
+
+    private void rejectUnsupportedMaxBudgetUsd(Double maxBudgetUsd) {
+        if (maxBudgetUsd != null) {
+            throw new RequestValidationException(
+                    "QUERY_BUDGET_USD_UNSUPPORTED",
+                    "当前不支持金额预算；请省略该字段或传 null，系统不会执行金额上限。");
         }
     }
 
