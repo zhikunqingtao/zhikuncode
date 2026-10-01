@@ -219,8 +219,12 @@ COPY configuration/ ./configuration/
 COPY docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
 
-# Create data and log directories
-RUN mkdir -p /app/data /app/workspace /app/log /app/log/debug /app/log/mcp && \
+# Create data and log directories; pre-create the HOME-side .zhikun mountpoint
+# tree (owned by zhikun) so deploying a bind mount over /app/.zhikun/skills
+# never leaves /app/.zhikun root-owned — the app creates its uploads directory
+# under /app/.zhikun at startup and must keep write access there.
+RUN mkdir -p /app/data /app/workspace /app/log /app/log/debug /app/log/mcp \
+    /app/.zhikun/skills && \
     chown -R zhikun:zhikun /app
 
 USER zhikun
