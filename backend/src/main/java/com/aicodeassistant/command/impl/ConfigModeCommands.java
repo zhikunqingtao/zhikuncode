@@ -19,16 +19,12 @@ public class ConfigModeCommands {
     Command fastCommand() {
         return new Command() {
             @Override public String getName() { return "fast"; }
-            @Override public String getDescription() { return "启用/禁用 FastMode 低延迟模式"; }
+            @Override public String getDescription() { return "FastMode 低延迟模式（尚未接入）"; }
             @Override public CommandType getType() { return CommandType.LOCAL; }
             @Override
             public CommandResult execute(String args, CommandContext context) {
-                String mode = args.isBlank() ? "toggle" : args.trim().toLowerCase();
-                return switch (mode) {
-                    case "on", "enable" -> CommandResult.text("FastMode enabled. Using low-latency model.");
-                    case "off", "disable" -> CommandResult.text("FastMode disabled. Using default model.");
-                    default -> CommandResult.text("FastMode toggled. Current state: (P1 — read from config)");
-                };
+                // FastMode 尚未接入：任何参数（含无参 toggle、on/off）都不改变设置
+                return CommandResult.text("FastMode is not wired up yet — no settings were changed.");
             }
         };
     }
@@ -37,18 +33,12 @@ public class ConfigModeCommands {
     Command effortCommand() {
         return new Command() {
             @Override public String getName() { return "effort"; }
-            @Override public String getDescription() { return "调整推理努力等级"; }
+            @Override public String getDescription() { return "推理努力等级（尚未接入）"; }
             @Override public CommandType getType() { return CommandType.LOCAL; }
             @Override
             public CommandResult execute(String args, CommandContext context) {
-                if (args.isBlank()) {
-                    return CommandResult.text("Usage: /effort <low|medium|high>\n" +
-                            "  low    — 快速响应，减少推理深度\n" +
-                            "  medium — 平衡模式（默认）\n" +
-                            "  high   — 深度推理，更全面分析");
-                }
-                String level = args.trim().toLowerCase();
-                return CommandResult.text("Effort level set to: " + level);
+                // 推理努力等级尚未接入：无虚构默认值，任何参数都不改变设置
+                return CommandResult.text("Effort levels are not wired up yet — no settings were changed.");
             }
         };
     }
@@ -57,18 +47,12 @@ public class ConfigModeCommands {
     Command outputStyleCommand() {
         return new Command() {
             @Override public String getName() { return "output-style"; }
-            @Override public String getDescription() { return "切换输出样式 (default/Explanatory/Learning)"; }
+            @Override public String getDescription() { return "输出样式（尚未接入）"; }
             @Override public CommandType getType() { return CommandType.LOCAL; }
             @Override
             public CommandResult execute(String args, CommandContext context) {
-                if (args.isBlank()) {
-                    return CommandResult.text("Usage: /output-style <default|explanatory|learning>\n" +
-                            "  default      — 标准输出\n" +
-                            "  explanatory  — 详细解释模式\n" +
-                            "  learning     — 教学模式，包含步骤说明");
-                }
-                String style = args.trim().toLowerCase();
-                return CommandResult.text("Output style set to: " + style);
+                // 输出样式尚未接入：任何参数都不改变设置
+                return CommandResult.text("Output styles are not wired up yet — no settings were changed.");
             }
         };
     }
@@ -79,18 +63,16 @@ public class ConfigModeCommands {
     Command themeCommand() {
         return new Command() {
             @Override public String getName() { return "theme"; }
-            @Override public String getDescription() { return "主题切换 (light/dark/system)"; }
-            @Override public CommandType getType() { return CommandType.LOCAL_JSX; }
+            @Override public String getDescription() { return "主题切换：请使用外观设置"; }
+            @Override public CommandType getType() { return CommandType.LOCAL; }
             @Override
             public CommandResult execute(String args, CommandContext context) {
                 if (args.isBlank()) {
-                    return CommandResult.jsx(Map.of(
-                            "component", "ThemeSelector",
-                            "options", java.util.List.of("light", "dark", "system")
-                    ));
+                    // 无参也不弹出虚构选择器：主题设置未接线，引导外观设置
+                    return CommandResult.text("Theme settings are not wired here — use the appearance settings to change the theme.");
                 }
-                String theme = args.trim().toLowerCase();
-                return CommandResult.text("Theme set to: " + theme);
+                // 该命令不改变主题：真实主题由前端外观设置写入并持久化
+                return CommandResult.text("Theme was not changed. Use the appearance settings to change the theme.");
             }
         };
     }
@@ -99,15 +81,12 @@ public class ConfigModeCommands {
     Command colorCommand() {
         return new Command() {
             @Override public String getName() { return "color"; }
-            @Override public String getDescription() { return "配置终端颜色方案"; }
+            @Override public String getDescription() { return "终端颜色方案（尚未接入）"; }
             @Override public CommandType getType() { return CommandType.LOCAL; }
             @Override
             public CommandResult execute(String args, CommandContext context) {
-                if (args.isBlank()) {
-                    return CommandResult.text("Usage: /color <scheme-name>\n" +
-                            "Available schemes: default, solarized, monokai, nord, dracula");
-                }
-                return CommandResult.text("Color scheme set to: " + args.trim());
+                // 颜色方案尚未接入：不展示虚构方案清单，任何参数都不改变设置
+                return CommandResult.text("Color schemes are not wired up yet — no settings were changed.");
             }
         };
     }
@@ -116,16 +95,12 @@ public class ConfigModeCommands {
     Command vimCommand() {
         return new Command() {
             @Override public String getName() { return "vim"; }
-            @Override public String getDescription() { return "启用/禁用 Vim 模式"; }
+            @Override public String getDescription() { return "Vim 模式（尚未接入）"; }
             @Override public CommandType getType() { return CommandType.LOCAL; }
             @Override
             public CommandResult execute(String args, CommandContext context) {
-                String mode = args.isBlank() ? "toggle" : args.trim().toLowerCase();
-                return switch (mode) {
-                    case "on", "enable" -> CommandResult.text("Vim mode enabled.");
-                    case "off", "disable" -> CommandResult.text("Vim mode disabled.");
-                    default -> CommandResult.text("Vim mode toggled.");
-                };
+                // Vim 模式尚未接入：任何参数（含无参 toggle、on/off）都不改变设置
+                return CommandResult.text("Vim mode is not wired up yet — no settings were changed.");
             }
         };
     }

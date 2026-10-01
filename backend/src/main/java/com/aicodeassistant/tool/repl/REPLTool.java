@@ -67,10 +67,10 @@ public class REPLTool implements Tool {
                 - You need to run shell commands (use Bash or PowerShell instead)
                 - The code doesn't require persistent state
 
-                Supported languages: python (primary), node, ruby.
+                Supported languages: python.
 
                 Session management:
-                - Use session_id to reconnect to an existing session and maintain state
+                - Use sessionId to reconnect to an existing session and maintain state
                 - Sessions have a 30-second execution timeout per call
                 - Sessions auto-destroy after 10 minutes of inactivity
                 - Maximum 3 concurrent REPL sessions
@@ -84,7 +84,7 @@ public class REPLTool implements Tool {
                 "properties", Map.of(
                         "language", Map.of(
                                 "type", "string",
-                                "enum", List.of("python", "node", "ruby"),
+                                "enum", List.of("python"),
                                 "description", "Programming language for the REPL"
                         ),
                         "code", Map.of(

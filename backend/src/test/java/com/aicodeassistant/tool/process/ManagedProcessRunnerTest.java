@@ -72,6 +72,73 @@ class ManagedProcessRunnerTest {
     }
 
     @Test
+    void sessionForegroundObservationRequiresAnAvailableRegistryAndSessionIdentity() {
+        assertThatThrownBy(() -> runner.currentSessionForeground("session"))
+                .isInstanceOf(IllegalStateException.class).hasMessage("SESSION_FOREGROUND_OCCUPANCY_UNAVAILABLE");
+        var registry = new RunExecutionRegistry();
+        var managed = new ManagedProcessRunner(registry);
+        assertThatThrownBy(() -> managed.currentSessionForeground(null)).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> managed.currentSessionForeground(" ")).isInstanceOf(IllegalStateException.class);
+        var empty = managed.currentSessionForeground("idle-session");
+        assertThat(empty.runId()).isNull();
+        assertThat(empty.occupancy().allTerminated()).isTrue();
+        registry.register("new-run", "idle-session", new AbortContext());
+        var activeButNoProcesses = managed.currentSessionForeground("idle-session");
+        assertThat(activeButNoProcesses.runId()).isEqualTo("new-run");
+        assertThat(activeButNoProcesses.occupancy().allTerminated()).isTrue();
+        try (var allowed = registry.acquireWork("new-run", "fixture", "still-admitted")) {
+            assertThat(allowed).isNotNull();
+        }
+    }
+
+    @Test
+    void sessionForegroundObservationRetainsResidueWithoutCancellingOrRunningCleanup(@TempDir Path directory) throws Exception {
+        var registry = org.mockito.Mockito.spy(new RunExecutionRegistry());
+        registry.register("current-run", "session", new AbortContext());
+        registry.register("unrelated-run", "another-session", new AbortContext());
+        var managed = org.mockito.Mockito.spy(new ManagedProcessRunner(registry));
+        var stopped = new AtomicBoolean();
+        var cleanupCalls = new AtomicInteger();
+        try {
+            managed.run(new ManagedProcessRunner.Request(List.of("true"), directory, Duration.ofSeconds(2),
+                    "current-run", "residue", deadline -> { cleanupCalls.incrementAndGet(); return stopped.get(); }));
+            int priorCleanupCalls = cleanupCalls.get();
+            var occupied = managed.currentSessionForeground("session");
+            assertThat(occupied.runId()).isEqualTo("current-run");
+            assertThat(occupied.occupancy().unconfirmedCount()).isOne();
+            assertThat(managed.currentSessionForeground("another-session").occupancy().allTerminated()).isTrue();
+            assertThat(cleanupCalls).hasValue(priorCleanupCalls);
+            org.mockito.Mockito.verify(registry, org.mockito.Mockito.never()).beginCompletion(org.mockito.ArgumentMatchers.any());
+            org.mockito.Mockito.verify(registry, org.mockito.Mockito.never()).beginTermination(org.mockito.ArgumentMatchers.any());
+            org.mockito.Mockito.verify(managed, org.mockito.Mockito.never()).cancelRunDetailed(org.mockito.ArgumentMatchers.any());
+            try (var admitted = registry.acquireWork("current-run", "fixture", "read-only-inspection")) {
+                assertThat(admitted).isNotNull();
+            }
+            stopped.set(true);
+            assertThat(managed.cancelRunDetailed("current-run").allTerminated()).isTrue();
+            assertThat(managed.currentSessionForeground("session").occupancy().allTerminated()).isTrue();
+        } finally {
+            stopped.set(true);
+            managed.shutdown();
+        }
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"changed", "appeared", "disappeared"})
+    void sessionForegroundObservationRejectsChangingMapping(String transition) {
+        var registry = org.mockito.Mockito.spy(new RunExecutionRegistry());
+        registry.register("first", "session", new AbortContext());
+        var before = transition.equals("appeared") ? java.util.Optional.<String>empty() : java.util.Optional.of("first");
+        var after = transition.equals("disappeared") ? java.util.Optional.<String>empty() : java.util.Optional.of("second");
+        org.mockito.Mockito.when(registry.activeRunForSession("session")).thenReturn(before, after);
+        var managed = new ManagedProcessRunner(registry);
+        assertThatThrownBy(() -> managed.currentSessionForeground("session"))
+                .isInstanceOf(IllegalStateException.class).hasMessage("SESSION_FOREGROUND_MAPPING_CHANGED");
+        org.mockito.Mockito.verify(registry, org.mockito.Mockito.never()).beginCompletion(org.mockito.ArgumentMatchers.any());
+        org.mockito.Mockito.verify(registry, org.mockito.Mockito.never()).beginTermination(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
     void failedStartReleasesReservedLeaseAndCapacityWithoutCallingCleanup(@TempDir Path directory) {
         var registry = new RunExecutionRegistry();
         registry.register("start-failure", "session", new AbortContext());

@@ -2,51 +2,42 @@ package com.aicodeassistant.command.impl;
 
 import com.aicodeassistant.command.*;
 import com.aicodeassistant.llm.LlmProviderRegistry;
-import com.aicodeassistant.state.AppStateStore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Map;
 
 /**
- * /model [model_name] — 切换 LLM 模型。
+ * /model [model_name] — 列出可用 LLM 模型。
  * <p>
- * 无参数 → 显示模型选择 UI；有参数 → 直接切换模型。
+ * 无参数 → 显示可用模型列表（中性列表，不标记当前模型）；
+ * 有参数 → 命令本身不切换会话模型，引导使用输入栏的模型选择器。
  *
  */
 @Component
 public class ModelCommand implements Command {
 
-    private static final Logger log = LoggerFactory.getLogger(ModelCommand.class);
-
-    private final AppStateStore appStateStore;
     private final LlmProviderRegistry providerRegistry;
 
-    public ModelCommand(AppStateStore appStateStore, LlmProviderRegistry providerRegistry) {
-        this.appStateStore = appStateStore;
+    public ModelCommand(LlmProviderRegistry providerRegistry) {
         this.providerRegistry = providerRegistry;
     }
 
     @Override public String getName() { return "model"; }
     @Override public String getDescription() {
-        String current = appStateStore.getState().session().currentModel();
-        return "Set the AI model (currently " + (current != null ? current : "none") + ")";
+        return "List available models. Switching uses the model selector.";
     }
     @Override public CommandType getType() { return CommandType.LOCAL_JSX; }
 
     @Override
     public CommandResult execute(String args, CommandContext context) {
         if (args == null || args.isBlank()) {
-            // 显示可用模型列表
+            // 显示可用模型列表 — 中性列表，不猜测/标记当前模型
             List<String> models = providerRegistry.listAvailableModels();
             StringBuilder sb = new StringBuilder("Available Models:\n\n");
             for (String model : models) {
-                String marker = model.equals(context.currentModel()) ? " (current)" : "";
-                sb.append("  ").append(model).append(marker).append("\n");
+                sb.append("  ").append(model).append("\n");
             }
-            sb.append("\nUsage: /model <model_name>");
+            sb.append("\nTo switch models, use the model selector in the input bar.");
             return CommandResult.text(sb.toString());
         }
 
@@ -61,11 +52,8 @@ public class ModelCommand implements Command {
             return CommandResult.error(sb.toString());
         }
 
-        // 切换模型
-        appStateStore.setState(state ->
-                state.withSession(s -> s.withCurrentModel(modelName)));
-
-        log.info("Model switched to: {}", modelName);
-        return CommandResult.text("Model switched to: " + modelName);
+        // 命令不切换会话模型：不写入任何状态，避免虚假成功回执
+        return CommandResult.text(
+                "This command does not switch models. Use the model selector in the input bar to switch the session model.");
     }
 }

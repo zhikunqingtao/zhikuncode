@@ -170,11 +170,12 @@ public class BashTool implements Tool {
                 - Try to maintain your current working directory throughout the session by using \
                 absolute paths and avoiding usage of `cd`. You may use `cd` if the User explicitly \
                 requests it.
-                - You may specify an optional timeout in milliseconds (up to 600000ms / 10 minutes). \
-                By default, your command will timeout after 120000ms (2 minutes).
+                - You may specify an optional timeout in milliseconds (the maximum is \
+                server-configured; default 600000ms / 10 minutes). When omitted, a recommended \
+                timeout based on the command type is applied (fallback: 120000ms / 2 minutes).
                 - You can use the `is_background` parameter to run the command in the background. \
-                Only use this if you don't need the result immediately and are OK being notified \
-                when the command completes later.
+                It returns a process ID immediately; its output is not captured and no completion \
+                notification is sent when it finishes.
                 - When issuing multiple commands:
                   - If the commands are independent and can run in parallel, make multiple Bash \
                 tool calls in a single message.
@@ -193,8 +194,8 @@ public class BashTool implements Tool {
                 underlying issue.
                 - Avoid unnecessary `sleep` commands:
                   - Do not sleep between commands that can run immediately — just run them.
-                  - If your command is long running and you would like to be notified when it \
-                finishes — use `is_background`. No sleep needed.
+                  - If your command is long running and you do not need its output now — use \
+                `is_background`. No completion notification will be sent; no sleep needed.
                   - Do not retry failing commands in a sleep loop — diagnose the root cause.
                 
                 # Committing changes with git
@@ -239,7 +240,8 @@ public class BashTool implements Tool {
                 "type", "object",
                 "properties", Map.of(
                         "command", Map.of("type", "string", "description", "The shell command to execute"),
-                        "timeout", Map.of("type", "integer", "description", "Timeout in milliseconds (default 120000)"),
+                        "timeout", Map.of("type", "integer", "description",
+                                "Timeout in milliseconds. When omitted, a recommended timeout based on the command type is applied (fallback 120000); the maximum is server-configured (default 600000)."),
                         "description", Map.of("type", "string", "description", "Description of what the command does"),
                         "is_background", Map.of("type", "boolean", "description", "Run command in background, returning immediately with process ID"),
                         "declared_outputs", Map.of(

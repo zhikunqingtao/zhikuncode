@@ -141,7 +141,20 @@ public class GitService {
         return execGit(workingDir, args);
     }
 
+    /**
+     * Reads stdout as machine-readable text without trimming or normalizing CR/LF/NUL characters.
+     * Discards stderr so successful Git warnings cannot become part of a filename.
+     * Shares the text API's deadline, complete-output requirement and null-on-failure contract.
+     */
+    public String execGitRaw(Path workingDir, String... args) {
+        return execGit(workingDir, true, args);
+    }
+
     private String execGit(Path workingDir, String... args) {
+        return execGit(workingDir, false, args);
+    }
+
+    private String execGit(Path workingDir, boolean preserveOutput, String... args) {
         Process process = null;
         ProcessHandle root = null;
         Thread readerThread = null;
@@ -155,13 +168,14 @@ public class GitService {
 
             ProcessBuilder pb = new ProcessBuilder(command);
             pb.directory(workingDir.toFile());
-            pb.redirectErrorStream(true);
+            pb.redirectErrorStream(!preserveOutput);
+            if (preserveOutput) pb.redirectError(ProcessBuilder.Redirect.DISCARD);
 
             process = pb.start();
             root = process.toHandle();
             long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
             Process started = process;
-            var output = new FutureTask<>(() -> readOutput(started));
+            var output = new FutureTask<>(() -> readOutput(started, preserveOutput));
             readerThread = Thread.ofVirtual().name("git-output-" + process.pid()).start(output);
             process.getOutputStream().close();
 
@@ -200,10 +214,16 @@ public class GitService {
         }
     }
 
-    private String readOutput(Process process) throws IOException {
+    private String readOutput(Process process, boolean preserveOutput) throws IOException {
         // This thread owns stdout. Closing it from the waiting thread can block on its read lock.
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             var output = new StringBuilder();
+            if (preserveOutput) {
+                char[] buffer = new char[8192];
+                int count;
+                while ((count = reader.read(buffer)) != -1) output.append(buffer, 0, count);
+                return output.toString();
+            }
             String line;
             while ((line = reader.readLine()) != null) {
                 if (!output.isEmpty()) output.append("\n");

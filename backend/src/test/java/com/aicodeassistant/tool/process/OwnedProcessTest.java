@@ -19,6 +19,28 @@ import static org.mockito.Mockito.*;
 class OwnedProcessTest {
     @TempDir Path directory;
 
+    @Test
+    void scopeObservationNeverSignalsAndInspectionFailureIsNotExit() throws Exception {
+        Process delegate = mock(Process.class);
+        ProcessHandle root = mock(ProcessHandle.class);
+        when(delegate.toHandle()).thenReturn(root);
+        when(delegate.isAlive()).thenReturn(true);
+        when(root.isAlive()).thenReturn(true);
+        when(root.descendants()).thenAnswer(call -> java.util.stream.Stream.empty());
+        var constructor = OwnedProcess.class.getDeclaredConstructor(Process.class,
+                Class.forName(OwnedProcess.class.getName() + "$ProcIdentity"));
+        constructor.setAccessible(true);
+        OwnedProcess owned = constructor.newInstance(delegate, null);
+        assertThat(owned.observeScope()).isEqualTo(new OwnedProcess.ScopeSnapshot(1, true));
+        when(root.descendants()).thenThrow(new UnsupportedOperationException("fixture"));
+        assertThat(owned.observeScope().inspectionComplete()).isFalse();
+        assertThat(owned.observeScope().allExited()).isFalse();
+        verify(delegate, never()).destroy();
+        verify(delegate, never()).destroyForcibly();
+        verify(root, never()).destroy();
+        verify(root, never()).destroyForcibly();
+    }
+
     @ParameterizedTest
     @CsvSource({
             "root, false, false", "root, true, false", "root, true, true",

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import jakarta.annotation.PreDestroy;
 
 import java.io.*;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -104,8 +105,10 @@ public class GrepTool implements Tool {
 
     @Override
     public String getDescription() {
-        return "Search file contents using regular expressions. Powered by ripgrep (rg). "
-                + "Supports file type filtering, context lines, and multiple output modes.";
+        return "Search file contents using regular expressions. Powered by ripgrep (rg) when available. "
+                + "Supports glob/include/exclude filters, context lines, result paging "
+                + "(head_limit/offset), and multiple output modes. "
+                + "Multiline search and file type filtering require ripgrep.";
     }
 
     @Override
@@ -117,15 +120,22 @@ public class GrepTool implements Tool {
                 - ALWAYS use Grep for search tasks. NEVER invoke `grep` or `rg` as a Bash command. \
                 The Grep tool has been optimized for correct permissions and access.
                 - Supports full regex syntax (e.g., "log.*Error", "function\\s+\\w+")
-                - Filter files with glob parameter (e.g., "*.js", "**/*.tsx") or type parameter \
-                (e.g., "js", "py", "rust")
+                - Filter files with glob/include/exclude parameters (e.g., "*.js", "**/*.tsx")
+                - Filter by file type with `type` (e.g., "js", "py") — requires ripgrep
                 - Output modes: "content" shows matching lines, "files_with_matches" shows only \
                 file paths (default), "count" shows match counts
+                - Paginate results with `offset` (number of result lines to skip) and \
+                `head_limit` (maximum result lines returned, default 250). When head_limit <= 0, \
+                paging is disabled and offset is ignored; total output limits still apply.
+                - When used, numeric paging/context values must be 32-bit integers. For positive head_limit, \
+                offset must be non-negative and offset + head_limit + 1 must not exceed 2147483647.
+                - Cross-line patterns need `multiline: true` — requires ripgrep
+                - In content mode, `-C`/`-B`/`-A` add lines of context around matches \
+                (around/before/after); context counts must be non-negative
                 - Use Agent tool for open-ended searches requiring multiple rounds
                 - Pattern syntax: Uses ripgrep (not grep) - literal braces need escaping \
                 (use `interface\\{\\}` to find `interface{}` in Go code)
-                - Multiline matching: By default patterns match within single lines only. For \
-                cross-line patterns like `struct \\{[\\s\\S]*?field`, use `multiline: true`
+                - Case-insensitive search: use `-i`
                 """;
     }
 
@@ -133,14 +143,21 @@ public class GrepTool implements Tool {
     public Map<String, Object> getInputSchema() {
         return Map.of(
                 "type", "object",
-                "properties", Map.of(
-                        "pattern", Map.of("type", "string", "description", "Regex search pattern"),
-                        "path", Map.of("type", "string", "description", "Search path (default: cwd)"),
-                        "glob", Map.of("type", "string", "description", "File filter (e.g. \"*.java\")"),
-                        "include", Map.of("type", "string", "description", "Include files matching glob (e.g. \"*.java\")"),
-                        "exclude", Map.of("type", "string", "description", "Exclude files matching glob (e.g. \"*.min.js\")"),
-                        "output_mode", Map.of("type", "string", "description", "content|files_with_matches|count"),
-                        "-i", Map.of("type", "boolean", "description", "Case-insensitive search")
+                "properties", Map.ofEntries(
+                        Map.entry("pattern", Map.of("type", "string", "description", "Regex search pattern")),
+                        Map.entry("path", Map.of("type", "string", "description", "Search path (default: cwd)")),
+                        Map.entry("glob", Map.of("type", "string", "description", "File filter (e.g. \"*.java\")")),
+                        Map.entry("include", Map.of("type", "string", "description", "Include files matching glob (e.g. \"*.java\")")),
+                        Map.entry("exclude", Map.of("type", "string", "description", "Exclude files matching glob (e.g. \"*.min.js\")")),
+                        Map.entry("output_mode", Map.of("type", "string", "description", "content|files_with_matches|count")),
+                        Map.entry("-i", Map.of("type", "boolean", "description", "Case-insensitive search")),
+                        Map.entry("head_limit", Map.of("type", "integer", "description", "32-bit integer maximum result lines (default 250); <= 0 disables paging and ignores offset, while total output limits still apply; positive values require offset + head_limit + 1 <= 2147483647")),
+                        Map.entry("offset", Map.of("type", "integer", "description", "Non-negative 32-bit integer result lines to skip when head_limit > 0; ignored when head_limit <= 0")),
+                        Map.entry("multiline", Map.of("type", "boolean", "description", "Enable multiline matching (requires ripgrep)")),
+                        Map.entry("type", Map.of("type", "string", "description", "Filter by file type, e.g. \"js\", \"py\" (requires ripgrep)")),
+                        Map.entry("-A", Map.of("type", "integer", "description", "Non-negative 32-bit integer lines of context after matches (content mode only)")),
+                        Map.entry("-B", Map.of("type", "integer", "description", "Non-negative 32-bit integer lines of context before matches (content mode only)")),
+                        Map.entry("-C", Map.of("type", "integer", "description", "Non-negative 32-bit integer lines of context around matches (content mode only)"))
                 ),
                 "required", List.of("pattern")
         );
@@ -166,8 +183,32 @@ public class GrepTool implements Tool {
         String pattern = input.getString("pattern");
         String searchPath = input.getString("path", context.workingDirectory());
         String outputMode = input.getString("output_mode", "files_with_matches");
-        int headLimit = input.getInt("head_limit", DEFAULT_HEAD_LIMIT);
-        int offset = input.getInt("offset", 0);
+        final int headLimit;
+        final int offset;
+        final int maxLinesToRead;
+        try {
+            headLimit = exactInt(input, "head_limit", DEFAULT_HEAD_LIMIT);
+            // Disabled paging has always ignored offset; do not validate an unused value.
+            offset = headLimit > 0 ? exactInt(input, "offset", 0) : 0;
+            if (headLimit > 0 && offset < 0) {
+                throw new IllegalArgumentException("offset must be non-negative when head_limit > 0");
+            }
+            long readLines = headLimit > 0 ? (long) offset + headLimit + 1 : MAX_OUTPUT_LINES;
+            if (readLines > Integer.MAX_VALUE) {
+                throw new IllegalArgumentException("offset + head_limit + 1 must not exceed 2147483647");
+            }
+            maxLinesToRead = (int) readLines;
+            if ("content".equals(outputMode)) {
+                for (String key : List.of("-A", "-B", "-C")) {
+                    Integer lines = exactInt(input, key, null);
+                    if (lines != null && lines < 0) {
+                        throw new IllegalArgumentException(key + " must be non-negative in content mode");
+                    }
+                }
+            }
+        } catch (IllegalArgumentException invalid) {
+            return ToolResult.validationError("GREP_ARGUMENT_INVALID", invalid.getMessage());
+        }
 
         try {
             var inspected = pathSecurity.inspectAuthorizedExecutionRecursiveReadRootPermission(
@@ -222,7 +263,6 @@ public class GrepTool implements Tool {
             Process process = pb.start();
 
             // 异步消费输出流（防止缓冲区满导致死锁）
-            final int maxLinesToRead = (headLimit > 0) ? (offset + headLimit + 1) : MAX_OUTPUT_LINES;
             CompletableFuture<String> outputFuture = CompletableFuture.supplyAsync(
                     () -> {
                         try (var reader = new BufferedReader(
@@ -314,6 +354,19 @@ public class GrepTool implements Tool {
                     "Grep output read timed out. Try narrowing the search with 'glob' or 'path' parameters.",
                     null, true, ToolResult.EffectState.NONE);
         }
+    }
+
+    /** Parse before narrowing: ToolInput.getInt() otherwise wraps large Number values. */
+    private static Integer exactInt(ToolInput input, String key, Integer defaultValue) {
+        Object raw = input.getRawData().get(key);
+        if (raw == null) return defaultValue;
+        try {
+            if (raw instanceof Number) return new BigDecimal(raw.toString()).intValueExact();
+            if (raw instanceof String text) return Integer.parseInt(text);
+        } catch (ArithmeticException | NumberFormatException invalid) {
+            throw new IllegalArgumentException(key + " must be a 32-bit integer");
+        }
+        throw new IllegalArgumentException(key + " must be a 32-bit integer");
     }
 
     /** 构建 ripgrep 参数列表 */

@@ -38,7 +38,7 @@ public final class OwnedProcess extends Process {
                 owned.getOutputStream().close();
                 return owned;
             } catch (IOException failure) {
-                terminateTree(owned, Duration.ZERO);
+                if (!terminateTree(owned, Duration.ZERO)) throw new LaunchFailure(owned, failure);
                 throw failure;
             }
         }
@@ -83,15 +83,28 @@ public final class OwnedProcess extends Process {
         } catch (IOException | InterruptedException | RuntimeException failure) {
             // write(start) may succeed before close fails; clean the retained scope even then.
             try { process.getOutputStream().close(); } catch (IOException ignored) { }
-            if (owned != null) terminateTree(owned, Duration.ZERO);
+            boolean stopped;
+            if (owned != null) stopped = terminateTree(owned, Duration.ZERO);
             else {
                 process.destroyForcibly();
                 try { process.waitFor(2, TimeUnit.SECONDS); }
                 catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); }
+                stopped = !process.isAlive();
             }
             if (failure instanceof InterruptedException) Thread.currentThread().interrupt();
+            if (!stopped) throw new LaunchFailure(owned != null ? owned : new OwnedProcess(process, null), failure);
             throw new IOException("PROCESS_GROUP_UNAVAILABLE", failure);
         }
+    }
+
+    /** Startup failed after creating a scope whose cleanup could not be confirmed. */
+    public static final class LaunchFailure extends IOException {
+        private final OwnedProcess retainedProcess;
+        LaunchFailure(OwnedProcess retainedProcess, Throwable cause) {
+            super("PROCESS_LAUNCH_CLEANUP_UNCONFIRMED", cause);
+            this.retainedProcess = retainedProcess;
+        }
+        public OwnedProcess retainedProcess() { return retainedProcess; }
     }
 
     /** Root-first permits uvicorn to close its browser before forced tree cleanup. */
@@ -137,6 +150,26 @@ public final class OwnedProcess extends Process {
         } finally {
             if (interrupted) Thread.currentThread().interrupt();
         }
+    }
+
+    /**
+     * Observes the retained process scope without sending signals. An unavailable
+     * inspection is not evidence of exit. The portable descendant-tracking
+     * boundary is the same as for termination; escaped daemons are not a sandboxed scope.
+     */
+    public synchronized ScopeSnapshot observeScope() {
+        try {
+            List<ProcessHandle> members = liveMembers();
+            int count = members.size();
+            if (delegate.isAlive() && members.stream().noneMatch(member -> member.pid() == delegate.pid())) count++;
+            return new ScopeSnapshot(count, true);
+        } catch (IOException | RuntimeException unavailable) {
+            return new ScopeSnapshot(0, false);
+        }
+    }
+
+    public record ScopeSnapshot(int activeCount, boolean inspectionComplete) {
+        public boolean allExited() { return inspectionComplete && activeCount == 0; }
     }
 
     /** Legacy callers still get a retained snapshot and whole-snapshot confirmation. */

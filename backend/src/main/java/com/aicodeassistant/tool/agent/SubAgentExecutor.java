@@ -17,6 +17,9 @@ import com.aicodeassistant.llm.ThinkingConfig;
 import com.aicodeassistant.model.ContentBlock;
 import com.aicodeassistant.model.Message;
 import com.aicodeassistant.service.FileStateCache;
+import com.aicodeassistant.run.RunExecutionRegistry;
+import com.aicodeassistant.session.SessionExecutionGate;
+import com.aicodeassistant.tool.process.ManagedProcessRunner;
 import com.aicodeassistant.session.SessionManager;
 import com.aicodeassistant.tool.Tool;
 import com.aicodeassistant.tool.ToolRegistry;
@@ -41,6 +44,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 子代理执行器 — 连接 AgentTool.call() 与 QueryEngine.execute()。
@@ -71,6 +77,15 @@ public class SubAgentExecutor {
     private final CheckpointService checkpointService;  // ★ 新增: 子代理检查点 ★
     private final ObjectMapper objectMapper;  // ★ 新增: 检查点 JSON 序列化 ★
     private volatile BestEffortObservabilityRecorder observabilityRecorder;
+    private RunExecutionRegistry worktreeRuns;
+    private ManagedProcessRunner worktreeProcesses;
+    private final Map<String, WorktreeExecution> worktreeExecutions = new ConcurrentHashMap<>();
+
+    @Autowired
+    void setWorktreeLifecycleSupport(RunExecutionRegistry runs, ManagedProcessRunner processes) {
+        this.worktreeRuns = runs;
+        this.worktreeProcesses = processes;
+    }
 
     /** 子代理结果最大字符数 */
     static final int MAX_RESULT_SIZE_CHARS = 100_000;
@@ -201,6 +216,10 @@ public class SubAgentExecutor {
             return executeFork(request, parentContext);
         }
 
+        if (request.isolation() == IsolationMode.WORKTREE) {
+            return executeWorktree(request, parentContext);
+        }
+
         int nestingDepth = parentContext.nestingDepth() + 1;
         Instant startTime = Instant.now();
 
@@ -220,9 +239,7 @@ public class SubAgentExecutor {
             String systemPrompt = buildAgentSystemPrompt(request.prompt(), agentDef, parentContext);
 
             // 5. 创建隔离工作目录
-            Path workDir = request.isolation() == IsolationMode.WORKTREE
-                    ? worktreeManager.createWorktree(request.agentId())
-                    : Path.of(parentContext.workingDirectory());
+            Path workDir = Path.of(parentContext.workingDirectory());
 
             // 6. 构建 QueryConfig (适配现有 record 构造)
             List<Map<String, Object>> toolDefs = tools.stream()
@@ -347,19 +364,6 @@ public class SubAgentExecutor {
                 return new AgentResult(classifyAgentStatus(null, e), "Agent interrupted", request.prompt(), null);
             } finally {
                 // ★ 修复6: 统一资源清理 — 所有退出路径都经过这里
-                // Worktree 清理
-                if (request.isolation() == IsolationMode.WORKTREE && workDir != null) {
-                    try {
-                        if (worktreeManager.hasChanges(workDir)) {
-                            worktreeManager.mergeBack(workDir);
-                        }
-                        worktreeManager.removeWorktree(workDir);
-                    } catch (Exception cleanupEx) {
-                        log.warn("Worktree cleanup failed for agent {}: {}",
-                                request.agentId(), cleanupEx.getMessage());
-                    }
-                }
-
                 // FileStateCache 清理与合并
                 try {
                     FileStateCache childFinalCache = sessionManager.getFileStateCache(childSessionId);
@@ -396,6 +400,340 @@ public class SubAgentExecutor {
             return new AgentResult(classifyAgentStatus(null, e),
                     "Agent execution failed: " + e.getMessage(),
                     request.prompt(), null);
+        }
+    }
+
+    private static boolean usesManagedWorktree(AgentRequest request) {
+        return request.isolation() == IsolationMode.WORKTREE && !request.fork()
+                && (request.teamName() == null || request.teamName().isBlank());
+    }
+
+    /** Isolated delivery deliberately has its own lifecycle; ordinary/fork execution stays unchanged. */
+    private AgentResult executeWorktree(AgentRequest request, ToolUseContext parentContext) {
+        Instant started = Instant.now();
+        WorktreeExecution execution = new WorktreeExecution(request, parentContext);
+        if (worktreeExecutions.putIfAbsent(execution.childSessionId, execution) != null) {
+            return new AgentResult(AgentResult.STATUS_FAILED,
+                    "This agent identity still owns an isolated execution; use a new agent ID.", request.prompt(), null);
+        }
+        boolean submitted = false;
+        try {
+            execution.slot = concurrencyController.acquireSlot(request.agentId(),
+                    parentContext.nestingDepth() + 1, parentContext.sessionId());
+            if (worktreeRuns == null || worktreeProcesses == null) {
+                throw new IllegalStateException("Worktree lifecycle supervision is unavailable");
+            }
+            if (worktreeRuns.activeRunForSession(execution.childSessionId).isPresent()
+                    || queryEngine.getAbortContext(execution.childSessionId) != null) {
+                throw new IllegalStateException("Child execution identity is already in use");
+            }
+            AgentDefinition definition = resolveAgentDefinition(request.agentType());
+            String model = resolveModel(request.model(), definition, parentContext.parentModel());
+            List<Tool> tools = assembleToolPool(definition, parentContext);
+            execution.tree = worktreeManager.createWorktree(request.agentId(), parentContext, false);
+            ToolUseContext childContext = ToolUseContext.of(
+                            execution.tree.workingDirectory().toString(), execution.childSessionId)
+                    .withNestingDepth(parentContext.nestingDepth() + 1)
+                    .withParentSessionId(parentContext.sessionId())
+                    .withAgentHierarchy(buildAgentHierarchy(parentContext))
+                    .withPermissionNotifier(parentContext.permissionNotifier())
+                    .withCurrentRunId(parentContext.currentRunId());
+            QueryConfig config = QueryConfig.withDefaults(model,
+                    buildAgentSystemPrompt(request.prompt(), definition, childContext), tools,
+                    tools.stream().map(Tool::toToolDefinition).toList(),
+                    QueryConfig.getRecommendedMaxTokens(modelRegistry, model), 200000,
+                    new ThinkingConfig.Adaptive(), definition.maxTurns(), execution.childSessionId);
+            sessionManager.registerSubAgentSession(execution.childSessionId,
+                    execution.tree.workingDirectory().toString(), parentContext.sessionId());
+            execution.sessionRegistered = true;
+            // Read evidence from another absolute tree is never inherited or merged back.
+            sessionManager.removeFileStateCache(execution.childSessionId);
+            sessionManager.getFileStateCache(execution.childSessionId);
+            QueryLoopState state = new QueryLoopState(
+                    new ArrayList<>(List.of(buildUserMessage(request.prompt()))), childContext);
+            execution.state = state;
+            execution.abort = queryEngine.getOrCreateAbortContext(execution.childSessionId);
+            execution.abortOwned = true;
+            QueryMessageHandler handler = new SubAgentMessageHandler(checkpointService, objectMapper,
+                    sessionManager, state, execution.childSessionId, execution.childSessionId,
+                    request.agentId(), execution.tree.workingDirectory().toString());
+            execution.lease = sessionManager.acquireBackgroundLease(parentContext.sessionId());
+            submitWorktreeWorker(() -> execution.run(config, handler));
+            submitted = true;
+
+            Duration timeout = resolveAgentTimeout(request);
+            try {
+                execution.finished.get(timeout.toMillis() + parentContext.permissionWaitMs(), TimeUnit.MILLISECONDS);
+            } catch (TimeoutException timeoutFailure) {
+                execution.requestCancellation(AbortReason.TIMEOUT);
+                try {
+                    execution.finished.get(Math.max(0, timeoutConfig.getGracefulShutdownSeconds()), TimeUnit.SECONDS);
+                } catch (TimeoutException ignored) {
+                    // The worker owns the slot and lease; cancelling a Future would prove nothing.
+                }
+            } catch (InterruptedException interrupted) {
+                execution.requestCancellation(AbortReason.USER_INTERRUPT);
+                Thread.currentThread().interrupt();
+            }
+            return finishWorktreeExecution(execution, request, started);
+        } catch (AgentLimitExceededException limit) {
+            throw limit;
+        } catch (InterruptedException interrupted) {
+            execution.requestCancellation(AbortReason.USER_INTERRUPT);
+            Thread.currentThread().interrupt();
+            return finishWorktreeExecution(execution, request, started);
+        } catch (Exception failure) {
+            String summary = "Isolated execution failed: " + failure.getMessage();
+            if (execution.tree != null) {
+                summary = worktreeManager.retain(execution.tree.path(), summary);
+            }
+            return worktreeResult(AgentResult.STATUS_FAILED, summary, request, started);
+        } finally {
+            if (!submitted) {
+                // No runnable can be using these resources, including initialization/submit failures.
+                execution.releaseSlot();
+                execution.markWorkerInactive();
+                execution.releaseLease();
+                cleanupWorktreeContext(execution);
+            } else {
+                scheduleWorktreeResourceCleanup(execution);
+            }
+        }
+    }
+
+    /** Keep submission separate from actual worker completion and its resource ownership. */
+    void submitWorktreeWorker(Runnable worker) {
+        AGENT_EXECUTOR.execute(worker);
+    }
+
+    private AgentResult finishWorktreeExecution(WorktreeExecution execution, AgentRequest request, Instant started) {
+        WorkerExit exit = execution.finished.getNow(null);
+        AbortReason cancellation = execution.cancellation.get();
+        String status = cancellation == AbortReason.TIMEOUT ? AgentResult.STATUS_TIMEOUT
+                : cancellation != null ? AgentResult.STATUS_INTERRUPTED
+                : exit == null ? AgentResult.STATUS_FAILED
+                : classifyAgentStatus(exit.result(), exit.failure());
+        // The state is read only after finished publishes the worker's writes.
+        String answer = exit == null ? "Execution has not confirmed termination."
+                : exit.failure() != null ? "Agent execution failed: " + exit.failure().getMessage()
+                : extractFinalAnswer(exit.result(), execution.state);
+        if (exit != null && exit.result() != null && exit.result().error() != null) {
+            answer = exit.result().error() + "\n" + answer;
+        }
+        boolean runQuiet = execution.runIsQuiescent();
+        boolean backgroundQuiet = runQuiet && worktreeProcesses.currentSessionBackground(
+                execution.childSessionId).allTerminated();
+        String delivery;
+        if (AgentResult.STATUS_COMPLETED.equals(status) && backgroundQuiet) {
+            // Manager clears workerActive inside its delivery lock, not before acquiring it.
+            WorktreeManager.DeliveryResult delivered = null;
+            try {
+                delivered = worktreeManager.finishWorktree(execution.tree.path(), true);
+                delivery = delivered.summary();
+                if (!delivered.success()) status = AgentResult.STATUS_FAILED;
+            } finally {
+                // Exceptions are unknown, not proof that the target was untouched.
+                if (delivered == null || delivered.targetMayHaveChanged()) {
+                    invalidateWorktreeParentCache(execution.parent.sessionId());
+                    worktreeManager.whenTargetSettled(execution.tree.path(),
+                            () -> invalidateWorktreeParentCache(execution.parent.sessionId()));
+                }
+            }
+        } else {
+            String reason = cancellation != null ? "Execution " + status + "; automatic delivery was not attempted."
+                    : !AgentResult.STATUS_COMPLETED.equals(status) ? "Execution " + status + "; automatic delivery was not attempted."
+                    : !runQuiet ? "Execution or Run work termination is unconfirmed; delivery is deferred."
+                    : "A background service still uses this worktree; delivery and cleanup are deferred.";
+            delivery = worktreeManager.retain(execution.tree.path(), reason);
+            if (AgentResult.STATUS_COMPLETED.equals(status)
+                    && !(runQuiet && worktreeManager.inspectPendingDelivery(execution.tree.path())
+                    == WorktreeManager.PendingDelivery.NONE)) {
+                status = AgentResult.STATUS_FAILED;
+            }
+        }
+        if (execution.tree.warning() != null && !execution.tree.warning().isBlank()) {
+            delivery += "\n" + execution.tree.warning();
+        }
+        // Recovery information precedes the model answer and survives result truncation/notifications.
+        return worktreeResult(status, delivery + "\n\n" + answer, request, started);
+    }
+
+    private void invalidateWorktreeParentCache(String sessionId) {
+        // Clear held references before detaching the map entry. A late ordinary/fork merge into
+        // that old object must not repopulate the cache subsequently used by new tool calls.
+        // This is cache revocation, not an atomic barrier against arbitrary concurrent writers.
+        sessionManager.getFileStateCache(sessionId).invalidateAll();
+        sessionManager.removeFileStateCache(sessionId);
+    }
+
+    private AgentResult worktreeResult(String status, String answer, AgentRequest request, Instant started) {
+        String bounded = answer.length() > MAX_RESULT_SIZE_CHARS
+                ? answer.substring(0, MAX_RESULT_SIZE_CHARS) + "\n...[truncated]" : answer;
+        if (taskNotificationFormatter != null && coordinatorService.isCoordinatorMode()) {
+            bounded = taskNotificationFormatter.formatNotification(request.agentId(),
+                    new AgentResult(status, bounded, request.prompt(), null),
+                    Duration.between(started, Instant.now()).toMillis());
+        }
+        return new AgentResult(status, bounded, request.prompt(), null);
+    }
+
+    /** Deferred cleanup never starts delivery, including a worker that succeeds after a timeout. */
+    private void scheduleWorktreeResourceCleanup(WorktreeExecution execution) {
+        AGENT_EXECUTOR.execute(() -> {
+            execution.finished.join();
+            WorkerExit exit = execution.finished.getNow(null);
+            if (exit.enteredEngine() && exit.childRunId() == null && exit.startupFailure() == null) {
+                log.warn("Retaining isolated resources: child Run identity unknown for {}", execution.childSessionId);
+                return;
+            }
+            try {
+                while (!execution.runIsQuiescent()) {
+                    if (execution.runIdentityInvalid.get()) return;
+                    Thread.sleep(250);
+                }
+                execution.releaseLease();
+                while (!worktreeProcesses.currentSessionBackground(execution.childSessionId).allTerminated()) {
+                    Thread.sleep(250);
+                }
+                execution.markWorkerInactive();
+                cleanupWorktreeContext(execution);
+            } catch (InterruptedException stopped) {
+                Thread.currentThread().interrupt();
+                // Unknown resource state stays registered; shutdown is not proof of termination.
+            }
+        });
+    }
+
+    private void cleanupWorktreeContext(WorktreeExecution execution) {
+        if (execution.sessionRegistered) {
+            sessionManager.removeFileStateCache(execution.childSessionId);
+            sessionManager.closeSubAgentSession(execution.childSessionId);
+        }
+        if (execution.abortOwned) queryEngine.removeAbortContext(execution.childSessionId);
+        worktreeExecutions.remove(execution.childSessionId, execution);
+    }
+
+    private record WorkerExit(QueryEngine.QueryResult result, Throwable failure,
+                              String childRunId, boolean enteredEngine,
+                              QueryLoopState.RunStartupFailure startupFailure) { }
+
+    private final class WorktreeExecution {
+        final ToolUseContext parent;
+        final String childSessionId;
+        final CompletableFuture<QueryEngine.QueryResult> result = new CompletableFuture<>();
+        final CompletableFuture<WorkerExit> finished = new CompletableFuture<>();
+        final AtomicReference<AbortReason> cancellation = new AtomicReference<>();
+        final AtomicBoolean slotReleased = new AtomicBoolean();
+        final AtomicBoolean leaseReleased = new AtomicBoolean();
+        final AtomicBoolean workerInactive = new AtomicBoolean();
+        final AtomicBoolean runIdentityInvalid = new AtomicBoolean();
+        WorktreeManager.ManagedWorktree tree;
+        AgentConcurrencyController.AgentSlot slot;
+        SessionExecutionGate.BackgroundLease lease;
+        QueryLoopState state;
+        AbortContext abort;
+        boolean sessionRegistered;
+        boolean abortOwned;
+
+        WorktreeExecution(AgentRequest request, ToolUseContext parent) {
+            this.parent = parent;
+            this.childSessionId = "subagent-" + request.agentId();
+        }
+
+        void run(QueryConfig config, QueryMessageHandler handler) {
+            QueryEngine.QueryResult queryResult = null;
+            Throwable failure = null;
+            boolean entered = false;
+            try {
+                if (cancellation.get() == null) {
+                    entered = true;
+                    queryResult = queryEngine.execute(config, state, handler);
+                    result.complete(queryResult);
+                }
+            } catch (Throwable thrown) {
+                failure = thrown;
+                result.completeExceptionally(thrown);
+            } finally {
+                ToolUseContext finalContext = state.getToolUseContext();
+                String current = finalContext == null ? null : finalContext.currentRunId();
+                String childRun = current != null && childSessionId.equals(finalContext.sessionId())
+                        && !current.equals(parent.currentRunId()) ? current : null;
+                QueryLoopState.RunStartupFailure startupFailure = state.getRunStartupFailure();
+                if (startupFailure != null && (finalContext == null
+                        || !childSessionId.equals(finalContext.sessionId())
+                        || !Objects.equals(current, parent.currentRunId()))) {
+                    startupFailure = null;
+                    runIdentityInvalid.set(true);
+                }
+                releaseSlot();
+                finished.complete(new WorkerExit(queryResult, failure, childRun, entered,
+                        startupFailure));
+            }
+        }
+
+        void requestCancellation(AbortReason reason) {
+            cancellation.compareAndSet(null, reason);
+            // Precreated AbortContext covers cancellation before QueryEngine registers the Run.
+            if (abort != null) abort.abort(cancellation.get());
+            AbortContext registered = worktreeRuns == null ? null
+                    : worktreeRuns.cancellationForSession(childSessionId).orElse(null);
+            if (registered == null || registered == abort) {
+                queryEngine.abort(childSessionId, cancellation.get());
+            }
+        }
+
+        boolean runIsQuiescent() {
+            WorkerExit exit = finished.getNow(null);
+            if (exit == null || runIdentityInvalid.get()) return false;
+            if (!exit.enteredEngine()) return true;
+            if (exit.startupFailure() != null) {
+                // A known failure before registration owns no Run to close. A conflicting
+                // session identity or residual background work still forbids reclamation.
+                try {
+                    if (!childSessionId.equals(exit.startupFailure().sessionId())
+                            || exit.childRunId() != null
+                            || worktreeRuns.activeRunForSession(childSessionId).isPresent()) {
+                        runIdentityInvalid.set(true);
+                        return false;
+                    }
+                    var background = worktreeProcesses.currentSessionBackground(childSessionId);
+                    if (background != null) return background.allTerminated();
+                } catch (RuntimeException unavailable) {
+                    log.warn("Retaining isolated resources: startup occupancy unavailable for {}",
+                            childSessionId, unavailable);
+                }
+                // Failed inspection is not an empty scope, nor a reason to replace the
+                // original startup failure returned to the caller.
+                runIdentityInvalid.set(true);
+                return false;
+            }
+            if (exit.childRunId() == null) return false;
+            // Never close a different Run, including one that occupies a reused Session identity.
+            String active = worktreeRuns.activeRunForSession(childSessionId).orElse(null);
+            if ((active != null && !active.equals(exit.childRunId()))
+                    || (active == null && worktreeRuns.isRegistered(exit.childRunId()))) {
+                runIdentityInvalid.set(true);
+                return false;
+            }
+            // The actual Run ID is published by QueryEngine only after successful registration.
+            // Absence after actual exit means unregister has finished; absence before exit proves nothing.
+            worktreeRuns.beginCompletion(exit.childRunId());
+            return worktreeRuns.awaitQuiescence(exit.childRunId(), Duration.ZERO)
+                    && worktreeProcesses.currentRunTermination(exit.childRunId()).allTerminated();
+        }
+
+        void markWorkerInactive() {
+            if (tree != null && workerInactive.compareAndSet(false, true)) {
+                worktreeManager.setWorkerActive(tree.path(), false);
+            }
+        }
+
+        void releaseSlot() {
+            if (slot != null && slotReleased.compareAndSet(false, true)) slot.close();
+        }
+
+        void releaseLease() {
+            if (lease != null && leaseReleased.compareAndSet(false, true)) lease.close();
         }
     }
 
@@ -487,16 +825,28 @@ public class SubAgentExecutor {
             Thread.ofVirtual().name("zhiku-agent-" + request.agentId()).start(() -> {
                 try {
                     AgentResult result = executeSync(request, parentContext);
-                    Files.writeString(Path.of(outputFile), result.result() != null ? result.result() : "");
-                    backgroundTracker.markCompleted(request.agentId(), result);
+                    try {
+                        Files.writeString(Path.of(outputFile), result.result() != null ? result.result() : "");
+                        backgroundTracker.markCompleted(request.agentId(), result);
+                    } catch (java.io.IOException outputFailure) {
+                        if (!usesManagedWorktree(request)) throw outputFailure;
+                        String retainedResult = result.result() == null ? "" : result.result();
+                        if (retainedResult.length() > 2000) retainedResult = retainedResult.substring(0, 2000);
+                        backgroundTracker.markFailed(request.agentId(),
+                                "Result file delivery failed; execution status was " + result.status()
+                                        + ". Do not rerun or merge without checking the delivery facts below.\n"
+                                        + retainedResult + "\nOutput error: " + outputFailure.getMessage());
+                    }
                 } catch (Throwable t) {
                     log.error("Background agent {} terminated with {}: {}",
                             request.agentId(), t.getClass().getSimpleName(), t.getMessage(), t);
                     backgroundTracker.markFailed(request.agentId(),
                             t.getClass().getSimpleName() + ": " + t.getMessage());
                 } finally {
-                    try { cleanupAgentResources(request.agentId(), request); }
-                    finally { if (lease != null) lease.close(); }
+                    try {
+                        // Isolated execution owns its resources until actual worker/Run quiescence.
+                        if (!usesManagedWorktree(request)) cleanupAgentResources(request.agentId(), request);
+                    } finally { if (lease != null) lease.close(); }
                 }
             });
 
@@ -964,17 +1314,14 @@ public class SubAgentExecutor {
             ## 约束条件
             - 你不能编辑、创建或删除任何文件
             - 你不能执行修改状态的命令
-            - 你只能使用：Read、Glob、Grep、search_codebase、\
-            search_symbol 以及其他只读工具
+            - 你只能使用：Read、Glob、Grep 以及其他只读工具
             - 如果被要求进行修改，拒绝并说明你是只读模式
             
             ## 搜索策略
             收到搜索任务时，按以下优先级顺序使用：
-            1. **search_codebase** —— 用于语义/概念搜索（"认证是如何工作的？"）
-            2. **search_symbol** —— 用于查找特定的类/方法/变量定义
-            3. **Grep** —— 用于精确文本模式匹配（错误信息、配置键）
-            4. **Glob** —— 用于按文件名/扩展名模式查找文件
-            5. **Read** —— 用于读取已经确定的特定文件
+            1. **Glob** —— 按文件名/路径模式查找文件
+            2. **Grep** —— 搜索文件内容（精确文本、错误信息、配置键）
+            3. **Read** —— 读取已定位的特定文件
             
             ## 效率规则
             - 先广后窄。当搜索即可时，不要读取整个文件。

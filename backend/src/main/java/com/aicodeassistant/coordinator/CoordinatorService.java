@@ -25,8 +25,8 @@ import java.util.regex.Pattern;
 /**
  * Coordinator 服务 — 多代理协作模式核心。
  * <p>
- * Coordinator 模式让主 LLM 扮演协调者角色，不直接执行工具，
- * 而是通过 AgentTool 生成工人代理并行处理复杂任务的不同部分。
+ * Coordinator 模式让主 LLM 扮演协调者角色，
+ * 通过 AgentTool 委派复杂任务；实际工具可用性由请求定义和权限控制。
  * <p>
  * 激活条件：
  * 1. FeatureFlag COORDINATOR_MODE = true
@@ -52,14 +52,19 @@ public class CoordinatorService {
      */
     private final ConcurrentHashMap<String, String> runtimeEnv = new ConcurrentHashMap<>();
 
-    /** 工人不可见的内部工具 */
+    /** 环境参考中省略的工具；不参与 worker 实际工具过滤 */
     private static final Set<String> INTERNAL_WORKER_TOOLS = Set.of(
             "TeamCreate", "TeamDelete", "SendMessage", "SyntheticOutput"
     );
 
-    /** Coordinator 模式下协调者可用的工具 */
+    /**
+     * 协调相关工具的声明，不是实际请求工具集的过滤器。
+     * <p>
+     * SendMessage/TaskStop 当前对 worker 不可用——SendMessage 没有可达的送达目标，
+     * TaskStop 只管理 TaskCoordinator 登记的任务；待能力接线后恢复声明。
+     */
     private static final Set<String> COORDINATOR_ALLOWED_TOOLS = Set.of(
-            "Agent", "TaskStop", "SendMessage", "SyntheticOutput"
+            "Agent", "SyntheticOutput"
     );
 
     @Autowired
@@ -148,7 +153,7 @@ public class CoordinatorService {
     // ============ 工人工具上下文 ============
 
     /**
-     * 构建工人可用工具列表上下文。
+     * 构建环境部分工具参考，不保证具体工人可用。
      */
     public Map<String, String> getWorkerToolsContext(String sessionId) {
         if (!isCoordinatorMode()) return Map.of();
@@ -159,15 +164,14 @@ public class CoordinatorService {
                 .sorted()
                 .toList();
 
-        String content = "Workers spawned via the Agent tool have access to these tools: "
-                + String.join(", ", workerTools);
+        String content = "Partial environment tool reference: " + String.join(", ", workerTools)
+                + ". Availability for a specific worker depends on its role, actual tool definitions, and permissions.";
 
         return Map.of("workerToolsContext", content);
     }
 
     /**
-     * 获取 Coordinator 模式下协调者可用的工具集。
-     * 协调者只能使用代理管理工具，不能直接执行文件操作。
+     * 获取协调相关工具声明；不据此过滤实际请求工具集或授予权限。
      */
     public Set<String> getCoordinatorAllowedTools() {
         return COORDINATOR_ALLOWED_TOOLS;

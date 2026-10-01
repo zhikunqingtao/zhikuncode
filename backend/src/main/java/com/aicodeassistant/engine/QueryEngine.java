@@ -293,6 +293,7 @@ public class QueryEngine {
      */
     public QueryResult execute(QueryConfig config, QueryLoopState state,
                                 QueryMessageHandler handler) {
+        state.resetRunStartupFailure();
         log.info("QueryEngine 开始执行: model={}, maxTokens={}, maxTurns={}",
                 config.model(), config.maxTokens(), config.maxTurns());
 
@@ -313,6 +314,7 @@ public class QueryEngine {
 
         // ★ RunTracker: 启动运行追踪并将 runId 传播到 ToolUseContext
         String currentRunId = null;
+        boolean runRegistrationAttempted = false;
         boolean runFailureRecorded = false;
         String parentRunId = state.getToolUseContext() != null
                 ? state.getToolUseContext().currentRunId() : null;
@@ -323,6 +325,7 @@ public class QueryEngine {
                 RunEnvelope run = runTracker.startRun(sessionId, parentRunId, agentType, config.model());
                 currentRunId = run.id();
                 if (runExecutions != null) {
+                    runRegistrationAttempted = true;
                     runExecutions.register(currentRunId, sessionId, getOrCreateAbortContext(sessionId));
                 }
                 if (state.getToolUseContext() != null) {
@@ -337,6 +340,11 @@ public class QueryEngine {
                 }
             } catch (Exception e) {
                 log.error("Failed to establish Run execution authority", e);
+                // No Run admission or query-loop work was attempted. Partial registration
+                // and its best-effort cleanup deliberately do not produce this evidence.
+                if (currentRunId == null && !runRegistrationAttempted) {
+                    state.recordFailureBeforeRunRegistration(sessionId);
+                }
                 if (currentRunId != null && runTracker != null) {
                     try { runTracker.failRun(currentRunId, "RUN_EXECUTION_REGISTRATION_FAILED"); }
                     catch (Exception recordFailure) {

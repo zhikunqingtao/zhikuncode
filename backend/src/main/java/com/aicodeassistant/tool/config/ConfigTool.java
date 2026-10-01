@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * ConfigTool — 读取和修改运行时配置。
+ * ConfigTool — 读取和修改工具自身的运行时存储，不应用到其他组件。
  * <p>
  * 支持三种操作:
  * <ul>
@@ -73,35 +73,37 @@ public class ConfigTool implements Tool {
 
     @Override
     public String getDescription() {
-        return "Read and modify runtime configuration settings. " +
-                "Supports get, set, and list actions.";
+        return "Read and modify this tool's runtime store with get, set, and list actions; " +
+                "values are not applied to application settings.";
     }
 
     @Override
     public String prompt() {
         return """
-                Get or set configuration settings.
+                Read or update values in this tool's runtime store, not the application's active settings.
                 
-                View or change settings. Use when the user requests configuration changes, \
-                asks about current settings, or when adjusting a setting would benefit them.
-                
+                Note: changes apply only to this tool's runtime store; they are not persisted \
+                and other components do not consume them. In particular, the `model` key \
+                does not switch the session model — use the model selector.
+
                 ## Usage
-                - **Get current value:** Omit the "value" parameter
-                - **Set new value:** Include the "value" parameter
+                - **Get stored value:** use action "get" with the key
+                - **Set stored value:** use action "set" with the key and the new value
+                - **List stored values:** use action "list"
                 
-                ## Configurable settings
-                - theme: "system", "light", "dark" - UI theme
-                - model: "light", "standard", "premium" - Override the default model
-                - maxTokens: integer - Maximum response tokens
-                - autoCompact: true/false - Enable auto-compaction
-                - verboseLogging: true/false - Enable verbose logging
-                - maxTurns: integer - Maximum conversation turns
-                - language: "auto", "en", "zh", etc. - UI language
+                ## Stored keys (none apply changes to other components)
+                - theme: "system", "light", "dark"
+                - model: built-in aliases such as "light", "standard", "premium", or an available model ID
+                - maxTokens: integer
+                - autoCompact: true/false
+                - verboseLogging: true/false
+                - maxTurns: integer
+                - language: "auto", "en", "zh", etc.
                 
                 ## Examples
-                - Get theme: { "setting": "theme" }
-                - Set dark theme: { "setting": "theme", "value": "dark" }
-                - Change model: { "setting": "model", "value": "premium" }
+                - Read stored theme: { "action": "get", "key": "theme" }
+                - Store "dark" without changing the UI theme: { "action": "set", "key": "theme", "value": "dark" }
+                - Store "en" without changing the UI language: { "action": "set", "key": "language", "value": "en" }
                 """;
     }
 
@@ -157,7 +159,8 @@ public class ConfigTool implements Tool {
 
         return switch (action) {
             case "list" -> {
-                StringBuilder sb = new StringBuilder("Available settings:\n");
+                StringBuilder sb = new StringBuilder(
+                        "Stored values (runtime store only; not applied to other components):\n");
                 store.forEach((k, v) ->
                         sb.append(String.format("  %s = %s%n", k, v)));
                 yield ToolResult.success(sb.toString());
@@ -169,7 +172,8 @@ public class ConfigTool implements Tool {
                 }
                 Object value = store.getOrDefault(key, DEFAULTS.get(key));
                 yield ToolResult.success(
-                        String.format("Setting '%s' = %s", key, value));
+                        String.format("Setting '%s' = %s (runtime store only; not applied to other components)",
+                                key, value));
             }
             case "set" -> {
                 String key = input.getString("key");
@@ -184,7 +188,8 @@ public class ConfigTool implements Tool {
                     Object defaultVal = DEFAULTS.get(key);
                     store.put(key, defaultVal);
                     yield ToolResult.success(
-                            "Setting '" + key + "' reset to default: " + defaultVal);
+                            "Setting '" + key + "' reset to default: " + defaultVal
+                                    + " (runtime store only; not applied to other components)");
                 }
 
                 // 选项验证（模型选项动态获取）
@@ -203,7 +208,8 @@ public class ConfigTool implements Tool {
 
                 log.info("Config updated: {} = {} → {}", key, previousValue, typedValue);
                 yield ToolResult.success(String.format(
-                        "Setting '%s' updated: %s → %s", key, previousValue, typedValue));
+                        "Setting '%s' updated: %s → %s (runtime store only; not applied to other components)",
+                        key, previousValue, typedValue));
             }
             default -> ToolResult.validationError("CONFIG_ACTION_INVALID",
                     "Unknown action: " + action + ". Expected: get, set, list.");

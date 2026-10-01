@@ -86,6 +86,36 @@ describe('dispatch 消息分发', () => {
         }
     });
 
+    test('command_result (TEXT) → addMessage(command_result) 且不终结运行中状态', () => {
+        // 对照 error 通道（dispatchErrorEvent.test.ts）：error 会 finalizeStream + setStatus('idle')，
+        // 而 TEXT 回执只追加一条系统消息，流式与运行中工具调用保持不变。
+        useSessionStore.setState({ status: 'streaming' });
+        useMessageStore.getState().appendStreamDelta('working');
+        const streamingId = useMessageStore.getState().streamingMessageId;
+        useMessageStore.getState().startToolCall('tool-running', 'Bash', { command: 'sleep 1' });
+
+        dispatch({
+            type: 'command_result', ts: 1,
+            command: 'model', resultType: 'text',
+            output: 'This command does not switch models.',
+        } as never);
+
+        const state = useMessageStore.getState();
+        const receipt = state.messages.find(
+            m => m.type === 'system' && (m as { subtype?: string }).subtype === 'command_result',
+        );
+        expect(receipt).toBeDefined();
+        if (receipt?.type === 'system') {
+            expect(receipt.content).toContain('/model:');
+            expect(receipt.content).toContain('does not switch models');
+        }
+        // 运行中状态不被终结（不调 finalizeStream、不清理 running 工具、不改 session status）
+        expect(useSessionStore.getState().status).toBe('streaming');
+        expect(state.streamingMessageId).toBe(streamingId);
+        expect(state.streamingContent).toBe('working');
+        expect(state.activeToolCalls.get('tool-running')?.status).toBe('running');
+    });
+
     test('compact_event warning → addNotification', () => {
         const spy = vi.spyOn(useNotificationStore.getState(), 'addNotification');
         dispatch({

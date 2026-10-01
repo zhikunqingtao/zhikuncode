@@ -248,6 +248,21 @@ class InteractionToolGoldenTest {
             assertEquals("a1", tool.getTodos("s1").get(0).get("id"));
             assertEquals("b1", tool.getTodos("s2").get(0).get("id"));
         }
+
+        @Test
+        @DisplayName("2.7 merge 缺 id 条目 — 均保留且不互相覆盖")
+        void mergeWithoutIdKeepsAllEntries() {
+            List<Map<String, Object>> withoutIds = List.of(
+                    Map.of("content", "First", "status", "PENDING"),
+                    Map.of("content", "Second", "status", "IN_PROGRESS"));
+            tool.call(ToolInput.from(Map.of("todos", withoutIds, "merge", true)),
+                    ToolUseContext.of("/tmp", "s1"));
+
+            List<Map<String, Object>> stored = tool.getTodos("s1");
+            assertEquals(2, stored.size());
+            assertTrue(stored.stream().anyMatch(t -> "First".equals(t.get("content"))));
+            assertTrue(stored.stream().anyMatch(t -> "Second".equals(t.get("content"))));
+        }
     }
 
     // ===== 3. SleepTool 测试 =====

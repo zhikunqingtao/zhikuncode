@@ -1,10 +1,13 @@
 package com.aicodeassistant.coordinator;
 
 import com.aicodeassistant.config.FeatureFlagService;
+import com.aicodeassistant.tool.Tool;
 import com.aicodeassistant.tool.ToolRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -107,5 +110,25 @@ class CoordinatorServiceTest {
         when(featureFlags.isEnabled("COORDINATOR_MODE")).thenReturn(false);
         assertFalse(coordinatorService.shouldSuggestCoordinator(
                 "refactor and migrate multiple files in parallel"));
+    }
+
+    @Test
+    @DisplayName("工人工具上下文只提供环境参考，不承诺具体角色的能力")
+    void workerToolContextIsPartialEnvironmentReference() {
+        when(featureFlags.isEnabled("COORDINATOR_MODE")).thenReturn(true);
+        coordinatorService.matchSessionMode("coordinator");
+        Tool read = mock(Tool.class);
+        Tool bash = mock(Tool.class);
+        when(read.getName()).thenReturn("Read");
+        when(bash.getName()).thenReturn("Bash");
+        when(toolRegistry.getEnabledTools("session-1")).thenReturn(List.of(read, bash));
+
+        String context = coordinatorService.getWorkerToolsContext("session-1")
+                .get("workerToolsContext");
+
+        assertTrue(context.contains("Partial environment tool reference: Bash, Read"));
+        assertTrue(context.contains("Availability for a specific worker depends on its role, actual tool definitions, and permissions"));
+        assertFalse(context.contains("Workers spawned via the Agent tool have access to these tools"));
+        verify(toolRegistry).getEnabledTools("session-1");
     }
 }

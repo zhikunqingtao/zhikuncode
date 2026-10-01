@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedConstruction;
 
 import java.io.IOException;
@@ -45,6 +47,7 @@ class GitServiceTest {
         assertThat(expected.length()).isGreaterThan(3_000_000);
         assertThat(service.execGitPublic(directory, "diff"))
                 .isNotNull().isEqualTo(expected).contains("+START 中文", "+20000 中文", "+END 中文");
+        assertThat(service.execGitRaw(directory, "diff")).isEqualTo(gitRaw("diff"));
 
         git("add", "large.txt");
         assertThat(service.execGitPublic(directory, "diff", "--cached")).isEqualTo(git("diff", "--cached"));
@@ -56,6 +59,7 @@ class GitServiceTest {
         assertThat(service.execGitPublic(directory, "status")).isNull();
         assertThat(service.execGitPublic(directory, "not-a-valid-git-command")).isNull();
         assertThat(service.execGitPublic(directory.resolve("missing"), "status")).isNull();
+        assertThat(service.execGitRaw(directory, "not-a-valid-git-command")).isNull();
     }
 
     @Test
@@ -69,7 +73,23 @@ class GitServiceTest {
     }
 
     @Test
-    void discardsPartialOutputOnReadFailure() throws Exception {
+    @EnabledOnOs({OS.MAC, OS.LINUX})
+    void rawOutputPreservesWhitespaceCrLfNulAndUnicodeWithoutChangingTextApi() throws Exception {
+        initializeRepository();
+        String script = "printf ' \\t中文\\r\\nsecond\\n\\000tail \\t\\000'; printf 'warning on stderr' >&2";
+        assertThat(service.execGitRaw(directory, "-c", "alias.zk-service-test=!" + script, "zk-service-test"))
+                .isEqualTo(" \t中文\r\nsecond\n\0tail \t\0");
+        assertThat(service.execGitRaw(directory, "-c", "alias.zk-service-test=!printf ''", "zk-service-test"))
+                .isEmpty();
+        assertThat(service.execGitRaw(directory, "-c", "alias.zk-service-test=!printf partial; exit 7", "zk-service-test"))
+                .isNull();
+        assertThat(alias("printf '\\r\\n 中文\\r\\nsecond\\n\\n'"))
+                .isEqualTo("中文\nsecond");
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void discardsPartialOutputOnReadFailure(boolean raw) throws Exception {
         Process process = mock(Process.class);
         ProcessHandle root = mock(ProcessHandle.class);
         when(process.toHandle()).thenReturn(root);
@@ -89,7 +109,8 @@ class GitServiceTest {
         });
         try (MockedConstruction<ProcessBuilder> ignored = mockConstruction(ProcessBuilder.class,
                 (builder, context) -> when(builder.start()).thenReturn(process))) {
-            assertThat(service.execGitPublic(directory, "status")).isNull();
+            assertThat(raw ? service.execGitRaw(directory, "status") : service.execGitPublic(directory, "status"))
+                    .isNull();
         }
     }
 
@@ -286,6 +307,10 @@ class GitServiceTest {
 
     /** Independent Git baseline redirects output to a file, never to an unread pipe. */
     private String git(String... args) throws Exception {
+        return gitRaw(args).trim();
+    }
+
+    private String gitRaw(String... args) throws Exception {
         var command = new ArrayList<String>();
         command.add("git");
         command.addAll(Arrays.asList(args));
@@ -294,7 +319,7 @@ class GitServiceTest {
                 .redirectErrorStream(true).redirectOutput(output.toFile()).start();
         try {
             assertThat(process.waitFor(10, TimeUnit.SECONDS)).isTrue();
-            String text = Files.readString(output, StandardCharsets.UTF_8).trim();
+            String text = Files.readString(output, StandardCharsets.UTF_8);
             assertThat(process.exitValue()).as(text).isZero();
             return text;
         } finally {

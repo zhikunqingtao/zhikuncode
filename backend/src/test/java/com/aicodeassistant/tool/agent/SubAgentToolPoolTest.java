@@ -110,6 +110,12 @@ class SubAgentToolPoolTest {
         if (!fork) {
             assertThat(config.systemPrompt()).contains("工具以当前请求提供的定义为准");
         }
+        if ("explore".equals(type)) {
+            // Explore 提示只允许引用真实工具名
+            assertThat(config.systemPrompt())
+                    .doesNotContain("search_codebase", "search_symbol")
+                    .contains("**Glob**", "**Grep**", "**Read**");
+        }
         verifyNoInteractions(providers);
 
         // The typed definitions must describe the same canonical capability sets as the execution path.

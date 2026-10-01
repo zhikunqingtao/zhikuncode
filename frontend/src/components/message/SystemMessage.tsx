@@ -61,7 +61,7 @@ const SystemMessage: React.FC<SystemMessageProps> = ({ message }) => {
                             changedFiles: metadata.changedFiles as string[],
                             fileCount: metadata.fileCount as number,
                         }}
-                        onCommit={(msg) => sendSlashCommand('commit', `"${msg}"`)}
+                        onCommit={(msg) => sendSlashCommand('commit', msg)}
                     />
                 </div>
             );

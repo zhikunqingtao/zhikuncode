@@ -13,11 +13,18 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ContentBlock, Message, ToolCallState, ToolResult } from '@/types';
 import { buildTurns, type Turn } from '@/store/selectors/turnProjection';
 import { useTurnViewStore, type TurnDensity } from '@/store/turnViewStore';
+import { sendSlashCommand } from '@/api/stompClient';
 import TurnCard from '../TurnCard';
 
 vi.mock('@/hooks/useTtsAvailability', () => ({
     useTtsAvailability: () => false,
 }));
+
+vi.mock('@/api/stompClient', () => ({
+    sendSlashCommand: vi.fn(() => true),
+}));
+
+const sendSlashCommandMock = vi.mocked(sendSlashCommand);
 
 // ==================== 消息工厂 ====================
 
@@ -472,6 +479,43 @@ describe('审查回归：命令结果与任务终态', () => {
         expect(screen.getByText('Git 提交')).toBeVisible();
         expect(screen.getByPlaceholderText('输入 commit message（或点击 AI 生成）...')).toBeVisible();
         expect(screen.getByText('/status: REVIEW_COMMAND_RESULT')).toBeVisible();
+    });
+
+    it.each(['compact', 'balanced', 'detailed'] as const)('%s 档独立命令错误可见但不把运行任务标为失败', density => {
+        const turn = boundaryTurn();
+        turn.messages.push({
+            type: 'system', uuid: 'command-failure', timestamp: 1700,
+            subtype: 'command_result', errorCode: 'COMMAND_ERROR', retryable: false,
+            content: '命令执行失败：读取 Git 差异失败（正文），请稍后重试。',
+        });
+        renderCard(turn, { density, isRunActive: true });
+        expect(screen.getByText('命令执行失败：读取 Git 差异失败（正文），请稍后重试。')).toBeVisible();
+        expect(screen.queryByText('失败', { exact: true })).not.toBeInTheDocument();
+    });
+
+    it.each([
+        ['普通消息', '整理面板样式'],
+        ['字面外引号', '"quoted title"'],
+        ['内部引号', 'Fix "quoted" input'],
+        ['多行消息', '"quoted first line\n\nquoted final line"'],
+        ['双引号对', '""'],
+    ])('提交预览原样发送%s，不添加或删除引号', (_label, message) => {
+        sendSlashCommandMock.mockClear();
+        const turn = boundaryTurn();
+        turn.messages.push({
+            type: 'system', uuid: 'commit-preview', timestamp: 1600, content: '',
+            subtype: 'jsx_result', metadata: {
+                action: 'gitCommitPreview', status: 'M login.ts', stagedDiff: '',
+                detailedDiff: '', changedFiles: ['login.ts'], fileCount: 1,
+            },
+        } as Message);
+        renderCard(turn);
+        fireEvent.change(screen.getByPlaceholderText('输入 commit message（或点击 AI 生成）...'), {
+            target: { value: message },
+        });
+        fireEvent.click(screen.getByRole('button', { name: /提交/ }));
+        expect(sendSlashCommandMock).toHaveBeenCalledTimes(1);
+        expect(sendSlashCommandMock).toHaveBeenCalledWith('commit', message);
     });
 
     it.each([

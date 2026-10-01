@@ -5,14 +5,17 @@ import { usePermissionStore } from '@/store/permissionStore';
  *   errorCode?: "PROVIDER_PAYMENT_REQUIRED"|"PROVIDER_FORBIDDEN"|"PROVIDER_RATE_LIMITED"|"PROVIDER_ERROR",
  *   httpStatus?: number }
  * errorCode 存在 → 醒目 provider_error 横幅 + 常驻通知；缺失 → 保持既有行为。
- * 任何 error 事件都必须终止“生成中”状态。
+ * 运行错误终止“生成中”状态；命令及设置失败不得终止无关的运行。
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { dispatch, resetBoundSession } from '@/api/dispatch';
+import { streamingStore } from '@/hooks/useStreamingText';
 import { useMessageStore } from '@/store/messageStore';
 import { useNotificationStore } from '@/store/notificationStore';
 import { useSessionStore } from '@/store/sessionStore';
+import { buildTurns } from '@/store/selectors/turnProjection';
+import { resolveTurnOutcome } from '@/components/message/turn/turnUtils';
 import type { ServerMessage } from '@/types';
 
 vi.mock('@/api/stompClient', () => ({
@@ -66,6 +69,85 @@ describe('error 事件契约解析', () => {
         expect(usePermissionStore.getState().pendingModeChange).toBeNull();
     });
 
+    it.each(['COMMAND_ERROR', 'COMMAND_NOT_FOUND'].flatMap(code =>
+        (['streaming', 'waiting_permission', 'idle'] as const).map(status => ({ code, status })),
+    ))(
+        '$code 在 $status 状态下独立显示，不改变当前任务', ({ code, status }) => {
+            const message = code === 'COMMAND_NOT_FOUND'
+                ? 'Unknown command: /missing'
+                : '读取 Git 差异失败（正文），请稍后重试。';
+            resetBoundSession();
+            usePermissionStore.setState({ pendingPermissions: [] });
+            useSessionStore.getState().setStatus(status);
+            useMessageStore.getState().addMessage({
+                type: 'user', uuid: 'unrelated-query', timestamp: 1,
+                content: [{ type: 'text', text: '继续当前任务' }],
+            });
+            if (status !== 'idle') {
+                useMessageStore.getState().appendStreamDelta('任务仍在执行');
+                useMessageStore.getState().startToolCall('active-tool', 'Bash', { command: 'sleep 30' });
+            }
+            if (status === 'waiting_permission') {
+                dispatch({
+                    type: 'permission_request', toolUseId: 'active-tool', toolName: 'Bash',
+                    input: { command: 'sleep 30' }, riskLevel: 'medium', reason: '等待批准已有工具',
+                } as ServerMessage);
+                expect(usePermissionStore.getState().pendingPermissions).toHaveLength(1);
+            }
+            const before = useMessageStore.getState();
+            const permissionsBefore = usePermissionStore.getState().pendingPermissions;
+            const outcomesBefore = buildTurns(before.messages).map(resolveTurnOutcome);
+
+            dispatch({
+                type: 'error', code, message, retryable: false,
+            } as ServerMessage);
+
+            const after = useMessageStore.getState();
+            expect(useSessionStore.getState().status).toBe(status);
+            expect(after.streamingMessageId).toBe(before.streamingMessageId);
+            expect(after.streamingContent).toBe(before.streamingContent);
+            expect(after.activeToolCalls).toEqual(before.activeToolCalls);
+            expect(after.messages.slice(0, -1)).toEqual(before.messages);
+            expect(after.messages.at(-1)).toMatchObject({
+                type: 'system', subtype: 'command_result', errorCode: code,
+                content: `命令执行失败：${message}`, retryable: false,
+            });
+            expect(buildTurns(after.messages).map(resolveTurnOutcome)).toEqual(outcomesBefore);
+            expect(usePermissionStore.getState().pendingPermissions).toEqual(permissionsBefore);
+            // 通知容器未挂载，不能只写 notificationStore 而让错误不可见。
+            expect(useNotificationStore.getState().notifications).toHaveLength(0);
+        },
+    );
+
+    it('COMMAND_NOT_FOUND 后原流仍能追加，原工具仍能正常完成', () => {
+        resetBoundSession();
+        dispatch({ type: 'stream_delta', delta: '前段', messageId: 'continuing-message' } as ServerMessage);
+        dispatch({
+            type: 'tool_use_start', toolUseId: 'continuing-tool', toolName: 'Bash', input: { command: 'echo ok' },
+        } as ServerMessage);
+        const streamId = useMessageStore.getState().streamingMessageId;
+        expect(streamId).not.toBeNull();
+
+        dispatch({
+            type: 'error', code: 'COMMAND_NOT_FOUND', message: 'Unknown command: /missing', retryable: false,
+        } as ServerMessage);
+        dispatch({ type: 'stream_delta', delta: '后段', messageId: 'continuing-message' } as ServerMessage);
+        dispatch({
+            type: 'tool_result', toolUseId: 'continuing-tool', content: 'ok', isError: false,
+        } as ServerMessage);
+
+        expect(useSessionStore.getState().status).toBe('streaming');
+        expect(useMessageStore.getState().streamingMessageId).toBe(streamId);
+        expect(streamingStore.getSnapshot()).toBe('前段后段');
+        expect(useMessageStore.getState().activeToolCalls.get('continuing-tool')).toMatchObject({
+            status: 'completed', result: { content: 'ok', isError: false },
+        });
+        expect(findSystemMessage()).toMatchObject({
+            subtype: 'command_result', errorCode: 'COMMAND_NOT_FOUND',
+            content: '命令执行失败：Unknown command: /missing',
+        });
+    });
+
     it('errorCode 存在时渲染 provider_error 消息 + 常驻通知，并终止生成中状态', () => {
         useMessageStore.getState().appendStreamDelta('部分输出');
         expect(useMessageStore.getState().streamingMessageId).not.toBeNull();
@@ -95,20 +177,30 @@ describe('error 事件契约解析', () => {
         expect(banner?.timeout).toBe(0);
     });
 
-    it('errorCode 缺失时保持既有行为（向后兼容），仍终止生成中状态', () => {
+    it.each(['INTERNAL_ERROR', 'query_error'])('%s 仍终止生成中状态并标记运行工具失败', code => {
+        useMessageStore.getState().appendStreamDelta('部分输出');
+        useMessageStore.getState().startToolCall('failed-run-tool', 'Bash', { command: 'sleep 30' });
         dispatch({
             type: 'error',
-            code: 'INTERNAL_ERROR',
+            code,
             message: '内部错误',
             retryable: true,
         } as ServerMessage);
 
         const system = findSystemMessage();
         expect(system?.subtype).toBe('error');
-        expect(system?.errorCode).toBe('INTERNAL_ERROR');
+        expect(system?.errorCode).toBe(code);
         expect(system?.retryable).toBe(true);
         expect(useNotificationStore.getState().notifications).toHaveLength(0);
         expect(useSessionStore.getState().status).toBe('idle');
+        expect(useMessageStore.getState().streamingMessageId).toBeNull();
+        expect(useMessageStore.getState().activeToolCalls.size).toBe(0);
+        const assistant = useMessageStore.getState().messages.find(m => m.type === 'assistant');
+        const tool = assistant?.type === 'assistant'
+            ? assistant.content.find(b => b.type === 'tool_use' && b.toolUseId === 'failed-run-tool')
+            : undefined;
+        expect(tool?.type === 'tool_use' ? tool.result : undefined)
+            .toEqual({ content: '内部错误', isError: true });
     });
 
     it('error 事件将 error 条目迁移进消息内容并清空 map，不再跨 run 残留', () => {

@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -253,6 +254,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         Map<Integer, ToolCallAccumulator> toolCallAccumulators = new HashMap<>();
         java.util.concurrent.atomic.AtomicBoolean sawFinishReason =
                 new java.util.concurrent.atomic.AtomicBoolean(false);
+        StreamDiagnostics diagnostics = new StreamDiagnostics();
         OpenRouterReasoning routerReasoning = isOpenRouter() ? new OpenRouterReasoning() : null;
 
         try (AutoCloseable ignored = LlmCallRegistration.register(activeCalls, callId, call,
@@ -280,12 +282,27 @@ public class OpenAiCompatibleProvider implements LlmProvider {
 
             BufferedSource source = body.source();
             while (!source.exhausted()) {
-                String line = source.readUtf8LineStrict();
+                String line;
+                try {
+                    line = source.readUtf8LineStrict();
+                } catch (EOFException truncated) {
+                    // readUtf8LineStrict throws EOFException for an unterminated final line.
+                    // Diagnose a missing-finish stream only if no finish was seen and the caller did not
+                    // cancel. A truncated tail after a valid finish still follows the same error path.
+                    if (!call.isCanceled() && !sawFinishReason.get()) {
+                        logIncompleteStream(callId, response, "eof", diagnostics);
+                    }
+                    throw truncated;
+                }
+                diagnostics.observe(line);
 
                 if (line.isEmpty()) continue;
 
                 if ("data: [DONE]".equals(line)) {
                     if (!sawFinishReason.get()) {
+                        if (!call.isCanceled()) {
+                            logIncompleteStream(callId, response, "done", diagnostics);
+                        }
                         callback.onError(new LlmApiException(
                                 "OPENAI_COMPATIBLE_INCOMPLETE_STREAM: missing finish_reason", false));
                         return;
@@ -298,7 +315,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                 if (line.startsWith("data: ")) {
                     String json = line.substring(6);
                     if (routerReasoning != null) routerReasoning.accept(objectMapper.readTree(json), callback);
-                    processChunk(json, toolCallAccumulators, callback, sawFinishReason);
+                    processChunk(json, toolCallAccumulators, callback, sawFinishReason, diagnostics);
                 }
             }
             if (routerReasoning != null) {
@@ -306,6 +323,9 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                 return;
             }
             if (!sawFinishReason.get()) {
+                if (!call.isCanceled()) {
+                    logIncompleteStream(callId, response, "eof", diagnostics);
+                }
                 callback.onError(new LlmApiException(
                         "OPENAI_COMPATIBLE_INCOMPLETE_STREAM: missing finish_reason", false));
                 return;
@@ -323,6 +343,88 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             }
         } catch (Exception e) {
             callback.onError(e instanceof LlmApiException ? e : new LlmApiException(e.getMessage(), e, false));
+        }
+    }
+
+    private void logIncompleteStream(String callId, Response response, String end,
+                                     StreamDiagnostics diagnostics) {
+        try {
+            String upstreamId = response.header("x-request-id");
+            if (upstreamId == null) upstreamId = response.header("x-trace-id");
+            if (upstreamId != null) {
+                upstreamId = upstreamId.replaceAll("[^A-Za-z0-9._-]", "_");
+                upstreamId = upstreamId.substring(0, Math.min(upstreamId.length(), 128));
+            }
+            log.warn("OpenAI stream missing finish_reason: callId={}, end={}, upstreamRequestId={}, "
+                            + "ignoredDataFrames={}, firstIssue={}, lastFrame={}, lastIgnoredFrame={}",
+                    callId, end, upstreamId, diagnostics.ignoredDataFrames,
+                    diagnostics.firstIssueForLog(),
+                    diagnostics.describe(objectMapper, diagnostics.lastFrame,
+                            diagnostics.lastFrameTruncated),
+                    diagnostics.describe(objectMapper, diagnostics.lastIgnoredFrame,
+                            diagnostics.lastIgnoredFrameTruncated));
+        } catch (RuntimeException diagnosticFailure) {
+            // Diagnostics must never replace the original incomplete-stream error.
+        }
+    }
+
+    /** Retains only two bounded frames; logs their structure, never their content. */
+    private static final class StreamDiagnostics {
+        private static final int MAX_FRAME_CHARS = 16_384;
+        private String lastFrame;
+        private boolean lastFrameTruncated;
+        private String lastIgnoredFrame;
+        private boolean lastIgnoredFrameTruncated;
+        private int ignoredDataFrames;
+        private String firstIssue;
+
+        void recordIssue(String issue) {
+            if (firstIssue == null) firstIssue = issue;
+        }
+
+        /** Normalized for logs: an absent first issue is reported as "none", not a literal null. */
+        String firstIssueForLog() {
+            return firstIssue == null ? "none" : firstIssue;
+        }
+
+        void observe(String line) {
+            try {
+                if (!line.startsWith("data:") || "data: [DONE]".equals(line)
+                        || "data:[DONE]".equals(line)) return;
+                boolean truncated = line.length() > MAX_FRAME_CHARS;
+                String bounded = truncated ? line.substring(0, MAX_FRAME_CHARS) : line;
+                lastFrame = bounded;
+                lastFrameTruncated = truncated;
+                if (!line.startsWith("data: ")) {
+                    ignoredDataFrames++;
+                    lastIgnoredFrame = bounded;
+                    lastIgnoredFrameTruncated = truncated;
+                }
+            } catch (RuntimeException diagnosticFailure) {
+                // Observing a frame must not change stream processing.
+            }
+        }
+
+        String describe(ObjectMapper mapper, String line, boolean truncated) {
+            if (line == null) return "none";
+            boolean recognized = line.startsWith("data: ");
+            String shape = recognized ? "standard" : "no_space";
+            if (truncated) return shape + ":truncated";
+            try {
+                JsonNode chunk = mapper.readTree(line.substring(recognized ? 6 : 5));
+                JsonNode choices = chunk.path("choices");
+                String reason = choices.isArray() && !choices.isEmpty()
+                        ? choices.get(0).path("finish_reason").asText("") : "";
+                String safeReason = switch (reason) {
+                    case "stop", "tool_calls", "length", "content_filter", "function_call" -> reason;
+                    case "" -> "none";
+                    default -> "other";
+                };
+                return shape + ":choices=" + (choices.isArray() ? choices.size() : -1)
+                        + ",finish=" + safeReason + ",error=" + chunk.has("error");
+            } catch (Exception parseFailure) {
+                return shape + ":unparseable";
+            }
         }
     }
 
@@ -1149,15 +1251,23 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         };
     }
 
+    private void processChunk(String json, Map<Integer, ToolCallAccumulator> accumulators,
+                              StreamChatCallback callback,
+                              java.util.concurrent.atomic.AtomicBoolean sawFinishReason) {
+        processChunk(json, accumulators, callback, sawFinishReason, null);
+    }
+
     private void processChunk(String json,
                               Map<Integer, ToolCallAccumulator> accumulators,
                               StreamChatCallback callback,
-                              java.util.concurrent.atomic.AtomicBoolean sawFinishReason) {
+                              java.util.concurrent.atomic.AtomicBoolean sawFinishReason,
+                              StreamDiagnostics diagnostics) {
         try {
             JsonNode chunk = objectMapper.readTree(json);
             JsonNode choices = chunk.get("choices");
 
             if (choices == null || choices.isEmpty()) {
+                if (diagnostics != null && chunk.has("error")) diagnostics.recordIssue("provider_error_frame");
                 // usage-only chunk
                 if (chunk.has("usage")) {
                     Usage usage = parseUsage(chunk.get("usage"));
@@ -1267,6 +1377,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         } catch (LlmApiException e) {
             throw e;
         } catch (Exception e) {
+            if (diagnostics != null) diagnostics.recordIssue("chunk_processing_" + e.getClass().getSimpleName());
             callback.onError(new LlmApiException(
                     "Failed to parse OpenAI chunk: " + e.getMessage(), false));
         }

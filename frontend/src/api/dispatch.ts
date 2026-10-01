@@ -945,9 +945,22 @@ function recoverAuthoritativeSession(sessionId: string | null): void {
  *   errorCode?: "PROVIDER_PAYMENT_REQUIRED"|"PROVIDER_FORBIDDEN"|"PROVIDER_RATE_LIMITED"|"PROVIDER_ERROR",
  *   httpStatus?: number }
  * errorCode 存在时渲染醒目的 provider_error 错误横幅；缺失时保持既有行为（向后兼容）。
- * 无论哪种情况都必须终止“生成中”状态，避免用户体感卡死。
+ * 运行错误终止“生成中”状态；命令和设置错误独立显示，不终止无关查询。
  */
 function handleError(data: { code?: string; message: string; retryable?: boolean; errorCode?: string; httpStatus?: number; requestId?: string }): void {
+    if (data.code === 'COMMAND_ERROR' || data.code === 'COMMAND_NOT_FOUND') {
+        // A command failure is visible in the command-result layer, not a query terminal event.
+        useMessageStore.getState().addMessage({
+            type: 'system',
+            uuid: generateUUID(),
+            timestamp: Date.now(),
+            content: `命令执行失败：${data.message}`,
+            subtype: 'command_result',
+            errorCode: data.code,
+            retryable: data.retryable,
+        });
+        return;
+    }
     if (data.code === 'PERMISSION_MODE_SAVE_FAILED' || data.code === 'INVALID_PERMISSION_MODE') {
         if (data.requestId && usePermissionStore.getState().pendingModeChange?.requestId === data.requestId)
             usePermissionStore.getState().clearModeChange();

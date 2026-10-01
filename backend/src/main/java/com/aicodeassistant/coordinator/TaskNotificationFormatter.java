@@ -30,7 +30,7 @@ public class TaskNotificationFormatter {
                   <duration_ms>%d</duration_ms>
                 </usage>
                 </task-notification>
-                """.formatted(agentId, status, escapeXml(summary),
+                """.formatted(escapeXml(agentId), escapeXml(status), escapeXml(summary),
                 escapeXml(fullResult), durationMs);
     }
 

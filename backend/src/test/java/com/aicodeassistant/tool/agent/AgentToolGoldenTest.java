@@ -250,7 +250,10 @@ class AgentToolGoldenTest {
 
         @BeforeEach
         void setUp() {
-            manager = new WorktreeManager();
+            manager = new WorktreeManager(
+                    mock(com.aicodeassistant.authorization.AuthorizationSubjectResolver.class),
+                    mock(com.aicodeassistant.service.GitService.class),
+                    mock(com.aicodeassistant.tool.process.ManagedProcessRunner.class));
         }
 
         @Test
@@ -260,16 +263,17 @@ class AgentToolGoldenTest {
         }
 
         @Test
-        @DisplayName("3.2 hasChanges 对不存在的路径 — 返回 false")
-        void hasChanges_nonExistentPath_shouldReturnFalse() {
-            assertFalse(manager.hasChanges(java.nio.file.Path.of("/nonexistent/path")));
+        @DisplayName("3.2 未登记工作区不能被误判为无成果")
+        void unknownWorktreeHasUnknownDelivery() {
+            assertEquals(WorktreeManager.PendingDelivery.UNKNOWN,
+                    manager.inspectPendingDelivery(java.nio.file.Path.of("/nonexistent/path")));
         }
 
         @Test
-        @DisplayName("3.3 removeWorktree 对不存在的路径 — 静默处理不抛异常")
-        void removeWorktree_nonExistent_shouldNotThrow() {
-            assertDoesNotThrow(() ->
-                    manager.removeWorktree(java.nio.file.Path.of("/nonexistent/path")));
+        @DisplayName("3.3 未登记工作区不能被误报为成功交付")
+        void unknownWorktreeCannotBeFinalized() {
+            assertThrows(IllegalArgumentException.class, () ->
+                    manager.finishWorktree(java.nio.file.Path.of("/nonexistent/path"), true));
         }
     }
 
@@ -397,6 +401,18 @@ class AgentToolGoldenTest {
             assertTrue(props.containsKey("subagent_type"));
             assertTrue(props.containsKey("model"));
             assertTrue(props.containsKey("run_in_background"));
+        }
+
+        @Test
+        @DisplayName("Worktree 指引明确快照、条件交付与异常保留")
+        void worktreePromptExplainsSnapshotAndSafeDelivery() {
+            String prompt = agentTool.prompt();
+            assertTrue(prompt.contains("committed HEAD snapshot"));
+            assertTrue(prompt.contains("parent uncommitted changes are not copied"));
+            assertTrue(prompt.contains("automatically merged back only after safe delivery checks"));
+            assertTrue(prompt.contains("retained with recovery locations"));
+            assertTrue(prompt.contains("Git hook descendants may finish naturally"));
+            assertTrue(prompt.contains("Existing permissions still apply"));
         }
 
         @Test

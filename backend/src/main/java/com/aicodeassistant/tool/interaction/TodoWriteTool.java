@@ -30,6 +30,14 @@ public class TodoWriteTool implements Tool {
     /** 内存 Todo 存储 — 按 scopeKey 隔离 */
     private final ConcurrentMap<String, List<Map<String, Object>>> todoStore = new ConcurrentHashMap<>();
 
+    /** 状态别名表（键为大写形式）— `completed` 为旧提示词的遗留写法 */
+    private static final Map<String, String> TODO_STATUS_ALIASES = Map.of(
+            "PENDING", "PENDING",
+            "IN_PROGRESS", "IN_PROGRESS",
+            "COMPLETE", "COMPLETE",
+            "COMPLETED", "COMPLETE",
+            "CANCELLED", "CANCELLED");
+
     public TodoWriteTool(SimpMessagingTemplate messagingTemplate) {
         this.messagingTemplate = messagingTemplate;
     }
@@ -61,8 +69,8 @@ public class TodoWriteTool implements Tool {
                 3. User explicitly requests todo list
                 4. User provides multiple tasks - When users provide a list of things to be done
                 5. After receiving new instructions - Immediately capture user requirements as todos
-                6. When you start working on a task - Mark it as in_progress BEFORE beginning work
-                7. After completing a task - Mark it as completed
+                6. When you start working on a task - Mark it as IN_PROGRESS BEFORE beginning work
+                7. After completing a task - Mark it as COMPLETE
                 
                 ## When NOT to Use This Tool
                 Skip using this tool when:
@@ -72,17 +80,17 @@ public class TodoWriteTool implements Tool {
                 4. The task is purely conversational or informational
                 
                 ## Task States and Management
-                1. **Task States**: pending, in_progress, completed
-                   - Exactly ONE task must be in_progress at any time
-                   - Mark tasks complete IMMEDIATELY after finishing
+                1. **Task States**: PENDING, IN_PROGRESS, COMPLETE, CANCELLED
+                   - Exactly ONE task must be IN_PROGRESS at any time
+                   - Mark tasks COMPLETE IMMEDIATELY after finishing
                 2. **Task Completion Requirements**:
-                   - ONLY mark as completed when FULLY accomplished
-                   - If you encounter errors or blockers, keep as in_progress
-                   - Never mark as completed if tests are failing or implementation is partial
+                   - ONLY mark as COMPLETE when FULLY accomplished
+                   - If you encounter errors or blockers, keep as IN_PROGRESS
+                   - Never mark as COMPLETE if tests are failing or implementation is partial
                 3. **Task Breakdown**:
                    - Create specific, actionable items
                    - Break complex tasks into smaller, manageable steps
-                   - Always provide both content (imperative) and activeForm (present continuous)
+                   - Always provide both id and content, and set status to one of the states above
                 """;
     }
 
@@ -130,25 +138,47 @@ public class TodoWriteTool implements Tool {
                 input.getRawData().get("todos");
         boolean merge = input.getBoolean("merge", false);
 
-        String scopeKey = context.sessionId();
-
-        // 1. 获取当前 todos
-        List<Map<String, Object>> oldTodos = todoStore.getOrDefault(scopeKey, List.of());
-
-        // 2. 合并或替换
-        List<Map<String, Object>> resultTodos;
-        if (merge) {
-            // merge=true: 按 id 合并 — 新列表中的条目覆盖旧列表同 id 条目
-            Map<String, Map<String, Object>> merged = new LinkedHashMap<>();
-            oldTodos.forEach(t -> merged.put((String) t.get("id"), t));
-            newTodos.forEach(t -> merged.put((String) t.get("id"), t));
-            resultTodos = new ArrayList<>(merged.values());
-        } else {
-            // merge=false: 全量替换
-            resultTodos = new ArrayList<>(newTodos);
+        // 1. 归一已提供的非空状态；缺失或 null 保持既有运行行为，不补默认值。
+        List<Map<String, Object>> normalizedTodos = new ArrayList<>();
+        for (Map<String, Object> todo : newTodos) {
+            Object rawStatus = todo.get("status");
+            Map<String, Object> normalized = new LinkedHashMap<>(todo);
+            if (rawStatus == null) {
+                normalizedTodos.add(normalized);
+                continue;
+            }
+            String status = normalizeTodoStatus(rawStatus);
+            if (status == null) {
+                return ToolResult.validationError("TODO_STATUS_INVALID",
+                        "Invalid todo status: " + rawStatus
+                                + ". Allowed values: PENDING, IN_PROGRESS, COMPLETE, CANCELLED.");
+            }
+            normalized.put("status", status);
+            normalizedTodos.add(normalized);
         }
 
-        // 3. 全部完成检测 → 清空列表
+        String scopeKey = context.sessionId();
+
+        // 2. 获取当前 todos
+        List<Map<String, Object>> oldTodos = todoStore.getOrDefault(scopeKey, List.of());
+
+        // 3. 合并或替换
+        List<Map<String, Object>> resultTodos;
+        if (merge) {
+            // merge=true: 仅对有 id 的条目按 id 合并（新条目覆盖旧条目）；
+            // 缺 id 的条目不参与合并、原样保留，互不覆盖
+            Map<String, Map<String, Object>> mergedById = new LinkedHashMap<>();
+            List<Map<String, Object>> withoutId = new ArrayList<>();
+            oldTodos.forEach(t -> collectForMerge(mergedById, withoutId, t));
+            normalizedTodos.forEach(t -> collectForMerge(mergedById, withoutId, t));
+            resultTodos = new ArrayList<>(mergedById.values());
+            resultTodos.addAll(withoutId);
+        } else {
+            // merge=false: 全量替换
+            resultTodos = new ArrayList<>(normalizedTodos);
+        }
+
+        // 4. 全部完成检测 → 清空列表
         boolean allComplete = !resultTodos.isEmpty() && resultTodos.stream()
                 .allMatch(t -> "COMPLETE".equals(t.get("status"))
                         || "CANCELLED".equals(t.get("status")));
@@ -156,9 +186,9 @@ public class TodoWriteTool implements Tool {
             resultTodos = List.of();
         }
 
-        // 4. 验证代理提示: 3+ 任务完成 + 无 "verif" 任务 → 提醒验证
+        // 5. 验证代理提示: 3+ 任务完成 + 无 "verif" 任务 → 提醒验证
         boolean verificationNudgeNeeded = false;
-        long completedCount = newTodos.stream()
+        long completedCount = normalizedTodos.stream()
                 .filter(t -> "COMPLETE".equals(t.get("status"))).count();
         boolean hasVerifyTask = resultTodos.stream()
                 .anyMatch(t -> ((String) t.getOrDefault("content", ""))
@@ -167,7 +197,7 @@ public class TodoWriteTool implements Tool {
             verificationNudgeNeeded = true;
         }
 
-        // 5. 更新存储 + WebSocket 推送
+        // 6. 更新存储 + WebSocket 推送
         todoStore.put(scopeKey, resultTodos);
         try {
             messagingTemplate.convertAndSend(
@@ -177,7 +207,7 @@ public class TodoWriteTool implements Tool {
             log.warn("Failed to send todos update: {}", e.getMessage());
         }
 
-        // 6. 构建结果
+        // 7. 构建结果
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("oldTodos", oldTodos);
         result.put("newTodos", resultTodos);
@@ -189,6 +219,26 @@ public class TodoWriteTool implements Tool {
             return ToolResult.success(MAPPER.writeValueAsString(result));
         } catch (JsonProcessingException e) {
             return ToolResult.success("Todos updated. Count: " + resultTodos.size());
+        }
+    }
+
+    /** 大小写不敏感归一 status 为规范枚举值；未知或空值返回 null。 */
+    private static String normalizeTodoStatus(Object rawStatus) {
+        if (rawStatus == null) {
+            return null;
+        }
+        return TODO_STATUS_ALIASES.get(rawStatus.toString().toUpperCase(Locale.ROOT));
+    }
+
+    /** merge 收集：有 id 的按 id 覆盖合并；缺 id 的保留原条目 */
+    private static void collectForMerge(Map<String, Map<String, Object>> mergedById,
+                                        List<Map<String, Object>> withoutId,
+                                        Map<String, Object> todo) {
+        Object id = todo.get("id");
+        if (id instanceof String idString && !idString.isEmpty()) {
+            mergedById.put(idString, todo);
+        } else {
+            withoutId.add(todo);
         }
     }
 

@@ -1141,10 +1141,10 @@ Type `/` or press `Ctrl+K` in the Web UI to open the command palette with fuzzy 
 | Category | Commands | Description |
 |----------|----------|-------------|
 | **Core** | `/help` `/clear` `/exit` | Help, clear conversation, exit |
-| **Model** | `/model` | List/switch LLM models |
+| **Model** | `/model` | List available models; switch via the model selector in the input bar |
 | **Diagnostics** | `/doctor` | 9-item system diagnostic (Java/LLM/Git/JVM/Python/Disk) |
 | **Compression** | `/compact` | Manual context compression, accepts instructions (e.g., `/compact focus on API`) |
-| **Git** | `/diff` `/commit` `/review` | Code diff, generate commit messages, code review |
+| **Git** | `/diff` `/commit` `/review` | Code diff (`/diff [unstaged\|staged\|--staged]`; `--cached` is no longer accepted — use `staged`), staged preview / direct commit, code review |
 | **Config** | `/config` `/permissions` | View config, permission mode management |
 | **Session** | `/session` `/resume` | Session info, restore history sessions |
 | **Cost** | `/cost` `/usage` | Token usage, cost statistics |
@@ -1273,8 +1273,14 @@ The main Agent delegates subtasks to independent child Agents, with three isolat
 | Isolation Mode | Behavior | Use Case |
 |---------------|----------|----------|
 | **NONE** | Shares parent Agent working directory | Lightweight subtasks |
-| **WORKTREE** | Creates independent Git Worktree, auto-merges or discards on completion | Experimental changes needing isolation |
+| **WORKTREE** | Creates a Git worktree from the project’s committed HEAD; safely completed work is merged automatically, failures or unknown states preserve the work | Experimental changes needing isolation |
 | **Fork** | Inherits parent session’s full message history, reuses LLM KV cache | Continuation tasks needing full context |
+
+WORKTREE excludes uncommitted parent changes and never automatically stashes or commits the parent directory. The execution directory matches its prompt, without expanding Project authorization. The authorized root must be a valid repository root; an execution subdirectory within it is mapped into the new tree. Unborn and detached HEADs are not supported for automatic delivery.
+
+Automatic three-way integration requires successful execution, quiescent managed work, and verified target branch, history and working-tree state. Delivered work with a cleanup failure remains completed with a warning. Undelivered work, conflicts, timeouts and unconfirmed termination preserve the worktree and branch with recovery locations. Naturally exited Git commands do not cause hook background processes to be killed for cleanup. On Linux and macOS, directories are retained while ordinary descendants remain in the managed process group; daemons that deliberately leave that group are outside this guarantee. Other platforms retain the existing best-effort tracking without the same descendant-exit guarantee. Stopping the service does not remove worktrees or agent branches. Delivery respects Git ignore rules: ignored files are not force-added and may be removed with the directory during normal cleanup; deliverables that must be preserved belong in non-ignored paths. Uncommitted content inside submodules blocks delivery; submodules are not recursively committed.
+
+`Worktree remove` safely cleans only currently registered, project-owned and unoccupied empty or delivered worktrees; it is not a force-discard command. Preserved temporary directories are not permanent archives, and automatic management across restarts is not promised. Manual cleanup also conservatively checks managed background work in the creating and calling sessions; an unrelated background task in either session can defer cleanup. Internal serialization does not cover external Git or concurrent writes through other tools.
 
 - Supports background async execution (`BackgroundAgentTracker`), real-time pushing start/complete/fail events via WebSocket for live monitoring of agent execution progress
 - Per-agent 5-minute timeout, results capped at 100,000 characters

@@ -172,7 +172,7 @@ function App() {
     { name: 'help', description: '显示帮助信息', group: 'Commands' },
     { name: 'clear', description: '清除对话记录', group: 'Commands' },
     { name: 'compact', description: '压缩对话上下文', group: 'Commands' },
-    { name: 'model', description: '切换 AI 模型', group: 'Commands' },
+    { name: 'model', description: '查看可用模型；切换请使用模型选择器', group: 'Commands' },
   ], []);
 
   // 将技能转换为 Command 格式

@@ -13,10 +13,13 @@ import com.aicodeassistant.observability.SafeLogValue;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.ByteBuffer;
+import java.nio.charset.CodingErrorAction;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CompletableFuture;
@@ -43,6 +46,9 @@ public class ManagedProcessRunner {
     @Value("${process.runner.max-concurrent:16}")
     private int maxConcurrent = 16;
     private final Map<ProcessKey, ActiveProcess> active = new ConcurrentHashMap<>();
+    // Raw Git has a different natural-exit policy. Never put these scopes in
+    // active: default finally/retry/shutdown cleanup is allowed to kill descendants.
+    private final Map<ProcessKey, GitScope> gitScopes = new ConcurrentHashMap<>();
     private volatile Semaphore capacity = new Semaphore(16);
     private final RunExecutionRegistry runExecutions;
     private volatile BestEffortObservabilityRecorder observabilityRecorder;
@@ -77,6 +83,209 @@ public class ManagedProcessRunner {
 
     public Result run(Request request) throws IOException, InterruptedException {
         return runWithEnvironment(request, null);
+    }
+
+    /**
+     * Internal Git transport: bounded complete UTF-8, no preview/trim, and an
+     * independent SERVICE owner. Natural foreground exit (including nonzero)
+     * preserves hook descendants and their open pipes. Output completeness and
+     * whole-scope exit are independent result fields.
+     */
+    public Result runRawGit(Request request) throws IOException, InterruptedException {
+        if (request.ownership() != Ownership.SERVICE || "service".equals(request.runId()))
+            throw new IllegalArgumentException("Raw Git requires an independent SERVICE owner");
+        if (request.terminationHook() != null)
+            throw new IllegalArgumentException("Raw Git does not accept a termination hook");
+        if (!capacity.tryAcquire()) throw new IOException("PROCESS_CAPACITY_EXCEEDED");
+        ProcessKey key = new ProcessKey(request.runId(), request.toolUseId());
+        GitScope scope = new GitScope(key);
+        if (gitScopes.putIfAbsent(key, scope) != null) {
+            releaseGitCapacity(scope);
+            throw new IOException("PROCESS_OWNERSHIP_CONFLICT");
+        }
+        long started = System.nanoTime();
+        try {
+            ProcessBuilder builder = new ProcessBuilder(request.command())
+                    .directory(request.workingDirectory().toFile()).redirectErrorStream(false);
+            RawGitProcess process;
+            try {
+                process = RawGitProcess.start(builder);
+            } catch (RawGitProcess.LaunchFailure partialLaunch) {
+                synchronized (scope) {
+                    scope.process = partialLaunch.retainedProcess();
+                    scope.phase = GitPhase.CANCELLING;
+                    scope.cancelled = true;
+                }
+                throw partialLaunch;
+            }
+            synchronized (scope) { scope.process = process; }
+            startGitDrain(process.getInputStream(), scope.stdout);
+            scope.stdoutStarted = true;
+            startGitDrain(process.getErrorStream(), scope.stderr);
+            scope.stderrStarted = true;
+            boolean cancellationPending;
+            synchronized (scope) { cancellationPending = scope.phase == GitPhase.CANCELLING; }
+            if (cancellationPending) stopCancelledGit(scope);
+            long remaining = request.timeout().toNanos() - (System.nanoTime() - started);
+            boolean completed = remaining > 0 && process.waitFor(remaining, TimeUnit.NANOSECONDS);
+            if (completed) observeGitRootExit(scope);
+            else requestGitCancellation(scope, true);
+            stopCancelledGit(scope);
+
+            // Do not cancel drains on this deadline: a successful hook may still
+            // own the pipes. The scope retains the bounded drain until natural EOF.
+            long drainDeadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(drainJoinMs);
+            Capture out = awaitGitDrain(scope.stdout, drainDeadline);
+            Capture err = awaitGitDrain(scope.stderr, drainDeadline);
+            reapGitScope(scope);
+            boolean timedOut;
+            boolean cancelled;
+            synchronized (scope) {
+                timedOut = scope.timedOut;
+                cancelled = scope.cancelled;
+            }
+            OwnedProcess.ScopeSnapshot snapshot = process.observeScope();
+            boolean stopped = snapshot.allExited() && scope.stdout.isDone() && scope.stderr.isDone();
+            if (!stopped) log.debug("Raw Git scope retained: owner={}, inspectionComplete={}, activeCount={}, stdoutDrained={}, stderrDrained={}",
+                    request.runId(), snapshot.inspectionComplete(), snapshot.activeCount(), scope.stdout.isDone(), scope.stderr.isDone());
+            return new Result(cancelled ? 130 : timedOut ? 137 : process.exitValue(),
+                    out.text(), err.text(), out.truncated(), err.truncated(),
+                    timedOut, cancelled, stopped,
+                    TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started), !snapshot.inspectionComplete());
+        } catch (InterruptedException interrupted) {
+            requestGitCancellation(scope, false);
+            throw interrupted;
+        } finally {
+            // A failed launch has no process scope. Otherwise all automatic
+            // signalling is restricted to cancellation claimed while RUNNING.
+            boolean interrupted = Thread.interrupted();
+            if (!scope.stdoutStarted) scope.stdout.complete(new Capture("[Git stdout reader did not start]", true));
+            if (!scope.stderrStarted) scope.stderr.complete(new Capture("[Git stderr reader did not start]", true));
+            if (scope.process == null) {
+                gitScopes.remove(key, scope);
+                releaseGitCapacity(scope);
+            } else {
+                observeGitRootExit(scope);
+                synchronized (scope) {
+                    if (scope.phase == GitPhase.RUNNING) {
+                        scope.phase = GitPhase.CANCELLING;
+                        scope.cancelled = true;
+                    }
+                }
+                stopCancelledGit(scope);
+                reapGitScope(scope);
+            }
+            if (interrupted) Thread.currentThread().interrupt();
+        }
+    }
+
+    private void startGitDrain(InputStream stream, CompletableFuture<Capture> capture) {
+        try {
+            Thread.ofVirtual().name("raw-git-drain").start(() -> {
+                try { capture.complete(drain(stream, maxCaptureBytes, true)); }
+                catch (Throwable failure) {
+                    capture.complete(new Capture("[Git output could not be read as complete UTF-8]", true));
+                    if (failure instanceof Error error) throw error;
+                }
+            });
+        } catch (RuntimeException | Error startFailure) {
+            capture.complete(new Capture("[Git output reader could not start]", true));
+            throw startFailure;
+        }
+    }
+
+    private Capture awaitGitDrain(CompletableFuture<Capture> capture, long deadline) throws InterruptedException {
+        try {
+            if (capture.isDone()) return capture.get();
+            long remaining = deadline - System.nanoTime();
+            if (remaining > 0) return capture.get(remaining, TimeUnit.NANOSECONDS);
+        } catch (java.util.concurrent.TimeoutException | ExecutionException incomplete) {
+            // Keep the reader alive; closing its pipe can signal a surviving hook.
+        }
+        return new Capture("[Git output is incomplete; its pipe remains supervised]", true);
+    }
+
+    private void observeGitRootExit(GitScope scope) {
+        synchronized (scope) {
+            if (scope.process != null && !scope.process.isAlive()) {
+                if (scope.phase == GitPhase.RUNNING) scope.phase = GitPhase.OBSERVING;
+                // Cancellation may retain descendants/pipes, but the foreground slot
+                // belongs only to the main Git process. Preserve CANCELLING for retries.
+                releaseGitCapacity(scope);
+            }
+        }
+    }
+
+    private void requestGitCancellation(GitScope scope, boolean timeout) {
+        synchronized (scope) {
+            // Natural exit wins a race with cancellation; its children are preserved.
+            observeGitRootExit(scope);
+            if (scope.phase == GitPhase.RUNNING) {
+                scope.phase = GitPhase.CANCELLING;
+                scope.timedOut = timeout;
+                scope.cancelled = !timeout;
+            }
+        }
+    }
+
+    private void stopCancelledGit(GitScope scope) {
+        RawGitProcess process;
+        synchronized (scope) {
+            if (scope.phase != GitPhase.CANCELLING || scope.process == null) return;
+            process = scope.process;
+        }
+        process.terminate(System.nanoTime() + TimeUnit.SECONDS.toNanos(2), terminateGraceMs, false);
+    }
+
+    private void releaseGitCapacity(GitScope scope) {
+        if (scope.capacityReleased.compareAndSet(false, true)) capacity.release();
+    }
+
+    private void reapGitScope(GitScope scope) {
+        observeGitRootExit(scope);
+        RawGitProcess process = scope.process;
+        if (process == null || !process.observeScope().allExited()
+                || !scope.stdout.isDone() || !scope.stderr.isDone()) return;
+        if (gitScopes.remove(scope.key, scope)) {
+            synchronized (scope) { scope.phase = GitPhase.RELEASED; }
+            try {
+                // Stream acquisition itself may have failed during launch.
+                try { closeQuietly(process.getInputStream()); } catch (RuntimeException ignored) { }
+                try { closeQuietly(process.getErrorStream()); } catch (RuntimeException ignored) { }
+                try { closeQuietly(process.getOutputStream()); } catch (RuntimeException ignored) { }
+            } finally { releaseGitCapacity(scope); }
+        }
+    }
+
+    /** Exact RawGit owner query; it never signals a process or closes a live pipe. */
+    public CancelSummary currentGitOperation(String ownerId) {
+        for (GitScope scope : gitScopes.values()) {
+            if (ownerId != null && ownerId.equals(scope.key.runId())) reapGitScope(scope);
+        }
+        int remaining = (int) gitScopes.keySet().stream()
+                .filter(key -> ownerId != null && ownerId.equals(key.runId())).count();
+        return new CancelSummary(remaining, 0, remaining);
+    }
+
+    /** Cancels only still-running Git; naturally exited hook scopes remain observable. */
+    public CancelSummary cancelGitOperation(String ownerId) {
+        int found = 0;
+        int confirmed = 0;
+        for (GitScope scope : List.copyOf(gitScopes.values())) {
+            if (ownerId == null || !ownerId.equals(scope.key.runId())) continue;
+            found++;
+            requestGitCancellation(scope, false);
+            stopCancelledGit(scope);
+            reapGitScope(scope);
+            if (gitScopes.get(scope.key) != scope) confirmed++;
+        }
+        return new CancelSummary(found, confirmed, found - confirmed);
+    }
+
+    /** Passive reclamation only: a retained natural-exit hook is never a cleanup target. */
+    @org.springframework.scheduling.annotation.Scheduled(fixedDelayString = "${process.runner.cleanup-retry-ms:30000}")
+    public void observeRetainedGit() {
+        for (GitScope scope : List.copyOf(gitScopes.values())) reapGitScope(scope);
     }
 
     /** Internal services only: replaces inherited environment; values are never logged. */
@@ -269,6 +478,32 @@ public class ManagedProcessRunner {
         return cancelOwnedBy("session:" + sessionId);
     }
 
+    /** Read after the child Run has closed admission and become quiescent. */
+    public CancelSummary currentSessionBackground(String sessionId) {
+        if (sessionId == null) return new CancelSummary(0, 0, 0);
+        return currentRunTermination("session:" + sessionId);
+    }
+
+    /**
+     * Read-only foreground occupancy for the session's current Run. This does not
+     * close admission or require the caller Run itself to be quiescent. A changed
+     * mapping is not an idle proof; callers must retain resources and try later.
+     */
+    public SessionForegroundSnapshot currentSessionForeground(String sessionId) {
+        if (sessionId == null || sessionId.isBlank() || runExecutions == null) {
+            throw new IllegalStateException("SESSION_FOREGROUND_OCCUPANCY_UNAVAILABLE");
+        }
+        String before = runExecutions.activeRunForSession(sessionId).orElse(null);
+        CancelSummary occupancy = before == null ? new CancelSummary(0, 0, 0) : currentRunTermination(before);
+        String after = runExecutions.activeRunForSession(sessionId).orElse(null);
+        if (!Objects.equals(before, after)) {
+            throw new IllegalStateException("SESSION_FOREGROUND_MAPPING_CHANGED");
+        }
+        return new SessionForegroundSnapshot(before, occupancy);
+    }
+
+    public record SessionForegroundSnapshot(String runId, CancelSummary occupancy) { }
+
     private CancelSummary cancelOwnedBy(String ownerId) {
         int found = 0;
         int confirmed = 0;
@@ -291,6 +526,10 @@ public class ManagedProcessRunner {
             long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
             boolean stopped = terminate(process, deadline);
             if (cleanup(process, deadline) && stopped) releaseRetained(entry.getKey(), process);
+        }
+        // Natural-exit RawGit scopes are deliberately excluded from termination.
+        for (String owner : gitScopes.keySet().stream().map(ProcessKey::runId).distinct().toList()) {
+            cancelGitOperation(owner);
         }
     }
 
@@ -430,8 +669,12 @@ public class ManagedProcessRunner {
     }
 
     private Capture drain(InputStream stream) throws IOException {
-        int headCapacity = maxCaptureBytes / 2;
-        int tailCapacity = maxCaptureBytes - headCapacity;
+        return drain(stream, maxCaptureBytes, false);
+    }
+
+    private Capture drain(InputStream stream, int captureLimit, boolean strictUtf8) throws IOException {
+        int headCapacity = captureLimit / 2;
+        int tailCapacity = captureLimit - headCapacity;
         byte[] head = new byte[headCapacity];
         byte[] tail = new byte[tailCapacity];
         int headLength = 0;
@@ -457,12 +700,15 @@ public class ManagedProcessRunner {
             }
             total += read;
         }
-        boolean truncated = total > maxCaptureBytes;
+        boolean truncated = total > captureLimit;
         if (!truncated) {
             byte[] combined = new byte[(int) total];
             System.arraycopy(head, 0, combined, 0, headLength);
             if (tailLength > 0) System.arraycopy(tail, 0, combined, headLength, tailLength);
-            return new Capture(new String(combined, StandardCharsets.UTF_8), false);
+            String text = strictUtf8 ? StandardCharsets.UTF_8.newDecoder()
+                    .onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT)
+                    .decode(ByteBuffer.wrap(combined)).toString() : new String(combined, StandardCharsets.UTF_8);
+            return new Capture(text, false);
         }
         byte[] orderedTail = new byte[tailLength];
         int start = tailLength == tailCapacity ? tailPosition : 0;
@@ -569,4 +815,19 @@ public class ManagedProcessRunner {
         Process process() { return processRef.get(); }
     }
     private record ProcessKey(String runId, String toolUseId) {}
+
+    private enum GitPhase { RUNNING, OBSERVING, CANCELLING, RELEASED }
+    private static final class GitScope {
+        private final ProcessKey key;
+        private final AtomicBoolean capacityReleased = new AtomicBoolean();
+        private final CompletableFuture<Capture> stdout = new CompletableFuture<>();
+        private final CompletableFuture<Capture> stderr = new CompletableFuture<>();
+        private volatile RawGitProcess process;
+        private GitPhase phase = GitPhase.RUNNING;
+        private boolean timedOut;
+        private boolean cancelled;
+        private boolean stdoutStarted;
+        private boolean stderrStarted;
+        private GitScope(ProcessKey key) { this.key = key; }
+    }
 }

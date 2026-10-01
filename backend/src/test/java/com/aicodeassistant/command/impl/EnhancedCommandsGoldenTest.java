@@ -270,36 +270,50 @@ class EnhancedCommandsGoldenTest {
     class ConfigCommandTests {
 
         @Test
-        @DisplayName("4.1 /fast on 启用快速模式")
-        void fastModeEnable() {
+        @DisplayName("4.1 /fast 未接入：无参与 on/off 均返回未生效文本")
+        void fastModeNotWired() {
             Command cmd = registry.getCommand("fast");
-            CommandResult result = cmd.execute("on", defaultContext);
-            assertTrue(result.value().contains("enabled"));
+            for (String arg : List.of("", "on", "off", "enable", "disable", "anything")) {
+                CommandResult result = cmd.execute(arg, defaultContext);
+                assertEquals(CommandResult.ResultType.TEXT, result.type(), "args=" + arg);
+                assertTrue(result.value().contains("FastMode is not wired up yet"), "args=" + arg);
+                assertTrue(result.value().contains("no settings were changed"), "args=" + arg);
+            }
         }
 
         @Test
-        @DisplayName("4.2 /effort 无参显示用法")
-        void effortUsage() {
+        @DisplayName("4.2 /effort 未接入：不再展示虚构默认等级")
+        void effortNotWired() {
             Command cmd = registry.getCommand("effort");
-            CommandResult result = cmd.execute("", defaultContext);
-            assertTrue(result.value().contains("low"));
-            assertTrue(result.value().contains("high"));
+            for (String arg : List.of("", "medium", "high", "anything")) {
+                CommandResult result = cmd.execute(arg, defaultContext);
+                assertEquals(CommandResult.ResultType.TEXT, result.type(), "args=" + arg);
+                assertTrue(result.value().contains("Effort levels are not wired up yet"), "args=" + arg);
+                assertTrue(result.value().contains("no settings were changed"), "args=" + arg);
+            }
         }
 
         @Test
-        @DisplayName("4.3 /vim on/off 切换")
-        void vimToggle() {
+        @DisplayName("4.3 /vim 未接入：无参与 on/off 均返回未生效文本")
+        void vimNotWired() {
             Command cmd = registry.getCommand("vim");
-            assertTrue(cmd.execute("on", defaultContext).value().contains("enabled"));
-            assertTrue(cmd.execute("off", defaultContext).value().contains("disabled"));
+            for (String arg : List.of("", "on", "off", "enable", "disable", "anything")) {
+                CommandResult result = cmd.execute(arg, defaultContext);
+                assertEquals(CommandResult.ResultType.TEXT, result.type(), "args=" + arg);
+                assertTrue(result.value().contains("Vim mode is not wired up yet"), "args=" + arg);
+                assertTrue(result.value().contains("no settings were changed"), "args=" + arg);
+            }
         }
 
         @Test
-        @DisplayName("4.4 /theme 返回 JSX")
-        void themeReturnsJsx() {
+        @DisplayName("4.4 /theme 无参：诚实文本 + 引导外观设置")
+        void themeNoArgReturnsHonestText() {
             Command cmd = registry.getCommand("theme");
+            assertEquals(CommandType.LOCAL, cmd.getType());
             CommandResult result = cmd.execute("", defaultContext);
-            assertEquals(CommandResult.ResultType.JSX, result.type());
+            assertEquals(CommandResult.ResultType.TEXT, result.type());
+            assertTrue(result.value().contains("not wired here"));
+            assertTrue(result.value().contains("appearance settings"));
         }
 
         @Test
@@ -307,6 +321,40 @@ class EnhancedCommandsGoldenTest {
         void keybindingsJsx() {
             Command cmd = registry.getCommand("keybindings");
             assertEquals(CommandType.LOCAL_JSX, cmd.getType());
+        }
+
+        @Test
+        @DisplayName("4.6 /theme 有参：不改主题并引导外观设置")
+        void themeWithArgNotChanged() {
+            Command cmd = registry.getCommand("theme");
+            CommandResult result = cmd.execute("dark", defaultContext);
+            assertEquals(CommandResult.ResultType.TEXT, result.type());
+            assertTrue(result.value().contains("Theme was not changed"));
+            assertTrue(result.value().contains("appearance settings"));
+        }
+
+        @Test
+        @DisplayName("4.7 /output-style 未接入：无参/有参/未知参数均为未生效文本")
+        void outputStyleNotWired() {
+            Command cmd = registry.getCommand("output-style");
+            for (String arg : List.of("", "explanatory", "unknown-style")) {
+                CommandResult result = cmd.execute(arg, defaultContext);
+                assertEquals(CommandResult.ResultType.TEXT, result.type(), "args=" + arg);
+                assertTrue(result.value().contains("Output styles are not wired up yet"), "args=" + arg);
+                assertTrue(result.value().contains("no settings were changed"), "args=" + arg);
+            }
+        }
+
+        @Test
+        @DisplayName("4.8 /color 未接入：不再展示虚构方案清单")
+        void colorNotWired() {
+            Command cmd = registry.getCommand("color");
+            for (String arg : List.of("", "nord", "unknown-scheme")) {
+                CommandResult result = cmd.execute(arg, defaultContext);
+                assertEquals(CommandResult.ResultType.TEXT, result.type(), "args=" + arg);
+                assertTrue(result.value().contains("Color schemes are not wired up yet"), "args=" + arg);
+                assertTrue(result.value().contains("no settings were changed"), "args=" + arg);
+            }
         }
     }
 

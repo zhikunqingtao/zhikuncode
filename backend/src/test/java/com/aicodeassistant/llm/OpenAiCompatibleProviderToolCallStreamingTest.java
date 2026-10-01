@@ -5,14 +5,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LogEvent;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.AbstractAppender;
+import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -128,6 +138,309 @@ class OpenAiCompatibleProviderToolCallStreamingTest {
         Capture capture = runRaw("data: " + finishChunk() + "\n\n");
         assertTrue(capture.completed);
         assertNull(capture.error);
+    }
+
+    @Test
+    void incompleteStreamLogIdentifiesIgnoredFinishFrameWithoutLoggingContent() {
+        var appender = new CapturingAppender();
+        appender.start();
+        LoggerConfig appLoggers = appLoggerConfig();
+        appLoggers.addAppender(appender, null, null);
+        try {
+            Capture capture = runRaw("data:{\"choices\":[{\"delta\":{\"content\":\"private text\"},"
+                    + "\"finish_reason\":\"stop\"}]}\n\ndata:[DONE]\n\n");
+            assertFalse(capture.completed);
+            assertTrue(capture.error.getMessage().contains("missing finish_reason"));
+            var diagnostic = appender.messages.stream()
+                    .filter(message -> message.startsWith("OpenAI stream missing finish_reason:"))
+                    .toList();
+            assertEquals(1, diagnostic.size());
+            assertTrue(diagnostic.getFirst().contains("end=eof"));
+            assertTrue(diagnostic.getFirst().contains("ignoredDataFrames=1"));
+            assertTrue(diagnostic.getFirst().contains("firstIssue=none"));
+            assertTrue(diagnostic.getFirst().contains("no_space:choices=1,finish=stop"));
+            assertFalse(diagnostic.getFirst().contains("private text"));
+
+            appender.messages.clear();
+            Capture valid = runRaw("data: " + finishChunk() + "\n\ndata: [DONE]\n\n");
+            assertTrue(valid.completed);
+            assertNull(valid.error);
+            assertTrue(appender.messages.stream().noneMatch(message ->
+                    message.startsWith("OpenAI stream missing finish_reason:")));
+
+            appender.messages.clear();
+            Capture withEarlierError = runRaw("data: {\"error\":{\"code\":429,"
+                    + "\"message\":\"private error\"}}\n\ndata: [DONE]\n\n");
+            assertFalse(withEarlierError.completed);
+            assertTrue(appender.messages.stream().anyMatch(message ->
+                    message.contains("firstIssue=provider_error_frame")
+                            && !message.contains("private error")));
+        } finally {
+            appLoggers.removeAppender(appender.getName());
+            appender.stop();
+        }
+        assertNoResidualProviderLoggerConfig();
+    }
+
+    @Test
+    void diagnosticAppenderFailureDoesNotReplaceStreamError() {
+        var diagnosticAttempted = new AtomicBoolean();
+        var failingAppender = new AbstractAppender("failing-stream-diagnostic-test", null, null, false, null) {
+            @Override public void append(LogEvent event) {
+                if (event.getMessage().getFormattedMessage().startsWith("OpenAI stream missing finish_reason:")) {
+                    diagnosticAttempted.set(true);
+                    throw new IllegalStateException("diagnostic write failed");
+                }
+            }
+        };
+        failingAppender.start();
+        LoggerConfig appLoggers = appLoggerConfig();
+        appLoggers.addAppender(failingAppender, null, null);
+        try {
+            Capture capture = runRaw("data: [DONE]\n\n");
+            assertTrue(diagnosticAttempted.get());
+            assertFalse(capture.completed);
+            LlmApiException error = assertInstanceOf(LlmApiException.class, capture.error);
+            assertEquals("OPENAI_COMPATIBLE_INCOMPLETE_STREAM: missing finish_reason", error.getMessage());
+            assertFalse(error.isRetryable());
+        } finally {
+            appLoggers.removeAppender(failingAppender.getName());
+            failingAppender.stop();
+        }
+        assertNoResidualProviderLoggerConfig();
+    }
+
+    @Test
+    void truncatedStreamEndingWithoutNewlineIsDiagnosedAsIncomplete() {
+        var appender = new CapturingAppender();
+        appender.start();
+        LoggerConfig appLoggers = appLoggerConfig();
+        appLoggers.addAppender(appender, null, null);
+        try {
+            // The connection is cut mid-frame: the final line never receives its newline,
+            // so readUtf8LineStrict throws EOFException instead of ending the loop normally.
+            Capture capture = runRaw("data: " + toolChunk("call-1", "Brief", "{}")
+                    + "\n\ndata: {\"choices\":[{\"delta\":{\"content\":\"truncated-secret\"}");
+            assertFalse(capture.completed);
+            LlmApiException error = assertInstanceOf(LlmApiException.class, capture.error);
+            assertTrue(error.isRetryable());
+            assertTrue(error.getMessage().startsWith("OpenAI stream error:"));
+            var diagnostic = appender.messages.stream()
+                    .filter(message -> message.startsWith("OpenAI stream missing finish_reason:"))
+                    .toList();
+            assertEquals(1, diagnostic.size());
+            assertTrue(diagnostic.getFirst().contains("end=eof"));
+            assertTrue(diagnostic.getFirst().contains("firstIssue=none"));
+            assertFalse(diagnostic.getFirst().contains("truncated-secret"));
+        } finally {
+            appLoggers.removeAppender(appender.getName());
+            appender.stop();
+        }
+        assertNoResidualProviderLoggerConfig();
+    }
+
+    @Test
+    void truncatedTailAfterFinishKeepsStreamErrorWithoutMissingFinishDiagnostic() {
+        var appender = new CapturingAppender();
+        appender.start();
+        LoggerConfig appLoggers = appLoggerConfig();
+        appLoggers.addAppender(appender, null, null);
+        try {
+            // Existing compatibility limitation, not a requirement to reject this forever:
+            // this diagnostic-only change deliberately preserves the terminal error policy.
+            Capture capture = runRaw("data: {\"choices\":[{\"delta\":{},\"finish_reason\":\"stop\"}]}"
+                    + "\n\ndata: [DONE]");
+
+            assertEquals(1, capture.events.stream()
+                    .filter(event -> event instanceof LlmStreamEvent.MessageDelta delta
+                            && "end_turn".equals(delta.stopReason()))
+                    .count());
+            assertFalse(capture.completed);
+            LlmApiException error = assertInstanceOf(LlmApiException.class, capture.error);
+            assertTrue(error.isRetryable());
+            assertTrue(error.getMessage().startsWith("OpenAI stream error:"));
+            assertInstanceOf(java.io.EOFException.class, error.getCause());
+            assertTrue(appender.messages.stream().noneMatch(message ->
+                    message.startsWith("OpenAI stream missing finish_reason:")));
+        } finally {
+            appLoggers.removeAppender(appender.getName());
+            appender.stop();
+        }
+        assertNoResidualProviderLoggerConfig();
+    }
+
+    @Test
+    void canceledTruncatedTailIsNotDiagnosedAsMissingFinishReason() {
+        var appender = new CapturingAppender();
+        appender.start();
+        LoggerConfig appLoggers = appLoggerConfig();
+        appLoggers.addAppender(appender, null, null);
+        try {
+            var signal = new TestCancellationSignal();
+            var error = new AtomicReference<Throwable>();
+            var completed = new AtomicBoolean();
+            server.enqueue(new MockResponse().setResponseCode(200)
+                    .setHeader("Content-Type", "text/event-stream")
+                    .setBody("data: " + toolChunk("call-1", "Brief", "{}")
+                            + "\n\ndata: {\"choices\":[{\"delta\":{\"content\":\"truncated-secret\"}"));
+            provider.streamChat("qwen3.8-max",
+                    List.of(Map.of("role", "user", "content", "test")),
+                    "system", List.of(), 1024, new ThinkingConfig.Disabled(),
+                    new LlmCallContext("cancel-guard-test", signal),
+                    new StreamChatCallback() {
+                        @Override public void onEvent(LlmStreamEvent event) { signal.cancel(); }
+                        @Override public void onComplete() { completed.set(true); }
+                        @Override public void onError(Throwable failure) { error.set(failure); }
+                    });
+
+            assertTrue(signal.isCancelled());
+            LlmApiException failure = assertInstanceOf(LlmApiException.class, error.get());
+            assertEquals("LLM_CALL_CANCELLED", failure.getMessage());
+            assertFalse(completed.get());
+            assertTrue(appender.messages.stream().noneMatch(message ->
+                    message.startsWith("OpenAI stream missing finish_reason:")));
+        } finally {
+            appLoggers.removeAppender(appender.getName());
+            appender.stop();
+        }
+        assertNoResidualProviderLoggerConfig();
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void canceledBufferedDoneOrEofDoesNotLogMissingFinish(boolean withDone) {
+        String body = "data: {\"choices\":[{\"delta\":{\"content\":\"buffered\"},\"finish_reason\":null}]}\n\n"
+                + (withDone ? "data: [DONE]\n\n" : "");
+        // An in-memory response makes the already-buffered-tail race deterministic:
+        // canceling the call does not discard bytes already delivered to the reader.
+        var client = new okhttp3.OkHttpClient.Builder().addInterceptor(chain ->
+                new okhttp3.Response.Builder().request(chain.request())
+                        .protocol(okhttp3.Protocol.HTTP_1_1).code(200).message("OK")
+                        .body(okhttp3.ResponseBody.create(body,
+                                okhttp3.MediaType.get("text/event-stream"))).build()).build();
+        ReflectionTestUtils.setField(provider, "httpClient", client);
+        var appender = new CapturingAppender();
+        appender.start();
+        LoggerConfig appLoggers = appLoggerConfig();
+        appLoggers.addAppender(appender, null, null);
+        try {
+            var signal = new TestCancellationSignal();
+            var error = new AtomicReference<Throwable>();
+            var completed = new AtomicBoolean();
+            provider.streamChat("qwen3.8-max",
+                    List.of(Map.of("role", "user", "content", "test")),
+                    "system", List.of(), 1024, new ThinkingConfig.Disabled(),
+                    new LlmCallContext("cancel-buffered-test", signal),
+                    new StreamChatCallback() {
+                        @Override public void onEvent(LlmStreamEvent event) { signal.cancel(); }
+                        @Override public void onComplete() { completed.set(true); }
+                        @Override public void onError(Throwable failure) { error.set(failure); }
+                    });
+
+            assertTrue(signal.isCancelled());
+            assertFalse(completed.get());
+            // Preserve the existing provider error classification; this is not a test
+            // claiming that all provider cancellation outcomes have been normalized.
+            LlmApiException failure = assertInstanceOf(LlmApiException.class, error.get());
+            assertEquals("OPENAI_COMPATIBLE_INCOMPLETE_STREAM: missing finish_reason", failure.getMessage());
+            assertFalse(failure.isRetryable());
+            assertTrue(appender.messages.stream().noneMatch(message ->
+                    message.startsWith("OpenAI stream missing finish_reason:")));
+        } finally {
+            appLoggers.removeAppender(appender.getName());
+            appender.stop();
+            client.connectionPool().evictAll();
+            client.dispatcher().executorService().shutdown();
+        }
+        assertNoResidualProviderLoggerConfig();
+    }
+
+    @Test
+    void incompleteStreamDiagnosticsDistinguishTruncatedFrameFromExactLimit() {
+        var appender = new CapturingAppender();
+        appender.start();
+        LoggerConfig appLoggers = appLoggerConfig();
+        appLoggers.addAppender(appender, null, null);
+        try {
+            // Exactly at the retention limit: the frame is complete and still parsed as-is.
+            Capture exact = runRaw(paddedFrame(16_384) + "\n\ndata: [DONE]\n\n");
+            assertFalse(exact.completed);
+            var exactDiagnostic = appender.messages.stream()
+                    .filter(message -> message.startsWith("OpenAI stream missing finish_reason:"))
+                    .toList();
+            assertEquals(1, exactDiagnostic.size());
+            assertTrue(exactDiagnostic.getFirst().contains(
+                    "lastFrame=standard:choices=1,finish=none,error=false"));
+            assertFalse(exactDiagnostic.getFirst().contains("truncated"));
+
+            appender.messages.clear();
+            // One character over the limit: retention cuts the frame and flags it explicitly.
+            Capture oversized = runRaw(paddedFrame(16_385) + "\n\ndata: [DONE]\n\n");
+            assertFalse(oversized.completed);
+            var oversizedDiagnostic = appender.messages.stream()
+                    .filter(message -> message.startsWith("OpenAI stream missing finish_reason:"))
+                    .toList();
+            assertEquals(1, oversizedDiagnostic.size());
+            assertTrue(oversizedDiagnostic.getFirst().contains("lastFrame=standard:truncated"));
+        } finally {
+            appLoggers.removeAppender(appender.getName());
+            appender.stop();
+        }
+        assertNoResidualProviderLoggerConfig();
+    }
+
+    /** Pads an otherwise valid stream frame with trailing spaces to an exact line length. */
+    private String paddedFrame(int lineLength) {
+        String json = "{\"choices\":[{\"delta\":{},\"finish_reason\":null}]}";
+        return "data: " + json + " ".repeat(lineLength - 6 - json.length());
+    }
+
+    /**
+     * P2-10: diagnostics appenders are attached to the shared {@code com.aicodeassistant}
+     * LoggerConfig. {@code LogManager.getLogger(Provider.class).addAppender(...)} must not be
+     * used — it materializes a dedicated per-class LoggerConfig (inheriting additivity=false)
+     * which survives appender removal with zero appenders and silently drops all later provider
+     * log events in the surefire JVM.
+     */
+    private static LoggerConfig appLoggerConfig() {
+        LoggerContext context = (LoggerContext) LogManager.getContext(false);
+        return context.getConfiguration().getLoggerConfig("com.aicodeassistant");
+    }
+
+    private static void assertNoResidualProviderLoggerConfig() {
+        String providerLoggerName = OpenAiCompatibleProvider.class.getName();
+        LoggerContext context = (LoggerContext) LogManager.getContext(false);
+        assertNotEquals(providerLoggerName,
+                context.getConfiguration().getLoggerConfig(providerLoggerName).getName(),
+                "appender capture must not leave a per-class LoggerConfig behind");
+    }
+
+    private static final class CapturingAppender extends AbstractAppender {
+        final List<String> messages = new ArrayList<>();
+
+        CapturingAppender() { super("stream-diagnostic-test", null, null, true, null); }
+
+        @Override public void append(LogEvent event) {
+            messages.add(event.getMessage().getFormattedMessage());
+        }
+    }
+
+    /** Minimal race-safe signal driving the provider's registered cancellation callback. */
+    private static final class TestCancellationSignal implements CancellationSignal {
+        private final List<Runnable> callbacks = new ArrayList<>();
+        private boolean cancelled;
+
+        @Override public synchronized boolean isCancelled() { return cancelled; }
+
+        @Override public synchronized Registration register(Runnable callback) {
+            if (cancelled) callback.run(); else callbacks.add(callback);
+            return () -> { synchronized (TestCancellationSignal.this) { callbacks.remove(callback); } };
+        }
+
+        synchronized void cancel() {
+            cancelled = true;
+            for (Runnable callback : new ArrayList<>(callbacks)) callback.run();
+        }
     }
 
     private void assertAccepted(

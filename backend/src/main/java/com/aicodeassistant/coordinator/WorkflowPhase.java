@@ -24,7 +24,8 @@ import java.util.Set;
  * <ul>
  *   <li>EXPLORE/VERIFICATION/PLAN 的 deniedTools = {Agent, ExitPlanMode, FileEdit, FileWrite, NotebookEdit}</li>
  *   <li>GENERAL_PURPOSE 允许所有工具 (allowedTools = {"*"})</li>
- *   <li>CoordinatorService.COORDINATOR_ALLOWED_TOOLS = {Agent, TaskStop, SendMessage, SyntheticOutput}</li>
+ *   <li>CoordinatorService.COORDINATOR_ALLOWED_TOOLS = {Agent, SyntheticOutput}
+ *       （SendMessage/TaskStop 当前对 worker 不可用，能力接线后恢复）</li>
  * </ul>
  *
  * @see CoordinatorWorkflow
@@ -82,9 +83,9 @@ public sealed interface WorkflowPhase permits
 
         @Override
         public Set<String> allowedTools() {
-            // Coordinator 层：只能派 Agent + 发消息
+            // Coordinator 层：只能派 Agent（SendMessage/TaskStop 对 worker 不可用）
             // Worker 层：自动应用 EXPLORE AgentDefinition 的 deniedTools
-            return Set.of("Agent", "SendMessage");
+            return Set.of("Agent");
         }
 
         @Override
@@ -128,7 +129,7 @@ public sealed interface WorkflowPhase permits
 
         @Override
         public Set<String> allowedTools() {
-            return Set.of("Agent", "SendMessage", "SyntheticOutput");
+            return Set.of("Agent", "SyntheticOutput");
         }
 
         @Override
@@ -171,7 +172,7 @@ public sealed interface WorkflowPhase permits
         @Override
         public Set<String> allowedTools() {
             // Worker 层使用 GENERAL_PURPOSE AgentDefinition（allowedTools = Set.of("*")）
-            return Set.of("Agent", "SendMessage", "TaskStop");
+            return Set.of("Agent");
         }
 
         @Override
@@ -215,7 +216,7 @@ public sealed interface WorkflowPhase permits
         @Override
         public Set<String> allowedTools() {
             // Worker 层使用 VERIFICATION AgentDefinition（deniedTools = FileEdit/FileWrite）
-            return Set.of("Agent", "SendMessage");
+            return Set.of("Agent");
         }
 
         @Override

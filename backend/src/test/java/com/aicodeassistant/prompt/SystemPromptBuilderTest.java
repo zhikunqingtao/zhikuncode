@@ -89,6 +89,9 @@ class SystemPromptBuilderTest {
         assertTrue(prompt.contains("# 执行任务"));
         assertTrue(prompt.contains("# 环境"));
         assertTrue(prompt.contains("gpt-4o"));
+        assertTrue(prompt.contains("超时后会尝试终止命令并返回超时信息；停止是否确认以实际结果为准，未确认时不得假定命令已停止")
+                        && !prompt.contains("超时后命令会被终止"),
+                "Bash timeout guidance must not imply confirmed termination");
     }
 
     @Test
@@ -239,9 +242,9 @@ class SystemPromptBuilderTest {
     @Test
     void testDynamicSections_SessionGuidance() {
         // Given - 使用实际的工具名称以触发 session guidance 条件分支
-        Tool agentTool = createMockTool("AgentTool");
+        Tool agentTool = createMockTool("Agent");
         Tool askTool = createMockTool("AskUserQuestion");
-        Tool skillTool = createMockTool("SkillTool");
+        Tool skillTool = createMockTool("Skill");
         List<Tool> tools = List.of(agentTool, askTool, skillTool);
 
         // When
@@ -249,9 +252,96 @@ class SystemPromptBuilderTest {
 
         // Then - session guidance 始终包含基础条目，工具匹配时包含对应指导
         assertTrue(prompt.contains("# 会话特定指导"));
-        assertTrue(prompt.contains("AgentTool"));
+        assertTrue(prompt.contains("使用 Agent 和专业代理"));
         assertTrue(prompt.contains("AskUserQuestion"));
-        assertTrue(prompt.contains("SkillTool"));
+        assertTrue(prompt.contains("Skill({skill:\"debug\", args:\"...\"})"));
+    }
+
+    @Test
+    void sessionGuidanceGatesOnRealAgentAndSkillToolNames() {
+        // 工具集含真实工具名时，会话指导生效
+        String enabled = builder.buildDefaultSystemPrompt(
+                List.of(createMockTool("Agent"), createMockTool("Skill")), "gpt-4o");
+        assertAll(
+                () -> assertTrue(enabled.contains("使用 Agent 和专业代理")),
+                () -> assertTrue(enabled.contains("subagent_type=explore")),
+                () -> assertTrue(enabled.contains("`/skill debug`")),
+                () -> assertTrue(enabled.contains("Skill({skill:\"debug\", args:\"...\"})")),
+                () -> assertTrue(enabled.contains("`/commit` 由命令系统处理")),
+                () -> assertTrue(enabled.contains("Skill({skill:\"commit\"})")));
+
+        // 工具集不含对应工具时，对应条目缺失（"! <command>" 基础条目仍在）
+        String disabled = builder.buildDefaultSystemPrompt(List.of(), "gpt-4o");
+        assertTrue(disabled.contains("# 会话特定指导"));
+        assertAll(
+                () -> assertFalse(disabled.contains("使用 Agent 和专业代理")),
+                () -> assertFalse(disabled.contains("subagent_type=explore")),
+                () -> assertFalse(disabled.contains("Skill({skill:")));
+    }
+
+    @Test
+    void assembledSessionGuidanceDoesNotUseLegacyToolNamesOrDeadReferences() {
+        // 收窄到会话指导段：断言只约束该段文本
+        String sessionGuidance = builder.buildSystemPrompt(
+                        List.of(createMockTool("Agent"), createMockTool("Skill")),
+                        "gpt-4o", tempDir, List.of(), List.of())
+                .stream()
+                .filter(section -> section.startsWith("# 会话特定指导"))
+                .findFirst()
+                .orElseThrow();
+        assertAll(
+                () -> assertFalse(sessionGuidance.contains("AgentTool")),
+                () -> assertFalse(sessionGuidance.contains("SkillTool")),
+                () -> assertFalse(sessionGuidance.contains("isForkSubagentEnabled")),
+                () -> assertFalse(sessionGuidance.contains("search_codebase")),
+                () -> assertFalse(sessionGuidance.contains("search_symbol")),
+                () -> assertFalse(sessionGuidance.contains("其用户可调用技能部分")));
+    }
+
+    @Test
+    void agentExecutionModeGuidanceMatchesRealAgentParameters() {
+        // FORK_SUBAGENT 死配置段已删除：默认配置下 prompt 不得含 fork 残留文本
+        String prompt = builder.buildDefaultSystemPrompt(
+                List.of(createMockTool("Agent")), "gpt-4o");
+        assertAll(
+                () -> assertTrue(prompt.contains("## Agent 执行模式")),
+                () -> assertTrue(prompt.contains("`run_in_background: true`")),
+                () -> assertTrue(prompt.contains("`isolation: \"worktree\"`")),
+                () -> assertTrue(prompt.contains("不包含父工作区未提交内容")),
+                () -> assertTrue(prompt.contains("原授权范围")),
+                () -> assertTrue(prompt.contains("失败或停止未确认时保留成果及恢复位置")),
+                () -> assertTrue(prompt.contains("不因目录保留而重跑任务")),
+                () -> assertFalse(prompt.contains("FORK_SUBAGENT")),
+                () -> assertFalse(prompt.contains("子代理的工作区隔离")),
+                () -> assertFalse(prompt.contains("isForkSubagentEnabled")),
+                () -> assertFalse(prompt.contains("不指定 subagent_type")),
+                () -> assertFalse(prompt.contains("**fork**")),
+                () -> assertFalse(prompt.contains("完全文件隔离的")));
+    }
+
+    @Test
+    void boundaryConditionsTemplateMatchesRealSearchAndBashContracts() {
+        String prompt = builder.buildDefaultSystemPrompt(List.of(), "gpt-4o");
+        assertAll(
+                () -> assertTrue(prompt.contains("默认结果限制为 250 条匹配")),
+                () -> assertTrue(prompt.contains("结果限制为 200 个匹配文件")),
+                () -> assertTrue(prompt.contains("使用文件过滤参数（glob/include/exclude）")),
+                () -> assertFalse(prompt.contains("1800 秒")),
+                () -> assertFalse(prompt.contains("自动转为后台")),
+                () -> assertFalse(prompt.contains("500 个字符")));
+    }
+
+    @Test
+    void toolExamplesTemplateMatchesRealReadAndGrepSchemas() {
+        String prompt = builder.buildDefaultSystemPrompt(List.of(), "gpt-4o");
+        assertAll(
+                () -> assertTrue(prompt.contains("offset: 49")),
+                () -> assertTrue(prompt.contains("limit: 51")),
+                () -> assertTrue(prompt.contains("offset 为起始行号（0 基")),
+                () -> assertFalse(prompt.contains("start_line")),
+                () -> assertFalse(prompt.contains("end_line")),
+                () -> assertFalse(prompt.contains("使用上下文行")),
+                () -> assertFalse(prompt.contains("-A、-B、-C")));
     }
 
     @Test
@@ -397,7 +487,7 @@ class SystemPromptBuilderTest {
     @Test
     void testToolListSorting() {
         // Given - 工具名称出现在条件段落中（enabledTools 集合用于条件判断）
-        Tool toolAgent = createMockTool("AgentTool");
+        Tool toolAgent = createMockTool("Agent");
         Tool toolAsk = createMockTool("AskUserQuestion");
         List<Tool> tools = List.of(toolAgent, toolAsk);
 
@@ -405,7 +495,7 @@ class SystemPromptBuilderTest {
         String prompt = builder.buildDefaultSystemPrompt(tools, "gpt-4o");
 
         // Then - enabledTools 用于 session guidance 条件分支，工具名称出现在指导文本中
-        assertTrue(prompt.contains("AgentTool"), "AgentTool should appear in session guidance");
+        assertTrue(prompt.contains("使用 Agent 和专业代理"), "Agent should appear in session guidance");
         assertTrue(prompt.contains("AskUserQuestion"), "AskUserQuestion should appear in session guidance");
     }
 

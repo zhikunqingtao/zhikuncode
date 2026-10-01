@@ -5,6 +5,7 @@ import com.aicodeassistant.service.GitService;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.Map;
 
 @Component
@@ -37,7 +38,15 @@ public class DiffCommand implements Command {
                 gitService, context);
         if (denied != null) return denied;
 
-        boolean staged = args != null && args.contains("staged");
+        String normalizedArgs = args == null ? "" : args.trim().toLowerCase(Locale.ROOT);
+        boolean staged;
+        if (normalizedArgs.isEmpty() || normalizedArgs.equals("unstaged")) {
+            staged = false;
+        } else if (normalizedArgs.equals("staged") || normalizedArgs.equals("--staged")) {
+            staged = true;
+        } else {
+            return CommandResult.error("用法：/diff [unstaged|staged|--staged]");
+        }
 
         String[] statArgs = staged
             ? new String[]{"diff", "--cached", "--stat"}
@@ -49,16 +58,31 @@ public class DiffCommand implements Command {
         String stat = gitService.execGitPublic(workDir, statArgs);
         String diff = gitService.execGitPublic(workDir, diffArgs);
 
-        if ((stat == null || stat.isBlank()) && (diff == null || diff.isBlank())) {
+        if (stat == null || diff == null) {
+            String failedParts;
+            if (stat == null && diff == null) {
+                failedParts = "stat 与正文";
+            } else if (stat == null) {
+                failedParts = "stat";
+            } else {
+                failedParts = "正文";
+            }
+            return CommandResult.error("读取 Git 差异失败（" + failedParts + "），请稍后重试。");
+        }
+
+        if (stat.isBlank() && diff.isBlank()) {
             return CommandResult.text("无差异");
         }
+
+        // 先按完整 stat 计算文件数（stat 空白/仅表头时为 0），再对 stat 做截断
+        long fileCount = Math.max(0, stat.lines().count() - 1);
 
         return CommandResult.jsx(Map.of(
             "action", "gitDiffView",
             "staged", staged,
-            "stat", stat != null ? stat : "",
+            "stat", truncate(stat, 10000),
             "diff", truncate(diff, 10000),
-            "fileCount", stat != null ? stat.lines().count() - 1 : 0
+            "fileCount", fileCount
         ));
     }
 

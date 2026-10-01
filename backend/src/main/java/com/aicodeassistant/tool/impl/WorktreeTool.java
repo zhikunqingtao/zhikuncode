@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -53,9 +52,9 @@ public class WorktreeTool implements Tool {
                 Use this tool to manage Git worktrees, enabling parallel work on multiple branches.
                 
                 Subcommands:
-                - add: Create a new worktree for an agent (auto-generates branch name and path)
-                - list: List all existing worktrees
-                - remove: Remove a worktree by path
+                - add: Create a worktree from the authorized project’s committed HEAD; parent uncommitted changes are not copied
+                - list: List worktrees of the current authorized project
+                - remove: Safely clean an inactive, registered worktree with no undelivered changes; never force-discard work. Unknown or active worktrees are rejected.
                 
                 Examples:
                 - {"subcommand": "list"}
@@ -134,76 +133,52 @@ public class WorktreeTool implements Tool {
         log.debug("WorktreeTool executing subcommand: {}", subcommand);
 
         return switch (subcommand) {
-            case "list" -> handleList();
-            case "add" -> handleAdd(input);
-            case "remove" -> handleRemove(input);
+            case "list" -> handleList(context);
+            case "add" -> handleAdd(input, context);
+            case "remove" -> handleRemove(input, context);
             default -> ToolResult.validationError("WORKTREE_SUBCOMMAND_INVALID", "Unknown subcommand: " + subcommand);
         };
     }
 
     // ==================== 子命令处理 ====================
 
-    /**
-     * 列出所有 Git worktree — 直接执行 git worktree list。
-     */
-    private ToolResult handleList() {
+    private ToolResult handleList(ToolUseContext context) {
         try {
-            ProcessBuilder pb = new ProcessBuilder("git", "worktree", "list");
-            pb.redirectErrorStream(true);
-            Process p = pb.start();
-            String output = new String(p.getInputStream().readAllBytes());
-            int exitCode = p.waitFor();
+            return ToolResult.success(worktreeManager.listWorktrees(context));
+        } catch (RuntimeException failure) {
+            return ToolResult.failed(ToolResult.ToolFailureType.PROCESS, "WORKTREE_LIST_FAILED",
+                    "Worktrees could not be listed: " + failure.getMessage(), ToolResult.Retryability.NEVER,
+                    ToolResult.EffectState.NONE, null, Map.of());
+        }
+    }
 
-            if (exitCode != 0) {
-                log.warn("git worktree list failed (exit {}): {}", exitCode, output);
-                return ToolResult.failed(ToolResult.ToolFailureType.PROCESS, "WORKTREE_LIST_EXIT_NONZERO",
-                        "Failed to list worktrees: " + output.trim(), ToolResult.Retryability.NEVER,
-                        ToolResult.EffectState.NONE, exitCode, Map.of());
+    private ToolResult handleAdd(ToolInput input, ToolUseContext context) {
+        try {
+            var tree = worktreeManager.createWorktree(input.getString("agent_id"), context, true);
+            return ToolResult.successWithEffect("Worktree created.\nPath: " + tree.path()
+                    + "\nExecution directory: " + tree.workingDirectory()
+                    + "\nBranch: " + tree.branch() + "\n" + tree.warning(), ToolResult.EffectState.APPLIED);
+        } catch (RuntimeException failure) {
+            // Creation can leave a real branch/directory; the manager includes recovery details.
+            return ToolResult.failed(ToolResult.ToolFailureType.PROCESS, "WORKTREE_CREATE_FAILED",
+                    failure.getMessage(), ToolResult.Retryability.NEVER,
+                    ToolResult.EffectState.UNKNOWN, null, Map.of());
+        }
+    }
+
+    private ToolResult handleRemove(ToolInput input, ToolUseContext context) {
+        try {
+            var outcome = worktreeManager.removeWorktree(Path.of(input.getString("path")), context);
+            if (!outcome.success() || (outcome.cleanupWarning() != null && !outcome.cleanupWarning().isBlank())) {
+                return ToolResult.failed(ToolResult.ToolFailureType.PROCESS, "WORKTREE_REMOVE_INCOMPLETE",
+                        outcome.summary(), ToolResult.Retryability.NEVER,
+                        ToolResult.EffectState.UNKNOWN, null, Map.of());
             }
-
-            int activeCount = worktreeManager.getActiveCount();
-            String result = "Git Worktrees:\n" + output.trim()
-                    + "\n\nManaged active worktrees: " + activeCount;
-            log.debug("Listed worktrees, managed count: {}", activeCount);
-            return ToolResult.success(result);
-        } catch (IOException | InterruptedException e) {
-            log.error("Failed to execute git worktree list", e);
-            return ToolResult.internalError("WORKTREE_LIST_FAILED", "Failed to list worktrees: " + e.getMessage(), ToolResult.EffectState.NONE);
-        }
-    }
-
-    /**
-     * 创建新的 worktree — 委托给 WorktreeManager。
-     * 自动生成分支名和路径。
-     */
-    private ToolResult handleAdd(ToolInput input) {
-        String agentId = input.getString("agent_id");
-        try {
-            Path worktreePath = worktreeManager.createWorktree(agentId);
-            String result = "Worktree created successfully.\n"
-                    + "Path: " + worktreePath + "\n"
-                    + "Agent: " + agentId;
-            log.info("Created worktree for agent '{}' at {}", agentId, worktreePath);
-            return ToolResult.success(result);
-        } catch (RuntimeException e) {
-            log.error("Failed to create worktree for agent '{}'", agentId, e);
-            return ToolResult.internalError("WORKTREE_CREATE_FAILED", "Failed to create worktree: " + e.getMessage(), ToolResult.EffectState.UNKNOWN);
-        }
-    }
-
-    /**
-     * 移除 worktree — 委托给 WorktreeManager。
-     */
-    private ToolResult handleRemove(ToolInput input) {
-        String pathStr = input.getString("path");
-        Path worktreePath = Path.of(pathStr);
-        try {
-            worktreeManager.removeWorktree(worktreePath);
-            log.info("Removed worktree at {}", worktreePath);
-            return ToolResult.success("Worktree removed successfully: " + worktreePath);
-        } catch (RuntimeException e) {
-            log.error("Failed to remove worktree at {}", worktreePath, e);
-            return ToolResult.internalError("WORKTREE_REMOVE_FAILED", "Failed to remove worktree: " + e.getMessage(), ToolResult.EffectState.UNKNOWN);
+            return ToolResult.successWithEffect(outcome.summary(), ToolResult.EffectState.APPLIED);
+        } catch (RuntimeException failure) {
+            return ToolResult.failed(ToolResult.ToolFailureType.PROCESS, "WORKTREE_REMOVE_FAILED",
+                    "Worktree cleanup was not confirmed: " + failure.getMessage(), ToolResult.Retryability.NEVER,
+                    ToolResult.EffectState.UNKNOWN, null, Map.of());
         }
     }
 }

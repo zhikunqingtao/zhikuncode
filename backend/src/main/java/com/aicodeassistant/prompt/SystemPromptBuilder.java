@@ -676,26 +676,19 @@ public class SystemPromptBuilder {
                - 跨代码库不同部分的并行研究
                - 不相关更改的独立实现
                - 由单独代理以新视角进行验证
-             - 选择正确的代理类型：Explore 用于只读搜索，Plan 用于架构，\
-            Verification 用于测试，GeneralPurpose 用于实现
+             - 选择正确的代理类型（`subagent_type`）：`explore` 用于只读搜索，\
+            `plan` 用于架构，`verification` 用于测试，`general-purpose` 用于实现，\
+            `guide` 用于使用指南与文档查询
                 
-            ## Fork 与 Spawn 工作流
-            Agent 工具支持两种执行模式，通过 `isForkSubagentEnabled` 功能标志控制：
-                
-            **Fork 模式**（启用时）：
-            调用 Agent 不指定 subagent_type 会创建一个 **fork** ——一个后台执行，\
-            其工具输出不会进入你的上下文，因此你可以在它工作时继续与用户对话。\
-            Fork 模式适合研究或多步骤实现工作，否则这些工作会用不再需要的原始输出填满你的上下文。
-            关键特征：
-               - 在后台执行
-               - 保持主上下文清洁（工具结果仅保留在 fork 的上下文中）
-               - 继承 KV 缓存以提高效率
-               - 如果你就是 fork ——直接执行；不要重新委派
-                
-            **Spawn 模式**（默认/fork 禁用时）：
-            创建具有专业类型的传统子代理。子代理对于并行化独立查询或保护\
-            主上下文窗口免受过多结果影响很有价值。不需要时不要过度使用。\
-            避免重复子代理已经在做的工作。
+            ## Agent 执行模式
+            调用 Agent 时，根据任务和 schema 选择 subagent_type；需要后台执行时，显式传入\
+            `run_in_background: true`——代理在后台运行，结果默认会在完成后以独立消息送达\
+            （可被环境配置关闭），你可以在它工作时继续与用户对话；需要独立工作区时，显式传入\
+            `isolation: "worktree"`——代理以项目当前已提交的 HEAD 快照在临时 git worktree 中运行，\
+            不包含父工作区未提交内容，文件访问仍遵守原授权范围。仅正常完成且停止、目标状态均确认安全时自动合回；\
+            失败或停止未确认时保留成果及恢复位置。先检查返回的交付和清理事实，不因目录保留而重跑任务。\
+            子代理对于并行化独立查询或保护主上下文窗口免受过多结果影响很有价值；\
+            不需要时不要过度使用，避免重复子代理已经在做的工作。
             """;
 
     // ── USING_TOOLS 条件子段落 ──
@@ -729,18 +722,6 @@ public class SystemPromptBuilder {
             技能——改为使用手动工具操作。
             """;
 
-    private static final String FORK_SUBAGENT_GUIDANCE = """
-                
-            ## 子代理的 Fork 与 Spawn
-            当 fork 模式启用时，对于需要隔离工作目录的任务（例如实验性更改、\
-            并行探索），优先使用 fork 子代理。Fork 创建一个具有完全文件隔离的\
-            Git worktree，并将其工具输出保留在你的上下文之外，因此你可以在它工作时\
-            继续与用户对话。
-                
-            对于在当前工作目录中操作的轻量级任务（如运行测试或读取文件），\
-            使用 spawn（默认）。如果你就是 fork——直接执行；不要重新委派。
-            """;
-
     /**
      * 构建工具使用指导段落，根据启用的工具集和特性标记条件拼接
      */
@@ -765,11 +746,6 @@ public class SystemPromptBuilder {
         // Skill Discovery
         if (featureFlags.isEnabled("SKILL_DISCOVERY") && enabledTools.contains("DiscoverSkills")) {
             sb.append(SKILL_DISCOVERY_GUIDANCE);
-        }
-
-        // Fork Subagent 动态判断
-        if (featureFlags.isEnabled("FORK_SUBAGENT")) {
-            sb.append(FORK_SUBAGENT_GUIDANCE);
         }
 
         return sb.toString();
@@ -990,18 +966,20 @@ public class SystemPromptBuilder {
         items.add("如果你需要用户自己运行一个 shell 命令" +
                   "（例如交互式登录如 `gcloud auth login`），建议他们" +
                   "在提示符中输入 `! <command>`。");
-        if (enabledTools.contains("AgentTool")) {
-            items.add("当任务与代理描述匹配时，使用 AgentTool 和专业代理。" +
+        if (enabledTools.contains("Agent")) {
+            items.add("当任务与代理描述匹配时，使用 Agent 和专业代理。" +
                       "子代理对于并行化独立查询或保护主上下文窗口" +
                       "免受过多结果影响很有价值，但不应过度使用。");
             items.add("对于简单、直接的代码库搜索，直接使用 Glob 或 Grep。" +
-                      "对于更广泛的代码库探索和深度研究，使用 AgentTool" +
+                      "对于更广泛的代码库探索和深度研究，使用 Agent" +
                       " subagent_type=explore。");
         }
-        if (enabledTools.contains("SkillTool")) {
-            items.add("/<skill-name>（例如 /commit）是用户调用技能的简写。" +
-                      "使用 SkillTool 执行它们。重要：只对" +
-                      "其用户可调用技能部分中列出的技能使用 SkillTool。");
+        if (enabledTools.contains("Skill")) {
+            items.add("用户可以用 `/skill <名称>`（例如 `/skill debug`）调用技能；" +
+                      "收到技能调用或任务与技能匹配时，使用 Skill 工具执行技能内容" +
+                      "（例如 `Skill({skill:\"debug\", args:\"...\"})`）。注意：部分名称" +
+                      "同时存在内置命令与同名技能（如 `commit`、`review`）——" +
+                      "`/commit` 由命令系统处理；技能内容通过 `Skill({skill:\"commit\"})` 调用。");
         }
 
         if (items.isEmpty()) return null;

@@ -93,7 +93,11 @@ public class AgentTool implements Tool {
                 - If the user specifies that they want you to run agents "in parallel", you MUST \
                 send a single message with multiple Agent tool use content blocks.
                 - You can optionally set `isolation: "worktree"` to run the agent in a temporary \
-                git worktree, giving it an isolated copy of the repository.
+                git worktree based on the committed HEAD snapshot; parent uncommitted changes are \
+                not copied. Successful work is automatically merged back only after safe delivery \
+                checks; failed or uncertain work is retained with recovery locations in the result. \
+                Git hook descendants may finish naturally after the foreground command exits; \
+                cleanup waits for confirmed termination. Existing permissions still apply.
                 
                 ## Writing the prompt
                 
@@ -203,7 +207,7 @@ public class AgentTool implements Tool {
                                     ? result.result()
                                     : "Sub-agent completed without response.");
                     case SubAgentExecutor.AgentResult.STATUS_TIMEOUT ->
-                            ToolResult.timedOut("SUBAGENT_DEADLINE_EXCEEDED", result.result(), null, true, ToolResult.EffectState.UNKNOWN);
+                            ToolResult.timedOut("SUBAGENT_DEADLINE_EXCEEDED", result.result(), null, false, ToolResult.EffectState.UNKNOWN);
                     case SubAgentExecutor.AgentResult.STATUS_INTERRUPTED ->
                             ToolResult.cancelled("SUBAGENT_INTERRUPTED",
                                     result.result() != null ? result.result() : "Sub-agent was interrupted.",

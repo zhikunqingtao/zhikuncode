@@ -34,6 +34,17 @@ public class QueryLoopState {
     public String getHandoffOperationId() { return handoffOperationId; }
     public void setHandoffOperationId(String id) { handoffOperationId = id; }
 
+    /** Engine-only evidence; absence never proves that execution did not start. */
+    public record RunStartupFailure(String sessionId) { }
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private transient RunStartupFailure runStartupFailure;
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public RunStartupFailure getRunStartupFailure() { return runStartupFailure; }
+    void resetRunStartupFailure() { runStartupFailure = null; }
+    void recordFailureBeforeRunRegistration(String sessionId) {
+        runStartupFailure = new RunStartupFailure(sessionId);
+    }
+
     private CompactionContext compactionContext;
     public CompactionContext getCompactionContext() { return compactionContext; }
     public void setCompactionContext(CompactionContext context) { compactionContext = context; }

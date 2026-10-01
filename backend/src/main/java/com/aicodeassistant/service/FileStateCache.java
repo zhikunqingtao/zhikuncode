@@ -62,6 +62,12 @@ public class FileStateCache {
         }
     }
 
+    /** Revoke existing read evidence, including for callers holding this cache instance. */
+    public synchronized void invalidateAll() {
+        cache.clear();
+        totalSizeBytes = 0;
+    }
+
     public synchronized boolean hasBeenRead(String path) {
         return cache.containsKey(Path.of(path).normalize().toString());
     }

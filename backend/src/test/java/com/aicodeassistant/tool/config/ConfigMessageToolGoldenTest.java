@@ -42,13 +42,14 @@ class ConfigMessageToolGoldenTest {
         }
 
         @Test
-        @DisplayName("1.2 list 操作 — 列出所有配置")
+        @DisplayName("1.2 list 操作 — 列出工具存储值，不声明为已应用配置")
         void listSettings() {
             ToolResult result = tool.call(
                     ToolInput.from(Map.of("action", "list")),
                     ToolUseContext.of("/tmp", "s1"));
             assertFalse(result.isError());
-            assertTrue(result.content().contains("Available settings"));
+            assertTrue(result.content().contains("Stored values"));
+            assertTrue(result.content().contains("runtime store only; not applied to other components"));
             assertTrue(result.content().contains("theme"));
             assertTrue(result.content().contains("model"));
         }
@@ -61,6 +62,7 @@ class ConfigMessageToolGoldenTest {
                     ToolUseContext.of("/tmp", "s1"));
             assertFalse(result.isError());
             assertTrue(result.content().contains("system"));
+            assertTrue(result.content().contains("runtime store only; not applied to other components"));
         }
 
         @Test
@@ -81,6 +83,7 @@ class ConfigMessageToolGoldenTest {
                     ToolUseContext.of("/tmp", "s1"));
             assertFalse(result.isError());
             assertTrue(result.content().contains("updated"));
+            assertTrue(result.content().contains("runtime store only; not applied to other components"));
             assertEquals("dark", tool.getValue("theme"));
         }
 
@@ -108,6 +111,7 @@ class ConfigMessageToolGoldenTest {
                     ToolUseContext.of("/tmp", "s1"));
             assertFalse(result.isError());
             assertTrue(result.content().contains("reset to default"));
+            assertTrue(result.content().contains("runtime store only; not applied to other components"));
             assertEquals("system", tool.getValue("theme"));
         }
 
@@ -143,6 +147,23 @@ class ConfigMessageToolGoldenTest {
             assertTrue(tool.isConcurrencySafe(ToolInput.from(Map.of("action", "get"))));
             assertTrue(tool.isConcurrencySafe(ToolInput.from(Map.of("action", "list"))));
             assertFalse(tool.isConcurrencySafe(ToolInput.from(Map.of("action", "set"))));
+        }
+
+        @Test
+        @DisplayName("1.12 提示的用途、键列表和示例均限定为工具存储")
+        void promptDoesNotPromiseActiveApplicationSettings() {
+            String prompt = tool.prompt();
+
+            assertTrue(tool.getDescription().contains("values are not applied to application settings"));
+            assertTrue(prompt.contains("not the application's active settings"));
+            assertTrue(prompt.contains("Stored keys (none apply changes to other components)"));
+            assertTrue(prompt.contains("does not switch the session model"));
+            assertTrue(prompt.contains("without changing the UI theme"));
+            assertTrue(prompt.contains("without changing the UI language"));
+            assertFalse(prompt.contains("Override the default model"));
+            assertFalse(prompt.contains("Enable auto-compaction"));
+            assertFalse(prompt.contains("Enable verbose logging"));
+            assertFalse(prompt.contains("when adjusting a setting would benefit them"));
         }
     }
 

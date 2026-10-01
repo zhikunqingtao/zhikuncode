@@ -37,8 +37,10 @@ Read 读取文件内容，支持可选的行范围选择。
   Tool: Read
   Parameters:
     file_path: "/src/components/App.tsx"
-    start_line: 50
-    end_line: 100
+    offset: 49
+    limit: 51
+
+说明：offset 为起始行号（0 基，此处从第 50 行开始），limit 为读取行数（此处读取第 50–100 行）。
 
 **最佳实践：**
 - 对小文件（<500 行），读取整个文件以理解完整上下文
@@ -117,7 +119,7 @@ Grep 使用正则表达式搜索文件内容，底层由 ripgrep 驱动。
     pattern: "getUserById"
     path: "/src"
 
-**带上下文的正则搜索：**
+**带文件过滤的正则搜索：**
   Tool: Grep
   Parameters:
     pattern: "class\\s+\\w+Service"
@@ -132,7 +134,8 @@ Grep 使用正则表达式搜索文件内容，底层由 ripgrep 驱动。
 
 **最佳实践：**
 - 使用文件类型过滤器（include/exclude）缩小搜索范围
-- 使用上下文行（-A、-B、-C）查看周围代码
+- 通过 schema 声明的参数控制搜索：pattern（正则）、path（搜索路径）、glob/include/exclude（文件过滤）、output_mode（输出模式）、-i（忽略大小写）
+- 上下文行：content 模式下 -C/-B/-A 可额外输出匹配周围的行（两侧/之前/之后）
 - 对精确字符串匹配，转义正则特殊字符：. * + ? [ ] ( ) { } ^ $ |
 - 从较宽泛的搜索开始，如果结果过多再缩小范围
 - 将 Grep 与 Read 结合使用：先搜索找到文件，再读取获取完整上下文
