@@ -73,13 +73,16 @@ RUN cd backend && ./mvnw package -DskipTests -B \
 # Official GitHub MCP binary, pinned to a release tag.
 FROM ghcr.io/github/github-mcp-server:v1.11.0 AS github-mcp
 
-# Pinned Meoo CLI and glibc Node runtime (not the Alpine frontend build).
+# Pinned Meoo CLI + Fliggy flyai CLI and glibc Node runtime (not the Alpine frontend build).
 FROM node:22.14.0-bookworm-slim AS meoo-cli
 ARG NPM_REGISTRY=https://registry.npmjs.org/
 RUN case "${NPM_REGISTRY}" in https://*) ;; \
         *) echo "NPM_REGISTRY must use HTTPS" >&2; exit 2 ;; \
     esac && \
     npm install --global @aliyun-meoo/cli@0.5.4 --ignore-scripts --no-audit --no-fund \
+        --registry="${NPM_REGISTRY}" \
+        --replace-registry-host=always && \
+    npm install --global @fly-ai/flyai-cli@1.0.16 --ignore-scripts --no-audit --no-fund \
         --registry="${NPM_REGISTRY}" \
         --replace-registry-host=always
 
@@ -154,11 +157,13 @@ WORKDIR /app
 
 COPY --from=meoo-cli /usr/local/bin/node /usr/local/bin/node
 COPY --from=meoo-cli /usr/local/lib/node_modules/@aliyun-meoo /usr/local/lib/node_modules/@aliyun-meoo
+COPY --from=meoo-cli /usr/local/lib/node_modules/@fly-ai /usr/local/lib/node_modules/@fly-ai
 COPY --from=meoo-cli /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/npm
 RUN ln -s /usr/local/lib/node_modules/@aliyun-meoo/cli/bin/meoo.js /usr/local/bin/meoo \
+    && ln -s /usr/local/lib/node_modules/@fly-ai/flyai-cli/dist/flyai-bundle.cjs /usr/local/bin/flyai \
     && ln -sf /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
     && ln -sf /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx \
-    && node --version && meoo --version && npm --version
+    && node --version && meoo --version && npm --version && flyai --help > /dev/null
 
 # Keep dependency layers independent of application source changes.
 COPY python-service/requirements.lock ./python-service/
