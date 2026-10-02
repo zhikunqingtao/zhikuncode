@@ -11,13 +11,11 @@ import java.util.Optional;
  * TaskOutputTool — 子任务向父任务报告输出结果。
  * <p>
  * 仅在子任务上下文中可用（{@code context.currentTaskId()} 非空）。
- * 输出大小限制 1MB，超过时截断。
+ * 输出大小限制 1048576 characters，超过时截断。
  *
  */
 @Component
 public class TaskOutputTool implements Tool {
-
-    private static final int MAX_OUTPUT_SIZE = 1024 * 1024; // 1MB
 
     private final TaskCoordinator taskCoordinator;
 
@@ -47,8 +45,10 @@ public class TaskOutputTool implements Tool {
                 - isError (optional): Whether this output represents an error (default: false)
                 
                 Notes:
-                - Maximum output size is 1MB; content exceeding this limit will be truncated
+                - Maximum output size is 1048576 characters; content exceeding this limit will be truncated
                 - The output is written to the parent task's result buffer
+                - After execution ends, only display output is replaced; final status and error are preserved,
+                  including when isError is true.
                 """;
     }
 
@@ -90,21 +90,16 @@ public class TaskOutputTool implements Tool {
         String output = input.getString("output");
         boolean isError = input.getBoolean("isError", false);
 
-        // 2. 输出大小限制 (1MB)
-        if (output.length() > MAX_OUTPUT_SIZE) {
-            output = output.substring(0, MAX_OUTPUT_SIZE)
-                    + "\n[Output truncated at 1MB limit]";
-        }
-
-        // 3. 写入父任务的结果缓冲区
-        Optional<TaskState> taskOpt = taskCoordinator.getTask(currentTaskId);
-        if (taskOpt.isEmpty()) {
+        Optional<TaskState.Snapshot> updated = taskCoordinator.updateOutput(currentTaskId,
+                context.sessionId(), output, isError);
+        if (updated.isEmpty()) {
             return ToolResult.validationError("TASK_NOT_FOUND", "Task not found: " + currentTaskId);
         }
-        TaskState task = taskOpt.get();
-        task.setOutput(output);
-        if (isError) {
-            task.setError(output);
+        output = updated.get().output();
+
+        if (updated.get().status().isTerminal()) {
+            return ToolResult.success("Display output updated. Final execution status and error were preserved. "
+                    + "Length: " + output.length() + " chars.");
         }
 
         // 4. 返回确认

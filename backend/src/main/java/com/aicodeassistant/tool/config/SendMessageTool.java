@@ -74,7 +74,8 @@ public class SendMessageTool implements Tool {
 
                 Approving shutdown terminates your process. Rejecting plan sends the teammate back to revise. \
                 Don't originate `shutdown_request` unless asked. Don't send structured JSON status messages — \
-                use TaskUpdate.
+                use TaskUpdate only to update stored output. TaskCoordinator manages execution status; \
+                use TaskStop to request cancellation.
                 """;
     }
 

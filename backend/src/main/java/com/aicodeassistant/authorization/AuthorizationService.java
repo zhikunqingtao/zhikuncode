@@ -308,6 +308,12 @@ public final class AuthorizationService {
 
     /** 必须在调用方持有的项目库有界事务内执行。 */
     public void finalGrantRecheckInCurrentTransaction(AuthorizedOperation authorized, ToolUseContext context) {
+        try {
+            runs.requireToolAdmissionInCurrentWrite(context.currentRunId());
+        } catch (RunControlService.ToolAdmissionClosedException closed) {
+            throw new AuthorizationException("RUN_TOOL_ADMISSION_CLOSED",
+                    "The Run no longer accepts tool execution", closed);
+        }
         if (authorized.grantId() != null) {
             PermissionGrantRepository.Match current = grants.findMatch(authorized.subject(), authorized.descriptor());
             if (current == null || !authorized.grantId().equals(current.grantId())) {

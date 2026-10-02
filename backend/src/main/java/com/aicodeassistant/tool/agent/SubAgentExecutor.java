@@ -80,6 +80,7 @@ public class SubAgentExecutor {
     private RunExecutionRegistry worktreeRuns;
     private ManagedProcessRunner worktreeProcesses;
     private final Map<String, WorktreeExecution> worktreeExecutions = new ConcurrentHashMap<>();
+    private final Set<String> taskExecutions = ConcurrentHashMap.newKeySet();
 
     @Autowired
     void setWorktreeLifecycleSupport(RunExecutionRegistry runs, ManagedProcessRunner processes) {
@@ -178,12 +179,67 @@ public class SubAgentExecutor {
         }
     }
 
+    /** Task-owned execution does not return until its child worker and Run have stopped. */
+    public AgentResult executeTaskSync(AgentRequest request, ToolUseContext parentContext) {
+        if (request.isolation() != IsolationMode.NONE || request.fork()
+                || (request.teamName() != null && !request.teamName().isBlank())) {
+            throw new IllegalArgumentException("Task execution requires a non-forked NONE agent without a team");
+        }
+        if (worktreeRuns == null || worktreeProcesses == null) {
+            throw new IllegalStateException("Task lifecycle supervision is unavailable");
+        }
+        String childSessionId = "subagent-" + request.agentId();
+        if (childSessionId.equals(parentContext.sessionId())) {
+            throw new IllegalArgumentException("Task child identity must differ from its parent");
+        }
+        if (!taskExecutions.add(childSessionId)) {
+            throw new IllegalStateException("Task agent identity is already executing");
+        }
+        try (var lease = sessionManager.acquireBackgroundLease(parentContext.sessionId())) {
+            if (worktreeRuns.activeRunForSession(childSessionId).isPresent()
+                    || queryEngine.getAbortContext(childSessionId) != null
+                    || !worktreeProcesses.currentSessionBackground(childSessionId).allTerminated()) {
+                throw new IllegalStateException("Task child execution identity is already in use");
+            }
+            return executeSyncLeased(request, parentContext, true);
+        } finally {
+            taskExecutions.remove(childSessionId);
+        }
+    }
+
+    /**
+     * Completes a cancellation accepted after executeTaskSync returned but before the
+     * Task coordinator committed completion. Call only after that invocation returned
+     * normally; a rejected/unowned agent identity is never a cleanup authority.
+     */
+    public void finishTaskCancellation(AgentRequest request, ToolUseContext parentContext) {
+        String child = "subagent-" + request.agentId();
+        if (child.equals(parentContext.sessionId()) || request.isolation() != IsolationMode.NONE
+                || request.fork() || (request.teamName() != null && !request.teamName().isBlank())) {
+            throw new IllegalArgumentException("Invalid task cancellation ownership");
+        }
+        boolean interrupted = Thread.interrupted();
+        AtomicBoolean identityLost = new AtomicBoolean();
+        try {
+            while (!stopTaskBackground(child, null, null, identityLost)) {
+                try { Thread.sleep(250); }
+                catch (InterruptedException stop) { interrupted = true; }
+            }
+        } finally {
+            if (interrupted) Thread.currentThread().interrupt();
+        }
+    }
+
     private AgentResult executeSyncLeased(AgentRequest request, ToolUseContext parentContext) {
+        return executeSyncLeased(request, parentContext, false);
+    }
+
+    private AgentResult executeSyncLeased(AgentRequest request, ToolUseContext parentContext, boolean taskManaged) {
         long startedNanos = System.nanoTime();
         String parentRunId = parentContext == null ? null : parentContext.currentRunId();
         recordSubAgentEvent(parentRunId, "subagent_started", request, null, 0L, null);
         try {
-            AgentResult result = executeSyncInternal(request, parentContext);
+            AgentResult result = executeSyncInternal(request, parentContext, taskManaged);
             String eventType = AgentResult.STATUS_COMPLETED.equals(result.status())
                     ? "subagent_completed"
                     : AgentResult.STATUS_TIMEOUT.equals(result.status())
@@ -198,7 +254,7 @@ public class SubAgentExecutor {
         }
     }
 
-    private AgentResult executeSyncInternal(AgentRequest request, ToolUseContext parentContext) {
+    private AgentResult executeSyncInternal(AgentRequest request, ToolUseContext parentContext, boolean taskManaged) {
         // ★ Team 路由: 如果指定了 teamName，分发到 TeamManager
         if (request.teamName() != null && !request.teamName().isBlank()) {
             log.info("Routing agent request to team: {}", request.teamName());
@@ -287,6 +343,14 @@ public class SubAgentExecutor {
             log.info("Sub-agent {} starting with timeout {}s (type={})",
                     request.agentId(), timeout.toSeconds(), request.agentType());
 
+            if (taskManaged) {
+                try {
+                    return executeManagedTask(request, parentContext, config, state, handler, timeout, startTime);
+                } finally {
+                    cleanupOrdinarySession(childSessionId, parentCache, request.agentId());
+                }
+            }
+
             CompletableFuture<QueryEngine.QueryResult> future = executeLeased(config, state, handler, parentContext.sessionId());
 
             QueryEngine.QueryResult result;
@@ -363,21 +427,7 @@ public class SubAgentExecutor {
             } catch (InterruptedException e) {
                 return new AgentResult(classifyAgentStatus(null, e), "Agent interrupted", request.prompt(), null);
             } finally {
-                // ★ 修复6: 统一资源清理 — 所有退出路径都经过这里
-                // FileStateCache 清理与合并
-                try {
-                    FileStateCache childFinalCache = sessionManager.getFileStateCache(childSessionId);
-                    if (childFinalCache != null) {
-                        parentCache.merge(childFinalCache);
-                    }
-                    sessionManager.removeFileStateCache(childSessionId);
-                } catch (Exception cleanupEx) {
-                    log.warn("FileStateCache cleanup failed for agent {}: {}",
-                            request.agentId(), cleanupEx.getMessage());
-                }
-
-                // ★ 关闭虚拟会话（标记 status='closed'）
-                sessionManager.closeSubAgentSession(childSessionId);
+                cleanupOrdinarySession(childSessionId, parentCache, request.agentId());
             }
 
             // 9. 截取结果
@@ -400,6 +450,207 @@ public class SubAgentExecutor {
             return new AgentResult(classifyAgentStatus(null, e),
                     "Agent execution failed: " + e.getMessage(),
                     request.prompt(), null);
+        }
+    }
+
+    private void cleanupOrdinarySession(String childSessionId, FileStateCache parentCache, String agentId) {
+        try {
+            FileStateCache childFinalCache = sessionManager.getFileStateCache(childSessionId);
+            if (childFinalCache != null) parentCache.merge(childFinalCache);
+            sessionManager.removeFileStateCache(childSessionId);
+        } catch (Exception cleanupEx) {
+            log.warn("FileStateCache cleanup failed for agent {}: {}", agentId, cleanupEx.getMessage());
+        }
+        sessionManager.closeSubAgentSession(childSessionId);
+    }
+
+    private AgentResult executeManagedTask(AgentRequest request, ToolUseContext parent,
+            QueryConfig config, QueryLoopState state, QueryMessageHandler handler,
+            Duration timeout, Instant started) {
+        String child = state.getToolUseContext().sessionId();
+        // Retain this exact cancellation authority across the pre-registration window.
+        AbortContext abort = queryEngine.getOrCreateAbortContext(child);
+        CompletableFuture<WorkerExit> finished = new CompletableFuture<>();
+        boolean interrupted = Thread.interrupted();
+        AbortReason cancellation = interrupted ? AbortReason.USER_INTERRUPT : null;
+        AtomicBoolean identityLost = new AtomicBoolean();
+        try {
+            if (interrupted) {
+                return new AgentResult(AgentResult.STATUS_INTERRUPTED,
+                        "Agent cancelled before execution", request.prompt(), null);
+            }
+            var workerLease = sessionManager.acquireBackgroundLease(parent.sessionId());
+            try {
+                AGENT_EXECUTOR.execute(() -> {
+                    QueryEngine.QueryResult result = null;
+                    Throwable failure = null;
+                    try (workerLease) {
+                        result = queryEngine.execute(config, state, handler);
+                    } catch (Throwable thrown) {
+                        failure = thrown;
+                    } finally {
+                        ToolUseContext actual = state.getToolUseContext();
+                        String run = actual == null ? null : actual.currentRunId();
+                        String childRun = actual != null && child.equals(actual.sessionId())
+                                && run != null && !run.equals(parent.currentRunId()) ? run : null;
+                        finished.complete(new WorkerExit(result, failure, childRun, true,
+                                state.getRunStartupFailure()));
+                    }
+                });
+            } catch (RuntimeException | Error rejected) {
+                if (workerLease != null) workerLease.close();
+                throw rejected;
+            }
+            long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(
+                    timeout.toMillis() + parent.permissionWaitMs());
+            while (!finished.isDone()) {
+                try {
+                    long remaining = deadline - System.nanoTime();
+                    if (cancellation == null && remaining <= 0) {
+                        cancellation = AbortReason.TIMEOUT;
+                    }
+                    if (cancellation != null) requestTaskCancellation(child, abort, cancellation, identityLost);
+                    finished.get(cancellation == null ? Math.max(1, remaining)
+                            : TimeUnit.MILLISECONDS.toNanos(250), TimeUnit.NANOSECONDS);
+                } catch (TimeoutException waiting) {
+                    // The worker still owns its resources. A cancelled Future is not exit evidence.
+                } catch (InterruptedException stop) {
+                    interrupted = true;
+                    if (cancellation == null) cancellation = AbortReason.USER_INTERRUPT;
+                    requestTaskCancellation(child, abort, cancellation, identityLost);
+                } catch (ExecutionException impossible) {
+                    throw new IllegalStateException("Task worker exit signal failed", impossible);
+                }
+            }
+            WorkerExit exit = finished.join();
+            while (!taskRunIsQuiescent(exit, state, child, parent.currentRunId(), identityLost)) {
+                if (cancellation != null && exit.childRunId() != null) {
+                    requestTaskCancellation(child, abort, cancellation, identityLost);
+                }
+                try {
+                    Thread.sleep(250);
+                } catch (InterruptedException stop) {
+                    interrupted = true;
+                    if (cancellation == null) cancellation = AbortReason.USER_INTERRUPT;
+                    if (exit.childRunId() != null) {
+                        requestTaskCancellation(child, abort, cancellation, identityLost);
+                    }
+                }
+            }
+            // A final interrupt can arrive after worker exit but before this scope settles.
+            if (Thread.interrupted()) {
+                interrupted = true;
+                if (cancellation == null) cancellation = AbortReason.USER_INTERRUPT;
+            }
+            String actualStatus = classifyAgentStatus(exit.result(), exit.failure());
+            if (cancellation != null || AgentResult.STATUS_INTERRUPTED.equals(actualStatus)
+                    || AgentResult.STATUS_TIMEOUT.equals(actualStatus)) {
+                // Run admission is already closed and quiet: no later ownership transfer can escape this scan.
+                while (!stopTaskBackground(child, exit.childRunId(), abort, identityLost)) {
+                    try { Thread.sleep(250); }
+                    catch (InterruptedException stop) { interrupted = true; }
+                }
+            }
+            String answer = exit.failure() == null ? extractFinalAnswer(exit.result(), state)
+                    : "Agent execution failed: " + exit.failure().getMessage();
+            if (answer.length() > MAX_RESULT_SIZE_CHARS) {
+                answer = answer.substring(0, MAX_RESULT_SIZE_CHARS) + "\n...[truncated]";
+            }
+            if (cancellation != null) {
+                String status = cancellation == AbortReason.TIMEOUT
+                        ? AgentResult.STATUS_TIMEOUT : AgentResult.STATUS_INTERRUPTED;
+                return new AgentResult(status, "Agent " + status + "\n" + answer, request.prompt(), null);
+            }
+            if (exit.failure() != null) {
+                return new AgentResult(actualStatus, answer, request.prompt(), null);
+            }
+            return buildFinalResult(exit.result(), answer, request, taskNotificationFormatter,
+                    coordinatorService.isCoordinatorMode(), Duration.between(started, Instant.now()).toMillis());
+        } finally {
+            queryEngine.removeAbortContext(child);
+            if (interrupted) Thread.currentThread().interrupt();
+        }
+    }
+
+    private void requestTaskCancellation(String child, AbortContext owned, AbortReason reason,
+                                         AtomicBoolean identityLost) {
+        try {
+            if (!ownsTaskCancellation(child, null, owned, identityLost)) return;
+            owned.abort(reason);
+            // The retained AbortContext covers the pre-registration window. Once registered,
+            // cancel the exact Run rather than resolving a possibly replaced Session again.
+            String run = worktreeRuns.activeRunForSession(child).orElse(null);
+            if (run != null && worktreeRuns.cancellationForSession(child).orElse(null) == owned) {
+                worktreeRuns.abortRun(run, reason);
+            }
+            stopTaskBackground(child, run, owned, identityLost);
+        } catch (RuntimeException unavailable) {
+            log.warn("Task child cancellation remains pending for {}", child, unavailable);
+        }
+    }
+
+    private boolean taskRunIsQuiescent(WorkerExit exit, QueryLoopState state, String child, String parentRun,
+                                       AtomicBoolean identityLost) {
+        if (identityLost.get()) return false;
+        try {
+            ToolUseContext actual = state.getToolUseContext();
+            if (actual == null || !child.equals(actual.sessionId())) {
+                identityLost.set(true);
+                return false;
+            }
+            if (exit.childRunId() == null) {
+                var startup = exit.startupFailure();
+                if (startup == null || !child.equals(startup.sessionId())
+                        || !Objects.equals(actual.currentRunId(), parentRun)
+                        || worktreeRuns.activeRunForSession(child).isPresent()) {
+                    identityLost.set(true);
+                    return false;
+                }
+                // Failed startup did not create a Run. Existing background occupancy is
+                // neither proof of exit nor permission to terminate another execution.
+                return worktreeProcesses.currentSessionBackground(child).allTerminated();
+            }
+            String active = worktreeRuns.activeRunForSession(child).orElse(null);
+            if ((active != null && !active.equals(exit.childRunId()))
+                    || (active == null && worktreeRuns.isRegistered(exit.childRunId()))) {
+                identityLost.set(true);
+                return false;
+            }
+            worktreeRuns.beginCompletion(exit.childRunId());
+            return worktreeRuns.awaitQuiescence(exit.childRunId(), Duration.ZERO)
+                    && worktreeProcesses.currentRunTermination(exit.childRunId()).allTerminated();
+        } catch (RuntimeException unavailable) {
+            log.warn("Task child termination remains unconfirmed for {}", child, unavailable);
+            return false;
+        }
+    }
+
+    private boolean ownsTaskCancellation(String child, String expectedRun, AbortContext owned,
+                                          AtomicBoolean identityLost) {
+        if (identityLost.get()) return false;
+        String active = worktreeRuns.activeRunForSession(child).orElse(null);
+        AbortContext registered = worktreeRuns.cancellationForSession(child).orElse(null);
+        AbortContext visible = queryEngine.getAbortContext(child);
+        if ((active != null && (owned == null || (expectedRun != null && !active.equals(expectedRun))))
+                || (registered != null && registered != owned)
+                || (visible != null && visible != owned)) {
+            identityLost.set(true);
+            return false;
+        }
+        return true;
+    }
+
+    // Package-visible to verify sticky replacement detection without leaking an unfinishable worker.
+    boolean stopTaskBackground(String child, String expectedRun, AbortContext owned,
+                               AtomicBoolean identityLost) {
+        try {
+            if (!ownsTaskCancellation(child, expectedRun, owned, identityLost)) return false;
+            worktreeProcesses.cancelSessionBackground(child);
+            return ownsTaskCancellation(child, expectedRun, owned, identityLost)
+                    && worktreeProcesses.currentSessionBackground(child).allTerminated();
+        } catch (RuntimeException unavailable) {
+            log.warn("Task child background termination remains unconfirmed for {}", child, unavailable);
+            return false;
         }
     }
 

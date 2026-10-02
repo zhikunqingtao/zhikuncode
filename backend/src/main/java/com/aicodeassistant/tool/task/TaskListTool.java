@@ -5,6 +5,7 @@ import com.aicodeassistant.tool.*;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -27,28 +28,24 @@ public class TaskListTool implements Tool {
 
     @Override
     public String getDescription() {
-        return "List background tasks in the current session, optionally filtered by status.";
+        return "List background task records in the current session, newest first, optionally filtered by status.";
     }
 
     @Override
     public String prompt() {
         return """
-                Use this tool to list all tasks in the task list.
-                
-                ## When to Use This Tool
-                - To see what tasks are available to work on (status: 'pending', no owner, not blocked)
-                - To check overall progress on the project
-                - To find tasks that are blocked and need dependencies resolved
-                - After completing a task, to check for newly unblocked work or claim the next task
-                - **Prefer working on tasks in ID order** (lowest ID first) when multiple tasks are available
-                
+                List background task records for the current session, ordered by creation time \
+                from newest to oldest. Use TodoWrite for a planning or progress checklist.
+
+                ## Optional Filter
+                status accepts PENDING, RUNNING, IN_PROGRESS, COMPLETED, FAILED, CANCELLED, \
+                or KILLED, ignoring case. Omit status to list all recorded tasks in this session.
+
                 ## Output
-                Returns a summary of each task:
-                - **id**: Task identifier (use with TaskGet, TaskUpdate)
-                - **subject**: Brief description of the task
-                - **status**: 'pending', 'in_progress', or 'completed'
-                
-                Use TaskGet with a specific task ID to view full details including description.
+                Each entry contains the recorded status, task ID, description, and an output \
+                preview when output has been stored. Use the task ID with TaskGet to inspect \
+                the full record. Cancellation requested is shown separately until execution exits. \
+                COMPLETED means execution reported success, not independent verification of its work.
                 """;
     }
 
@@ -59,7 +56,7 @@ public class TaskListTool implements Tool {
                 "properties", Map.of(
                         "status", Map.of(
                                 "type", "string",
-                                "description", "Filter tasks by status (PENDING/RUNNING/COMPLETED/FAILED/CANCELLED)")
+                                "description", "Filter by recorded status, ignoring case: PENDING, RUNNING, IN_PROGRESS, COMPLETED, FAILED, CANCELLED, KILLED")
                 )
         );
     }
@@ -76,11 +73,16 @@ public class TaskListTool implements Tool {
 
     @Override
     public ToolResult call(ToolInput input, ToolUseContext context) {
-        TaskStatus filter = input.getOptionalString("status")
-                .map(s -> TaskStatus.valueOf(s.toUpperCase()))
-                .orElse(null);
-
-        List<TaskState> tasks = taskCoordinator.listTasks(context.sessionId(), filter);
+        TaskStatus filter = null;
+        String requestedStatus = input.getOptionalString("status").orElse(null);
+        if (requestedStatus != null) {
+            try {
+                filter = TaskStatus.valueOf(requestedStatus.toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException failure) {
+                return ToolResult.validationError("TASK_STATUS_INVALID", "Invalid task status: " + requestedStatus);
+            }
+        }
+        List<TaskState.Snapshot> tasks = taskCoordinator.listTaskSnapshots(context.sessionId(), filter);
 
         if (tasks.isEmpty()) {
             return ToolResult.success("No tasks found.");
@@ -88,14 +90,18 @@ public class TaskListTool implements Tool {
 
         StringBuilder sb = new StringBuilder();
         sb.append("Tasks (").append(tasks.size()).append("):\n");
-        for (TaskState t : tasks) {
+        for (TaskState.Snapshot t : tasks) {
             sb.append(String.format("  [%s] %s — %s%n",
-                    t.getStatus(), t.getTaskId(),
-                    t.getDescription() != null ? t.getDescription() : "(no description)"));
-            if (t.getOutput() != null) {
-                String preview = t.getOutput().length() > 100
-                        ? t.getOutput().substring(0, 100) + "..."
-                        : t.getOutput();
+                    t.status(), t.taskId(),
+                    t.description() != null ? t.description() : "(no description)"));
+            if (t.cancellationRequested()) {
+                sb.append("    Cancellation requested; termination confirmed: ")
+                        .append(t.terminationConfirmed()).append("\n");
+            }
+            if (t.output() != null) {
+                String preview = t.output().length() > 100
+                        ? t.output().substring(0, 100) + "..."
+                        : t.output();
                 sb.append("    Output: ").append(preview).append("\n");
             }
         }

@@ -8,11 +8,11 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 /**
- * /plan 命令 — 切换 Plan Mode 规划模式。
+ * /plan 命令 — 显示或隐藏前端计划面板，不改变会话权限模式。
  * 用法:
- *   /plan on [planName]  — 进入规划模式
- *   /plan off            — 退出规划模式
- *   /plan                — 切换当前模式
+ *   /plan on [planName]  — 显示计划面板
+ *   /plan off            — 隐藏计划面板
+ *   /plan [planName]     — 显示计划面板
  */
 @Component
 public class PlanCommand implements Command {
@@ -27,7 +27,7 @@ public class PlanCommand implements Command {
     public String getName() { return "plan"; }
 
     @Override
-    public String getDescription() { return "Toggle Plan Mode for step-by-step task planning"; }
+    public String getDescription() { return "Show or hide the planning UI panel; session permissions are unchanged"; }
 
     @Override
     public CommandType getType() { return CommandType.LOCAL; }
@@ -44,18 +44,18 @@ public class PlanCommand implements Command {
                     "planName", planName,
                     "planOverview", ""
             ));
-            return CommandResult.text("Plan Mode enabled: " + planName);
+            return CommandResult.text("Planning panel opened: " + planName + ". Session permissions are unchanged.");
         } else if (trimmed.equals("off")) {
             wsController.sendPlanUpdate(sessionId, Map.of("isPlanMode", false));
-            return CommandResult.text("Plan Mode disabled");
+            return CommandResult.text("Planning panel closed. Session permissions are unchanged.");
         } else {
-            // toggle
+            // 默认显示面板；既有 UI 事件不切换权限模式。
             wsController.sendPlanUpdate(sessionId, Map.of(
                     "isPlanMode", true,
                     "planName", trimmed.isEmpty() ? "New Plan" : trimmed,
                     "planOverview", ""
             ));
-            return CommandResult.text("Plan Mode toggled");
+            return CommandResult.text("Planning panel opened. Session permissions are unchanged.");
         }
     }
 }

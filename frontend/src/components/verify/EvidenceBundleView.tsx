@@ -6,7 +6,7 @@
  * - 状态色：verified=green / failed=red / inconclusive=amber / running=blue
  * - 按 EvidenceItem.type 分组展示，提供 tabs 切换
  *
- * 数据来源：useEvidenceStore.currentBundle，组件挂载时按需触发 fetchBundle。
+ * 每个详情实例独立管理请求与展示状态；按 ID 复用最近一个成功加载的证据包。
  */
 
 import React, { useEffect, useMemo, useState } from 'react';
@@ -27,30 +27,64 @@ const ITEM_TYPE_LABELS: Record<string, string> = {
     diff: 'Diffs',
 };
 
-export const EvidenceBundleView: React.FC<EvidenceBundleViewProps> = ({ bundleId }) => {
-    const currentBundle = useEvidenceStore((s) => s.currentBundle);
-    const loading = useEvidenceStore((s) => s.loading);
-    const error = useEvidenceStore((s) => s.error);
-    const fetchBundle = useEvidenceStore((s) => s.fetchBundle);
+export const EvidenceBundleView: React.FC<EvidenceBundleViewProps> = ({ bundleId }) =>
+    bundleId ? <EvidenceBundleLoader key={bundleId} bundleId={bundleId} /> : null;
+
+type EvidenceLoadState =
+    | { status: 'loading' }
+    | { status: 'success'; bundle: EvidenceBundle }
+    | { status: 'error'; message: string };
+
+const EvidenceBundleLoader: React.FC<EvidenceBundleViewProps> = ({ bundleId }) => {
+    // Freeze one cache snapshot for this mount; shared cache updates must not affect this viewer.
+    const [cachedBundle] = useState(() => {
+        const cached = useEvidenceStore.getState().currentBundle;
+        return cached?.bundleId === bundleId ? cached : null;
+    });
+    const [state, setState] = useState<EvidenceLoadState>(() => cachedBundle
+        ? { status: 'success', bundle: cachedBundle }
+        : { status: 'loading' });
 
     useEffect(() => {
-        if (!bundleId) return;
-        if (currentBundle?.bundleId !== bundleId) {
-            void fetchBundle(bundleId);
-        }
-    }, [bundleId, currentBundle?.bundleId, fetchBundle]);
+        if (cachedBundle) return;
+        const controller = new AbortController();
+        let active = true;
+        void (async () => {
+            try {
+                const response = await fetch(`/api/evidence/${encodeURIComponent(bundleId)}`, {
+                    signal: controller.signal,
+                });
+                if (!active) return;
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data: unknown = await response.json();
+                if (!active) return;
+                if (data === null || typeof data !== 'object'
+                    || !('bundleId' in data) || data.bundleId !== bundleId) {
+                    throw new Error('Evidence bundle identity mismatch');
+                }
+                setState({ status: 'success', bundle: data as EvidenceBundle });
+                useEvidenceStore.setState({ currentBundle: data as EvidenceBundle });
+            } catch (error) {
+                if (active) {
+                    setState({ status: 'error', message: error instanceof Error
+                        ? error.message : 'Failed to load evidence bundle' });
+                }
+            }
+        })();
+        return () => {
+            active = false;
+            controller.abort();
+        };
+    }, [bundleId, cachedBundle]);
 
+    const currentBundle = state.status === 'success' ? state.bundle : null;
     const grouped = useMemo(() => groupByType(currentBundle?.items ?? []), [currentBundle]);
     const groupKeys = useMemo(() => Object.keys(grouped), [grouped]);
-    const [activeTab, setActiveTab] = useState<string | null>(null);
+    const [selectedTab, setSelectedTab] = useState<string | null>(null);
+    const activeTab = selectedTab !== null && groupKeys.includes(selectedTab)
+        ? selectedTab : groupKeys[0] ?? null;
 
-    useEffect(() => {
-        if (groupKeys.length > 0 && (activeTab === null || !groupKeys.includes(activeTab))) {
-            setActiveTab(groupKeys[0]);
-        }
-    }, [groupKeys, activeTab]);
-
-    if (loading && (!currentBundle || currentBundle.bundleId !== bundleId)) {
+    if (state.status === 'loading') {
         return (
             <div className="evidence-bundle-view border rounded-[14px] p-4 mt-2 text-[13px] text-t2">
                 Loading evidence bundle…
@@ -58,10 +92,10 @@ export const EvidenceBundleView: React.FC<EvidenceBundleViewProps> = ({ bundleId
         );
     }
 
-    if (error && !currentBundle) {
+    if (state.status === 'error') {
         return (
             <div className="evidence-bundle-view border rounded-[14px] p-4 mt-2 text-[13px] text-err bg-errsoft">
-                Failed to load evidence bundle: {error}
+                Failed to load evidence bundle: {state.message}
             </div>
         );
     }
@@ -83,7 +117,7 @@ export const EvidenceBundleView: React.FC<EvidenceBundleViewProps> = ({ bundleId
                             <button
                                 key={key}
                                 type="button"
-                                onClick={() => setActiveTab(key)}
+                                onClick={() => setSelectedTab(key)}
                                 className={
                                     'px-2 py-0.5 text-[13px] rounded transition-colors ' +
                                     (activeTab === key

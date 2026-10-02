@@ -198,6 +198,27 @@ public class RunControlService {
                 () -> transaction.execute(status -> operation.get()));
     }
 
+    /**
+     * Must share the tool_started write transaction with the final grant check.
+     * Run cancellation uses the same project write authority, so a cancellation
+     * accepted first cannot be followed by a new tool admission. Another tool's
+     * pending interaction does not close admission for an otherwise active Run.
+     */
+    public void requireToolAdmissionInCurrentWrite(String runId) {
+        List<String> states = jdbc.queryForList(
+                "SELECT status FROM run_envelopes WHERE id=?", String.class, runId);
+        if (states.size() != 1 || !("running".equals(states.getFirst())
+                || "waiting_interaction".equals(states.getFirst()))) {
+            throw new ToolAdmissionClosedException();
+        }
+    }
+
+    public static final class ToolAdmissionClosedException extends IllegalStateException {
+        public ToolAdmissionClosedException() {
+            super("RUN_TOOL_ADMISSION_CLOSED");
+        }
+    }
+
     public TransitionResult setVerification(String runId, RunEnvelope.VerificationStatus expected,
                                             RunEnvelope.VerificationStatus target, String detail) {
         return write(() -> {

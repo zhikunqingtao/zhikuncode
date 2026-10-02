@@ -37,6 +37,7 @@ jobs:
   backend-build:
     name: Backend Build (Java 21 + Maven)
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     defaults:
       run:
         working-directory: backend
@@ -59,11 +60,12 @@ jobs:
         run: chmod +x mvnw && ./mvnw test -B -q
 
   # =========================================================================
-  # Job 2: 前端构建与类型检查
+  # Job 2: 前端测试、构建与类型检查
   # =========================================================================
   frontend-build:
-    name: Frontend Build (Node 22 + Vite)
+    name: Frontend Test and Build (Node 22 + Vite)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: frontend
@@ -83,6 +85,9 @@ jobs:
       # 安装依赖（CI 模式，确保 lock 文件一致）
       - name: Install dependencies
         run: npm ci
+
+      - name: Run tests
+        run: npm run test:run
 
       # 构建项目（tsc + vite build，验证编译通过）
       - name: Build

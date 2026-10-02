@@ -112,6 +112,7 @@ public class StreamingToolExecutor {
         private final Tool tool;
         private final ToolInput input;
         private final ToolUseContext context;
+        private volatile boolean executionExited;
         private final Map<String, String> diagnosticContext;
         private volatile ToolState state;
         private volatile ToolResult result;
@@ -173,6 +174,107 @@ public class StreamingToolExecutor {
         }
         TrackedTool tracked = completed.getFirst();
         return ToolExecutionResult.of(tracked.getResult(), tracked.getUpdatedContext());
+    }
+
+    /**
+     * Task-owned detached execution. A cancellation interrupts only this tool session and
+     * its exact process ownership; the parent Run can contain unrelated work.
+     * Return only after the worker and its foreground process resources have exited.
+     */
+    public ToolExecutionResult executeTaskDetached(Tool tool, ToolInput input, String toolUseId,
+                                                   ToolUseContext context) {
+        return executeTaskDetached(tool, input, toolUseId, context, () -> { });
+    }
+
+    /** The callback belongs to a Task-owned Run and also terminates its pending approvals. */
+    public ToolExecutionResult executeTaskDetached(Tool tool, ToolInput input, String toolUseId,
+                                                   ToolUseContext context, Runnable requestCancellation) {
+        if (tool == null || context == null || toolUseId == null || toolUseId.isBlank()) {
+            throw new IllegalArgumentException("DETACHED_TOOL_EXECUTION_INVALID");
+        }
+        String runId = context.currentRunId();
+        if (processRunner == null || runId == null || runId.isBlank()) {
+            return ToolExecutionResult.of(ToolResult.internalError("TASK_EXECUTION_OWNERSHIP_MISSING",
+                    "Task tool execution requires process ownership support and a Run ID",
+                    ToolResult.EffectState.NOT_STARTED));
+        }
+        if (Thread.currentThread().isInterrupted()) {
+            return ToolExecutionResult.of(ToolResult.cancelled("TOOL_NOT_STARTED",
+                    "Task cancelled before tool execution", ToolResult.EffectState.NOT_STARTED)
+                    .withMetadata("terminationConfirmed", true));
+        }
+        ExecutionSession session = newSession(context);
+        boolean interrupted = false;
+        boolean cancellationRequested = false;
+        boolean inspectionFailureLogged = false;
+        try {
+            session.addTool(tool, input, toolUseId, context);
+            for (;;) {
+                if (Thread.interrupted()) {
+                    interrupted = true;
+                    cancellationRequested = true;
+                    session.discard(false);
+                }
+                try {
+                    if (cancellationRequested) {
+                        requestCancellation.run();
+                        // Repeat after worker exit as well: it may have registered a process
+                        // after the first cancellation scan. Never cancel the entire parent Run.
+                        processRunner.cancel(runId, toolUseId);
+                    }
+                    if (session.active.get() == 0 && !session.hasUnfinishedTools()
+                            && session.tracked.stream().allMatch(t -> t.executionExited)
+                            && processRunner.currentTermination(runId, toolUseId).allTerminated()) {
+                        break;
+                    }
+                } catch (RuntimeException unknownTermination) {
+                    if (!inspectionFailureLogged) {
+                        log.warn("Task tool termination remains unconfirmed: toolUseId={}",
+                                toolUseId, unknownTermination);
+                        inspectionFailureLogged = true;
+                    }
+                    // Failure to inspect/clean ownership must not release the Task's capacity.
+                }
+                session.awaitAnyCompletion(100, TimeUnit.MILLISECONDS);
+            }
+            List<TrackedTool> completed = session.yieldCompleted();
+            if (completed.size() != 1 || completed.getFirst().getResult() == null) {
+                return ToolExecutionResult.of(ToolResult.internalError("DETACHED_TOOL_RESULT_MISSING",
+                        "Detached tool did not produce exactly one result", ToolResult.EffectState.UNKNOWN));
+            }
+            TrackedTool tracked = completed.getFirst();
+            if (cancellationRequested) {
+                ToolResult result = tracked.getResult();
+                return ToolExecutionResult.of(ToolResult.cancelled("TOOL_CANCELLED",
+                        result.content() == null ? "Task tool execution cancelled" : result.content(),
+                        result.effectState()).withMetadata("terminationConfirmed", true),
+                        tracked.getUpdatedContext());
+            }
+            return ToolExecutionResult.of(tracked.getResult(), tracked.getUpdatedContext());
+        } finally {
+            if (interrupted) Thread.currentThread().interrupt();
+        }
+    }
+
+    /** Seal cancellation accepted after executeTaskDetached returned but before Task settlement. */
+    public void finishTaskCancellation(ToolUseContext context) {
+        // The managed entry rejects missing ownership before starting any work.
+        if (processRunner == null || context == null || context.currentRunId() == null
+                || context.currentRunId().isBlank() || context.toolUseId() == null
+                || context.toolUseId().isBlank()) return;
+        boolean interrupted = Thread.interrupted();
+        try {
+            for (;;) {
+                processRunner.cancel(context.currentRunId(), context.toolUseId());
+                if (processRunner.currentTermination(context.currentRunId(), context.toolUseId()).allTerminated()) {
+                    return;
+                }
+                try { TimeUnit.MILLISECONDS.sleep(100); }
+                catch (InterruptedException ignored) { interrupted = true; }
+            }
+        } finally {
+            if (interrupted) Thread.currentThread().interrupt();
+        }
     }
 
     /** 取消指定 Run 的排队任务；正在运行的进程型工具由 ManagedProcessRunner 负责终止。 */
@@ -360,7 +462,12 @@ public class StreamingToolExecutor {
                                 try {
                                     processQueue();
                                 } finally {
-                                    if (active.get() == 0 && queue.isEmpty()) deregister();
+                                    try {
+                                        if (active.get() == 0 && queue.isEmpty()) deregister();
+                                    } finally {
+                                        next.executionExited = true;
+                                        notifyCompletion();
+                                    }
                                 }
                             }
                         }
@@ -431,6 +538,7 @@ public class StreamingToolExecutor {
                 t.result = ToolResult.cancelled("TOOL_NOT_STARTED", "Cancelled before execution",
                         ToolResult.EffectState.NOT_STARTED);
                 t.state = ToolState.COMPLETED;
+                t.executionExited = true;
             });
             notifyCompletion();
             deregister();

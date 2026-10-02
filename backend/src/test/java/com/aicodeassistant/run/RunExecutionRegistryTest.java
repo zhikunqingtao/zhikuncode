@@ -21,6 +21,58 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class RunExecutionRegistryTest {
 
     @Test
+    void cancellationDeniesStartBeforeItsCallbackFinishesWithoutClosingAnotherRun() throws Exception {
+        var registry = new RunExecutionRegistry();
+        registry.register("target", "target-session", new AbortContext());
+        registry.register("sibling", "sibling-session", new AbortContext());
+        var callbackEntered = new CountDownLatch(1);
+        var releaseCallback = new CountDownLatch(1);
+        var started = new AtomicBoolean();
+        try (var target = registry.acquireWork("target", "process", "target-tool");
+             var sibling = registry.acquireWork("sibling", "process", "sibling-tool")) {
+            target.onCancel(() -> {
+                callbackEntered.countDown();
+                try { releaseCallback.await(3, java.util.concurrent.TimeUnit.SECONDS); }
+                catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); }
+            });
+            Thread cancellation = Thread.ofVirtual().start(() -> registry.beginTermination("target"));
+            try {
+                assertThat(callbackEntered.await(2, java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+                assertThatThrownBy(() -> target.admitStart(() -> started.set(true)))
+                        .isInstanceOf(RunExecutionRegistry.WorkRejectedException.class)
+                        .hasMessage("RUN_WORK_ADMISSION_CLOSED");
+                assertThat(started).isFalse();
+                sibling.admitStart(() -> started.set(true));
+                assertThat(started).isTrue();
+            } finally {
+                releaseCallback.countDown();
+                cancellation.join(3_000);
+            }
+            assertThat(cancellation.isAlive()).isFalse();
+        }
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"completion", "released", "aborted"})
+    void closedOrAbortedWorkCannotReleaseAStartGate(String reason) {
+        var registry = new RunExecutionRegistry();
+        var abort = new AbortContext();
+        registry.register("run", "session", abort);
+        var started = new AtomicBoolean();
+        try (var lease = registry.acquireWork("run", "process", "tool")) {
+            switch (reason) {
+                case "completion" -> registry.beginCompletion("run");
+                case "released" -> lease.close();
+                case "aborted" -> abort.abort(AbortReason.USER_INTERRUPT);
+                default -> throw new AssertionError(reason);
+            }
+            assertThatThrownBy(() -> lease.admitStart(() -> started.set(true)))
+                    .isInstanceOf(RunExecutionRegistry.WorkRejectedException.class);
+            assertThat(started).isFalse();
+        }
+    }
+
+    @Test
     void duplicateRequestIdIsIdempotentAndClaimedOnce() {
         RunExecutionRegistry registry = new RunExecutionRegistry();
         registry.register("run", "session", new AbortContext());

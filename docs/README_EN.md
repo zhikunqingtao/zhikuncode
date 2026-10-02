@@ -1406,14 +1406,20 @@ ZhikunCode provides built-in tools across the development lifecycle and supports
 | **Git Operations** | Git, Worktree | Git command execution, Worktree management |
 | **Web Tools** | WebSearch, WebFetch, WebBrowser | Web search, page fetching, browser automation |
 | **Agent Collaboration** | Agent | Create and manage sub-Agents |
-| **Task Management** | Task create/get/list/update/stop/output | SharedTaskList task collaboration |
-| **Interaction** | AskUserQuestion, Brief, Sleep, TodoWrite | User questions, briefings, wait, todo lists |
+| **Task Management** | TaskCreate, TaskGet, TaskList, TaskUpdate, TaskStop, TaskOutput | Background execution and results within the current session; TaskUpdate changes output only, while TaskCoordinator owns execution status |
+| **Interaction** | AskUserQuestion, Brief, Sleep, TodoWrite | User questions, basic context display, wait, todo lists; multiple-choice questions that allow multiple answers require multiSelect |
 | **Scheduled Tasks** | CronCreate, CronList, CronDelete | Cron job management |
-| **Plan Mode** | EnterPlanMode, ExitPlanMode, VerifyPlanExecution | Plan-then-execute workflow |
+| **Plan Tools** | EnterPlanMode, ExitPlanMode, VerifyPlanExecution | EnterPlanMode/ExitPlanMode are not wired to permission changes and return PLAN_MODE_UNAVAILABLE; VerifyPlanExecution checks files, content, or command results |
 | **Configuration** | Config, SendMessage, SyntheticOutput | Config management, message sending, synthetic output |
 | **Monitoring** | Monitor, CtxInspect, TerminalCapture | System monitoring, context inspection, terminal output capture |
 | **Verification** | VerifyJourney | Runtime verification — end-to-end browser testing, HTTP API assertion chains, hybrid-mode auto-switching; implemented by internal BrowserVerifier and HttpApiVerifier strategies |
 | **MCP Extensions** | MCP tool adapters | Connect to external MCP services (dynamically registered) |
+
+The `PLAN` permission mode remains available independently of the planning panel. `/plan` and `/plan on [name]` show the frontend planning panel; `/plan off` hides it. These commands do not change session permissions. The `EnterPlanMode`/`ExitPlanMode` tools also do not change permissions, submit approvals, or display plan files.
+
+`TaskCreate` immediately submits background execution; use `TodoWrite` for a planning checklist. Supported types are `agent`, `shell`, and the single-invocation compatibility types `local_workflow`, `monitor_mcp`, and `dream` (the latter three currently use the general-purpose agent without recurring monitoring or special priority). Other types are explicitly rejected. A creation acknowledgment does not mean execution succeeded; inspect `TaskGet`/`TaskList` for results. `TaskStop` requests cancellation of the specified task; execution may still be exiting after the request is acknowledged, so check its status. `TaskUpdate` does not accept manual execution-status changes.
+
+`Edit` requires a non-empty match when updating an existing file. Use `Write` to populate an existing empty file. An empty `old_string` can still create a file that does not yet exist.
 
 ---
 

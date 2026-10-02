@@ -4,6 +4,7 @@ import com.aicodeassistant.engine.AbortContext;
 import com.aicodeassistant.engine.AbortReason;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.Optional;
 import java.time.Duration;
 import java.util.ArrayDeque;
@@ -274,8 +275,13 @@ public class RunExecutionRegistry {
         private final String token;
         private WorkLease(Execution owner, String token) { this.owner = owner; this.token = token; }
         public void onCancel(Runnable action) { owner.installCancellation(token, action); }
+        /** Only release a prepared resource's start gate here; never wait for or terminate it. */
+        public void admitStart(StartAction action) throws IOException { owner.admitStart(token, action); }
         @Override public void close() { owner.release(token); }
     }
+
+    @FunctionalInterface
+    public interface StartAction { void run() throws IOException; }
 
     /** A claimed input is Run-owned work until it reaches a terminal state. */
     public final class InputApplication implements AutoCloseable {
@@ -360,6 +366,19 @@ public class RunExecutionRegistry {
                 String token = UUID.randomUUID().toString();
                 work.put(token, new Work(kind, workId));
                 return new WorkLease(this, token);
+            } finally { lock.unlock(); }
+        }
+
+        private void admitStart(String token, StartAction action) throws IOException {
+            java.util.Objects.requireNonNull(action, "action");
+            lock.lock();
+            try {
+                Work item = work.get(token);
+                if (!admissionsOpen || cancellation.isAborted() || unregisterRequested
+                        || item == null || item.cancelRequested) {
+                    throw new WorkRejectedException("RUN_WORK_ADMISSION_CLOSED");
+                }
+                action.run();
             } finally { lock.unlock(); }
         }
 

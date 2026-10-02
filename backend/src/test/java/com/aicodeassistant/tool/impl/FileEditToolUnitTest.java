@@ -10,8 +10,11 @@ import com.aicodeassistant.tool.ToolInput;
 import com.aicodeassistant.tool.ToolResult;
 import com.aicodeassistant.tool.ToolUseContext;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -19,12 +22,16 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -377,6 +384,133 @@ class FileEditToolUnitTest {
         assertEquals("POST_COMMIT_BOOKKEEPING_FAILED", result.metadata().get("postCommitErrorCode"));
         assertEquals("", result.metadata().get("diff"));
         assertFalse(result.metadata().containsKey("structuredResult"));
+    }
+
+    @Nested
+    class EmptyMatchGuardTests {
+        private Path root;
+        private FileStateCache readCache;
+        private AtomicFileWriter writer;
+        private FileEditTool tool;
+        private ToolUseContext toolContext;
+
+        @BeforeEach
+        void useRealReadState() throws IOException {
+            root = tempDir.toRealPath();
+            readCache = spy(new FileStateCache());
+            when(sessionManager.getFileStateCache(anyString())).thenReturn(readCache);
+            FileVersionTracker versions = new FileVersionTracker();
+            writer = spy(new AtomicFileWriter(versions));
+            tool = new FileEditTool(fileHistoryService, pathSecurityService, sessionManager,
+                    keyFileTracker, versions, writer);
+            toolContext = ToolUseContext.of(root.toString(), "empty-match-session");
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = {false, true})
+        void rejectsEmptyOldStringForExistingFiles(boolean replaceAll) throws IOException {
+            Path empty = Files.writeString(root.resolve("empty.txt"), "");
+            Path nonempty = Files.writeString(root.resolve("nonempty.txt"), "abc");
+            assertRejectedWithoutWrites(empty, "", "X", replaceAll, "FILE_EDIT_EMPTY_MATCH");
+            assertRejectedWithoutWrites(nonempty, "", "X", replaceAll, "FILE_EDIT_EMPTY_MATCH");
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = {false, true})
+        void rejectsEmptyMatchProducedByNormalization(boolean replaceAll) throws IOException {
+            Path file = writeAndRead("normalized-empty.txt", "abc\n");
+            assertRejectedWithoutWrites(file, " ", "X", replaceAll, "FILE_EDIT_EMPTY_MATCH");
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = {false, true})
+        void missingFileStillAllowsCreation(boolean replaceAll) throws IOException {
+            Path file = root.resolve("newdir/new.txt");
+            ToolResult result = edit(file, "", "created", replaceAll);
+
+            assertFalse(result.isError());
+            assertEquals(ToolResult.EffectState.APPLIED, result.effectState());
+            assertEquals("created", Files.readString(file));
+        }
+
+        @Test
+        void doubleEmptyStringsKeepNoChangePriority() throws IOException {
+            Path empty = Files.writeString(root.resolve("empty.txt"), "");
+            Path nonempty = Files.writeString(root.resolve("nonempty.txt"), "abc");
+            assertRejectedWithoutWrites(root.resolve("missing.txt"), "", "", false, "FILE_EDIT_NO_CHANGE");
+            assertRejectedWithoutWrites(empty, "", "", false, "FILE_EDIT_NO_CHANGE");
+            assertRejectedWithoutWrites(nonempty, "", "", false, "FILE_EDIT_NO_CHANGE");
+        }
+
+        @Test
+        void unreadNonemptyInputStillRequiresRead() throws IOException {
+            Path file = Files.writeString(root.resolve("unread.txt"), "abc\n");
+            assertRejectedWithoutWrites(file, " ", "X", false, "FILE_READ_REQUIRED");
+        }
+
+        @Test
+        void staleReadStillRequiresReread() throws IOException {
+            Path file = writeAndRead("stale.txt", "abc\n");
+            long readAt = readCache.toMap().get(file.toString()).timestamp();
+            Files.setLastModifiedTime(file, FileTime.fromMillis(readAt + 2000));
+            assertRejectedWithoutWrites(file, " ", "X", false, "FILE_READ_STATE_STALE");
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {" ", "\t", "\n"})
+        void realWhitespaceMatchesRemainEditable(String whitespace) throws IOException {
+            Path file = writeAndRead("whitespace.txt", "head" + whitespace + "tail");
+            ToolResult result = edit(file, whitespace, "X", false);
+
+            assertFalse(result.isError());
+            assertEquals(ToolResult.EffectState.APPLIED, result.effectState());
+            assertEquals("headXtail", Files.readString(file));
+        }
+
+        @Test
+        void normalizedSearchMayBeEmptyWhenActualMatchIsNot() throws IOException {
+            Path file = writeAndRead("normalized-space.txt", "head\n \ntail");
+            ToolResult result = edit(file, "  ", "X", false);
+
+            assertFalse(result.isError());
+            assertEquals(ToolResult.EffectState.APPLIED, result.effectState());
+            assertEquals("head\nX\ntail", Files.readString(file));
+        }
+
+        private Path writeAndRead(String name, String content) throws IOException {
+            Path file = Files.writeString(root.resolve(name), content, StandardCharsets.UTF_8);
+            readCache.markRead(file.toString(), content, null, null, false);
+            return file;
+        }
+
+        private ToolResult edit(Path file, String oldString, String newString, boolean replaceAll) {
+            return tool.call(ToolInput.from(Map.of(
+                    "file_path", file.toString(), "old_string", oldString,
+                    "new_string", newString, "replace_all", replaceAll)), toolContext);
+        }
+
+        private void assertRejectedWithoutWrites(Path file, String oldString, String newString,
+                                                  boolean replaceAll, String failureCode) throws IOException {
+            byte[] before = Files.exists(file) ? Files.readAllBytes(file) : null;
+            Map<String, FileStateCache.FileState> cacheBefore = readCache.toMap();
+
+            ToolResult result = edit(file, oldString, newString, replaceAll);
+
+            assertEquals(ToolResult.ExecutionStatus.FAILED, result.executionStatus());
+            assertEquals(ToolResult.ToolFailureType.VALIDATION, result.failureType());
+            assertEquals(failureCode, result.failureCode());
+            assertEquals(ToolResult.EffectState.NOT_STARTED, result.effectState());
+            assertEquals(ToolResult.Retryability.NEVER, result.retryability());
+            if (before == null) {
+                assertFalse(Files.exists(file));
+            } else {
+                assertArrayEquals(before, Files.readAllBytes(file));
+            }
+            assertEquals(cacheBefore, readCache.toMap());
+            verify(writer, never()).writeAuthorized(any(), any(), any(), any(), any());
+            verify(fileHistoryService, never()).trackAppliedEdit(any(), any(), any(), any(), any());
+            verify(readCache, never()).markModified(anyString());
+        }
     }
 
     @Test

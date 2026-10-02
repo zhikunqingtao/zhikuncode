@@ -7,10 +7,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * ExitPlanModeTool — 退出计划模式，恢复到之前的权限模式。
+ * ExitPlanModeTool — 保留兼容入口，本工具尚未接入权限模式退出与恢复。
  * <p>
- * 如果提供了 plan_summary，记录到消息中。
- *
+ * 调用返回能力不可用，不改变权限、不提交审批、不展示计划文件。
  */
 @Component
 public class ExitPlanModeTool implements Tool {
@@ -22,34 +21,19 @@ public class ExitPlanModeTool implements Tool {
 
     @Override
     public String getDescription() {
-        return "Exit plan mode and restore the previous permission mode.";
+        return "Unavailable: this tool is not wired to exit the PLAN permission mode or restore previous permissions. "
+                + "This tool does not change permissions, submit approval, or display a plan file.";
     }
 
     @Override
     public String prompt() {
         return """
-                Use this tool when you are in plan mode and have finished writing your plan \
-                and are ready for user approval.
-                
-                ## How This Tool Works
-                - You should have already written your plan to the plan file
-                - This tool simply signals that you're done planning and ready for the user to review
-                - The user will see the contents of your plan when they review it
-                
-                ## When to Use This Tool
-                IMPORTANT: Only use this tool when the task requires planning the implementation \
-                steps of a task that requires writing code. For research tasks where you're \
-                gathering information, searching files, reading files or trying to understand \
-                the codebase - do NOT use this tool.
-                
-                ## Before Using This Tool
-                Ensure your plan is complete and unambiguous:
-                - If you have unresolved questions about requirements or approach, use \
-                AskUserQuestion first
-                - Once your plan is finalized, use THIS tool to request approval
-                
-                **Important:** Do NOT use AskUserQuestion to ask "Is this plan okay?" or \
-                "Should I proceed?" - that's exactly what THIS tool does.
+                ExitPlanMode is currently unavailable; this tool is not wired to exit the PLAN \
+                permission mode or restore previous permissions.
+                The application's PLAN permission mode exists independently of this tool.
+                Do not call this tool to change permissions, request approval, or display a plan file.
+                Calls return PLAN_MODE_UNAVAILABLE without performing any of those actions. \
+                Retrying this tool will not make the capability available.
                 """;
     }
 
@@ -59,7 +43,7 @@ public class ExitPlanModeTool implements Tool {
                 "type", "object",
                 "properties", Map.of(
                         "plan_summary", Map.of("type", "string",
-                                "description", "Summary of the plan")
+                                "description", "Optional plan summary echoed in the unavailable response; does not submit approval or display a plan file")
                 ),
                 "required", List.of()
         );
@@ -78,10 +62,11 @@ public class ExitPlanModeTool implements Tool {
     @Override
     public ToolResult call(ToolInput input, ToolUseContext context) {
         String summary = input.getOptionalString("plan_summary")
-                .map(s -> " Plan summary: " + s)
+                .map(value -> " Supplied plan summary: " + value)
                 .orElse("");
-        // P0: 简单模式切换 — 后续 Round 实现 AppState 权限模式联动
-        return ToolResult.success("Exited plan mode." + summary)
-                .withMetadata("mode", "default");
+        return ToolResult.validationError("PLAN_MODE_UNAVAILABLE",
+                "This tool is not wired to exit the PLAN permission mode or restore previous permissions. "
+                        + "No permission mode was changed, no approval request was submitted, "
+                        + "and no plan file was displayed." + summary);
     }
 }

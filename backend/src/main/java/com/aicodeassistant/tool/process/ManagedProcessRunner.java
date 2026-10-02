@@ -319,6 +319,14 @@ public class ManagedProcessRunner {
         leaseTransferred.set(true);
         java.util.concurrent.ExecutorService drains = null;
         try {
+            if (workLease != null) {
+                workLease.onCancel(() -> {
+                    requestCancellation(activeProcess);
+                    long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
+                    boolean stopped = terminate(activeProcess, deadline);
+                    if (cleanup(activeProcess, deadline) && stopped) releaseRetained(key, activeProcess);
+                });
+            }
             ProcessBuilder builder = new ProcessBuilder(request.command());
             builder.directory(request.workingDirectory().toFile());
             if (environment != null) {
@@ -326,16 +334,20 @@ public class ManagedProcessRunner {
                 builder.environment().putAll(environment);
             }
             builder.redirectErrorStream(false);
-            Process process = OwnedProcess.start(builder);
-            activeProcess.processRef().set(process);
-            if (workLease != null) {
-                workLease.onCancel(() -> {
-                    activeProcess.cancelled().set(true);
-                    long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
-                    boolean stopped = terminate(activeProcess, deadline);
-                    if (cleanup(activeProcess, deadline) && stopped) releaseRetained(key, activeProcess);
-                });
+            Process process;
+            try {
+                process = workLease == null ? OwnedProcess.start(builder)
+                        : OwnedProcess.startGated(builder, action -> admitStart(activeProcess, workLease, action::run));
+            } catch (OwnedProcess.LaunchFailure unconfirmed) {
+                activeProcess.processRef().set(unconfirmed.retainedProcess());
+                throw unconfirmed;
+            } catch (IOException failure) {
+                if (!activeProcess.cancelled().get()) throw failure;
+                // The launch gate never opened, and OwnedProcess has confirmed its empty scope exited.
+                return new Result(130, "", "", false, false, false, true, true,
+                        TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started), false);
             }
+            activeProcess.processRef().set(process);
             if (activeProcess.cancelled().get()) {
                 long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
                 terminate(activeProcess, deadline);
@@ -447,7 +459,7 @@ public class ManagedProcessRunner {
             }
             if (workLease != null) {
                 workLease.onCancel(() -> {
-                    owned.cancelled().set(true);
+                    requestCancellation(owned);
                     long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
                     terminate(owned, deadline);
                 });
@@ -455,7 +467,7 @@ public class ManagedProcessRunner {
             if (!process.isAlive() || owned.cancelled().get()) {
                 throw new IOException("PROCESS_CANCELLED_DURING_BACKGROUND_START");
             }
-            group.admit();
+            admitStart(owned, workLease, group::admit);
             // Launch is Run-owned, but the successfully-started background service is
             // session-owned. This transfer lets development servers survive the query
             // that started them while still making a cancellation during launch safe.
@@ -510,7 +522,7 @@ public class ManagedProcessRunner {
         for (var entry : active.entrySet()) {
             if (ownerId.equals(entry.getKey().runId())) {
                 found++;
-                entry.getValue().cancelled().set(true);
+                requestCancellation(entry.getValue());
                 long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
                 if (terminate(entry.getValue(), deadline) && cleanup(entry.getValue(), deadline)) confirmed++;
             }
@@ -522,7 +534,7 @@ public class ManagedProcessRunner {
     void shutdown() {
         for (var entry : List.copyOf(active.entrySet())) {
             ActiveProcess process = entry.getValue();
-            process.cancelled().set(true);
+            requestCancellation(process);
             long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
             boolean stopped = terminate(process, deadline);
             if (cleanup(process, deadline) && stopped) releaseRetained(entry.getKey(), process);
@@ -553,7 +565,7 @@ public class ManagedProcessRunner {
         for (var entry : active.entrySet()) {
             if (runId != null && runId.equals(entry.getKey().runId())) {
                 found++;
-                entry.getValue().cancelled().set(true);
+                requestCancellation(entry.getValue());
                 long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
                 if (terminate(entry.getValue(), deadline) && cleanup(entry.getValue(), deadline)) {
                     confirmed++;
@@ -573,6 +585,15 @@ public class ManagedProcessRunner {
     public CancelSummary currentRunTermination(String runId) {
         int remaining = (int) active.keySet().stream()
                 .filter(key -> runId != null && runId.equals(key.runId())).count();
+        return new CancelSummary(remaining, 0, remaining);
+    }
+
+    /** Read only after the owning tool worker exits; an absent entry before then proves nothing. */
+    public CancelSummary currentTermination(String runId, String toolUseId) {
+        if (runId == null || runId.isBlank() || toolUseId == null || toolUseId.isBlank()) {
+            throw new IllegalArgumentException("PROCESS_OWNERSHIP_MISSING");
+        }
+        int remaining = active.containsKey(new ProcessKey(runId, toolUseId)) ? 1 : 0;
         return new CancelSummary(remaining, 0, remaining);
     }
 
@@ -597,7 +618,7 @@ public class ManagedProcessRunner {
     public boolean cancel(String runId, String toolUseId) {
         ActiveProcess process = active.get(new ProcessKey(runId, toolUseId));
         if(process==null)return false;
-        process.cancelled().set(true);
+        requestCancellation(process);
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
         boolean confirmed = terminate(process, deadline) && cleanup(process, deadline);
         if (confirmed) releaseRetained(new ProcessKey(runId, toolUseId), process);
@@ -612,6 +633,27 @@ public class ManagedProcessRunner {
             } finally {
                 capacity.release();
             }
+        }
+    }
+
+    private static void requestCancellation(ActiveProcess process) {
+        synchronized (process) { process.cancelled().set(true); }
+    }
+
+    private static void admitStart(ActiveProcess process, RunExecutionRegistry.WorkLease lease,
+                                   RunExecutionRegistry.StartAction action) throws IOException {
+        RunExecutionRegistry.StartAction guarded = () -> {
+            synchronized (process) {
+                if (process.cancelled().get()) throw new IOException("PROCESS_CANCELLED_BEFORE_START");
+                action.run();
+            }
+        };
+        try {
+            if (lease == null) guarded.run();
+            else lease.admitStart(guarded);
+        } catch (RunExecutionRegistry.WorkRejectedException rejected) {
+            requestCancellation(process);
+            throw new IOException("PROCESS_CANCELLED_BEFORE_START", rejected);
         }
     }
 

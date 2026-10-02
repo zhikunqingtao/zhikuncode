@@ -76,6 +76,7 @@ public class ShellStateManager {
      */
     public String wrapCommand(String userCommand, String sessionId) {
         String cwdFile = getCwdTrackingPath(sessionId).toString();
+        String quotedCwdFile = "'" + cwdFile.replace("'", "'\"'\"'") + "'";
 
         // 动态选择 heredoc 终止符 (防御极端边缘情况)
         String heredocDelimiter = "__ZHIKUN_EOF__";
@@ -85,10 +86,16 @@ public class ShellStateManager {
 
         return "umask 077\n"
                 + "shopt -u extglob 2>/dev/null || true\n"
-                + "__zhikun_cmd=$(mktemp)\n"
-                + "__zhikun_cwd=$(mktemp '" + cwdFile + ".XXXXXX')\n"
+                + "__zhikun_cmd=''\n"
+                + "__zhikun_cwd=''\n"
                 + "trap 'rm -f \"$__zhikun_cmd\" \"$__zhikun_cwd\"' EXIT\n"
-                + "cat > \"$__zhikun_cmd\" <<'" + heredocDelimiter + "'\n"
+                // Both files use the private state directory, independent of the shell's TMPDIR.
+                + "__zhikun_cmd=$(mktemp " + quotedCwdFile + ".cmd.XXXXXX)"
+                + " || { echo 'Shell initialization failed: cannot create command file' >&2; exit 1; }\n"
+                + "__zhikun_cwd=$(mktemp " + quotedCwdFile + ".XXXXXX)"
+                + " || { echo 'Shell initialization failed: cannot create CWD file' >&2; exit 1; }\n"
+                + "cat > \"$__zhikun_cmd\" <<'" + heredocDelimiter + "'"
+                + " || { echo 'Shell initialization failed: cannot write command file' >&2; exit 1; }\n"
                 + userCommand + "\n"
                 + heredocDelimiter + "\n"
                 + "source \"$__zhikun_cmd\"\n"
@@ -96,7 +103,7 @@ public class ShellStateManager {
                 + "rm -f \"$__zhikun_cmd\"\n"
                 + "pwd > \"$__zhikun_cwd\"\n"
                 + "chmod 600 \"$__zhikun_cwd\"\n"
-                + "mv -f \"$__zhikun_cwd\" '" + cwdFile + "'\n"
+                + "mv -f \"$__zhikun_cwd\" " + quotedCwdFile + "\n"
                 + "exit $__zhikun_exit";
     }
 

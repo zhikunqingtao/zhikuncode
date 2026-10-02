@@ -33,25 +33,40 @@ public final class OwnedProcess extends Process {
     /** Retains the builder's environment, directory and output redirections. */
     public static OwnedProcess start(ProcessBuilder builder) throws IOException {
         if (!System.getProperty("os.name").startsWith("Linux")) {
-            var owned = new OwnedProcess(builder.start(), null);
-            try {
-                owned.getOutputStream().close();
-                return owned;
-            } catch (IOException failure) {
-                if (!terminateTree(owned, Duration.ZERO)) throw new LaunchFailure(owned, failure);
-                throw failure;
-            }
+            return finishPortableStart(builder.start());
         }
-        Path setsid = Files.isExecutable(Path.of("/usr/bin/setsid"))
-                ? Path.of("/usr/bin/setsid") : Path.of("/bin/setsid");
-        if (!Files.isExecutable(setsid) || !Files.isExecutable(Path.of("/bin/bash"))) {
-            throw new IOException("PROCESS_GROUP_UNAVAILABLE: setsid and bash are required on Linux");
+        return startGated(builder, StartAction::run, false);
+    }
+
+    /** Run-owned launches release user code only through the owner's atomic admission boundary. */
+    static OwnedProcess startGated(ProcessBuilder builder, StartAdmission admission) throws IOException {
+        return startGated(builder, admission, true);
+    }
+
+    private static OwnedProcess startGated(ProcessBuilder builder, StartAdmission admission,
+                                           boolean preserveAdmissionFailure) throws IOException {
+        boolean linux = System.getProperty("os.name").startsWith("Linux");
+        boolean mac = System.getProperty("os.name").startsWith("Mac");
+        if (!linux && !mac) {
+            // Keep the existing native launch on other platforms, without introducing a shell dependency.
+            Process[] started = new Process[1];
+            admission.admit(() -> started[0] = builder.start());
+            return finishPortableStart(started[0]);
         }
         if (builder.redirectInput() != ProcessBuilder.Redirect.PIPE) {
             throw new IOException("Owned process requires piped stdin");
         }
         List<String> original = List.copyOf(builder.command());
-        var argv = new ArrayList<>(List.of(setsid.toString(), "/bin/bash", "-c",
+        var argv = new ArrayList<String>();
+        if (linux) {
+            Path setsid = Files.isExecutable(Path.of("/usr/bin/setsid"))
+                    ? Path.of("/usr/bin/setsid") : Path.of("/bin/setsid");
+            if (!Files.isExecutable(setsid) || !Files.isExecutable(Path.of("/bin/bash"))) {
+                throw new IOException("PROCESS_GROUP_UNAVAILABLE: setsid and bash are required on Linux");
+            }
+            argv.add(setsid.toString());
+        }
+        argv.addAll(List.of(linux ? "/bin/bash" : "/bin/sh", "-c",
                 "IFS= read -r admission; [ \"$admission\" = start ] || exit 125; exec \"$@\"",
                 "zhikun-owned"));
         argv.addAll(original);
@@ -66,18 +81,24 @@ public final class OwnedProcess extends Process {
         try {
             // User code cannot execute until we have verified and retained its identity.
             long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
-            ProcIdentity identity;
-            do {
-                identity = readIdentity(process.pid());
-                if (identity != null && identity.group == process.pid()
-                        && identity.session == process.pid()) break;
-                if (!process.isAlive() || System.nanoTime() >= deadline) {
-                    throw new IOException("PROCESS_GROUP_UNAVAILABLE");
-                }
-                Thread.sleep(5);
-            } while (true);
+            ProcIdentity identity = null;
+            if (linux) {
+                do {
+                    identity = readIdentity(process.pid());
+                    if (identity != null && identity.group == process.pid()
+                            && identity.session == process.pid()) break;
+                    if (!process.isAlive() || System.nanoTime() >= deadline) {
+                        throw new IOException("PROCESS_GROUP_UNAVAILABLE");
+                    }
+                    Thread.sleep(5);
+                } while (true);
+            }
             owned = new OwnedProcess(process, identity);
-            process.getOutputStream().write("start\n".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            admission.admit(() -> {
+                process.getOutputStream().write("start\n".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                // Process stdin is buffered: flush must remain inside the admission boundary.
+                process.getOutputStream().flush();
+            });
             process.getOutputStream().close();
             return owned;
         } catch (IOException | InterruptedException | RuntimeException failure) {
@@ -93,9 +114,27 @@ public final class OwnedProcess extends Process {
             }
             if (failure instanceof InterruptedException) Thread.currentThread().interrupt();
             if (!stopped) throw new LaunchFailure(owned != null ? owned : new OwnedProcess(process, null), failure);
+            if (preserveAdmissionFailure && failure instanceof IOException ioFailure) throw ioFailure;
+            if (preserveAdmissionFailure && failure instanceof RuntimeException runtimeFailure) throw runtimeFailure;
             throw new IOException("PROCESS_GROUP_UNAVAILABLE", failure);
         }
     }
+
+    private static OwnedProcess finishPortableStart(Process process) throws IOException {
+        var owned = new OwnedProcess(process, null);
+        try {
+            owned.getOutputStream().close();
+            return owned;
+        } catch (IOException failure) {
+            if (!terminateTree(owned, Duration.ZERO)) throw new LaunchFailure(owned, failure);
+            throw failure;
+        }
+    }
+
+    @FunctionalInterface
+    interface StartAction { void run() throws IOException; }
+    @FunctionalInterface
+    interface StartAdmission { void admit(StartAction action) throws IOException; }
 
     /** Startup failed after creating a scope whose cleanup could not be confirmed. */
     public static final class LaunchFailure extends IOException {

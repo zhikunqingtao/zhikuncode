@@ -189,6 +189,13 @@ public class FileEditTool implements Tool {
                 return ToolResult.validationError("FILE_NOT_FOUND", "File does not exist: " + filePath);
             }
 
+            if (oldString.isEmpty()) {
+                return ToolResult.validationError("FILE_EDIT_EMPTY_MATCH",
+                        "old_string must not be empty when editing an existing file. "
+                                + "Re-read the file and provide a non-empty string that matches its contents. "
+                                + "If the existing file is empty, use Write to supply its contents.");
+            }
+
             // 3. 文件大小检查
             if (Files.size(path) > MAX_EDIT_FILE_SIZE) {
                 return ToolResult.validationError("FILE_EDIT_SIZE_LIMIT", "File too large (>1GB). Cannot edit.");
@@ -210,6 +217,12 @@ public class FileEditTool implements Tool {
                                 + "  1. Use Read tool to re-read the file and verify the content\n"
                                 + "  2. Ensure old_string matches exactly (including whitespace/indentation)\n"
                                 + "  3. Try a smaller, more unique substring");
+            }
+            if (actualOldString.isEmpty()) {
+                return ToolResult.validationError("FILE_EDIT_EMPTY_MATCH",
+                        "old_string resolved to an empty match after normalization. "
+                                + "Re-read the file and provide a non-empty string that matches its contents. "
+                                + "If the existing file is empty, use Write to supply its contents.");
             }
 
             // 5. 验证唯一性

@@ -5,19 +5,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-/**
- * TaskStopTool — 停止/取消一个正在执行的后台任务。
- * <p>
- * 通过 {@link TaskCoordinator#cancelTask(String)} 触发三层中断传播:
- * <ol>
- *   <li>Layer 1: future.cancel(true) → Thread.interrupt()</li>
- *   <li>Layer 2: activeTool.cancel() → 终止子进程</li>
- *   <li>Layer 3: 递归取消子任务</li>
- * </ol>
- *
- */
+/** Request cancellation of a task owned by the current session; await actual execution exit. */
 @Component
 public class TaskStopTool implements Tool {
 
@@ -34,16 +23,16 @@ public class TaskStopTool implements Tool {
 
     @Override
     public String getDescription() {
-        return "Stop/cancel a running background task. " +
-                "Uses three-layer interrupt propagation to cleanly terminate the task.";
+        return "Request cancellation of a background task in the current session. " +
+                "Cancellation remains pending until its execution and owned resources exit.";
     }
 
     @Override
     public String prompt() {
         return """
-                - Stops a running background task by its ID
+                - Requests cancellation of a background task belonging to the current session
                 - Takes a taskId parameter identifying the task to stop
-                - Returns a success or failure status
+                - Acknowledges the request; use TaskGet to observe terminal status after execution exits
                 - Use this tool when you need to terminate a long-running task
                 """;
     }
@@ -79,25 +68,17 @@ public class TaskStopTool implements Tool {
         String taskId = input.getString("taskId");
         String reason = input.getString("reason", "User requested cancellation");
 
-        Optional<TaskState> taskOpt = taskCoordinator.getTask(taskId);
-        if (taskOpt.isEmpty()) {
-            return ToolResult.validationError("TASK_NOT_FOUND", "Task not found: " + taskId);
-        }
-        TaskState task = taskOpt.get();
-
-        if (task.getStatus().isTerminal()) {
-            return ToolResult.validationError("TASK_ALREADY_TERMINAL", "Task already in terminal state: " + task.getStatus());
-        }
-
-        // 三层中断传播（委托给 TaskCoordinator）
-        boolean cancelled = taskCoordinator.cancelTask(taskId);
-        if (cancelled) {
-            return ToolResult.success(
-                    "Task " + taskId + " cancelled. Reason: " + reason);
-        } else {
-            return ToolResult.internalError("TASK_CANCEL_FAILED", "Failed to cancel task: " + taskId,
-                    ToolResult.EffectState.UNKNOWN);
-        }
+        return switch (taskCoordinator.cancelTask(taskId, context.sessionId())) {
+            case NOT_FOUND -> ToolResult.validationError("TASK_NOT_FOUND", "Task not found: " + taskId);
+            case ALREADY_TERMINAL -> ToolResult.validationError("TASK_ALREADY_TERMINAL",
+                    "Task already in terminal state: " + taskId);
+            case ALREADY_CANCELLED -> ToolResult.success("Task " + taskId
+                    + " already cancelled. Termination confirmed; no further action was needed.",
+                    Map.of("cancellationRequested", true, "terminationConfirmed", true));
+            case REQUESTED -> ToolResult.successWithEffect("Task " + taskId
+                    + " cancellation requested. Execution may still be exiting. Reason: " + reason,
+                    ToolResult.EffectState.APPLIED, Map.of("cancellationRequested", true));
+        };
     }
 
     @Override

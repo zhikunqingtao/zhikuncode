@@ -14,10 +14,48 @@ import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 class OwnedProcessTest {
     @TempDir Path directory;
+
+    @Test
+    @EnabledOnOs({OS.LINUX, OS.MAC})
+    void deniedStartGateNeverExecutesTheUserCommand() {
+        ProcessBuilder builder = new ProcessBuilder("bash", "-c", "printf forbidden > marker")
+                .directory(directory.toFile());
+        var original = java.util.List.copyOf(builder.command());
+        assertThatThrownBy(() -> OwnedProcess.startGated(builder, action -> {
+            assertThat(directory.resolve("marker")).doesNotExist();
+            throw new java.io.IOException("cancelled-before-start");
+        })).isInstanceOf(java.io.IOException.class).hasMessage("cancelled-before-start");
+        assertThat(directory.resolve("marker")).doesNotExist();
+        assertThat(builder.command()).isEqualTo(original);
+    }
+
+    @Test
+    @EnabledOnOs({OS.LINUX, OS.MAC})
+    void gatedStartPreservesDirectoryEnvironmentArgumentsOutputAndExitCode() throws Exception {
+        ProcessBuilder builder = new ProcessBuilder("bash", "-c",
+                "printf '%s|%s' \"$OWNED_TEST\" \"$1\"; printf err >&2; printf cwd > marker; exit 7",
+                "fixture", "literal $value ' and spaces").directory(directory.toFile());
+        builder.environment().put("OWNED_TEST", "environment value");
+        var original = java.util.List.copyOf(builder.command());
+        OwnedProcess process = OwnedProcess.startGated(builder, action -> {
+            assertThat(directory.resolve("marker")).doesNotExist();
+            action.run();
+        });
+        try {
+            assertThat(process.waitFor(3, TimeUnit.SECONDS)).isTrue();
+            assertThat(new String(process.getInputStream().readAllBytes()))
+                    .isEqualTo("environment value|literal $value ' and spaces");
+            assertThat(new String(process.getErrorStream().readAllBytes())).isEqualTo("err");
+            assertThat(Files.readString(directory.resolve("marker"))).isEqualTo("cwd");
+            assertThat(process.exitValue()).isEqualTo(7);
+            assertThat(builder.command()).isEqualTo(original);
+        } finally { assertThat(OwnedProcess.terminateTree(process, Duration.ZERO)).isTrue(); }
+    }
 
     @Test
     void scopeObservationNeverSignalsAndInspectionFailureIsNotExit() throws Exception {

@@ -67,11 +67,8 @@ public class AskUserQuestionTool implements Tool {
                   {"label":"历史背景","description":"介绍时代背景"},
                   {"label":"制度变化","description":"介绍制度演进"}]}]}
 
-                Plan mode note: In plan mode, use this tool to clarify requirements or choose \
-                between approaches BEFORE finalizing your plan. Do NOT use this tool to ask \
-                "Is my plan ready?" or "Should I proceed?" - use ExitPlanMode for plan approval. \
-                IMPORTANT: Do not reference "the plan" in your questions because the user cannot \
-                see the plan in the UI until you call ExitPlanMode.
+                When planning, use this tool to clarify requirements or choose between approaches \
+                before finalizing your plan.
                 """;
     }
 

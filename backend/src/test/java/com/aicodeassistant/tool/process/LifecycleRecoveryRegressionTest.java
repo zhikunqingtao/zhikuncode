@@ -40,7 +40,8 @@ class LifecycleRecoveryRegressionTest {
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
             var launched = executor.submit(() -> {
                 try (var starts = mockStatic(OwnedProcess.class)) {
-                    starts.when(() -> OwnedProcess.start(any(ProcessBuilder.class))).thenAnswer(i -> {
+                    starts.when(() -> OwnedProcess.startGated(any(ProcessBuilder.class),
+                            any(OwnedProcess.StartAdmission.class))).thenAnswer(i -> {
                         paused.countDown(); assertThat(resume.await(3, TimeUnit.SECONDS)).isTrue(); return process;
                     });
                     return runner.run(new ManagedProcessRunner.Request(List.of("true"), Path.of(System.getProperty("java.io.tmpdir")), Duration.ofSeconds(3), "window", "tool"));
@@ -109,7 +110,8 @@ class LifecycleRecoveryRegressionTest {
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
             var command = executor.submit(() -> {
                 try (var starts = mockStatic(OwnedProcess.class)) {
-                    starts.when(() -> OwnedProcess.start(any(ProcessBuilder.class))).thenReturn(process);
+                    starts.when(() -> OwnedProcess.startGated(any(ProcessBuilder.class),
+                            any(OwnedProcess.StartAdmission.class))).thenReturn(process);
                     return runner.run(new ManagedProcessRunner.Request(List.of("true"),
                             Path.of(System.getProperty("java.io.tmpdir")), Duration.ofSeconds(3), "active", "tool"));
                 }

@@ -1,6 +1,5 @@
 package com.aicodeassistant.tool.task;
 
-import com.aicodeassistant.model.TaskStatus;
 import com.aicodeassistant.tool.*;
 import org.springframework.stereotype.Component;
 
@@ -9,7 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * TaskUpdateTool — 更新后台任务的状态或输出。
+ * TaskUpdateTool — 更新所属会话后台任务的输出。
  *
  */
 @Component
@@ -28,37 +27,24 @@ public class TaskUpdateTool implements Tool {
 
     @Override
     public String getDescription() {
-        return "Update the status or output of an existing background task.";
+        return "Replace the stored output of an existing background task in the current session.";
     }
 
     @Override
     public String prompt() {
         return """
-                Use this tool to update a task in the task list.
-                
-                ## When to Use This Tool
-                **Mark tasks as resolved:**
-                - When you have completed the work described in a task
-                - When a task is no longer needed or has been superseded
-                - IMPORTANT: Always mark your assigned tasks as resolved when you finish them
-                - After resolving, call TaskList to find your next task
-                
-                - ONLY mark a task as completed when you have FULLY accomplished it
-                - If you encounter errors, blockers, or cannot finish, keep the task as in_progress
-                - Never mark a task as completed if:
-                  - Tests are failing
-                  - Implementation is partial
-                  - You encountered unresolved errors
-                
-                **Update task details:**
-                - When requirements change or become clearer
-                
-                ## Status Workflow
-                Status progresses: `pending` \u2192 `in_progress` \u2192 `completed`
-                
-                ## Examples
-                Mark task as in progress: {"taskId": "1", "status": "in_progress"}
-                Mark task as completed: {"taskId": "1", "status": "completed"}
+                Replace stored output of a background task belonging to the current session using taskId. \
+                Use TodoWrite for a planning or progress checklist.
+
+                ## Inputs
+                - taskId: The existing background task ID.
+                - output: Optional replacement text, limited to 1048576 characters before a truncation notice.
+
+                Execution status is managed by the task coordinator. The status parameter is rejected; \
+                use TaskStop to request cancellation. This tool does not start or stop execution. \
+                During execution, output is a temporary progress note: a non-null final execution output \
+                replaces it. After execution ends, output can still be replaced without changing status \
+                or error. An empty string clears output. The response includes the task ID and status.
                 """;
     }
 
@@ -69,13 +55,10 @@ public class TaskUpdateTool implements Tool {
                 "properties", Map.of(
                         "taskId", Map.of(
                                 "type", "string",
-                                "description", "Task ID to update"),
-                        "status", Map.of(
-                                "type", "string",
-                                "description", "New status for the task"),
+                                "description", "Existing background task ID to update"),
                         "output", Map.of(
                                 "type", "string",
-                                "description", "Output content to set")
+                                "description", "Replacement text for the task's stored output")
                 ),
                 "required", List.of("taskId")
         );
@@ -94,22 +77,18 @@ public class TaskUpdateTool implements Tool {
     @Override
     public ToolResult call(ToolInput input, ToolUseContext context) {
         String taskId = input.getString("taskId");
-        Optional<TaskState> taskOpt = taskCoordinator.getTask(taskId);
-        if (taskOpt.isEmpty()) {
+        if (taskCoordinator.getTask(taskId, context.sessionId()).isEmpty()) {
             return ToolResult.validationError("TASK_NOT_FOUND", "Task not found: " + taskId);
         }
-        TaskState task = taskOpt.get();
-
-        // 更新状态（如果提供）
-        input.getOptionalString("status").ifPresent(statusStr -> {
-            TaskStatus newStatus = TaskStatus.valueOf(statusStr.toUpperCase());
-            task.setStatus(newStatus);
-        });
-
-        // 更新输出（如果提供）
-        input.getOptionalString("output").ifPresent(task::setOutput);
-
-        return ToolResult.success("Task " + taskId + " updated. Status: " + task.getStatus());
+        // Reject the entire request before any mutation, including an explicit JSON null.
+        if (input.has("status")) {
+            return ToolResult.validationError("TASK_STATUS_READ_ONLY",
+                    "Execution status is managed by the task coordinator. Use TaskStop to request cancellation.");
+        }
+        Optional<TaskState.Snapshot> updated = taskCoordinator.updateOutput(taskId, context.sessionId(),
+                input.getOptionalString("output").orElse(null), false);
+        if (updated.isEmpty()) return ToolResult.validationError("TASK_NOT_FOUND", "Task not found: " + taskId);
+        return ToolResult.success("Task " + taskId + " updated. Status: " + updated.get().status());
     }
 
     @Override

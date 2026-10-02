@@ -27,28 +27,22 @@ public class TaskGetTool implements Tool {
 
     @Override
     public String getDescription() {
-        return "Get detailed information about a specific background task.";
+        return "Get a background task record by taskId, including stored output and error when available.";
     }
 
     @Override
     public String prompt() {
         return """
-                Use this tool to retrieve a task by its ID from the task list.
-                
-                ## When to Use This Tool
-                - When you need the full description and context before starting work on a task
-                - To understand task dependencies (what it blocks, what blocks it)
-                - After being assigned a task, to get complete requirements
-                
+                Retrieve a background task record belonging to the current session using taskId. Use TaskList to find task IDs \
+                in the current session, and TodoWrite for a planning or progress checklist.
+
                 ## Output
-                Returns full task details:
-                - **subject**: Task title
-                - **description**: Detailed requirements and context
-                - **status**: 'pending', 'in_progress', or 'completed'
-                
-                ## Tips
-                - After fetching a task, verify its status before beginning work.
-                - Use TaskList to see all tasks in summary form.
+                Returns the task ID, recorded status, description, creation time, and child task count. \
+                Stored output and error are included when available.
+
+                Recorded statuses are PENDING, RUNNING, IN_PROGRESS, COMPLETED, FAILED, CANCELLED, \
+                and KILLED. Cancellation requested is reported separately until execution exits; \
+                COMPLETED means execution reported success, not independent verification of its work.
                 """;
     }
 
@@ -59,7 +53,7 @@ public class TaskGetTool implements Tool {
                 "properties", Map.of(
                         "taskId", Map.of(
                                 "type", "string",
-                                "description", "Task ID to query")
+                                "description", "Background task ID to query")
                 ),
                 "required", List.of("taskId")
         );
@@ -78,25 +72,27 @@ public class TaskGetTool implements Tool {
     @Override
     public ToolResult call(ToolInput input, ToolUseContext context) {
         String taskId = input.getString("taskId");
-        Optional<TaskState> taskOpt = taskCoordinator.getTask(taskId);
+        Optional<TaskState.Snapshot> taskOpt = taskCoordinator.getTask(taskId, context.sessionId());
         if (taskOpt.isEmpty()) {
             return ToolResult.validationError("TASK_NOT_FOUND", "Task not found: " + taskId);
         }
-        TaskState task = taskOpt.get();
+        TaskState.Snapshot task = taskOpt.get();
 
         StringBuilder sb = new StringBuilder();
-        sb.append("Task: ").append(task.getTaskId()).append("\n");
-        sb.append("Status: ").append(task.getStatus()).append("\n");
+        sb.append("Task: ").append(task.taskId()).append("\n");
+        sb.append("Status: ").append(task.status()).append("\n");
+        sb.append("Cancellation requested: ").append(task.cancellationRequested()).append("\n");
+        sb.append("Termination confirmed: ").append(task.terminationConfirmed()).append("\n");
         sb.append("Description: ").append(
-                task.getDescription() != null ? task.getDescription() : "(none)").append("\n");
-        sb.append("Created: ").append(task.getCreatedAt()).append("\n");
-        if (task.getOutput() != null) {
-            sb.append("Output:\n").append(task.getOutput()).append("\n");
+                task.description() != null ? task.description() : "(none)").append("\n");
+        sb.append("Created: ").append(task.createdAt()).append("\n");
+        if (task.output() != null) {
+            sb.append("Output:\n").append(task.output()).append("\n");
         }
-        if (task.getError() != null) {
-            sb.append("Error: ").append(task.getError()).append("\n");
+        if (task.error() != null) {
+            sb.append("Error: ").append(task.error()).append("\n");
         }
-        sb.append("Child tasks: ").append(task.getChildTaskIds().size());
+        sb.append("Child tasks: ").append(task.childTaskIds().size());
         return ToolResult.success(sb.toString());
     }
 

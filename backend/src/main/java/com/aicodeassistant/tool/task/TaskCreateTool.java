@@ -1,6 +1,7 @@
 package com.aicodeassistant.tool.task;
 
 import com.aicodeassistant.tool.*;
+import com.aicodeassistant.model.TaskStatus;
 import com.aicodeassistant.tool.agent.SubAgentExecutor;
 import com.aicodeassistant.tool.agent.SubAgentExecutor.AgentRequest;
 import com.aicodeassistant.tool.agent.SubAgentExecutor.AgentResult;
@@ -13,19 +14,18 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * TaskCreateTool — 创建后台执行的子任务。
  * <p>
  * 任务类型:
  * <ul>
- *   <li>shell: 执行 Shell 命令并监控</li>
+ *   <li>shell: 执行一次 Shell 命令</li>
  *   <li>agent: 创建子代理执行复杂任务（默认）</li>
- *   <li>remote_agent: 远程代理任务</li>
- *   <li>in_process_teammate: 进程内协作者</li>
- *   <li>local_workflow: 基于脚本定义的自动化流程</li>
- *   <li>monitor_mcp: 长期运行的 MCP 服务监控任务</li>
- *   <li>dream: 后台梦境式思考任务</li>
+ *   <li>local_workflow: 使用 workflow 类型执行一次子代理任务</li>
+ *   <li>monitor_mcp: 使用 monitor 类型执行一次子代理任务</li>
+ *   <li>dream: 使用 dream 类型执行一次子代理任务</li>
  * </ul>
  *
  */
@@ -33,20 +33,22 @@ import java.util.UUID;
 public class TaskCreateTool implements Tool {
 
     private static final Logger log = LoggerFactory.getLogger(TaskCreateTool.class);
+    private static final List<String> SUPPORTED_TASK_TYPES =
+            List.of("agent", "shell", "local_workflow", "monitor_mcp", "dream");
 
     private final TaskCoordinator taskCoordinator;
     private final SubAgentExecutor subAgentExecutor;
     private final ToolRegistry toolRegistry;
-    private final StreamingToolExecutor toolExecutor;
+    private final TaskShellExecutor shellExecutor;
 
     public TaskCreateTool(TaskCoordinator taskCoordinator,
                           SubAgentExecutor subAgentExecutor,
                           @Lazy ToolRegistry toolRegistry,
-                          @Lazy StreamingToolExecutor toolExecutor) {
+                          @Lazy TaskShellExecutor shellExecutor) {
         this.taskCoordinator = taskCoordinator;
         this.subAgentExecutor = subAgentExecutor;
         this.toolRegistry = toolRegistry;
-        this.toolExecutor = toolExecutor;
+        this.shellExecutor = shellExecutor;
     }
 
     @Override
@@ -56,43 +58,34 @@ public class TaskCreateTool implements Tool {
 
     @Override
     public String getDescription() {
-        return "Create a background task to execute independently. " +
-                "Tasks run in their own virtual thread with a dedicated QueryEngine. " +
-                "Use this for parallel execution of independent subtasks.";
+        return "Submit a background task for immediate execution and return its task ID. " +
+                "Use TodoWrite for a planning or progress checklist.";
     }
 
     @Override
     public String prompt() {
         return """
-                Use this tool to create a structured task list for your current coding session. \
-                This helps you track progress, organize complex tasks, and demonstrate thoroughness \
-                to the user. It also helps the user understand the progress of the task and overall \
-                progress of their requests.
-                
-                ## When to Use This Tool
-                
-                Use this tool proactively in these scenarios:
-                - Complex multi-step tasks - When a task requires 3 or more distinct steps or actions
-                - Non-trivial and complex tasks - Tasks that require careful planning or multiple operations
-                - Plan mode - When using plan mode, create a task list to track the work
-                - User explicitly requests todo list - When the user directly asks you to use the todo list
-                - User provides multiple tasks - When users provide a list of things to be done
-                - After receiving new instructions - Immediately capture user requirements as tasks
-                - When you start working on a task - Mark it as in_progress BEFORE beginning work
-                - After completing a task - Mark it as completed and add any new follow-up tasks
-                
-                ## When NOT to Use This Tool
-                
-                Skip using this tool when:
-                - There is only a single, straightforward task
-                - The task is trivial and tracking it provides no organizational benefit
-                - The task can be completed in less than 3 trivial steps
-                - The task is purely conversational or informational
-                
-                ## Tips
-                - Create tasks with clear, specific subjects that describe the outcome
-                - After creating tasks, use TaskUpdate to set up dependencies if needed
-                - Check TaskList first to avoid creating duplicate tasks
+                Submit an independent task for immediate background execution. Calling this tool \
+                starts work; use TodoWrite for a planning or progress checklist.
+
+                ## Inputs
+                - description: A short description stored with the task.
+                - prompt: Instructions to execute, or the command text for a shell task.
+                - taskType: An exact lowercase type name; defaults to agent when omitted.
+
+                ## Task Types
+                - agent: Execute one general-purpose sub-agent invocation.
+                - shell: Execute one command through the Bash tool.
+                - local_workflow: Execute one sub-agent invocation using the workflow compatibility alias (currently general-purpose).
+                - monitor_mcp: Execute one sub-agent invocation using the monitor compatibility alias (currently general-purpose); \
+                this does not schedule repeated monitoring.
+                - dream: Execute one sub-agent invocation using the dream compatibility alias (currently general-purpose) with \
+                ordinary execution priority.
+
+                ## Result
+                Returns a task ID and a creation acknowledgment, not the execution result. \
+                Use TaskList or TaskGet to inspect the task's recorded status and any stored output. \
+                Check TaskList before submitting duplicate work.
                 """;
     }
 
@@ -103,16 +96,14 @@ public class TaskCreateTool implements Tool {
                 "properties", Map.of(
                         "description", Map.of(
                                 "type", "string",
-                                "description", "Task description"),
+                                "description", "Short description stored with the background task"),
                         "prompt", Map.of(
                                 "type", "string",
-                                "description", "Task prompt / instructions"),
+                                "description", "Instructions to execute, or command text for a shell task"),
                         "taskType", Map.of(
                                 "type", "string",
-                                "enum", List.of("shell", "agent", "remote_agent",
-                                        "in_process_teammate", "local_workflow",
-                                        "monitor_mcp", "dream"),
-                                "description", "Type of task to create (default: agent)")
+                                "enum", SUPPORTED_TASK_TYPES,
+                                "description", "Exact lowercase execution type (default: agent)")
                 ),
                 "required", List.of("description", "prompt")
         );
@@ -134,148 +125,91 @@ public class TaskCreateTool implements Tool {
         String prompt = input.getString("prompt");
         String taskType = input.getString("taskType", "agent");
 
+        if (!SUPPORTED_TASK_TYPES.contains(taskType)) {
+            return ToolResult.validationError("TASK_TYPE_UNSUPPORTED",
+                    "Unsupported taskType: " + taskType + ". Supported types: "
+                            + String.join(", ", SUPPORTED_TASK_TYPES));
+        }
+
         String taskId = UUID.randomUUID().toString().substring(0, 8);
         String sessionId = context.sessionId();
 
         log.info("Creating task: id={}, type={}, description={}", taskId, taskType, description);
 
         try {
-            // 提交任务到 TaskCoordinator — 按 taskType 分发执行
-            TaskState taskState = taskCoordinator.submit(taskId, sessionId, description, () -> {
-                switch (taskType) {
-                    case "agent" -> executeAgentTask(taskId, prompt, context);
-                    case "shell" -> executeShellTask(taskId, prompt, context);
-                    case "local_workflow" -> executeLocalWorkflowTask(taskId, prompt, context);
-                    case "monitor_mcp" -> executeMonitorMcpTask(taskId, prompt, context);
-                    case "dream" -> executeDreamTask(taskId, prompt, context);
-                    default -> log.warn("Task type '{}' not yet implemented, task {} skipped", taskType, taskId);
-                }
+            taskCoordinator.submitResult(taskId, sessionId, description, () -> switch (taskType) {
+                case "agent" -> executeAgentTask(taskId, prompt, context, null, "task-", false);
+                case "shell" -> executeShellTask(taskId, prompt, context);
+                case "local_workflow" -> executeAgentTask(taskId, prompt, context, "workflow", "workflow-", false);
+                case "monitor_mcp" -> executeAgentTask(taskId, monitorPrompt(prompt), context,
+                        "monitor", "mcp-monitor-", true);
+                case "dream" -> executeAgentTask(taskId, prompt, context, "dream", "dream-", true);
+                default -> throw new IllegalStateException("Unsupported taskType: " + taskType);
             });
-
-            return ToolResult.success(
-                    "Task #" + taskId + " created successfully: " + description);
-
-        } catch (IllegalStateException e) {
-            return ToolResult.internalError("TASK_CREATE_FAILED", "Failed to create task: " + e.getMessage(),
+            return ToolResult.success("Task #" + taskId + " created successfully: " + description);
+        } catch (TaskCoordinator.SubmissionException failure) {
+            return ToolResult.failed(ToolResult.ToolFailureType.PROCESS, failure.code(),
+                    "Failed to create task: " + failure.getMessage(), ToolResult.Retryability.NEVER,
+                    ToolResult.EffectState.NOT_STARTED, null, Map.of());
+        } catch (IllegalStateException failure) {
+            return ToolResult.internalError("TASK_CREATE_FAILED", "Failed to create task: " + failure.getMessage(),
                     ToolResult.EffectState.UNKNOWN);
         }
     }
 
-    // ═══ 任务执行方法 ═══
+    private TaskExecutionResult executeAgentTask(String taskId, String prompt, ToolUseContext context,
+                                                 String agentType, String prefix, boolean backgroundFlag) {
+        AgentRequest request = new AgentRequest(prefix + taskId, prompt, agentType, null,
+                IsolationMode.NONE, backgroundFlag);
+        AtomicBoolean returned = new AtomicBoolean();
+        taskCoordinator.registerCancellationCleanup(taskId, () -> {
+            if (returned.get()) subAgentExecutor.finishTaskCancellation(request, context);
+        });
+        AgentResult result = subAgentExecutor.executeTaskSync(request, context);
+        returned.set(true);
+        return fromAgentResult(result);
+    }
 
-    private void executeAgentTask(String taskId, String prompt, ToolUseContext context) {
+    private TaskExecutionResult executeShellTask(String taskId, String prompt, ToolUseContext context) {
+        var bashTool = toolRegistry.findByNameOptional("Bash");
+        if (bashTool.isEmpty()) return TaskExecutionResult.failed(null, "BASH_TOOL_UNAVAILABLE: Bash tool is not registered");
+        ToolExecutionResult execution = shellExecutor.execute(bashTool.get(),
+                ToolInput.from(Map.of("command", prompt)), taskId, context);
+        return fromToolResult(execution == null ? null : execution.result());
+    }
+
+    /** Preserve the existing interval-prefix compatibility; this is still a single invocation. */
+    private String monitorPrompt(String prompt) {
+        if (!prompt.startsWith("interval=")) return prompt;
+        String[] parts = prompt.split("\\s+", 2);
         try {
-            log.info("Executing agent task: {}", taskId);
-            AgentRequest request = new AgentRequest(
-                    "task-" + taskId,          // agentId
-                    prompt,                     // prompt
-                    null,                       // agentType (default general-purpose)
-                    null,                       // model (default)
-                    IsolationMode.NONE,         // isolation
-                    false                       // runInBackground
-            );
-            AgentResult result = subAgentExecutor.executeSync(request, context);
-            log.info("Agent task {} completed: status={}", taskId,
-                    result != null ? result.status() : "null");
-        } catch (Exception e) {
-            log.error("Agent task {} failed: {}", taskId, e.getMessage(), e);
+            Integer.parseInt(parts[0].substring("interval=".length()));
+            return parts.length > 1 ? parts[1] : prompt;
+        } catch (NumberFormatException failure) {
+            log.warn("Invalid interval in monitor_mcp prompt; preserving the original prompt");
+            return prompt;
         }
     }
 
-    private void executeShellTask(String taskId, String prompt, ToolUseContext context) {
-        try {
-            log.info("Executing shell task: {}", taskId);
-            var bashToolOpt = toolRegistry.findByNameOptional("Bash");
-            if (bashToolOpt.isEmpty()) {
-                log.error("BashTool not found in registry, shell task {} skipped", taskId);
-                return;
-            }
-            var bashTool = bashToolOpt.get();
-            ToolInput bashInput = ToolInput.from(Map.of("command", prompt));
-            ToolUseContext childContext = context.withToolUseId(
-                    (context.toolUseId() == null ? taskId : context.toolUseId()) + ":shell:" + UUID.randomUUID());
-            ToolExecutionResult execution = toolExecutor.executeDetached(bashTool, bashInput,
-                    childContext.toolUseId(), childContext);
-            ToolResult result = execution.result();
-            log.info("Shell task {} completed: {}", taskId,
-                    result != null ? "success" : "null result");
-        } catch (Exception e) {
-            log.error("Shell task {} failed: {}", taskId, e.getMessage(), e);
+    static TaskExecutionResult fromAgentResult(AgentResult result) {
+        if (result == null) return TaskExecutionResult.failed(null, "AGENT_RESULT_MISSING: Agent returned no result");
+        if (AgentResult.STATUS_COMPLETED.equals(result.status())) return TaskExecutionResult.completed(result.result());
+        String error = "Agent ended with status " + result.status()
+                + (result.result() == null ? "" : ": " + result.result());
+        if (AgentResult.STATUS_INTERRUPTED.equals(result.status())) {
+            return TaskExecutionResult.cancelled(result.result(), error);
         }
+        return TaskExecutionResult.failed(result.result(), error);
     }
 
-    private void executeLocalWorkflowTask(String taskId, String prompt, ToolUseContext context) {
-        try {
-            log.info("Executing local_workflow task: {}", taskId);
-            // local_workflow 本质是脚本驱动的 agent，使用 "workflow" 类型标识
-            AgentRequest request = new AgentRequest(
-                    "workflow-" + taskId,
-                    prompt,
-                    "workflow",             // agentType: 标识为工作流代理
-                    null,
-                    IsolationMode.NONE,
-                    false
-            );
-            AgentResult result = subAgentExecutor.executeSync(request, context);
-            log.info("Local workflow task {} completed: status={}", taskId,
-                    result != null ? result.status() : "null");
-        } catch (Exception e) {
-            log.error("Local workflow task {} failed: {}", taskId, e.getMessage(), e);
-        }
-    }
-
-    private void executeMonitorMcpTask(String taskId, String prompt, ToolUseContext context) {
-        try {
-            log.info("Executing monitor_mcp task: {}", taskId);
-            // 解析监控间隔（从 prompt 中提取，默认 60 秒）
-            String effectivePrompt = prompt;
-            int intervalSeconds = 60;
-            try {
-                // 支持格式: "interval=30 <actual_prompt>"
-                if (prompt.startsWith("interval=")) {
-                    String[] parts = prompt.split("\\s+", 2);
-                    intervalSeconds = Integer.parseInt(parts[0].substring("interval=".length()));
-                    effectivePrompt = parts.length > 1 ? parts[1] : prompt;
-                }
-            } catch (NumberFormatException e) {
-                log.warn("Invalid interval in monitor_mcp prompt, using default 60s");
-            }
-
-            // 使用 agent 模式执行 MCP 监控指令
-            AgentRequest request = new AgentRequest(
-                    "mcp-monitor-" + taskId,
-                    effectivePrompt,
-                    "monitor",
-                    null,
-                    IsolationMode.NONE,
-                    true                    // runInBackground: MCP 监控任务后台运行
-            );
-            AgentResult result = subAgentExecutor.executeSync(request, context);
-            log.info("Monitor MCP task {} completed: status={}", taskId,
-                    result != null ? result.status() : "null");
-        } catch (Exception e) {
-            log.error("Monitor MCP task {} failed: {}", taskId, e.getMessage(), e);
-        }
-    }
-
-    private void executeDreamTask(String taskId, String prompt, ToolUseContext context) {
-        try {
-            log.info("Executing dream task: {}", taskId);
-            // dream 任务: 后台梦境式思考 — 低优先级、非阻塞
-            AgentRequest request = new AgentRequest(
-                    "dream-" + taskId,
-                    prompt,
-                    "dream",
-                    null,
-                    IsolationMode.NONE,     // IsolationMode 无 SNAPSHOT，使用 NONE
-                    true                    // runInBackground
-            );
-            AgentResult result = subAgentExecutor.executeSync(request, context);
-            log.info("Dream task {} completed: status={}", taskId,
-                    result != null ? result.status() : "null");
-        } catch (Exception e) {
-            log.error("Dream task {} failed: {}", taskId, e.getMessage(), e);
-        }
+    static TaskExecutionResult fromToolResult(ToolResult result) {
+        if (result == null) return TaskExecutionResult.failed(null, "TOOL_RESULT_MISSING: Shell execution returned no result");
+        String error = result.isError() ? result.failureCode() + ": " + result.content() : null;
+        return new TaskExecutionResult(switch (result.executionStatus()) {
+            case SUCCEEDED -> TaskStatus.COMPLETED;
+            case CANCELLED -> TaskStatus.CANCELLED;
+            case FAILED, TIMED_OUT -> TaskStatus.FAILED;
+        }, result.content(), error);
     }
 
     @Override

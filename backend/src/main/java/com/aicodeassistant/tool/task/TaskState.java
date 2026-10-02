@@ -10,7 +10,7 @@ import java.util.concurrent.Future;
 /**
  * 任务状态记录 — 持有后台任务的完整生命周期状态。
  * <p>
- * 线程安全: 所有可变字段使用 volatile，列表使用 CopyOnWriteArrayList。
+ * 协调器在此对象的锁内结算状态；读取多个字段时使用不可变快照。
  *
  */
 public class TaskState {
@@ -24,6 +24,7 @@ public class TaskState {
     private volatile String output;
     private volatile Future<?> future;
     private volatile Cancellable activeTool;
+    private volatile boolean cancellationRequested;
     private final List<String> childTaskIds = new CopyOnWriteArrayList<>();
     private final List<String> childPids = new CopyOnWriteArrayList<>();
 
@@ -51,12 +52,25 @@ public class TaskState {
     public Cancellable getActiveTool() { return activeTool; }
     public List<String> getChildTaskIds() { return childTaskIds; }
     public List<String> getChildPids() { return childPids; }
+    public boolean isCancellationRequested() { return cancellationRequested; }
+
+    public synchronized Snapshot snapshot() {
+        return new Snapshot(taskId, sessionId, description, createdAt, status, output, error,
+                cancellationRequested, List.copyOf(childTaskIds));
+    }
+
+    public record Snapshot(String taskId, String sessionId, String description, Instant createdAt,
+                           TaskStatus status, String output, String error,
+                           boolean cancellationRequested, List<String> childTaskIds) {
+        public boolean terminationConfirmed() { return status.isTerminal(); }
+    }
 
     // ===== Setters =====
 
-    public void setStatus(TaskStatus status) { this.status = status; }
-    public void setError(String error) { this.error = error; }
-    public void setOutput(String output) { this.output = output; }
-    public void setFuture(Future<?> future) { this.future = future; }
+    synchronized void setStatus(TaskStatus status) { this.status = status; }
+    synchronized void setError(String error) { this.error = error; }
+    synchronized void setOutput(String output) { this.output = output; }
+    synchronized void setFuture(Future<?> future) { this.future = future; }
+    synchronized void setCancellationRequested(boolean requested) { this.cancellationRequested = requested; }
     public void setActiveTool(Cancellable activeTool) { this.activeTool = activeTool; }
 }

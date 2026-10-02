@@ -1,22 +1,31 @@
 package com.aicodeassistant.tool.task;
 
 import com.aicodeassistant.model.TaskStatus;
+import com.aicodeassistant.tool.Tool;
+import com.aicodeassistant.tool.ToolExecutionResult;
 import com.aicodeassistant.tool.ToolInput;
 import com.aicodeassistant.tool.ToolRegistry;
 import com.aicodeassistant.tool.ToolResult;
 import com.aicodeassistant.tool.ToolUseContext;
 import com.aicodeassistant.tool.agent.SubAgentExecutor;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -116,6 +125,9 @@ class TaskToolGoldenTest {
 
         private SimpMessagingTemplate messagingTemplate;
         private TaskCoordinator coordinator;
+
+        @AfterEach
+        void tearDown() { if (coordinator != null) coordinator.cleanup(); }
 
         @BeforeEach
         void setUp() {
@@ -221,7 +233,7 @@ class TaskToolGoldenTest {
             String large = "x".repeat(1024 * 1024 + 100);
             String truncated = TaskCoordinator.truncateOutput(large);
             assertTrue(truncated.length() < large.length());
-            assertTrue(truncated.endsWith("[Output truncated at 1MB limit]"));
+            assertTrue(truncated.endsWith("[Output truncated at 1048576 character limit]"));
         }
 
         @Test
@@ -270,13 +282,21 @@ class TaskToolGoldenTest {
     class CreateToolTests {
 
         private TaskCoordinator coordinator;
+        private SubAgentExecutor subAgentExecutor;
+        private ToolRegistry toolRegistry;
+        private TaskShellExecutor toolExecutor;
         private TaskCreateTool tool;
+
+        @AfterEach
+        void tearDown() { if (coordinator != null) coordinator.cleanup(); }
 
         @BeforeEach
         void setUp() {
-            coordinator = new TaskCoordinator(mock(SimpMessagingTemplate.class));
-            tool = new TaskCreateTool(coordinator, mock(SubAgentExecutor.class), mock(ToolRegistry.class),
-                    mock(com.aicodeassistant.tool.StreamingToolExecutor.class));
+            coordinator = mock(TaskCoordinator.class);
+            subAgentExecutor = mock(SubAgentExecutor.class);
+            toolRegistry = mock(ToolRegistry.class);
+            toolExecutor = mock(TaskShellExecutor.class);
+            tool = new TaskCreateTool(coordinator, subAgentExecutor, toolRegistry, toolExecutor);
         }
 
         @Test
@@ -295,19 +315,91 @@ class TaskToolGoldenTest {
             assertTrue(props.containsKey("description"));
             assertTrue(props.containsKey("prompt"));
             assertTrue(props.containsKey("taskType"));
+            Map<?, ?> taskType = (Map<?, ?>) props.get("taskType");
+            assertEquals(Set.of("agent", "shell", "local_workflow", "monitor_mcp", "dream"),
+                    Set.copyOf((List<?>) taskType.get("enum")));
         }
 
-        @Test
-        @DisplayName("4.3 成功创建任务")
-        void createSuccess() {
-            ToolInput input = ToolInput.from(Map.of(
-                    "description", "test task",
-                    "prompt", "do something"));
-            ToolUseContext ctx = ToolUseContext.of("/tmp", "session-1");
+        @ParameterizedTest
+        @ValueSource(strings = {"remote_agent", "in_process_teammate", "unknown", "", " ", "\t",
+                "SHELL", "AGENT", " shell "})
+        void unsupportedTypesNeverSubmitOrExecute(String taskType) {
+            ToolResult result = tool.call(ToolInput.from(Map.of(
+                    "description", "test task", "prompt", "do something", "taskType", taskType)),
+                    ToolUseContext.of("/tmp", "session-1"));
 
-            ToolResult result = tool.call(input, ctx);
+            assertAll(
+                    () -> assertEquals(ToolResult.ExecutionStatus.FAILED, result.executionStatus()),
+                    () -> assertEquals(ToolResult.ToolFailureType.VALIDATION, result.failureType()),
+                    () -> assertEquals("TASK_TYPE_UNSUPPORTED", result.failureCode()),
+                    () -> assertEquals(ToolResult.EffectState.NOT_STARTED, result.effectState()),
+                    () -> assertEquals(ToolResult.Retryability.NEVER, result.retryability()),
+                    () -> assertFalse(result.isRetryable()));
+            verifyNoInteractions(coordinator, subAgentExecutor, toolRegistry, toolExecutor);
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"agent", "shell", "local_workflow", "monitor_mcp", "dream"})
+        void supportedTypesDispatchOnlyWhenSubmittedWorkRuns(String taskType) throws Exception {
+            assertSubmittedDispatch(ToolInput.from(Map.of(
+                    "description", "test task", "prompt", "do something", "taskType", taskType)), taskType);
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = {false, true})
+        void omittedAndNullTypesStillDefaultToAgent(boolean explicitNull) throws Exception {
+            Map<String, Object> values = new HashMap<>();
+            values.put("description", "test task");
+            values.put("prompt", "do something");
+            if (explicitNull) values.put("taskType", null);
+            assertSubmittedDispatch(ToolInput.from(values), "agent");
+        }
+
+        private void assertSubmittedDispatch(ToolInput input, String taskType) throws Exception {
+            ToolUseContext context = ToolUseContext.of("/tmp", "session-1");
+            when(coordinator.submitResult(anyString(), eq("session-1"), eq("test task"), any()))
+                    .thenAnswer(invocation -> new TaskState(invocation.getArgument(0), "session-1",
+                            TaskStatus.PENDING, "test task"));
+
+            ToolResult result = tool.call(input, context);
             assertFalse(result.isError());
-            assertTrue(result.content().contains("created successfully"));
+            ArgumentCaptor<String> taskId = ArgumentCaptor.forClass(String.class);
+            @SuppressWarnings("unchecked")
+            ArgumentCaptor<Callable<TaskExecutionResult>> submitted = ArgumentCaptor.forClass(Callable.class);
+            verify(coordinator).submitResult(taskId.capture(), eq("session-1"), eq("test task"), submitted.capture());
+            assertTrue(result.content().contains(taskId.getValue()));
+            verifyNoInteractions(subAgentExecutor, toolRegistry, toolExecutor);
+
+            if ("shell".equals(taskType)) {
+                Tool bash = mock(Tool.class);
+                when(toolRegistry.findByNameOptional("Bash")).thenReturn(Optional.of(bash));
+                when(toolExecutor.execute(eq(bash), any(ToolInput.class), anyString(), any(ToolUseContext.class)))
+                        .thenReturn(ToolExecutionResult.of(ToolResult.success("done")));
+                assertEquals(TaskStatus.COMPLETED, submitted.getValue().call().status());
+
+                ArgumentCaptor<ToolInput> command = ArgumentCaptor.forClass(ToolInput.class);
+                verify(toolExecutor).execute(eq(bash), command.capture(), eq(taskId.getValue()), same(context));
+                assertEquals("do something", command.getValue().getString("command"));
+                verifyNoInteractions(subAgentExecutor);
+            } else {
+                when(subAgentExecutor.executeTaskSync(any(SubAgentExecutor.AgentRequest.class), same(context)))
+                        .thenReturn(new SubAgentExecutor.AgentResult("completed", "done", "do something", null));
+                assertEquals(TaskStatus.COMPLETED, submitted.getValue().call().status());
+
+                ArgumentCaptor<SubAgentExecutor.AgentRequest> request =
+                        ArgumentCaptor.forClass(SubAgentExecutor.AgentRequest.class);
+                verify(subAgentExecutor).executeTaskSync(request.capture(), same(context));
+                String expectedAgentType = switch (taskType) {
+                    case "agent" -> null;
+                    case "local_workflow" -> "workflow";
+                    case "monitor_mcp" -> "monitor";
+                    case "dream" -> "dream";
+                    default -> throw new AssertionError("Unexpected test task type: " + taskType);
+                };
+                assertEquals(expectedAgentType, request.getValue().agentType());
+                assertEquals("do something", request.getValue().prompt());
+                verifyNoInteractions(toolRegistry, toolExecutor);
+            }
         }
 
         @Test
@@ -326,6 +418,9 @@ class TaskToolGoldenTest {
         private TaskCoordinator coordinator;
         private TaskUpdateTool tool;
 
+        @AfterEach
+        void tearDown() { if (coordinator != null) coordinator.cleanup(); }
+
         @BeforeEach
         void setUp() {
             coordinator = new TaskCoordinator(mock(SimpMessagingTemplate.class));
@@ -339,8 +434,8 @@ class TaskToolGoldenTest {
         }
 
         @Test
-        @DisplayName("5.2 更新已有任务状态")
-        void updateStatus() throws Exception {
+        @DisplayName("5.2 拒绝手动更新执行状态且仍可取消")
+        void rejectStatusUpdate() throws Exception {
             CountDownLatch latch = new CountDownLatch(1);
             coordinator.submit("u1", "s1", "test", () -> {
                 try { Thread.sleep(5000); } catch (InterruptedException ignored) {}
@@ -352,10 +447,10 @@ class TaskToolGoldenTest {
                     "taskId", "u1",
                     "status", "COMPLETED"));
             ToolResult result = tool.call(input, ToolUseContext.of("/tmp", "s1"));
-            assertFalse(result.isError());
-            assertTrue(result.content().contains("COMPLETED"));
-
-            coordinator.cancelTask("u1");
+            assertTrue(result.isError());
+            assertEquals("TASK_STATUS_READ_ONLY", result.failureCode());
+            assertEquals(TaskStatus.RUNNING, coordinator.getTask("u1").orElseThrow().getStatus());
+            assertTrue(coordinator.cancelTask("u1"));
         }
 
         @Test
@@ -376,6 +471,9 @@ class TaskToolGoldenTest {
 
         private TaskCoordinator coordinator;
         private TaskListTool tool;
+
+        @AfterEach
+        void tearDown() { if (coordinator != null) coordinator.cleanup(); }
 
         @BeforeEach
         void setUp() {
@@ -424,6 +522,9 @@ class TaskToolGoldenTest {
         private TaskCoordinator coordinator;
         private TaskGetTool tool;
 
+        @AfterEach
+        void tearDown() { if (coordinator != null) coordinator.cleanup(); }
+
         @BeforeEach
         void setUp() {
             coordinator = new TaskCoordinator(mock(SimpMessagingTemplate.class));
@@ -470,6 +571,9 @@ class TaskToolGoldenTest {
         private TaskCoordinator coordinator;
         private TaskStopTool tool;
 
+        @AfterEach
+        void tearDown() { if (coordinator != null) coordinator.cleanup(); }
+
         @BeforeEach
         void setUp() {
             coordinator = new TaskCoordinator(mock(SimpMessagingTemplate.class));
@@ -496,7 +600,7 @@ class TaskToolGoldenTest {
             ToolInput input = ToolInput.from(Map.of("taskId", "s1", "reason", "test"));
             ToolResult result = tool.call(input, ToolUseContext.of("/tmp", "sess1"));
             assertFalse(result.isError());
-            assertTrue(result.content().contains("cancelled"));
+            assertTrue(result.content().contains("cancellation requested"));
         }
 
         @Test
@@ -530,6 +634,9 @@ class TaskToolGoldenTest {
 
         private TaskCoordinator coordinator;
         private TaskOutputTool tool;
+
+        @AfterEach
+        void tearDown() { if (coordinator != null) coordinator.cleanup(); }
 
         @BeforeEach
         void setUp() {
@@ -620,7 +727,7 @@ class TaskToolGoldenTest {
             assertFalse(result.isError());
 
             String stored = coordinator.getTask("o3").get().getOutput();
-            assertTrue(stored.endsWith("[Output truncated at 1MB limit]"));
+            assertTrue(stored.endsWith("[Output truncated at 1048576 character limit]"));
 
             coordinator.cancelTask("o3");
         }

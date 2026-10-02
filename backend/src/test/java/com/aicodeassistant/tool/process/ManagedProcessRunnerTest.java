@@ -23,6 +23,124 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class ManagedProcessRunnerTest {
     private final ManagedProcessRunner runner = new ManagedProcessRunner();
 
+    @Test
+    void cancellationBetweenLeaseAcquisitionAndCallbackRegistrationNeverStartsCommand(@TempDir Path directory)
+            throws Exception {
+        var registry = org.mockito.Mockito.spy(new RunExecutionRegistry());
+        registry.register("cancel-before-registration", "session", new AbortContext());
+        org.mockito.Mockito.doAnswer(invocation -> {
+            Object lease = invocation.callRealMethod();
+            registry.beginTermination("cancel-before-registration");
+            return lease;
+        }).when(registry).acquireWork("cancel-before-registration", "process", "tool");
+        var managed = new ManagedProcessRunner(registry);
+        var capacity = new Semaphore(1);
+        ReflectionTestUtils.setField(managed, "capacity", capacity);
+        try {
+            var result = managed.run(new ManagedProcessRunner.Request(
+                    List.of("bash", "-c", "printf forbidden > marker"), directory, Duration.ofSeconds(2),
+                    "cancel-before-registration", "tool"));
+            assertThat(result.cancelled()).isTrue();
+            assertThat(result.terminationConfirmed()).isTrue();
+            assertThat(directory.resolve("marker")).doesNotExist();
+            assertThat(capacity.availablePermits()).isOne();
+            assertThat(registry.awaitQuiescence("cancel-before-registration", Duration.ZERO)).isTrue();
+        } finally { managed.shutdown(); }
+    }
+
+    @Test
+    void exactCancellationWhilePreparingStartKeepsOtherToolRunnable(@TempDir Path directory) throws Exception {
+        var registry = org.mockito.Mockito.spy(new RunExecutionRegistry());
+        registry.register("shared-run", "session", new AbortContext());
+        var managed = new ManagedProcessRunner(registry);
+        var capacity = new Semaphore(1);
+        ReflectionTestUtils.setField(managed, "capacity", capacity);
+        org.mockito.Mockito.doAnswer(invocation -> {
+            var lease = org.mockito.Mockito.spy((RunExecutionRegistry.WorkLease) invocation.callRealMethod());
+            org.mockito.Mockito.doAnswer(admission -> {
+                assertThat(managed.cancel("shared-run", "cancelled-tool")).isFalse();
+                assertThat(capacity.availablePermits()).isZero();
+                return admission.callRealMethod();
+            }).when(lease).admitStart(org.mockito.ArgumentMatchers.any(RunExecutionRegistry.StartAction.class));
+            return lease;
+        }).when(registry).acquireWork("shared-run", "process", "cancelled-tool");
+        try {
+            var cancelled = managed.run(new ManagedProcessRunner.Request(
+                    List.of("bash", "-c", "printf forbidden > marker"), directory, Duration.ofSeconds(2),
+                    "shared-run", "cancelled-tool"));
+            assertThat(cancelled.cancelled()).isTrue();
+            assertThat(cancelled.terminationConfirmed()).isTrue();
+            assertThat(directory.resolve("marker")).doesNotExist();
+            assertThat(capacity.availablePermits()).isOne();
+            var sibling = managed.run(new ManagedProcessRunner.Request(
+                    List.of("bash", "-c", "printf sibling"), directory, Duration.ofSeconds(2),
+                    "shared-run", "sibling-tool"));
+            assertThat(sibling.exitCode()).isZero();
+            assertThat(sibling.stdout()).isEqualTo("sibling");
+            assertThat(sibling.cancelled()).isFalse();
+            assertThat(sibling.terminationConfirmed()).isTrue();
+            assertThat(capacity.availablePermits()).isOne();
+            assertThat(registry.awaitQuiescence("shared-run", Duration.ZERO)).isTrue();
+        } finally { managed.shutdown(); }
+    }
+
+    @Test
+    void deniedBackgroundAdmissionDoesNotRunCommandOrConsumeCapacity(@TempDir Path directory) throws Exception {
+        var registry = org.mockito.Mockito.spy(new RunExecutionRegistry());
+        registry.register("background-start", "session", new AbortContext());
+        org.mockito.Mockito.doAnswer(invocation -> {
+            var lease = org.mockito.Mockito.spy((RunExecutionRegistry.WorkLease) invocation.callRealMethod());
+            org.mockito.Mockito.doAnswer(admission -> {
+                registry.beginTermination("background-start");
+                return admission.callRealMethod();
+            }).when(lease).admitStart(org.mockito.ArgumentMatchers.any(RunExecutionRegistry.StartAction.class));
+            return lease;
+        }).when(registry).acquireWork("background-start", "process", "background-tool");
+        var managed = new ManagedProcessRunner(registry);
+        var capacity = new Semaphore(1);
+        ReflectionTestUtils.setField(managed, "capacity", capacity);
+        try {
+            assertThatThrownBy(() -> managed.startBackground(new ManagedProcessRunner.BackgroundRequest(
+                    List.of("bash", "-c", "printf forbidden > marker"), directory,
+                    "background-start", "background-tool", "session")))
+                    .isInstanceOf(IOException.class).hasMessage("PROCESS_CANCELLED_BEFORE_START");
+            assertThat(directory.resolve("marker")).doesNotExist();
+            long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(3);
+            while (capacity.availablePermits() == 0 && System.nanoTime() < deadline) Thread.sleep(10);
+            assertThat(capacity.availablePermits()).isOne();
+            assertThat(registry.awaitQuiescence("background-start", Duration.ZERO)).isTrue();
+        } finally { managed.cancelSessionBackground("session"); }
+    }
+
+    @Test
+    void failedLaunchRetainsUnconfirmedProcessAndItsCapacityUntilActualCleanup() throws Exception {
+        var registry = new RunExecutionRegistry();
+        registry.register("unconfirmed-launch", "session", new AbortContext());
+        var managed = new ManagedProcessRunner(registry);
+        var capacity = new Semaphore(1);
+        ReflectionTestUtils.setField(managed, "capacity", capacity);
+        var recovered = new AtomicBoolean();
+        var retained = org.mockito.Mockito.mock(OwnedProcess.class);
+        org.mockito.Mockito.when(retained.terminate(org.mockito.ArgumentMatchers.anyLong(),
+                org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.eq(false)))
+                .thenAnswer(call -> recovered.get());
+        try (var starts = org.mockito.Mockito.mockStatic(OwnedProcess.class)) {
+            starts.when(() -> OwnedProcess.startGated(org.mockito.ArgumentMatchers.any(ProcessBuilder.class),
+                    org.mockito.ArgumentMatchers.any(OwnedProcess.StartAdmission.class)))
+                    .thenThrow(new OwnedProcess.LaunchFailure(retained, new IOException("fixture")));
+            assertThatThrownBy(() -> managed.run(new ManagedProcessRunner.Request(List.of("true"),
+                    Path.of(System.getProperty("java.io.tmpdir")), Duration.ofSeconds(2),
+                    "unconfirmed-launch", "tool"))).isInstanceOf(OwnedProcess.LaunchFailure.class);
+            assertThat(capacity.availablePermits()).isZero();
+            assertThat(managed.currentTermination("unconfirmed-launch", "tool").allTerminated()).isFalse();
+            assertThat(registry.awaitQuiescence("unconfirmed-launch", Duration.ZERO)).isFalse();
+            recovered.set(true);
+            assertThat(managed.cancel("unconfirmed-launch", "tool")).isTrue();
+            assertThat(capacity.availablePermits()).isOne();
+            assertThat(registry.awaitQuiescence("unconfirmed-launch", Duration.ZERO)).isTrue();
+        } finally { recovered.set(true); managed.shutdown(); }
+    }
+
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
     void failedCleanupRetainsRunLeaseUntilRetryConfirmsExit(boolean cancelViaLease) throws Exception {
@@ -43,6 +161,11 @@ class ManagedProcessRunnerTest {
             assertThat(result.exitCode()).isZero();
             assertThat(result.stdout()).isEqualTo("finished");
             assertThat(result.terminationConfirmed()).isFalse();
+            int beforeInspection = cleanupCalls.get();
+            assertThat(managed.currentTermination("retained", "tool").unconfirmedCount()).isOne();
+            assertThat(managed.currentTermination("retained", "other-tool").allTerminated()).isTrue();
+            assertThat(managed.currentTermination("other-run", "tool").allTerminated()).isTrue();
+            assertThat(cleanupCalls).hasValue(beforeInspection);
             assertThat(managed.cancelRunDetailed("retained").unconfirmedCount()).isEqualTo(1);
             assertThat(registry.awaitQuiescence("retained", Duration.ZERO)).isFalse();
             assertThat(capacity.availablePermits()).isZero();
@@ -58,6 +181,7 @@ class ManagedProcessRunnerTest {
             assertThat(registry.awaitQuiescence("retained", Duration.ZERO)).isTrue();
             assertThat(capacity.availablePermits()).isEqualTo(1);
             assertThat(managed.cancel("retained", "tool")).isFalse();
+            assertThat(managed.currentTermination("retained", "tool").allTerminated()).isTrue();
             managed.shutdown();
             assertThat(capacity.availablePermits()).isEqualTo(1);
             // SERVICE requests have no Run lease and still release their capacity normally.
@@ -199,7 +323,8 @@ class ManagedProcessRunnerTest {
         org.mockito.Mockito.when(process.terminate(org.mockito.ArgumentMatchers.anyLong(),
                 org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.eq(false))).thenReturn(true);
         try (var starts = org.mockito.Mockito.mockStatic(OwnedProcess.class)) {
-            starts.when(() -> OwnedProcess.start(org.mockito.ArgumentMatchers.any(ProcessBuilder.class)))
+            starts.when(() -> OwnedProcess.startGated(org.mockito.ArgumentMatchers.any(ProcessBuilder.class),
+                            org.mockito.ArgumentMatchers.any(OwnedProcess.StartAdmission.class)))
                     .thenAnswer(invocation -> {
                         managed.shutdown();
                         registry.beginTermination("starting");

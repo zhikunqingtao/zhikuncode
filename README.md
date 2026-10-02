@@ -1420,14 +1420,20 @@ ZhikunCode 提供 **40+ 内置工具**，并支持 MCP、插件与平台条件�
 | **Git 操作** | Git、Worktree | Git 命令执行、Worktree 管理 |
 | **Web 工具** | WebSearch、WebFetch、WebBrowser | 网络搜索、网页抓取、浏览器自动化 |
 | **Agent 协作** | Agent | 创建和管理子 Agent |
-| **任务管理** | 任务创建/获取/列表/更新/停止/输出 | SharedTaskList 任务协作 |
-| **交互** | AskUserQuestion、Brief、Sleep、TodoWrite | 用户提问、简报、等待、任务清单 |
+| **任务管理** | TaskCreate、TaskGet、TaskList、TaskUpdate、TaskStop、TaskOutput | 当前会话的后台任务执行与结果查询；TaskUpdate 仅更新输出，执行状态由 TaskCoordinator 管理 |
+| **交互** | AskUserQuestion、Brief、Sleep、TodoWrite | 用户提问、基础上下文展示、等待、任务清单；多选问题须显式设置 multiSelect |
 | **定时任务** | CronCreate、CronList、CronDelete | 定时任务管理 |
-| **计划模式** | EnterPlanMode、ExitPlanMode、VerifyPlanExecution | 先规划后执行的工作流 |
+| **计划工具** | EnterPlanMode、ExitPlanMode、VerifyPlanExecution | EnterPlanMode／ExitPlanMode 尚未接入权限切换，返回 PLAN_MODE_UNAVAILABLE；VerifyPlanExecution 提供文件、内容与命令结果检查 |
 | **配置** | Config、SendMessage、SyntheticOutput | 配置管理、消息发送、合成输出 |
 | **监控** | Monitor、CtxInspect、TerminalCapture | 系统监控、上下文检查、终端输出捕获 |
 | **验证** | VerifyJourney | 运行时验证 — 浏览器端到端测试、HTTP API 断言链、混合模式自动切换；内部由 BrowserVerifier、HttpApiVerifier 策略实现 |
 | **MCP 扩展** | MCP 工具适配器 | 连接外部 MCP 服务（动态注册） |
+
+`PLAN` 权限模式仍然可用，与计划面板相互独立。`/plan` 和 `/plan on [名称]` 显示前端计划面板，`/plan off` 隐藏面板；这些命令不会改变会话权限。`EnterPlanMode`／`ExitPlanMode` 工具也不会切换权限、提交审批或展示计划文件。
+
+`TaskCreate` 会立即提交后台执行；计划清单使用 `TodoWrite`。支持 `agent`、`shell`，以及单次子代理兼容类型 `local_workflow`、`monitor_mcp`、`dream`（后三者当前均使用通用代理，不提供周期监控或特殊优先级）；其他类型明确拒绝。创建回执不代表执行成功，结果以 `TaskGet`／`TaskList` 为准。`TaskStop` 请求取消指定任务，返回请求已发出时执行可能仍在退出，应继续查询状态；`TaskUpdate` 不接受手动设置执行状态。
+
+`Edit` 更新已有文件时要求非空匹配；已有空文件请用 `Write` 填入内容。不存在的文件仍可通过 `Edit` 的空 `old_string` 创建。
 
 ---
 
