@@ -40,6 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -413,7 +414,7 @@ class WorktreeManagerTest {
     }
 
     @Test
-    void ownConflictIsAbortedButAgentCommitAndBranchRemain() throws Exception {
+    void mergeConflictIsPreservedWithExplicitRecoveryGuidance() throws Exception {
         var tree = create(context, false);
         Files.writeString(tree.path().resolve("base.txt"), "agent ?? conflict\n");
         Files.writeString(root.resolve("base.txt"), "target ?? conflict\n");
@@ -422,12 +423,17 @@ class WorktreeManagerTest {
         var result = manager.finishWorktree(tree.path(), true);
         assertThat(result.success()).isFalse();
         assertThat(result.targetMayHaveChanged()).isTrue();
-        assertThat(result.summary()).contains("aborted");
+        assertThat(result.summary()).contains("no automatic abort or reset was attempted",
+                "unfinished merge", "subsequent deliveries may be blocked", "Preserve external changes",
+                "explicitly resolve and commit or abort", "manual integration", "do not rerun",
+                tree.path().toString(), tree.branch(), root.toString());
         assertThat(git(root, "rev-parse", "HEAD")).isEqualTo(target);
-        assertThat(git(root, "status", "--porcelain")).isEmpty();
-        assertThat(root.resolve(".git/MERGE_HEAD")).doesNotExist();
+        assertThat(git(root, "ls-files", "--unmerged")).isNotEmpty();
+        assertThat(root.resolve(".git/MERGE_HEAD")).exists();
         assertThat(tree.path()).exists();
         assertThat(git(root, "branch", "--list", tree.branch())).isNotBlank();
+        verify(runner, never()).runRawGit(argThat(request -> request.command().contains("--abort")
+                || request.command().contains("reset")));
     }
 
     @Test

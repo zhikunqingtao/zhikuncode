@@ -17,6 +17,7 @@ Python 3.9 compatible.
 
 import argparse
 import json
+import math
 import os
 import re
 import shutil
@@ -309,7 +310,7 @@ def check_xlsx_values(result, archive, spec):
             continue
         expected_value = float(expected["expect_value"])
         tolerance = float(expected.get("tolerance", 1e-9))
-        if abs(actual - expected_value) > tolerance:
+        if not math.isfinite(actual) or abs(actual - expected_value) > tolerance:
             result.reason("XLSX_VALUE_MISMATCH",
                           "cell %s!%s recalculated to %s, independently expected %s"
                           % (sheet_name, expected["ref"], actual, expected_value))

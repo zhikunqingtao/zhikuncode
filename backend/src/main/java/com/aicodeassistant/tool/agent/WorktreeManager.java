@@ -236,8 +236,12 @@ public class WorktreeManager {
                     var merge = execute(entry.root, op, entry.root, WRITE_TIMEOUT,
                             "merge", "--ff", "--commit", "--no-squash", "--no-edit", "--no-stat", tip);
                     if (merge.exitCode() != 0) {
-                        String recovery = abortOwnedMerge(entry, op, originalTarget, tip);
-                        return failure(entry, "Merge failed. " + recovery + " " + diagnostic(merge));
+                        // Stable Git state cannot prove ownership of bytes saved by an external writer.
+                        return failure(entry, "Merge failed; no automatic abort or reset was attempted. "
+                                + "The target may contain an unfinished merge and subsequent deliveries may be blocked. "
+                                + "Preserve external changes, then explicitly resolve and commit or abort the merge. "
+                                + "Retained agent work may require manual integration; do not rerun the original task as recovery. "
+                                + diagnostic(merge));
                     }
                     validateTarget(entry, op);
                     ensureNoGitOperation(entry.root, op);
@@ -434,46 +438,6 @@ public class WorktreeManager {
         }
     }
 
-    private String abortOwnedMerge(Entry entry, Operation op, String originalTarget, String tip) {
-        try {
-            ensureSettled(entry.root);
-            if (!branch(entry.root, op).equals(entry.targetRef)
-                    || !commit(entry.root, op, "HEAD").equals(originalTarget)) return "Target identity changed; no abort attempted.";
-            Path gitDir = gitDirectory(entry.root, op);
-            Path mergeHead = gitDir.resolve("MERGE_HEAD");
-            if (!Files.isRegularFile(mergeHead) || !Files.readString(mergeHead).strip().equals(tip)) {
-                return "No attributable merge found; target left for inspection.";
-            }
-            for (String other : List.of("CHERRY_PICK_HEAD", "REVERT_HEAD", "rebase-merge", "rebase-apply", "sequencer")) {
-                if (Files.exists(gitDir.resolve(other))) return "Other Git operation detected; no abort attempted.";
-            }
-            String currentStatus = status(entry.root, op);
-            String state = recoveryFingerprint(entry.root, op);
-            if (hasUntracked(currentStatus) || !currentStatus.equals(status(entry.root, op))
-                    || !state.equals(recoveryFingerprint(entry.root, op))) {
-                return "Concurrent or untracked changes detected; no abort attempted.";
-            }
-            if (!branch(entry.root, op).equals(entry.targetRef)
-                    || !commit(entry.root, op, "HEAD").equals(originalTarget)
-                    || !Files.readString(mergeHead).strip().equals(tip)) return "Merge ownership changed; no abort attempted.";
-            command(entry.root, op, entry.root, WRITE_TIMEOUT, "merge", "--abort");
-            ensureNoGitOperation(entry.root, op);
-            if (!commit(entry.root, op, "HEAD").equals(originalTarget) || !status(entry.root, op).isEmpty()) {
-                return "Abort returned but original clean target was not confirmed.";
-            }
-            return "The attributable merge was aborted; original clean target confirmed.";
-        } catch (Exception failure) {
-            return "Merge recovery was not confirmed: " + failure.getMessage();
-        }
-    }
-
-    private String recoveryFingerprint(Path root, Operation op) {
-        return status(root, op) + "\0INDEX\0"
-                + command(root, op, root, READ_TIMEOUT, "diff", "--cached", "--ignore-submodules=none", "--no-ext-diff", "--no-textconv", "--binary")
-                + "\0WORKTREE\0"
-                + command(root, op, root, READ_TIMEOUT, "diff", "--ignore-submodules=none", "--no-ext-diff", "--no-textconv", "--binary");
-    }
-
     private void validateTarget(Entry entry, Operation op) {
         if (!git.isGitRepositoryRoot(entry.root) || !branch(entry.root, op).equals(entry.targetRef)
                 || !isAncestor(entry.root, op, entry.baseline, "HEAD")) {
@@ -535,18 +499,6 @@ public class WorktreeManager {
             }
         }
         return value;
-    }
-
-    private static boolean hasUntracked(String status) {
-        int start = 0;
-        while (start < status.length()) {
-            if (status.startsWith("?? ", start)) return true;
-            boolean twoPaths = "RC".indexOf(status.charAt(start)) >= 0
-                    || "RC".indexOf(status.charAt(start + 1)) >= 0;
-            start = status.indexOf('\0', start) + 1;
-            if (twoPaths) start = status.indexOf('\0', start) + 1;
-        }
-        return false;
     }
 
     /** Remove only Git's record newline; Unicode whitespace can be part of a legal ref/path. */

@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -576,9 +577,12 @@ class SubAgentWorktreeLifecycleTest {
         assertThat(result.metadata()).containsEntry("terminationConfirmed", false);
     }
 
-    @ParameterizedTest(name = "actual Git delivery, successful query={0}")
-    @ValueSource(booleans = {true, false})
-    void realGitDeliveryAcrossExecutorManagerAndRunner(boolean success) throws Exception {
+    @ParameterizedTest(name = "actual Git delivery, scenario={0}")
+    @ValueSource(strings = {"clean_success", "query_failure", "conflict_unstaged", "conflict_staged"})
+    void realGitDeliveryAcrossExecutorManagerAndRunner(String scenario) throws Exception {
+        boolean querySuccess = !scenario.equals("query_failure");
+        boolean conflict = scenario.startsWith("conflict_");
+        boolean stageExternalSave = scenario.equals("conflict_staged");
         timeouts.setDefaultSeconds(10);
         timeouts.setMaxSeconds(10);
         Path repository = Files.createDirectory(workspace.resolve("real-repository")).toRealPath();
@@ -602,6 +606,10 @@ class SubAgentWorktreeLifecycleTest {
         ManagedProcessRunner realRunner = spy(new ManagedProcessRunner(runs));
         AtomicBoolean observedPostRunFinalization = new AtomicBoolean();
         AtomicBoolean childReturned = new AtomicBoolean();
+        AtomicBoolean externalSaveCompleted = new AtomicBoolean();
+        AtomicBoolean destructiveRecoveryAttempted = new AtomicBoolean();
+        AtomicInteger mergeAttempts = new AtomicInteger();
+        AtomicReference<String> targetBeforeDelivery = new AtomicReference<>(before);
         doAnswer(call -> {
             ManagedProcessRunner.Request gitRequest = call.getArgument(0);
             assertThat(gitRequest.ownership()).isEqualTo(ManagedProcessRunner.Ownership.SERVICE);
@@ -613,7 +621,26 @@ class SubAgentWorktreeLifecycleTest {
                 assertThat(runs.isRegistered(childRun)).isFalse();
                 observedPostRunFinalization.set(true);
             }
-            return call.callRealMethod(); // No Git command result or process state is mocked.
+            List<String> command = gitRequest.command();
+            boolean merge = command.get(1).equals("merge") && !command.contains("--abort");
+            if (merge) mergeAttempts.incrementAndGet();
+            if (command.get(1).equals("reset") || command.contains("--abort")) {
+                destructiveRecoveryAttempted.set(true);
+            }
+            var gitResult = (ManagedProcessRunner.Result) call.callRealMethod();
+            if (conflict && merge && gitResult.exitCode() != 0) {
+                // Fix the scheduling boundary after real Git exits, before the manager sees
+                // the failure. This writer is independent of the manager's target lock.
+                try (var writer = Executors.newSingleThreadExecutor()) {
+                    writer.submit(() -> {
+                        Files.writeString(sourceDirectory.resolve("base.txt"), "external save\n");
+                        if (stageExternalSave) fixtureGit(repository, "add", "backend/base.txt");
+                        return null;
+                    }).get(10, TimeUnit.SECONDS);
+                }
+                externalSaveCompleted.set(true);
+            }
+            return gitResult; // No Git command result or process state is mocked.
         }).when(realRunner).runRawGit(any());
         WorktreeManager realManager = new WorktreeManager(identities, new GitService(), realRunner);
         ToolRegistry registry = mock(ToolRegistry.class);
@@ -640,15 +667,22 @@ class SubAgentWorktreeLifecycleTest {
             sessions.getFileStateCache(child).markRead(cwd.resolve("base.txt").toString(),
                     "child change\n", null, null, false);
             agentBranch.set(fixtureGit(cwd, "branch", "--show-current").strip());
+            if (conflict) {
+                // A legitimate parent commit diverges from the child's captured baseline.
+                Files.writeString(sourceDirectory.resolve("base.txt"), "parent change\n");
+                fixtureGit(repository, "add", "backend/base.txt");
+                fixtureGit(repository, "commit", "-qm", "parent advance");
+                targetBeforeDelivery.set(fixtureGit(repository, "rev-parse", "HEAD").strip());
+            }
             runs.beginCompletion(childRun);
             assertThat(runs.awaitQuiescence(childRun, java.time.Duration.ZERO)).isTrue();
             runs.unregister(childRun);
             childReturned.set(true);
-            return query(success ? "end_turn" : "error", success ? null : "controlled query failure");
+            return query(querySuccess ? "end_turn" : "error", querySuccess ? null : "controlled query failure");
         });
         try {
             var result = integrated.executeSync(request(), parent);
-            assertThat(result.status()).as(result.result()).isEqualTo(success ? "completed" : "failed");
+            assertThat(result.status()).as(result.result()).isEqualTo(scenario.equals("clean_success") ? "completed" : "failed");
             assertThat(actualTree.get()).isNotNull();
             verify(sessions, timeout(2000)).closeSubAgentSession(child);
             assertThat(slots.getActiveCount()).isZero();
@@ -657,7 +691,8 @@ class SubAgentWorktreeLifecycleTest {
             leaseCheck.close();
             assertThat(realRunner.currentRunTermination(childRun).allTerminated()).isTrue();
             assertThat(realRunner.currentSessionBackground(child).allTerminated()).isTrue();
-            if (success) {
+            assertThat(destructiveRecoveryAttempted.get()).isFalse();
+            if (scenario.equals("clean_success")) {
                 assertThat(Files.readString(sourceDirectory.resolve("base.txt"))).isEqualTo("child change\n");
                 assertThat(Files.readString(sourceDirectory.resolve("result.txt"))).isEqualTo("agent output\n");
                 assertThat(fixtureGit(repository, "rev-parse", "HEAD").strip()).isNotEqualTo(before);
@@ -665,11 +700,28 @@ class SubAgentWorktreeLifecycleTest {
                 assertThat(actualTree.get()).doesNotExist();
                 assertThat(fixtureGit(repository, "branch", "--list", agentBranch.get())).isBlank();
                 assertThat(realManager.getActiveCount()).isZero();
-                assertThat(heldParentCache.toMap()).isEmpty();
-                assertThat(heldParentCache.hasBeenRead(sourceDirectory.resolve("base.txt").toString())).isFalse();
-                assertThat(heldParentCache.isStale(sourceDirectory.resolve("base.txt").toString())).isTrue();
-                assertThat(sessions.getFileStateCache(parent.sessionId()).toMap()).isEmpty();
-                assertThat(observedPostRunFinalization.get()).isTrue();
+                assertThat(mergeAttempts.get()).isOne();
+            } else if (conflict) {
+                assertThat(externalSaveCompleted.get()).isTrue();
+                assertThat(Files.readString(sourceDirectory.resolve("base.txt"))).isEqualTo("external save\n");
+                if (stageExternalSave) {
+                    assertThat(fixtureGit(repository, "show", ":backend/base.txt")).isEqualTo("external save\n");
+                } else {
+                    assertThat(fixtureGit(repository, "ls-files", "--unmerged", "backend/base.txt")).isNotEmpty();
+                }
+                assertThat(fixtureGit(repository, "rev-parse", "HEAD").strip()).isEqualTo(targetBeforeDelivery.get());
+                assertThat(repository.resolve(".git/MERGE_HEAD")).exists();
+                assertThat(actualTree.get()).isDirectory();
+                assertThat(Files.readString(actualTree.get().resolve("backend/base.txt"))).isEqualTo("child change\n");
+                assertThat(fixtureGit(repository, "branch", "--list", agentBranch.get())).isNotBlank();
+                assertThat(realManager.getActiveCount()).isOne();
+                assertThat(result.result()).contains(actualTree.get().toString(), agentBranch.get());
+                assertThat(mergeAttempts.get()).isOne();
+                var repeated = realManager.finishWorktree(actualTree.get(), true);
+                assertThat(repeated.success()).isFalse();
+                assertThat(repeated.targetMayHaveChanged()).isTrue();
+                assertThat(repeated.summary()).contains("No repeated delivery attempted");
+                assertThat(mergeAttempts.get()).isOne();
             } else {
                 assertThat(Files.readString(sourceDirectory.resolve("base.txt"))).isEqualTo("initial\n");
                 assertThat(sourceDirectory.resolve("result.txt")).doesNotExist();
@@ -682,6 +734,15 @@ class SubAgentWorktreeLifecycleTest {
                 assertThat(sessions.getFileStateCache(parent.sessionId()).hasBeenRead(
                         sourceDirectory.resolve("base.txt").toString())).isTrue();
                 assertThat(observedPostRunFinalization.get()).isFalse();
+                assertThat(mergeAttempts.get()).isZero();
+            }
+            if (querySuccess) {
+                assertThat(heldParentCache.toMap()).isEmpty();
+                assertThat(heldParentCache.hasBeenRead(sourceDirectory.resolve("base.txt").toString())).isFalse();
+                assertThat(heldParentCache.isStale(sourceDirectory.resolve("base.txt").toString())).isTrue();
+                assertThat(sessions.getFileStateCache(parent.sessionId())).isNotSameAs(heldParentCache);
+                assertThat(sessions.getFileStateCache(parent.sessionId()).toMap()).isEmpty();
+                assertThat(observedPostRunFinalization.get()).isTrue();
             }
         } finally {
             // The entire repository is this test's fixture. Remove only its retained linked trees;

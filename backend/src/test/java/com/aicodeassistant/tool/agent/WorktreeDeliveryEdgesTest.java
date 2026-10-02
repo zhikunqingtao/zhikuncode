@@ -19,13 +19,18 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @EnabledOnOs({OS.MAC, OS.LINUX})
@@ -262,32 +267,114 @@ class WorktreeDeliveryEdgesTest {
         } finally { removeFixture(root, tree); }
     }
 
-    @Test
-    void abortFailurePreservesConflictAndAgentRecoveryLocation() throws Exception {
-        Path root = repository("abort-failure");
+    @ParameterizedTest
+    @ValueSource(strings = {"conflict_unstaged", "conflict_staged", "unrelated_staged", "unrelated_unstaged", "untracked"})
+    void failedMergePreservesExternalSavesAndIndex(String scenario) throws Exception {
+        Path root = repository("external-save");
+        Files.writeString(root.resolve("other.txt"), "other baseline\n");
+        git(root, "add", "."); git(root, "commit", "-qm", "unrelated tracked file");
         var runner = spy(new ManagedProcessRunner());
         var manager = manager(root, runner);
         var tree = manager.createWorktree("conflict", context(root), false);
+        String savedFile = scenario.startsWith("unrelated_") ? "other.txt"
+                : scenario.equals("untracked") ? "new.txt" : "base.txt";
+        String savedContent = "EXTERNAL SAVE: " + scenario + "\n";
+        boolean staged = scenario.equals("conflict_staged") || scenario.equals("unrelated_staged");
+        var writes = new AtomicInteger();
+        var savedIndex = new AtomicReference<String>();
+        var savedStatus = new AtomicReference<String>();
         try {
             Files.writeString(tree.path().resolve("base.txt"), "agent\n");
             Files.writeString(root.resolve("base.txt"), "parent\n");
             git(root, "add", "."); git(root, "commit", "-qm", "parent conflict");
+            String parentHead = git(root, "rev-parse", "HEAD");
             doAnswer(invocation -> {
                 ManagedProcessRunner.Request request = invocation.getArgument(0);
-                if (request.command().contains("--abort")) {
-                    return new ManagedProcessRunner.Result(128, "", "fixture abort failure", false, false,
-                            false, false, true, 1, false);
+                ManagedProcessRunner.Result result = (ManagedProcessRunner.Result) invocation.callRealMethod();
+                if (request.command().get(1).equals("merge") && !request.command().contains("--abort")
+                        && result.exitCode() != 0) {
+                    // Fix the scheduling boundary, but use the real Git result and an independent writer.
+                    try (var writer = Executors.newSingleThreadExecutor()) {
+                        writer.submit(() -> {
+                            Files.writeString(root.resolve(savedFile), savedContent);
+                            if (staged) git(root, "add", savedFile);
+                            savedIndex.set(git(root, "ls-files", "--stage", "-z"));
+                            savedStatus.set(git(root, "status", "--porcelain=v1", "-z", "--untracked-files=all"));
+                            writes.incrementAndGet();
+                            return null;
+                        }).get(20, TimeUnit.SECONDS);
+                    }
                 }
-                return invocation.callRealMethod();
+                return result;
             }).when(runner).runRawGit(any());
             var result = manager.finishWorktree(tree.path(), true);
             assertThat(result.success()).isFalse();
             assertThat(result.targetMayHaveChanged()).isTrue();
-            assertThat(result.summary()).contains("recovery was not confirmed", tree.path().toString());
+            assertThat(result.summary()).contains(tree.path().toString());
+            assertThat(writes).hasValue(1);
+            assertThat(Files.readString(root.resolve(savedFile))).isEqualTo(savedContent);
+            assertThat(git(root, "ls-files", "--stage", "-z")).isEqualTo(savedIndex.get());
+            assertThat(git(root, "status", "--porcelain=v1", "-z", "--untracked-files=all")).isEqualTo(savedStatus.get());
+            if (staged) assertThat(git(root, "show", ":" + savedFile)).isEqualTo(savedContent);
+            assertThat(git(root, "rev-parse", "HEAD")).isEqualTo(parentHead);
             assertThat(root.resolve(".git/MERGE_HEAD")).exists();
-            assertThat(git(root, "ls-files", "--unmerged")).isNotEmpty();
             assertThat(tree.path()).isDirectory();
+            assertThat(Files.readString(tree.path().resolve("base.txt"))).isEqualTo("agent\n");
+            assertThat(git(root, "branch", "--list", tree.branch())).isNotBlank();
+            verify(runner, never()).runRawGit(argThat(request -> request.command().contains("--abort")
+                    || request.command().contains("reset")));
         } finally { removeFixture(root, tree); }
+    }
+
+    @Test
+    void preservedMergeBlocksDeliveriesUntilExplicitResolutionWithoutReplayingAttempts() throws Exception {
+        Path root = repository("explicit-recovery");
+        var runner = spy(new ManagedProcessRunner());
+        var manager = manager(root, runner);
+        var first = manager.createWorktree("conflict", context(root), false);
+        var second = manager.createWorktree("waiting", context(root), false);
+        try {
+            Files.writeString(first.path().resolve("base.txt"), "agent\n");
+            Files.writeString(second.path().resolve("pending.txt"), "other agent work\n");
+            Files.writeString(root.resolve("base.txt"), "parent\n");
+            git(root, "add", "."); git(root, "commit", "-qm", "parent conflict");
+            var failed = manager.finishWorktree(first.path(), true);
+            assertThat(failed.success()).isFalse();
+            assertThat(failed.targetMayHaveChanged()).isTrue();
+            assertThat(root.resolve(".git/MERGE_HEAD")).exists();
+            assertThatThrownBy(() -> manager.createWorktree("blocked", context(root), false))
+                    .hasMessageContaining("Existing Git operation: MERGE_HEAD");
+            var blocked = manager.finishWorktree(second.path(), true);
+            assertThat(blocked.success()).isFalse();
+            assertThat(blocked.targetMayHaveChanged()).isFalse();
+            assertThat(blocked.summary()).contains("Existing Git operation: MERGE_HEAD", second.path().toString());
+            assertThat(manager.removeWorktree(first.path(), context(root)).success()).isFalse();
+            assertThat(first.path()).isDirectory();
+
+            // Explicit user recovery creates a merge commit containing the first agent's tip.
+            Files.writeString(root.resolve("base.txt"), "resolved parent and agent content\n");
+            git(root, "add", "base.txt"); git(root, "commit", "-qm", "explicit merge resolution");
+            assertThat(root.resolve(".git/MERGE_HEAD")).doesNotExist();
+            String resolvedHead = git(root, "rev-parse", "HEAD");
+            for (var tree : List.of(first, second)) {
+                var repeated = manager.finishWorktree(tree.path(), true);
+                assertThat(repeated.success()).isFalse();
+                assertThat(repeated.summary()).contains("No repeated delivery attempted");
+                assertThat(repeated.targetMayHaveChanged()).isEqualTo(tree == first);
+            }
+            assertThat(git(root, "rev-parse", "HEAD")).isEqualTo(resolvedHead);
+            assertThat(root.resolve("pending.txt")).doesNotExist();
+            assertThat(Files.readString(second.path().resolve("pending.txt"))).isEqualTo("other agent work\n");
+            assertThat(manager.removeWorktree(second.path(), context(root)).success()).isFalse();
+            assertThat(second.path()).isDirectory();
+            var cleaned = manager.removeWorktree(first.path(), context(root));
+            assertThat(cleaned.success()).as(cleaned.summary()).isTrue();
+            assertThat(first.path()).doesNotExist();
+            assertThat(git(root, "branch", "--list", first.branch())).isBlank();
+            verify(runner).runRawGit(argThat(request -> request.command().get(1).equals("merge")));
+            verify(runner, never()).runRawGit(argThat(request -> request.command().contains("--abort")
+                    || request.command().contains("reset")));
+        } finally { removeFixture(root, first); removeFixture(root, second); }
     }
 
     @Test
