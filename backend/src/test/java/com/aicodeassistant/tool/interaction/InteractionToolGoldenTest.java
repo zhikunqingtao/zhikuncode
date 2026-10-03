@@ -59,43 +59,88 @@ class InteractionToolGoldenTest {
             assertTrue(props.containsKey("questions"));
         }
 
-        @Test
-        @DisplayName("1.3 空问题列表 — 返回错误")
-        void emptyQuestions() {
-            ToolInput input = ToolInput.from(Map.of("questions", List.of()));
+        @ParameterizedTest
+        @ValueSource(ints = {0, 5})
+        @DisplayName("1.3 问题数量越界 — 返回校验错误且不发起交互")
+        void invalidQuestionCount(int count) {
+            List<Map<String, Object>> questions = java.util.stream.IntStream.range(0, count)
+                    .mapToObj(ignored -> makeQuestion(2)).toList();
+            ToolInput input = ToolInput.from(Map.of("questions", questions));
             ToolResult result = tool.call(input, ToolUseContext.of("/tmp", "s1"));
-            assertTrue(result.isError());
+
+            assertValidationFailureWithoutInteraction(result, "ELICITATION_QUESTION_COUNT_INVALID");
             assertTrue(result.content().contains("1-4 questions"));
         }
 
-        @Test
-        @DisplayName("1.4 超过 4 个问题 — 返回错误")
-        void tooManyQuestions() {
-            List<Map<String, Object>> questions = List.of(
-                    makeQuestion(2), makeQuestion(2), makeQuestion(2),
-                    makeQuestion(2), makeQuestion(2));
+        @ParameterizedTest
+        @ValueSource(ints = {0, 1, 5, 6})
+        @DisplayName("1.4 选项数量越界 — 返回校验错误且不发起交互")
+        void invalidOptionCount(int count) {
+            List<Map<String, Object>> questions = List.of(makeQuestion(count));
             ToolInput input = ToolInput.from(Map.of("questions", questions));
             ToolResult result = tool.call(input, ToolUseContext.of("/tmp", "s1"));
-            assertTrue(result.isError());
-        }
 
-        @Test
-        @DisplayName("1.5 选项少于 2 个 — 返回错误")
-        void tooFewOptions() {
-            List<Map<String, Object>> questions = List.of(makeQuestion(1));
-            ToolInput input = ToolInput.from(Map.of("questions", questions));
-            ToolResult result = tool.call(input, ToolUseContext.of("/tmp", "s1"));
-            assertTrue(result.isError());
+            assertValidationFailureWithoutInteraction(result, "ELICITATION_OPTION_COUNT_INVALID");
             assertTrue(result.content().contains("2-4 options"));
+            assertTrue(result.content().contains("Got: " + count));
         }
 
         @Test
-        @DisplayName("1.6 选项超过 4 个 — 返回错误")
-        void tooManyOptions() {
-            List<Map<String, Object>> questions = List.of(makeQuestion(5));
+        @DisplayName("1.5 后一道题选项越界 — 整批问题均不发起交互")
+        void invalidLaterQuestionDoesNotStartEarlierQuestion() {
+            List<Map<String, Object>> questions = List.of(makeQuestion(4), makeQuestion(6));
             ToolInput input = ToolInput.from(Map.of("questions", questions));
             ToolResult result = tool.call(input, ToolUseContext.of("/tmp", "s1"));
-            assertTrue(result.isError());
+
+            assertValidationFailureWithoutInteraction(result, "ELICITATION_OPTION_COUNT_INVALID");
+            assertTrue(result.content().contains("Got: 6"));
+        }
+
+        @Test
+        @DisplayName("1.6 同会话先六选项失败，后两题四加三选项按顺序正常交互")
+        void correctedQuestionsSucceedInSameSessionWithoutLosingOptions() throws Exception {
+            ToolUseContext context = ToolUseContext.of("/tmp", "same-session")
+                    .withCurrentRunId("same-run");
+            ToolResult invalid = tool.call(
+                    ToolInput.from(Map.of("questions", List.of(makeQuestion(6)))), context);
+            assertValidationFailureWithoutInteraction(invalid, "ELICITATION_OPTION_COUNT_INVALID");
+
+            Map<String, Object> first = makeQuestion(4);
+            first.put("question", "希望先做哪些工作？（可多选）");
+            first.put("multiSelect", true);
+            Map<String, Object> second = makeQuestion(3);
+            second.put("question", "后续优先选择哪个方向？");
+            List<Map<String, Object>> questions = List.of(first, second);
+            List<String> firstAnswer = List.of("opt-C", "opt-A");
+            when(elicitationService.requestAndWait(eq("same-session"), eq("same-run"), anyString(),
+                    anyList(), anyBoolean(), anyLong()))
+                    .thenReturn(ElicitationService.ElicitationResponse.success(firstAnswer),
+                            ElicitationService.ElicitationResponse.success("opt-B"));
+
+            ToolResult result = tool.call(ToolInput.from(Map.of("questions", questions)), context);
+
+            assertFalse(result.isError());
+            assertEquals(ToolResult.ExecutionStatus.SUCCEEDED, result.executionStatus());
+            Map<?, ?> payload = new com.fasterxml.jackson.databind.ObjectMapper()
+                    .readValue(result.content(), Map.class);
+            assertEquals(Map.of("questions", questions,
+                    "answers", Map.of("q1", firstAnswer, "q2", "opt-B")), payload);
+
+            var ordered = inOrder(elicitationService);
+            ordered.verify(elicitationService).requestAndWait(eq("same-session"), eq("same-run"),
+                    eq("希望先做哪些工作？（可多选）"), eq(List.of(
+                            new ElicitationService.ElicitationOption("opt-A", "opt-A", "Option A"),
+                            new ElicitationService.ElicitationOption("opt-B", "opt-B", "Option B"),
+                            new ElicitationService.ElicitationOption("opt-C", "opt-C", "Option C"),
+                            new ElicitationService.ElicitationOption("opt-D", "opt-D", "Option D"))),
+                    eq(true), anyLong());
+            ordered.verify(elicitationService).requestAndWait(eq("same-session"), eq("same-run"),
+                    eq("后续优先选择哪个方向？"), eq(List.of(
+                            new ElicitationService.ElicitationOption("opt-A", "opt-A", "Option A"),
+                            new ElicitationService.ElicitationOption("opt-B", "opt-B", "Option B"),
+                            new ElicitationService.ElicitationOption("opt-C", "opt-C", "Option C"))),
+                    eq(false), anyLong());
+            verifyNoMoreInteractions(elicitationService);
         }
 
         @ParameterizedTest
@@ -125,6 +170,16 @@ class InteractionToolGoldenTest {
             assertEquals(answer, answers.get("q1"));
             verify(elicitationService).requestAndWait(eq("s1"), nullable(String.class),
                     eq("希望包含哪些内容？（可多选）"), anyList(), eq(expectedMultiSelect), anyLong());
+        }
+
+        private void assertValidationFailureWithoutInteraction(ToolResult result, String failureCode) {
+            assertAll(
+                    () -> assertTrue(result.isError()),
+                    () -> assertEquals(ToolResult.ExecutionStatus.FAILED, result.executionStatus()),
+                    () -> assertEquals(ToolResult.ToolFailureType.VALIDATION, result.failureType()),
+                    () -> assertEquals(failureCode, result.failureCode()),
+                    () -> assertEquals(ToolResult.EffectState.NOT_STARTED, result.effectState()));
+            verifyNoInteractions(elicitationService);
         }
 
         private Map<String, Object> makeQuestion(int numOptions) {

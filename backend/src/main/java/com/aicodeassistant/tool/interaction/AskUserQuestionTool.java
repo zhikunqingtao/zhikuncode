@@ -55,6 +55,9 @@ public class AskUserQuestionTool implements Tool {
                 4. Offer choices to the user about what direction to take.
                 
                 Usage notes:
+                - 每次调用必须包含 1–4 个问题，每个问题必须提供 2–4 个选项。
+                - 需要更多问题或选项时，应在保持原有选择语义的前提下拆分问题或分次询问。
+                - 不得为了满足数量限制而丢弃必要选项。
                 - Users will always be able to select "Other" to provide custom text input
                 - Set multiSelect on each question: true allows multiple answers; false or omission allows only one.
                 - Keep question wording consistent with multiSelect. If the question says "可多选" or \
@@ -80,12 +83,17 @@ public class AskUserQuestionTool implements Tool {
                         "questions", Map.of(
                                 "type", "array",
                                 "description", "List of questions to ask (1-4)",
+                                "minItems", 1,
+                                "maxItems", 4,
                                 "items", Map.of(
                                         "type", "object",
                                         "properties", Map.of(
                                                 "question", Map.of("type", "string"),
                                                 "options", Map.of(
                                                         "type", "array",
+                                                        "description", "每个问题必须提供 2–4 个选项。",
+                                                        "minItems", 2,
+                                                        "maxItems", 4,
                                                         "items", Map.of(
                                                                 "type", "object",
                                                                 "properties", Map.of(

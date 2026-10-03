@@ -31,8 +31,12 @@ import com.aicodeassistant.tool.task.TaskListTool;
 import com.aicodeassistant.tool.task.TaskShellExecutor;
 import com.aicodeassistant.tool.task.TaskStopTool;
 import com.aicodeassistant.tool.task.TaskUpdateTool;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.networknt.schema.JsonSchemaFactory;
+import com.networknt.schema.SpecVersion;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -40,6 +44,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -131,6 +136,54 @@ class ToolPromptContractTest {
                 () -> assertFalse(description.contains("ExitPlanMode")),
                 () -> assertFalse(description.contains("cannot see the plan")),
                 () -> assertTrue(apiProperties(tool).containsKey("questions")));
+    }
+
+    @Test
+    void questionApiDescriptionExplainsCountLimitsAndPreservesChoices() {
+        Tool tool = new AskUserQuestionTool(mock(ElicitationService.class));
+        String description = apiDescription(tool);
+        assertAll(
+                () -> assertTrue(description.contains("每次调用必须包含 1–4 个问题")),
+                () -> assertTrue(description.contains("每个问题必须提供 2–4 个选项")),
+                () -> assertTrue(description.contains("保持原有选择语义")),
+                () -> assertTrue(description.contains("拆分问题或分次询问")),
+                () -> assertTrue(description.contains("不得为了满足数量限制而丢弃必要选项")));
+    }
+
+    static Stream<Arguments> questionOptionCounts() {
+        return Stream.of(
+                Arguments.of(List.of(2), true),
+                Arguments.of(List.of(4), true),
+                Arguments.of(List.of(2, 2, 2, 2), true),
+                Arguments.of(List.of(4, 4, 4, 4), true),
+                Arguments.of(List.of(4, 3), true),
+                Arguments.of(List.of(), false),
+                Arguments.of(List.of(2, 2, 2, 2, 2), false),
+                Arguments.of(List.of(0), false),
+                Arguments.of(List.of(1), false),
+                Arguments.of(List.of(5), false),
+                Arguments.of(List.of(6), false),
+                Arguments.of(List.of(2, 6), false));
+    }
+
+    @ParameterizedTest(name = "options per question: {0}, valid: {1}")
+    @MethodSource("questionOptionCounts")
+    void questionApiSchemaEnforcesCountsPerQuestion(List<Integer> optionCounts, boolean valid) {
+        Tool tool = new AskUserQuestionTool(mock(ElicitationService.class));
+        Map<?, ?> function = (Map<?, ?>) tool.toToolDefinition().get("function");
+        ObjectMapper mapper = new ObjectMapper();
+        var schema = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7)
+                .getSchema(mapper.valueToTree(function.get("parameters")));
+        List<Map<String, Object>> questions = IntStream.range(0, optionCounts.size())
+                .mapToObj(i -> Map.<String, Object>of(
+                        "question", "问题 " + (i + 1),
+                        "options", IntStream.range(0, optionCounts.get(i))
+                                .mapToObj(j -> Map.of("label", "选项 " + (j + 1),
+                                        "description", "选项说明 " + (j + 1)))
+                                .toList()))
+                .toList();
+        var errors = schema.validate(mapper.valueToTree(Map.of("questions", questions)));
+        assertEquals(valid, errors.isEmpty(), () -> "Schema validation errors: " + errors);
     }
 
     @ParameterizedTest
