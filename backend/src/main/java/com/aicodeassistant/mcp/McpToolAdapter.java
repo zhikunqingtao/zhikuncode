@@ -5,14 +5,11 @@ import com.aicodeassistant.mcp.progress.McpProgressTracker;
 import com.aicodeassistant.mcp.schema.SchemaCompressor;
 import com.aicodeassistant.tool.*;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 /**
@@ -27,18 +24,6 @@ public class McpToolAdapter implements Tool {
 
     private static final Logger log = LoggerFactory.getLogger(McpToolAdapter.class);
     static final int MAX_MCP_RESULT_SIZE = 1024 * 1024; // 1MB
-
-    /**
-     * ★ MCP 工具调用结果缓存 — 减少连接失败影响 (S-001)。
-     * <p>
-     * 策略: 按工具名+参数内容 hash 缓存成功结果，TTL 5分钟，最大 200 条。
-     * 仅在连接不可用时返回缓存结果（降级模式），连接正常时始终调用远端。
-     * 不缓存实时性工具（通过 isRealtimeTool 判断）。
-     */
-    private static final Cache<String, String> RESULT_CACHE = Caffeine.newBuilder()
-            .expireAfterWrite(5, TimeUnit.MINUTES)
-            .maximumSize(200)
-            .build();
 
     /** 最大透明重连等待时间 (ms) */
     private static final long RECONNECT_WAIT_MS = 3000;
@@ -165,9 +150,7 @@ public class McpToolAdapter implements Tool {
 
     @Override
     public ToolResult call(ToolInput input, ToolUseContext context) {
-        String cacheKey = buildCacheKey(input);
-
-        // ★ 连接不可用时：等待短暂重连，或降级返回缓存
+        // 连接不可用时：等待短暂重连，仍不可用则返回错误
         if (connection.getStatus() != McpConnectionStatus.CONNECTED) {
             // 尝试等待重连（DEGRADED/PENDING 状态可能正在重连中）
             if (connection.getStatus() == McpConnectionStatus.DEGRADED
@@ -176,14 +159,16 @@ public class McpToolAdapter implements Tool {
                     log.info("MCP server '{}' reconnected during wait, proceeding with call",
                             connection.getName());
                 } else {
-                    return fallbackToCacheOrError(cacheKey, "MCP_CONNECTION_UNAVAILABLE",
+                    return ToolResult.networkError("MCP_CONNECTION_UNAVAILABLE",
                             "MCP server '" + connection.getName()
-                                    + "' not connected after wait (status: " + connection.getStatus() + ")");
+                                    + "' not connected after wait (status: " + connection.getStatus() + ")",
+                            ToolResult.Retryability.NEVER, ToolResult.EffectState.UNKNOWN);
                 }
             } else {
-                return fallbackToCacheOrError(cacheKey, "MCP_CONNECTION_UNAVAILABLE",
+                return ToolResult.networkError("MCP_CONNECTION_UNAVAILABLE",
                         "MCP server '" + connection.getName()
-                                + "' is not connected (status: " + connection.getStatus() + ")");
+                                + "' is not connected (status: " + connection.getStatus() + ")",
+                        ToolResult.Retryability.NEVER, ToolResult.EffectState.UNKNOWN);
             }
         }
 
@@ -215,17 +200,23 @@ public class McpToolAdapter implements Tool {
 
             // 解析 MCP 标准 content 数组
             String content = extractContent(result);
+            JsonNode isError = result != null ? result.get("isError") : null;
+            boolean toolReportedError = isError != null && isError.isBoolean() && isError.booleanValue();
+            if (toolReportedError) {
+                // 在截断前保留错误身份，供仅传递正文的下游请求使用。
+                content = "MCP tool reported an error (MCP_TOOL_REPORTED_ERROR); effects are unknown:\n"
+                        + content;
+            }
             if (content.length() > MAX_MCP_RESULT_SIZE) {
                 content = content.substring(0, MAX_MCP_RESULT_SIZE)
                         + "\n[Truncated: exceeded " + MAX_MCP_RESULT_SIZE + " chars]";
             }
 
-            // ★ 缓存成功结果（非实时性工具）
-            if (!isRealtimeTool() && !content.isEmpty()) {
-                RESULT_CACHE.put(cacheKey, content);
-            }
-
-            return ToolResult.success(content)
+            ToolResult toolResult = toolReportedError
+                    ? ToolResult.failed(ToolResult.ToolFailureType.PROVIDER, "MCP_TOOL_REPORTED_ERROR",
+                            content, ToolResult.Retryability.NEVER, ToolResult.EffectState.UNKNOWN, null, Map.of())
+                    : ToolResult.success(content);
+            return toolResult
                     .withMetadata("mcpServer", connection.getName())
                     .withMetadata("mcpTool", originalToolName);
 
@@ -233,14 +224,17 @@ public class McpToolAdapter implements Tool {
             if (e.getCode() == JsonRpcError.REQUEST_TIMEOUT) {
                 log.warn("MCP tool call timed out after {}ms: {} on {}",
                         timeoutMs, originalToolName, connection.getName());
-                return fallbackToCacheOrError(cacheKey, "MCP_CALL_DEADLINE_EXCEEDED",
-                        "MCP tool call timed out after " + timeoutMs + "ms");
+                return ToolResult.networkError("MCP_CALL_DEADLINE_EXCEEDED",
+                        "MCP tool call timed out after " + timeoutMs + "ms",
+                        ToolResult.Retryability.NEVER, ToolResult.EffectState.UNKNOWN);
             }
             log.error("MCP tool call failed: {} on {}", originalToolName, connection.getName(), e);
-            return fallbackToCacheOrError(cacheKey, "MCP_PROTOCOL_ERROR", "MCP error: " + e.getMessage());
+            return ToolResult.networkError("MCP_PROTOCOL_ERROR", "MCP error: " + e.getMessage(),
+                    ToolResult.Retryability.NEVER, ToolResult.EffectState.UNKNOWN);
         } catch (Exception e) {
             log.error("MCP tool call failed: {} on {}", originalToolName, connection.getName(), e);
-            return fallbackToCacheOrError(cacheKey, "MCP_TRANSPORT_ERROR", "MCP tool call failed: " + e.getMessage());
+            return ToolResult.networkError("MCP_TRANSPORT_ERROR", "MCP tool call failed: " + e.getMessage(),
+                    ToolResult.Retryability.NEVER, ToolResult.EffectState.UNKNOWN);
         } finally {
             // M4: 资源清理 — 无论成功/失败/超时都需 unregister
             if (tracked) {
@@ -283,44 +277,6 @@ public class McpToolAdapter implements Tool {
             }
         }
         return connection.getStatus() == McpConnectionStatus.CONNECTED;
-    }
-
-    /**
-     * ★ 降级策略 — 连接失败时尝试返回缓存结果，否则返回错误。
-     * 缓存命中时在结果中标记 [cached]，让 AI 知道这是缓存数据。
-     */
-    private ToolResult fallbackToCacheOrError(String cacheKey, String errorCode, String errorMsg) {
-        if (!isRealtimeTool()) {
-            String cached = RESULT_CACHE.getIfPresent(cacheKey);
-            if (cached != null) {
-                log.info("Returning cached result for MCP tool {} on {} (connection issue: {})",
-                        originalToolName, connection.getName(), errorMsg);
-                return ToolResult.success("[cached] " + cached)
-                        .withMetadata("mcpServer", connection.getName())
-                        .withMetadata("mcpTool", originalToolName)
-                        .withMetadata("cached", "true");
-            }
-        }
-        return ToolResult.networkError(errorCode, errorMsg, ToolResult.Retryability.NEVER,
-                ToolResult.EffectState.UNKNOWN);
-    }
-
-    /**
-     * 构建缓存 key — 工具名 + 参数内容 hash。
-     */
-    private String buildCacheKey(ToolInput input) {
-        return originalToolName + ":" + input.getRawData().hashCode();
-    }
-
-    /**
-     * 判断是否为实时性工具 — 实时工具不使用缓存。
-     * WebSearch、实时数据查询等工具需要最新结果。
-     */
-    private boolean isRealtimeTool() {
-        String lower = originalToolName.toLowerCase();
-        return lower.contains("search") || lower.contains("web")
-                || lower.contains("fetch") || lower.contains("browse")
-                || lower.contains("realtime") || lower.contains("live");
     }
 
     /** 获取原始工具名 */

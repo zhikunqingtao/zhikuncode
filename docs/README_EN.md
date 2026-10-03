@@ -1386,6 +1386,7 @@ Administrators can register new MCP tools in `configuration/mcp/mcp_capability_r
 - **MCP Progress Tracking**: Real-time progress display for long-running MCP tool operations with cancellation support
 - **MCP Schema Compression**: Automatically compresses large tool parameter schemas to reduce LLM context usage
 - **Service-Level Context Isolation**: Disabled services do not connect, register tools, or inject schemas into the model context
+- **MCP Failure Reporting**: Tool-reported errors remain failures with their diagnostic text. Unavailable connections, timeouts, and call exceptions return the corresponding errors instead of replaying previous successful results.
 
 ### MCP Protocol Transport Layer
 

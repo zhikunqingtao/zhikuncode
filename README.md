@@ -1400,6 +1400,7 @@ ALIBABA_CLOUD_OPS_VISIBLE_TOOLS=ECS_DescribeInstances,ECS_DescribeRegions,ECS_De
 - **MCP 长操作进度追踪**：实时显示 MCP 工具执行进度，支持用户取消
 - **MCP Schema 智能压缩**：自动压缩大型工具参数描述，减少 LLM 上下文占用
 - **MCP 服务级上下文隔离**：关闭的服务不会建立连接、注册工具或向模型上下文注入 Schema
+- **MCP 失败处理**：远端工具报告错误时保留失败状态及诊断；连接不可用、超时或调用异常时返回对应错误，不以历史成功结果替代。
 
 ### MCP 协议传输层
 
