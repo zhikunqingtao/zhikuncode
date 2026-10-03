@@ -1,5 +1,6 @@
 package com.aicodeassistant.config;
 
+import com.aicodeassistant.config.oss.OssPublishProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -40,7 +41,9 @@ import java.util.List;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, OssPublishProperties oss) throws Exception {
+        String publicOrigin = oss.publicBaseUrl();
+        String ossMediaSource = publicOrigin.isEmpty() ? "" : " " + publicOrigin;
         http
                 // CSRF 禁用 — API-only 服务，使用 Token 认证
                 .csrf(csrf -> csrf.disable())
@@ -61,8 +64,8 @@ public class SecurityConfig {
                             "script-src 'self'; " +
                             "style-src 'self' 'unsafe-inline'; " +
                             "connect-src 'self' ws: wss:; " +
-                            "img-src 'self' data: blob: https://*.aliyuncs.com; " +
-                            "media-src 'self' blob: https://*.aliyuncs.com http://*.aliyuncs.com; " +
+                            "img-src 'self' data: blob: https://*.aliyuncs.com" + ossMediaSource + "; " +
+                            "media-src 'self' blob: https://*.aliyuncs.com http://*.aliyuncs.com" + ossMediaSource + "; " +
                             "frame-src 'self' blob:; " +
                             "font-src 'self' data:;")
                     )

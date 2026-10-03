@@ -20,12 +20,19 @@ import com.aliyun.sdk.service.oss2.transport.BinaryData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ContentDisposition;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
+import java.time.Duration;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /** The only component allowed to acquire Alibaba Cloud credentials or call the OSS SDK. */
@@ -35,16 +42,33 @@ public class OssArtifactService {
 
     private final OssPublishProperties properties;
     private final Supplier<OSSClient> clientFactory;
+    private final HttpClient publicHeadClient;
+    private static final Set<String> PREVIEW_MIME_TYPES = Set.of(
+            "text/html", "text/plain", "application/pdf", "image/png", "image/jpeg", "image/gif", "image/webp");
+
+    private static class PublicHeadClientHolder {
+        private static final HttpClient CLIENT = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(2))
+                .followRedirects(HttpClient.Redirect.NEVER)
+                .build();
+    }
 
     @Autowired
     public OssArtifactService(OssPublishProperties properties) {
         this.properties = properties;
         this.clientFactory = this::createClient;
+        this.publicHeadClient = null;
     }
 
     OssArtifactService(OssPublishProperties properties, Supplier<OSSClient> clientFactory) {
+        this(properties, clientFactory, null);
+    }
+
+    OssArtifactService(OssPublishProperties properties, Supplier<OSSClient> clientFactory,
+                       HttpClient publicHeadClient) {
         this.properties = properties;
         this.clientFactory = clientFactory;
+        this.publicHeadClient = publicHeadClient;
     }
 
     public PublishedArtifact publish(ArtifactPublicationPolicy.Snapshot artifact) {
@@ -63,7 +87,7 @@ public class OssArtifactService {
                             .forbidOverwrite(true)
                             .objectAcl("private")
                             .contentType(artifact.mimeType())
-                            .contentDisposition(contentDisposition(artifact.fileName()))
+                            .contentDisposition(contentDisposition(artifact.fileName(), artifact.mimeType()))
                             .cacheControl("public, max-age=31536000, immutable")
                             .metadata(Map.of("sha256", artifact.sha256(),
                                     "artifact-id", artifact.artifactId()))
@@ -92,8 +116,7 @@ public class OssArtifactService {
             published = true;
             log.info("OSS artifact published: artifactId={}, objectKey={}, size={}",
                     artifact.artifactId(), artifact.objectKey(), artifact.size());
-            return new PublishedArtifact(artifact.artifactId(), artifact.fileName(), artifact.size(),
-                    artifact.sha256(), artifact.objectKey(), artifact.publicUrl(), artifact.mimeType());
+            return publicationResult(artifact);
         } catch (OssPublishException known) {
             if (privateUploadAcknowledged && !published) known = compensateDelete(artifact, known);
             throw known;
@@ -245,14 +268,50 @@ public class OssArtifactService {
         return null;
     }
 
-    private static String contentDisposition(String fileName) {
-        return ContentDispositionEncoder.header("attachment", fileName, fileName);
+    private String contentDisposition(String fileName, String mimeType) {
+        String disposition = properties.isPreviewEnabled() && isPreviewMime(mimeType) ? "inline" : "attachment";
+        return ContentDispositionEncoder.header(disposition, fileName, fileName);
+    }
+
+    private static boolean isPreviewMime(String mimeType) {
+        return mimeType != null && PREVIEW_MIME_TYPES.contains(mimeType.split(";", 2)[0].trim().toLowerCase(Locale.ROOT));
+    }
+
+    /** Presentation-only probe: never roll back a successful publication if the public domain is unavailable. */
+    private PublishedArtifact publicationResult(ArtifactPublicationPolicy.Snapshot artifact) {
+        String publicUrl = properties.publicUrl(artifact.objectKey());
+        String mimeType = artifact.mimeType();
+        boolean downloadExpected = true;
+        if (!properties.publicBaseUrl().isEmpty()) {
+            try {
+                HttpRequest request = HttpRequest.newBuilder(URI.create(publicUrl))
+                        .timeout(Duration.ofSeconds(3))
+                        .method("HEAD", HttpRequest.BodyPublishers.noBody()).build();
+                HttpClient client = publicHeadClient == null ? PublicHeadClientHolder.CLIENT : publicHeadClient;
+                HttpResponse<Void> response = client.send(request, HttpResponse.BodyHandlers.discarding());
+                var headers = response.headers();
+                if (response.statusCode() == 200 && headers.allValues("Content-Type").size() == 1) {
+                    String actualMime = headers.firstValue("Content-Type").orElse("").trim();
+                    if (!actualMime.isEmpty()) mimeType = actualMime;
+                    var dispositions = headers.allValues("Content-Disposition");
+                    boolean inline = dispositions.isEmpty() || (dispositions.size() == 1
+                            && ContentDisposition.parse(dispositions.getFirst()).isInline());
+                    downloadExpected = !isPreviewMime(actualMime) || !inline
+                            || !headers.allValues("x-oss-force-download").isEmpty();
+                }
+            } catch (Exception unavailable) {
+                if (unavailable instanceof InterruptedException) Thread.currentThread().interrupt();
+                log.debug("OSS public preview check unavailable: artifactId={}", artifact.artifactId());
+            }
+        }
+        return new PublishedArtifact(artifact.artifactId(), artifact.fileName(), artifact.size(),
+                artifact.sha256(), artifact.objectKey(), publicUrl, mimeType, downloadExpected);
     }
 
     private enum Phase { LOOKUP, UPLOAD_PRIVATE, VERIFY_PRIVATE, MAKE_PUBLIC }
 
     public record PublishedArtifact(String artifactId, String fileName, long size, String sha256,
-                                    String objectKey, String publicUrl, String mimeType) { }
+                                    String objectKey, String publicUrl, String mimeType, boolean downloadExpected) { }
 
     public static final class OssPublishException extends RuntimeException {
         private final String code;

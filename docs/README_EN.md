@@ -273,7 +273,7 @@ cd frontend && npm install && npm run dev
 
 ### Optional: OSS Artifact Publishing, Screenshot Paste, and Remote File References
 
-ZhikunCode includes a built-in `/publish-oss` Skill that can publish one verified artifact from the current session as a permanently public OSS download. The underlying OSS publishing capability is **disabled by default and never uploads automatically** and must be configured separately; the Skill management switch does not replace deployment configuration. Generating a file, completing a Run, previewing, or opening a file cannot trigger publication. Every publication requires an explicit user request and a one-time high-risk permission confirmation.
+ZhikunCode includes a built-in `/publish-oss` Skill that can publish one verified artifact from the current session as a permanently public OSS link. The underlying OSS publishing capability is **disabled by default and never uploads automatically** and must be configured separately; the Skill management switch does not replace deployment configuration. Generating a file, completing a Run, previewing, or opening a file cannot trigger publication. Every publication requires an explicit user request and a one-time high-risk permission confirmation.
 
 With the same OSS configuration enabled, the browser can detect PNG/JPEG/WebP screenshots pasted from another application (up to 5 MiB each), publish them immediately through a deterministic backend endpoint, and pass the server-validated OSS image URL directly to the vision model. This path does not invoke `/publish-oss` or make an extra LLM call. If OSS is not configured, screenshots automatically fall back to Base64 inline upload — no extra configuration needed to use image analysis.
 
@@ -288,6 +288,8 @@ ZHIKUN_OSS_ENABLED=true
 ZHIKUN_OSS_ENDPOINT=https://oss-cn-your-region.aliyuncs.com
 ZHIKUN_OSS_REGION=cn-your-region
 ZHIKUN_OSS_BUCKET=your-bucket
+ZHIKUN_OSS_PUBLIC_BASE_URL=
+ZHIKUN_OSS_PREVIEW_ENABLED=false
 ZHIKUN_OSS_PREFIX=zhikuncode-artifacts
 ZHIKUN_OSS_ECS_ROLE_NAME=your-ecs-ram-role
 ZHIKUN_OSS_CREDENTIAL_MODE=auto
@@ -295,6 +297,8 @@ ZHIKUN_OSS_MAX_FILE_BYTES=104857600
 ZHIKUN_OSS_CONNECT_TIMEOUT_MS=10000
 ZHIKUN_OSS_REQUEST_TIMEOUT_MS=120000
 ```
+
+Optional custom domain and preview: first configure the target Bucket's domain binding, DNS, and HTTPS, then set `ZHIKUN_OSS_PUBLIC_BASE_URL` to your HTTPS domain root (for example `https://files.example.com`, without a port, path prefix, query, or fragment). Artifact publishing, screenshot paste, and remote file references will use that domain; the upload Endpoint stays unchanged. With `ZHIKUN_OSS_PREVIEW_ENABLED=true`, only newly uploaded HTML, plain text, PDF, PNG/JPEG/GIF/WebP files use `inline`; other types remain attachments. Preview requires a custom domain, not the default OSS domain. An empty base URL and disabled preview retain the original download behavior.
 
 For local deployment, configure the Alibaba Cloud CLI default profile, or place restricted RAM-user / temporary STS values in the local `.env` as `ALIBABA_CLOUD_ACCESS_KEY_ID`, `ALIBABA_CLOUD_ACCESS_KEY_SECRET`, and optional `ALIBABA_CLOUD_SECURITY_TOKEN`. Never commit real values. Legacy `OSS_ACCESS_KEY_ID`, `OSS_ACCESS_KEY_SECRET`, and `OSS_SESSION_TOKEN` variables are rejected.
 
@@ -305,14 +309,16 @@ Usage:
 1. Generate an artifact in the current session and wait for Artifact verification to complete.
 2. Explicitly enter `/publish-oss <file-path>`, or ask to upload the artifact just generated to OSS.
 3. Review the confirmation card's file name, size, visibility, and “permanently public” warning, then approve this operation.
-4. Use the returned OSS URL to download the artifact.
+4. Use the publication result card to preview or download, according to the browser's actual response; do not have the model reconstruct the URL.
 
 Security boundaries and current limitations:
 
 - Only **one regular file** verified in the current session's Artifact Manifest and located inside its workspace is allowed; the default limit is 100 MiB.
 - Directories, batch uploads, symbolic links, paths outside the workspace, `.env` files, private keys, databases, credential files, and files detected as containing sensitive content are rejected.
 - The object is uploaded privately first and changed to `public-read` only after remote verification; a newly created private object is cleaned up if publication fails.
-- The returned URL is a **permanently public download URL**. HTML served from the default OSS domain is normally downloaded rather than rendered inline by the browser.
+- The returned URL is a **permanently public link**. The card uses the public URL's response to distinguish preview from download; a failed check conservatively shows “Download” without undoing successful publication. The default OSS domain normally downloads HTML.
+- Existing object contents, metadata, and historical message URLs are not migrated. Republishing an existing object can return the currently configured domain, but an old attachment may still download. Disabling preview does not restore previously uploaded objects' metadata.
+- HTML previews execute page scripts. Do not share application login cookies with the sharing domain or add it to authenticated API cross-origin allowlists; same-site subdomains are not complete security isolation. Renew HTTPS certificates and do not assume every browser can preview every format.
 - The current minimal version does not provide batch publishing, publication history, or a revoke action; operators must explicitly delete public objects in OSS.
 - Both local and ECS deployments support real uploads. Local startup uses the default credential chain; ECS should use automatically rotated RAM Role credentials.
 - Remote file references stream the raw request body without increasing Spring's global multipart limit. If a reverse proxy fronts ECS, its request-body limit must be at least `ZHIKUN_OSS_MAX_FILE_BYTES`.
@@ -855,7 +861,7 @@ In the Web input, enter `/skill <name>` to open the skill dialog, then fill in i
 | **CSV Summary** | `/skill csv-data-summarizer` | CSV statistical analysis + charts + Markdown report |
 | **Prompt Engineering** | `/skill prompt-engineering` | Optimizes prompt structure, clarity and effectiveness |
 | **Test-Driven Dev** | `/skill test-driven-development` | TDD red→green→refactor cycle methodology guidance |
-| **OSS Artifact Publishing** | `/publish-oss` | With one-time approval, publishes one verified artifact from the current session as a permanently public OSS download; the underlying publishing capability is disabled by default and never automatic |
+| **OSS Artifact Publishing** | `/publish-oss` | With one-time approval, publishes one verified artifact from the current session as a permanently public OSS link; the underlying publishing capability is disabled by default and never automatic |
 | **Meoo App Publishing** | `/publish-meoo` | Each publication creates a new site, preserves existing sites, and consumes platform quota. The result card shows anonymous access verification status. [Setup guide (Chinese)](deployment/meoo.md) |
 
 ### Skill Loading Sources

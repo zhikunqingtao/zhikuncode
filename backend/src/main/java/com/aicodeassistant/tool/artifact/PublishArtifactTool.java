@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /** Explicitly publishes one exact, policy-checked workspace artifact after a non-reusable HIGH-risk decision. */
@@ -36,7 +37,7 @@ public class PublishArtifactTool implements Tool {
 
     @Override public String getDescription() {
         return "Publish exactly one artifact at a user-provided exact path inside the current workspace to OSS "
-                + "as a permanently public download. Never scan or guess a path; call only after an explicit request.";
+                + "as a permanently public link. Never scan or guess a path; call only after an explicit request.";
     }
 
     @Override public Map<String, Object> getInputSchema() { return schema(); }
@@ -91,14 +92,15 @@ public class PublishArtifactTool implements Tool {
             externalResource.put("objectKey", published.objectKey());
             externalResource.put("mimeType", published.mimeType());
             externalResource.put("permanentlyPublic", true);
-            externalResource.put("downloadExpected", true);
+            externalResource.put("downloadExpected", published.downloadExpected());
 
             Map<String, Object> modelResult = new LinkedHashMap<>();
             modelResult.put("status", "published");
             modelResult.put("fileName", published.fileName());
             modelResult.put("size", published.size());
             modelResult.put("downloadCardAvailable", true);
-            modelResult.put("htmlDownloadExpected", published.mimeType().startsWith("text/html"));
+            modelResult.put("htmlDownloadExpected", published.downloadExpected()
+                    && "text/html".equals(published.mimeType().split(";", 2)[0].trim().toLowerCase(Locale.ROOT)));
 
             // The LLM intentionally never receives the opaque URL/Object Key. The UI gets the
             // authoritative value through the allowlisted structuredResult metadata channel.

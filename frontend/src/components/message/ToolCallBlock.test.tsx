@@ -185,9 +185,15 @@ describe('ToolCallBlock 结果区折叠与截断', () => {
 });
 
 describe('ToolCallBlock structured result renderer', () => {
-    it('uses the exact URL returned by the tool for the download link', () => {
+    it.each([
+        { host: 'zhikunshare.oss-cn-beijing.aliyuncs.com', downloadExpected: true, mimeType: 'text/html', htmlHint: true },
+        { host: 'files.example.com', downloadExpected: true, mimeType: 'text/html', htmlHint: true },
+        { host: 'files.example.com', downloadExpected: false, mimeType: 'text/html', htmlHint: false },
+        { host: 'files.example.com', downloadExpected: true, mimeType: 'Text/HTML; charset=UTF-8', htmlHint: true },
+        { host: 'files.example.com', downloadExpected: true, mimeType: 'text/html-invalid', htmlHint: false },
+    ])('preserves the exact URL and response behavior for $host / $downloadExpected / $mimeType', ({ host, downloadExpected, mimeType, htmlHint }) => {
         const objectKey = 'zhikuncode-artifacts/session/artifact/report.html';
-        const url = `https://zhikunshare.oss-cn-beijing.aliyuncs.com/${objectKey}?version=1`;
+        const url = `https://${host}/${objectKey}?version=1`;
 
         render(<ToolCallBlock
             toolUseId="publish-1"
@@ -211,9 +217,9 @@ describe('ToolCallBlock structured result renderer', () => {
                             size: 2048,
                             sha256: 'c'.repeat(64),
                             objectKey,
-                            mimeType: 'text/html',
+                            mimeType,
                             permanentlyPublic: true,
-                            downloadExpected: true,
+                            downloadExpected,
                         },
                     },
                 },
@@ -224,7 +230,15 @@ describe('ToolCallBlock structured result renderer', () => {
         expandCardAndResult(/PublishArtifact/);
 
         expect(screen.getByTestId('external-resource-card')).toBeInTheDocument();
-        expect(screen.getByTestId('external-resource-download').getAttribute('href')).toBe(url);
+        const link = screen.getByRole('link', { name: `${downloadExpected ? '下载' : '打开预览'} report.html` });
+        expect(link).toHaveAttribute('href', url);
+        expect(link).toHaveAttribute('target', '_blank');
+        expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+        expect(link).toHaveAttribute('referrerPolicy', 'no-referrer');
+        expect(link).not.toHaveAttribute('download');
+        expect(screen.getByText('永久公开链接，任何获得地址的人都可以访问。')).toBeInTheDocument();
+        expect(screen.queryByText('是否预览或下载，以浏览器实际响应为准。') !== null).toBe(htmlHint);
+        expect(screen.queryByText(/OSS 默认域名/)).not.toBeInTheDocument();
         expect(screen.queryByText(url)).not.toBeInTheDocument();
     });
 });

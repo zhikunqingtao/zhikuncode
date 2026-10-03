@@ -23,6 +23,79 @@ class OssPublishPropertiesTest {
     }
 
     @Test
+    void defaultPublicationUrlAndPreviewBehaviorAreUnchanged() {
+        OssPublishProperties properties = valid();
+        assertThat(properties.publicBaseUrl()).isEmpty();
+        assertThat(properties.isPreviewEnabled()).isFalse();
+        assertThat(properties.publicUrl("reports/report.html"))
+                .isEqualTo("https://test-artifacts.oss-cn-beijing.aliyuncs.com/reports/report.html");
+    }
+
+    @Test
+    void customOriginIsNormalizedWithoutChangingOrDoubleEncodingObjectKey() {
+        OssPublishProperties properties = valid();
+        properties.setPublicBaseUrl(" HTTPS://Files.Example.com/ ");
+        properties.setPreviewEnabled(true);
+        assertThatCode(() -> properties.requireReady(Map.of())).doesNotThrowAnyException();
+        assertThat(properties.publicBaseUrl()).isEqualTo("https://files.example.com");
+        String key = "reports/中文 file%20.html";
+        java.net.URI url = java.net.URI.create(properties.publicUrl(key));
+        assertThat(url.getHost()).isEqualTo("files.example.com");
+        assertThat(url.getPath()).isEqualTo("/" + key);
+        assertThat(url.getRawPath()).contains("%25").doesNotContain(" ");
+    }
+
+    @Test
+    void customOriginRejectsAnythingExceptHttpsDomainRoot() {
+        for (String value : new String[] { "http://files.example.com", "https://user@files.example.com",
+                "https://files.example.com:443", "https://files.example.com:8443",
+                "https://files.example.com/prefix", "https://files.example.com//",
+                "https://files.example.com?x=1", "https://files.example.com#fragment",
+                "https://files.example.com/%2f", "https://*.example.com", "https://localhost",
+                "https://127.0.0.1", "https://[::1]", "https://files.example.com/; script-src *" }) {
+            OssPublishProperties properties = valid();
+            properties.setPublicBaseUrl(value);
+            assertThatThrownBy(properties::publicBaseUrl).as(value)
+                    .hasMessage("OSS_PUBLIC_BASE_URL_INVALID");
+        }
+    }
+
+    @Test
+    void previewRequiresCustomDomainNotDefaultOssDomain() {
+        for (String value : new String[] { "", "https://test-artifacts.oss-cn-beijing.aliyuncs.com" }) {
+            OssPublishProperties properties = valid();
+            properties.setPublicBaseUrl(value);
+            properties.setPreviewEnabled(true);
+            assertThatThrownBy(() -> properties.requireReady(Map.of()))
+                    .hasMessage("OSS_PREVIEW_CUSTOM_DOMAIN_REQUIRED");
+        }
+    }
+
+    @Test
+    void customAndHistoricalHostsAreTrustedOnlyInsideEachExistingNamespace() {
+        OssPublishProperties properties = valid();
+        properties.setPublicBaseUrl("https://files.example.com");
+        for (String host : new String[] { "files.example.com", "test-artifacts.oss-cn-beijing.aliyuncs.com" }) {
+            String clipboard = "https://" + host + "/zhikuncode-artifacts/clipboard/session/image.png";
+            String localFile = "https://" + host + "/zhikuncode-artifacts/local-files/session/report.pdf";
+            assertThat(properties.isTrustedClipboardImageUrl(clipboard)).isTrue();
+            assertThat(properties.isTrustedLocalFileUrl(localFile)).isTrue();
+            assertThat(properties.isTrustedLocalFileUrl(clipboard)).isFalse();
+            assertThat(properties.isTrustedClipboardImageUrl(localFile)).isFalse();
+            assertThat(properties.isTrustedClipboardImageUrl(clipboard + "?x=1")).isFalse();
+            assertThat(properties.isTrustedLocalFileUrl(localFile + "#fragment")).isFalse();
+        }
+        for (String value : new String[] {
+                "https://files.example.com.attacker.test/zhikuncode-artifacts/clipboard/image.png",
+                "https://user@files.example.com/zhikuncode-artifacts/clipboard/image.png",
+                "https://files.example.com:443/zhikuncode-artifacts/clipboard/image.png",
+                "https://files.example.com/zhikuncode-artifacts/clipboard/../private/image.png",
+                "https://files.example.com/zhikuncode-artifacts/clipboard/%2e%2e/private/image.png" }) {
+            assertThat(properties.isTrustedClipboardImageUrl(value)).as(value).isFalse();
+        }
+    }
+
+    @Test
     void endpointMustMatchConfiguredRegionAndUseHttps() {
         OssPublishProperties properties = valid();
         properties.setEndpoint("http://oss-cn-beijing.aliyuncs.com");

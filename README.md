@@ -280,7 +280,7 @@ cd frontend && npm install && npm run dev
 
 ### 可选：OSS 产物发布、截图粘贴与远程文件引用
 
-ZhikunCode 提供内置 `/publish-oss` Skill，可从同一持久化根 Session 内的根 Run 与通过 `parent_run_id` 建立的后代 Run 中选择一个已验证产物条目，发布为 OSS 永久公开下载地址。底层 OSS 发布能力**默认关闭且绝不自动上传**，需单独配置启用；Skill 管理页中的开关不替代部署配置。生成文件、完成 Run、预览或打开文件都不会触发上传；每次发布都必须由用户明确提出，并通过一次高风险权限确认。
+ZhikunCode 提供内置 `/publish-oss` Skill，可从同一持久化根 Session 内的根 Run 与通过 `parent_run_id` 建立的后代 Run 中选择一个已验证产物条目，发布为 OSS 永久公开链接。底层 OSS 发布能力**默认关闭且绝不自动上传**，需单独配置启用；Skill 管理页中的开关不替代部署配置。生成文件、完成 Run、预览或打开文件都不会触发上传；每次发布都必须由用户明确提出，并通过一次高风险权限确认。
 
 启用同一套 OSS 配置后，浏览器还能感知从其他应用复制并粘贴到对话框的 PNG/JPEG/WebP 截图（单张不超过 5 MiB），通过固定后端通道立即上传，并将服务端验证过的 OSS 图片地址直接交给视觉模型。这个路径不调用 `/publish-oss` Skill，也不额外调用 LLM；OSS 未配置时自动降级为 Base64 直传，无需额外配置即可使用图片分析能力。
 
@@ -295,6 +295,8 @@ ZHIKUN_OSS_ENABLED=true
 ZHIKUN_OSS_ENDPOINT=https://oss-cn-your-region.aliyuncs.com
 ZHIKUN_OSS_REGION=cn-your-region
 ZHIKUN_OSS_BUCKET=your-bucket
+ZHIKUN_OSS_PUBLIC_BASE_URL=
+ZHIKUN_OSS_PREVIEW_ENABLED=false
 ZHIKUN_OSS_PREFIX=zhikuncode-artifacts
 ZHIKUN_OSS_ECS_ROLE_NAME=your-ecs-ram-role
 ZHIKUN_OSS_CREDENTIAL_MODE=auto
@@ -302,6 +304,8 @@ ZHIKUN_OSS_MAX_FILE_BYTES=104857600
 ZHIKUN_OSS_CONNECT_TIMEOUT_MS=10000
 ZHIKUN_OSS_REQUEST_TIMEOUT_MS=120000
 ```
+
+可选自定义域名与预览：先自行完成目标 Bucket 的域名绑定、DNS 和 HTTPS 配置，再将 `ZHIKUN_OSS_PUBLIC_BASE_URL` 设为自己的 HTTPS 域名根地址（例如 `https://files.example.com`，不带端口、路径前缀、查询参数或片段）。产物发布、截图粘贴和远程文件引用会统一使用该域名，上传 Endpoint 不变。设置 `ZHIKUN_OSS_PREVIEW_ENABLED=true` 后，仅新上传的 HTML、纯文本、PDF、PNG/JPEG/GIF/WebP 使用 `inline`，其他类型仍作为附件；开启预览必须配置自定义域名，不能使用 OSS 默认域名。默认留空且关闭时保持原下载行为。
 
 本地部署可先配置阿里云 CLI 默认 Profile；也可将受限 RAM 用户或临时 STS 的 `ALIBABA_CLOUD_ACCESS_KEY_ID`、`ALIBABA_CLOUD_ACCESS_KEY_SECRET` 与可选 `ALIBABA_CLOUD_SECURITY_TOKEN` 写入本机 `.env`。不要提交真实值。旧式 `OSS_ACCESS_KEY_ID`、`OSS_ACCESS_KEY_SECRET`、`OSS_SESSION_TOKEN` 会被拒绝。
 
@@ -312,14 +316,16 @@ ZHIKUN_OSS_REQUEST_TIMEOUT_MS=120000
 1. 在当前持久化根 Session 中生成产物；Manifest 完成 declare → seal/hash → verify 后，状态可以是 `verified`，也可以是包含目标已验证条目的 `partial`。
 2. 明确输入 `/publish-oss <文件路径>`，或说明“上传刚生成的产物到 OSS”。
 3. 核对确认卡片中的文件名、大小、公开范围和“永久公开”警告后，批准本次操作。
-4. 上传成功后使用返回的 OSS 地址下载产物。
+4. 上传成功后使用发布成功卡片打开预览或下载；以浏览器实际响应为准，不让模型重新拼接链接。
 
 安全边界与当前限制：
 
 - 只允许同一持久化根 Session 内根 Run 或授权后代 Run 所声明、目标条目已验证且仍匹配 Manifest 哈希的 workspace 内**单个普通文件**，默认不超过 100 MiB。
 - 拒绝目录、批量上传、符号链接、workspace 外路径、`.env`、私钥、数据库、凭证配置及检测到敏感内容的文件。
 - 对象先私有上传，远端校验成功后才切换为 `public-read`；失败时清理本次新建的私有对象。
-- 返回地址为**永久公开下载地址**。OSS 默认域名通常会下载 HTML，而不是在浏览器中直接渲染。
+- 返回地址为**永久公开链接**。卡片依据公开地址的响应判断预览或下载；检查失败时保守显示“下载”，不会撤销已成功的发布。OSS 默认域名通常会下载 HTML。
+- 旧对象的内容、元数据及历史消息链接不会迁移；重复发布旧对象可返回当前配置域名，但原附件仍可能下载。关闭预览也不会恢复已上传对象的元数据。
+- HTML 预览会执行页面脚本。分享域不得共享应用登录 Cookie 或加入应用认证接口的跨域白名单；同站子域名不等于完整安全隔离。注意 HTTPS 证书续签，不承诺所有浏览器均可预览所有格式。
 - 当前精简版不提供批量发布、发布历史或撤销入口；删除公开对象需要运维人员在 OSS 侧显式执行。
 - 本地与 ECS 都支持真实上传；本地使用默认凭证链，ECS 建议使用自动轮换的 RAM Role 临时凭证。
 - 远程文件引用使用原始请求体流式上传，不扩大 Spring 的全局 multipart 限制；若 ECS 前还有反向代理，代理的请求体上限也必须不低于 `ZHIKUN_OSS_MAX_FILE_BYTES`。

@@ -26,6 +26,8 @@ public class OssPublishProperties {
     private String endpoint = "";
     private String region = "";
     private String bucket = "";
+    private String publicBaseUrl = "";
+    private boolean previewEnabled;
     private String prefix = "zhikuncode-artifacts";
     private String ecsRoleName = "";
     private String credentialMode = "auto";
@@ -68,6 +70,7 @@ public class OssPublishProperties {
                 || "/".equals(uri.getPath()))) {
             throw new OssConfigurationException("OSS_ENDPOINT_INVALID");
         }
+        publicBaseUrl();
         if (maxFileBytes < 1 || maxFileBytes > 100L * 1024 * 1024) {
             throw new OssConfigurationException("OSS_FILE_LIMIT_INVALID");
         }
@@ -129,10 +132,14 @@ public class OssPublishProperties {
         try {
             URI uri = URI.create(value);
             String expectedHost = bucket() + "." + endpointUri().getHost();
+            String customOrigin = publicBaseUrl();
+            boolean trustedHost = expectedHost.equalsIgnoreCase(uri.getHost())
+                    || (!customOrigin.isEmpty()
+                        && URI.create(customOrigin).getHost().equalsIgnoreCase(uri.getHost()));
             String expectedPath = "/" + normalizedPrefix() + "/" + namespace + "/";
             String rawPath = uri.getRawPath();
             return "https".equalsIgnoreCase(uri.getScheme())
-                    && expectedHost.equalsIgnoreCase(uri.getHost())
+                    && trustedHost
                     && uri.getPort() == -1 && uri.getUserInfo() == null
                     && uri.getQuery() == null && uri.getFragment() == null
                     && rawPath != null && rawPath.startsWith(expectedPath)
@@ -144,12 +151,44 @@ public class OssPublishProperties {
     }
 
     public String publicUrl(String objectKey) {
+        String customOrigin = publicBaseUrl();
         try {
-            return new URI("https", bucket() + "." + endpointUri().getHost(),
+            String host = customOrigin.isEmpty() ? bucket() + "." + endpointUri().getHost()
+                    : URI.create(customOrigin).getHost();
+            return new URI("https", host,
                     "/" + objectKey, null).toASCIIString();
         } catch (Exception invalid) {
             throw new OssConfigurationException("OSS_PUBLIC_URL_INVALID");
         }
+    }
+
+    /** Validated HTTPS origin, or empty when the legacy OSS domain is used. */
+    public String publicBaseUrl() {
+        String value = trim(publicBaseUrl);
+        if (value.isEmpty()) {
+            if (previewEnabled) throw new OssConfigurationException("OSS_PREVIEW_CUSTOM_DOMAIN_REQUIRED");
+            return "";
+        }
+        URI uri;
+        try {
+            uri = URI.create(value);
+        } catch (RuntimeException invalid) {
+            throw new OssConfigurationException("OSS_PUBLIC_BASE_URL_INVALID");
+        }
+        String host = uri.getHost();
+        if (!"https".equalsIgnoreCase(uri.getScheme()) || host == null
+                || !host.contains(".") || host.endsWith(".") || host.contains(":")
+                || host.matches("[0-9.]+")
+                || uri.getPort() != -1 || uri.getUserInfo() != null || uri.getQuery() != null
+                || uri.getFragment() != null
+                || !(uri.getRawPath().isEmpty() || "/".equals(uri.getRawPath()))) {
+            throw new OssConfigurationException("OSS_PUBLIC_BASE_URL_INVALID");
+        }
+        host = host.toLowerCase(Locale.ROOT);
+        if (previewEnabled && (host.equals("aliyuncs.com") || host.endsWith(".aliyuncs.com"))) {
+            throw new OssConfigurationException("OSS_PREVIEW_CUSTOM_DOMAIN_REQUIRED");
+        }
+        return "https://" + host;
     }
 
     public enum CredentialMode { ECS_RAM_ROLE, DEFAULT_CHAIN }
@@ -194,6 +233,10 @@ public class OssPublishProperties {
     public void setRegion(String region) { this.region = region; }
     public String getBucket() { return bucket; }
     public void setBucket(String bucket) { this.bucket = bucket; }
+    public String getPublicBaseUrl() { return publicBaseUrl; }
+    public void setPublicBaseUrl(String publicBaseUrl) { this.publicBaseUrl = publicBaseUrl; }
+    public boolean isPreviewEnabled() { return previewEnabled; }
+    public void setPreviewEnabled(boolean previewEnabled) { this.previewEnabled = previewEnabled; }
     public String getPrefix() { return prefix; }
     public void setPrefix(String prefix) { this.prefix = prefix; }
     public String getEcsRoleName() { return ecsRoleName; }

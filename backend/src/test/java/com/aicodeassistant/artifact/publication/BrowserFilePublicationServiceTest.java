@@ -82,6 +82,21 @@ class BrowserFilePublicationServiceTest {
     }
 
     @Test
+    void customDomainIsUsedForBrowserFilesWithoutChangingNamespace() {
+        OssPublishProperties properties = properties(100);
+        properties.setPublicBaseUrl("https://files.example.com");
+        OssArtifactService oss = mock(OssArtifactService.class);
+        when(oss.publish(any())).thenAnswer(invocation -> published(invocation.getArgument(0)));
+
+        var result = new BrowserFilePublicationService(properties, oss).publish(
+                "session", "report.txt", "text/plain", 4,
+                new ByteArrayInputStream(new byte[] { 's', 'a', 'f', 'e' }));
+
+        assertThat(result.url()).startsWith("https://files.example.com/zhikuncode-artifacts/local-files/");
+        assertThat(properties.isTrustedLocalFileUrl(result.url())).isTrue();
+    }
+
+    @Test
     void rejectsEmptyOrIncompleteBodiesAndFallsBackToBinaryMediaType() {
         OssArtifactService oss = mock(OssArtifactService.class);
         BrowserFilePublicationService service =
@@ -159,7 +174,7 @@ class BrowserFilePublicationServiceTest {
         return new OssArtifactService.PublishedArtifact(
                 snapshot.artifactId(), snapshot.fileName(), snapshot.size(),
                 snapshot.sha256(), snapshot.objectKey(), snapshot.publicUrl(),
-                snapshot.mimeType());
+                snapshot.mimeType(), true);
     }
 
     private static OssPublishProperties properties(long maxBytes) {

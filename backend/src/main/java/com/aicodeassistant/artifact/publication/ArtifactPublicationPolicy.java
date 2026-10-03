@@ -8,7 +8,6 @@ import com.aicodeassistant.security.ManagedPathLockManager;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
@@ -108,7 +107,7 @@ public class ArtifactPublicationPolicy {
         String filename = target.getFileName().toString();
         String objectKey = properties.normalizedPrefix() + "/" + manifestId + "/"
                 + artifactId + "/" + sha256 + "-" + properties.safeObjectFileName(filename);
-        String publicUrl = publicUrl(objectKey);
+        String publicUrl = properties.publicUrl(objectKey);
         return new Snapshot(artifactId, manifestId, sourceRunId, relative.toString().replace('\\', '/'),
                 target, filename, size, sha256, detectMimeType(target), objectKey, publicUrl,
                 properties.bucket(), properties.endpoint());
@@ -222,16 +221,6 @@ public class ArtifactPublicationPolicy {
         }
     }
 
-    private String publicUrl(String objectKey) {
-        try {
-            URI endpoint = properties.endpointUri();
-            return new URI("https", properties.bucket() + "." + endpoint.getHost(),
-                    "/" + objectKey, null).toASCIIString();
-        } catch (Exception invalid) {
-            throw denied("OSS_PUBLIC_URL_INVALID");
-        }
-    }
-
     private static Path realDirectory(String value, String code) {
         try {
             Path path = Path.of(value).toRealPath();
@@ -280,6 +269,8 @@ public class ArtifactPublicationPolicy {
         if (lower.endsWith(".pdf")) return "application/pdf";
         if (lower.endsWith(".png")) return "image/png";
         if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
+        if (lower.endsWith(".gif")) return "image/gif";
+        if (lower.endsWith(".webp")) return "image/webp";
         if (lower.endsWith(".svg")) return "image/svg+xml";
         if (lower.endsWith(".txt") || lower.endsWith(".md")) return "text/plain; charset=utf-8";
         return "application/octet-stream";

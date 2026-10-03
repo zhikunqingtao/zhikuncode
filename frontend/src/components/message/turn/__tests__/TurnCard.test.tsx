@@ -577,14 +577,17 @@ describe('visible publication results', () => {
         expect(screen.getAllByTestId('site-publication-card')).toHaveLength(1);
         expect(screen.getByRole('button', { name: '查看发布成果' })).toBeVisible();
     });
-    it('shows download action even when the final answer is collapsed', () => {
+    it.each([true, false])('shows the publication action when the final answer is collapsed (downloadExpected=%s)', downloadExpected => {
         const result: ToolResult = { content: 'uploaded', isError: false, metadata: { structuredResult: {
-            schema: 'external-resource/v1', kind: 'download', provider: 'oss', url: 'https://files.example.com/a.pptx',
-            label: 'a.pptx', size: 1024, sha256: 'a'.repeat(64), objectKey: 'a.pptx',
-            mimeType: 'application/octet-stream', permanentlyPublic: true, downloadExpected: true,
+            schema: 'external-resource/v1', kind: 'download', provider: 'oss', url: 'https://files.example.com/a.pdf',
+            label: 'a.pdf', size: 1024, sha256: 'a'.repeat(64), objectKey: 'a.pdf',
+            mimeType: downloadExpected ? 'application/octet-stream' : 'application/pdf', permanentlyPublic: true, downloadExpected,
         } } };
         renderCard(singleTurn([userText('u', 1), assistantWithBlocks('a', 2,
             [toolUseBlock('upload', 'PublishArtifact', {}, result)]), assistantMsg('answer', 3)]));
-        expect(screen.getByRole('link', { name: '下载 a.pptx' })).toBeVisible();
+        const link = screen.getByRole('link', { name: `${downloadExpected ? '下载' : '打开预览'} a.pdf` });
+        expect(link).toBeVisible();
+        expect(link).toHaveAttribute('href', 'https://files.example.com/a.pdf');
+        expect(link).not.toHaveAttribute('download');
     });
 });

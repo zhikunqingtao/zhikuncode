@@ -37,6 +37,30 @@ class ArtifactPublicationPolicyTest {
     }
 
     @Test
+    void customDomainChangesOnlyPublicOriginNotObjectKey() throws Exception {
+        Path file = Files.writeString(workspace.resolve("report.html"), "<h1>safe report</h1>");
+        var legacy = fixture(file, "integrity_verified").policy.inspect(
+                "report.html", "run-1", workspace.toString());
+        OssPublishProperties properties = validProperties();
+        properties.setPublicBaseUrl("https://files.example.com/");
+        var custom = fixture(file, "integrity_verified", properties).policy.inspect(
+                "report.html", "run-1", workspace.toString());
+
+        assertThat(custom.objectKey()).isEqualTo(legacy.objectKey());
+        assertThat(custom.publicUrl()).isEqualTo("https://files.example.com/" + custom.objectKey());
+    }
+
+    @Test
+    void gifAndWebpHavePreviewableMimeTypes() throws Exception {
+        for (String extension : List.of("gif", "webp")) {
+            Path file = Files.write(workspace.resolve("image." + extension), new byte[] { 1, 2, 3, 4 });
+            var snapshot = fixture(file, "integrity_verified").policy.inspect(
+                    file.getFileName().toString(), "run-1", workspace.toString());
+            assertThat(snapshot.mimeType()).isEqualTo("image/" + extension);
+        }
+    }
+
+    @Test
     void laterExplicitRunCanPublishThePreviousRunsVerifiedArtifact() throws Exception {
         Path file = Files.writeString(workspace.resolve("report.html"), "<h1>safe report</h1>");
         ArtifactManifestService manifests = mock(ArtifactManifestService.class);

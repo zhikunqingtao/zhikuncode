@@ -14,6 +14,8 @@ import com.aicodeassistant.tool.ToolUseContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -52,7 +54,7 @@ class PublishArtifactToolTest {
             ArtifactPublicationPolicy.Snapshot artifact = invocation.getArgument(0);
             return new OssArtifactService.PublishedArtifact(
                     artifact.artifactId(), artifact.fileName(), artifact.size(), artifact.sha256(),
-                    artifact.objectKey(), artifact.publicUrl(), artifact.mimeType());
+                    artifact.objectKey(), artifact.publicUrl(), artifact.mimeType(), true);
         });
         PublishArtifactTool tool = new PublishArtifactTool(policy, oss, properties, new ObjectMapper());
 
@@ -101,7 +103,7 @@ class PublishArtifactToolTest {
             ArtifactPublicationPolicy.Snapshot artifact = invocation.getArgument(0);
             return new OssArtifactService.PublishedArtifact(
                     artifact.artifactId(), artifact.fileName(), artifact.size(), artifact.sha256(),
-                    artifact.objectKey(), artifact.publicUrl(), artifact.mimeType());
+                    artifact.objectKey(), artifact.publicUrl(), artifact.mimeType(), true);
         });
         PublishArtifactTool tool = new PublishArtifactTool(policy, oss, properties, new ObjectMapper());
 
@@ -130,6 +132,32 @@ class PublishArtifactToolTest {
         assertThat(result.executionStatus()).isEqualTo(ToolResult.ExecutionStatus.FAILED);
         assertThat(result.failureCode()).isEqualTo("ARTIFACT_RUN_REQUIRED");
         org.mockito.Mockito.verifyNoInteractions(oss);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void customDomainResultAndHtmlHintFollowActualDownloadExpectation(boolean downloadExpected) throws Exception {
+        Files.writeString(workspace.resolve("report.html"), "safe html");
+        OssPublishProperties properties = properties();
+        properties.setPublicBaseUrl("https://files.example.com");
+        ArtifactPublicationPolicy policy = new ArtifactPublicationPolicy(
+                mock(ArtifactManifestService.class), new ManagedPathLockManager(), properties);
+        OssArtifactService oss = mock(OssArtifactService.class);
+        when(oss.publish(org.mockito.ArgumentMatchers.any())).thenAnswer(invocation -> {
+            ArtifactPublicationPolicy.Snapshot artifact = invocation.getArgument(0);
+            return new OssArtifactService.PublishedArtifact(artifact.artifactId(), artifact.fileName(), artifact.size(),
+                    artifact.sha256(), artifact.objectKey(), artifact.publicUrl(), "Text/HTML; charset=UTF-8", downloadExpected);
+        });
+        var tool = new PublishArtifactTool(policy, oss, properties, new ObjectMapper());
+        var result = tool.call(ToolInput.from(Map.of("file_path", "report.html")),
+                ToolUseContext.of(workspace.toString(), "session-1").withCurrentRunId("run-1"));
+        assertThat(result.effectState()).isEqualTo(ToolResult.EffectState.APPLIED);
+        assertThat(result.content()).contains("\"htmlDownloadExpected\":" + downloadExpected)
+                .doesNotContain("https://", "objectKey", "files.example.com");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> structured = (Map<String, Object>) result.metadata().get("structuredResult");
+        assertThat(structured).containsEntry("downloadExpected", downloadExpected);
+        assertThat(structured.get("url")).isEqualTo(properties.publicUrl((String) structured.get("objectKey")));
     }
 
     private static OssPublishProperties properties() {

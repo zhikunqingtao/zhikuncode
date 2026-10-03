@@ -10,6 +10,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
 
 class ClipboardImagePublicationServiceTest {
 
@@ -23,7 +24,7 @@ class ClipboardImagePublicationServiceTest {
             ArtifactPublicationPolicy.Snapshot value = invocation.getArgument(0);
             return new OssArtifactService.PublishedArtifact(
                     value.artifactId(), value.fileName(), value.size(), value.sha256(),
-                    value.objectKey(), value.publicUrl(), value.mimeType());
+                    value.objectKey(), value.publicUrl(), value.mimeType(), true);
         });
         byte[] png = new byte[] {
                 (byte) 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
@@ -58,6 +59,24 @@ class ClipboardImagePublicationServiceTest {
                         ClipboardImagePublicationService.ClipboardImageException.class,
                         failure -> assertThat(failure.code())
                                 .isEqualTo("CLIPBOARD_IMAGE_TYPE_MISMATCH"));
+    }
+
+    @Test
+    void customDomainIsUsedForClipboardImagesWithoutChangingNamespace() {
+        OssPublishProperties properties = properties();
+        properties.setPublicBaseUrl("https://files.example.com");
+        OssArtifactService oss = mock(OssArtifactService.class);
+        when(oss.publish(any())).thenAnswer(invocation -> {
+            ArtifactPublicationPolicy.Snapshot value = invocation.getArgument(0);
+            return new OssArtifactService.PublishedArtifact(value.artifactId(), value.fileName(),
+                    value.size(), value.sha256(), value.objectKey(), value.publicUrl(), value.mimeType(), false);
+        });
+        byte[] png = { (byte) 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a };
+        var result = new ClipboardImagePublicationService(properties, oss).publish("session",
+                new MockMultipartFile("file", "image.png", "image/png", png));
+
+        assertThat(result.url()).startsWith("https://files.example.com/zhikuncode-artifacts/clipboard/");
+        assertThat(properties.isTrustedClipboardImageUrl(result.url())).isTrue();
     }
 
     private static OssPublishProperties properties() {
