@@ -1,0 +1,80 @@
+name: Office Regression
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/office-regression/**'
+      - 'python-service/src/services/browser_service.py'
+      - '.github/workflows/office-regression.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: office-regression-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  office-regression:
+    name: Offline Office and HTML regression
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      R12_IMAGE_TAG: office-regression-r12:ci
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and load regression image
+        uses: docker/build-push-action@v5
+        timeout-minutes: 30
+        with:
+          context: ./tools/office-regression
+          load: true
+          push: false
+          tags: ${{ env.R12_IMAGE_TAG }}
+          cache-from: type=gha,scope=office-regression
+          cache-to: type=gha,mode=max,scope=office-regression
+
+      - name: Run complete offline regression suite
+        timeout-minutes: 10
+        env:
+          R12_SKIP_BUILD: '1'
+          OFFICE_REGRESSION_OUT: ${{ runner.temp }}/office-regression-${{ github.run_id }}-${{ github.run_attempt }}
+          R12_PYTEST_ARGS: '-v -p no:cacheprovider --timeout=600 --durations=10 --junitxml=/out/junit.xml'
+        run: ./tools/office-regression/run.sh
+
+      - name: Restore evidence ownership for upload
+        if: ${{ always() }}
+        env:
+          OFFICE_REGRESSION_OUT: ${{ runner.temp }}/office-regression-${{ github.run_id }}-${{ github.run_attempt }}
+        shell: bash
+        run: |
+          if [[ -L "$OFFICE_REGRESSION_OUT" ]]; then
+            echo "::error::Evidence directory must not be a symbolic link"
+            exit 1
+          fi
+          if [[ ! -e "$OFFICE_REGRESSION_OUT" ]]; then
+            exit 0
+          fi
+          if [[ ! -d "$OFFICE_REGRESSION_OUT" || -L "$OFFICE_REGRESSION_OUT/listing.txt" ]]; then
+            echo "::error::Expected an evidence directory and a non-symlink listing"
+            exit 1
+          fi
+          # -P prevents recursive traversal through links; -h changes links themselves.
+          sudo chown -R -h -P -- "$(id -u):$(id -g)" "$OFFICE_REGRESSION_OUT"
+          find -P "$OFFICE_REGRESSION_OUT" -type f -print | sort > "$OFFICE_REGRESSION_OUT/listing.txt"
+
+      - name: Upload regression evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: office-regression-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/office-regression-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: warn
+          retention-days: 7
