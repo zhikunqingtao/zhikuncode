@@ -18,6 +18,14 @@ public record JourneyResponse(
         @JsonProperty("duration_ms") long durationMs,
         String error,
         @JsonProperty("console_errors") List<String> consoleErrors,
-        @JsonProperty("screenshot_base64") String screenshotBase64
-    ) {}
+        @JsonProperty("screenshot_base64") String screenshotBase64,
+        String method,
+        String warning,
+        @JsonProperty("screenshot_error") String screenshotError
+    ) {
+        public JourneyStepResponse(int index, String action, boolean ok, long durationMs, String error,
+                                   List<String> consoleErrors, String screenshotBase64) {
+            this(index, action, ok, durationMs, error, consoleErrors, screenshotBase64, null, null, null);
+        }
+    }
 }

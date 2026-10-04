@@ -26,6 +26,9 @@ class StepResultModel(BaseModel):
     screenshot_base64: Optional[str] = None
     error: Optional[str] = None
     console_errors: List[str] = []
+    method: Optional[str] = None
+    warning: Optional[str] = None
+    screenshot_error: Optional[str] = None
 
 
 class JourneyRunResponse(BaseModel):

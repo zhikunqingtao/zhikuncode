@@ -15,7 +15,10 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
@@ -198,16 +201,82 @@ public class EvidenceStore {
     public String saveBlob(byte[] content) {
         String sha256 = sha256Hex(content);
         Path blobPath = blobPath(sha256);
-        if (!Files.exists(blobPath)) {
-            try {
-                Files.createDirectories(blobPath.getParent());
-                Files.write(blobPath, content);
-                log.debug("Blob saved: {}", sha256);
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to save blob: " + sha256, e);
+        Path temporary = null;
+        IOException failure = null;
+        try {
+            Files.createDirectories(blobPath.getParent());
+            if (Files.exists(blobPath, LinkOption.NOFOLLOW_LINKS)) {
+                verifyBlob(blobPath, content.length, sha256);
+                return sha256;
+            }
+            // Never expose a partially written content-addressed file to readers.
+            temporary = Files.createTempFile(blobPath.getParent(), ".blob-", ".tmp");
+            writeBlob(temporary, content);
+            if (Files.exists(blobPath, LinkOption.NOFOLLOW_LINKS)) {
+                verifyBlob(blobPath, content.length, sha256);
+            } else {
+                try {
+                    moveBlobAtomically(temporary, blobPath);
+                } catch (FileAlreadyExistsException anotherWriterPublished) {
+                    // Some providers reject an existing atomic-move target; accept only identical data.
+                    verifyBlob(blobPath, content.length, sha256);
+                }
+                verifyBlob(blobPath, content.length, sha256);
+            }
+            log.debug("Blob saved: {}", sha256);
+            return sha256;
+        } catch (IOException e) {
+            failure = e;
+            throw new RuntimeException("Failed to save blob: " + sha256, e);
+        } finally {
+            if (temporary != null) {
+                try {
+                    deleteTemporaryBlob(temporary);
+                } catch (IOException cleanupError) {
+                    if (failure != null) {
+                        failure.addSuppressed(cleanupError);
+                    } else {
+                        throw new RuntimeException("Failed to clean up blob temporary file: " + sha256,
+                                cleanupError);
+                    }
+                }
             }
         }
-        return sha256;
+    }
+
+    // Package-private I/O seams keep fault-injection tests independent of platform permissions.
+    void writeBlob(Path target, byte[] content) throws IOException {
+        Files.write(target, content);
+    }
+
+    void deleteTemporaryBlob(Path target) throws IOException {
+        Files.deleteIfExists(target);
+    }
+
+    void moveBlobAtomically(Path source, Path target) throws IOException {
+        // Unsupported atomic moves must fail; never fall back to publishing a partial file.
+        Files.move(source, target, StandardCopyOption.ATOMIC_MOVE);
+    }
+
+    private static void verifyBlob(Path path, long expectedLength, String expectedSha256) throws IOException {
+        if (!Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS) || Files.size(path) != expectedLength) {
+            throw new IOException("Existing blob has invalid type or length: " + expectedSha256);
+        }
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            try (var input = Files.newInputStream(path)) {
+                byte[] buffer = new byte[8192];
+                int read;
+                while ((read = input.read(buffer)) != -1) {
+                    digest.update(buffer, 0, read);
+                }
+            }
+            if (!HexFormat.of().formatHex(digest.digest()).equals(expectedSha256)) {
+                throw new IOException("Existing blob hash mismatch: " + expectedSha256);
+            }
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 not available", e);
+        }
     }
 
     /**

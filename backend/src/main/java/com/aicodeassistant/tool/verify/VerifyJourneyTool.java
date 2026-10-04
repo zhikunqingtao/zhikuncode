@@ -21,6 +21,7 @@ import com.aicodeassistant.verify.JourneyResult;
 import com.aicodeassistant.verify.PreviewStackDetector;
 import com.aicodeassistant.verify.StackInfo;
 import com.aicodeassistant.verify.StepResult;
+import com.aicodeassistant.verify.ScreenshotFormat;
 import com.aicodeassistant.verify.UserJourneyVerifier;
 import com.aicodeassistant.verify.Verifier;
 import com.aicodeassistant.verify.VerifierFactory;
@@ -41,6 +42,7 @@ import java.util.Comparator;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +65,10 @@ public class VerifyJourneyTool implements Tool {
     private static final Duration DEV_SERVER_TIMEOUT = Duration.ofSeconds(120);
     private static final Duration CLOSE_SESSION_TIMEOUT = Duration.ofSeconds(5);
     private static final Duration FAILURE_SNAPSHOT_TIMEOUT = Duration.ofSeconds(2);
+    // Screenshot archival limits only. Generic blobs and transport budgets are unchanged.
+    private static final int MAX_SCREENSHOT_BYTES = 5 * 1024 * 1024;
+    private static final long MAX_JOURNEY_SCREENSHOT_BYTES = 20L * 1024 * 1024;
+    private static final int MAX_SCREENSHOT_BASE64_LENGTH = 4 * ((MAX_SCREENSHOT_BYTES + 2) / 3);
 
     /**
      * 证据持久化失败时的结果文案（每次按真实 verdict 组装）：正文是模型唯一可见通道，
@@ -464,26 +470,34 @@ public class VerifyJourneyTool implements Tool {
                                                 long startedNanos, ToolInput publicationInput,
                                                 com.aicodeassistant.artifact.meoo.MeooPublicationPolicy.Snapshot publicationSnapshot,
                                                 ToolUseContext context, String browserResourceId) {
-        var publicationItems = new java.util.ArrayList<>(buildEvidenceItems(result));
+        var publicationItems = new java.util.ArrayList<EvidenceItem>();
         if(publicationSnapshot != null) {
             try {
                 var after=meooPolicy.inspect(publicationInput,context,false);
                 if(!publicationSnapshot.facts().equals(after.facts()))
-                    return ToolResult.validationError("MEOO_VERIFICATION_STALE", "Publication files changed during verification; verify again");
+                    return executedPublicationFailure("MEOO_VERIFICATION_STALE",
+                            "Publication files changed during verification; this result cannot authorize publication.", result);
                 publicationItems.add(new EvidenceItem(null,"test","Verified Meoo publication snapshot",null,
                     Map.of("workspace",after.root().toString(),"meooSnapshotSha256",after.sha256(),"meooRuntime",after.runtime())));
-            } catch(com.aicodeassistant.artifact.meoo.MeooException e) { return ToolResult.validationError(e.code(),e.code()); }
+            } catch(com.aicodeassistant.artifact.meoo.MeooException e) {
+                return executedPublicationFailure(e.code(), e.code(), result);
+            }
         }
-        EvidenceBundle bundle = EvidenceBundle.builder()
-                .sessionId(sessionId)
-                .runId(runId)
-                .kind("journey")
-                .verdict(result.verdict())
-                .claim(evidenceClaim)
-                .items(publicationItems)
-                .build();
         EvidenceBundle saved;
+        String evidenceNotice;
         try {
+            PreparedEvidence prepared = buildEvidenceItems(result, mode);
+            var items = new ArrayList<>(prepared.items());
+            items.addAll(publicationItems);
+            evidenceNotice = prepared.notice();
+            EvidenceBundle bundle = EvidenceBundle.builder()
+                    .sessionId(sessionId)
+                    .runId(runId)
+                    .kind("journey")
+                    .verdict(result.verdict())
+                    .claim(evidenceClaim)
+                    .items(items)
+                    .build();
             saved = evidenceStore.save(bundle);
         } catch (Exception e) {
             // 验证已实际执行完成，仅持久化失败：不得让异常外溢到 pipeline（会回拼原始 message/SQL），
@@ -493,7 +507,7 @@ public class VerifyJourneyTool implements Tool {
                     SafeLogValue.fingerprint(e.getMessage()));
             recordVerificationPersistFailed(runId, mode, stepCount, result, startedNanos);
             return ToolResult.failed(ToolResult.ToolFailureType.INTERNAL, "EVIDENCE_PERSIST_FAILED",
-                    evidencePersistFailedMessage(result), ToolResult.Retryability.IDEMPOTENCY_REQUIRED,
+                    evidencePersistFailedMessage(result) + interactionNotice(result), ToolResult.Retryability.IDEMPOTENCY_REQUIRED,
                     ToolResult.EffectState.UNKNOWN, null, Map.of("verdict", result.verdict()));
         }
         recordVerificationCompleted(runId, mode, stepCount, result, saved, startedNanos);
@@ -517,13 +531,16 @@ public class VerifyJourneyTool implements Tool {
             recordActivity(sessionId, result.verdict(), saved.bundleId(), "success",
                     "Runtime verification passed: " + stepCount + " steps", null);
             return ToolResult.success("✓ Runtime verification PASSED. All " + stepCount
-                    + " steps succeeded. Evidence bundle: " + saved.bundleId());
+                    + " steps succeeded. Evidence bundle: " + saved.bundleId() + evidenceNotice);
         } else if ("unavailable".equals(result.verdict())) {
             recordActivity(sessionId, result.verdict(), saved.bundleId(), "skipped",
                     "Runtime verification unavailable", result.errorMessage());
-            if (publicationSnapshot != null) return publicationUnavailable(mode.equals("browser") ? CAPABILITY : "HTTP_API");
+            if (publicationSnapshot != null) {
+                ToolResult unavailable = publicationUnavailable(mode.equals("browser") ? CAPABILITY : "HTTP_API");
+                return unavailable.withContent(unavailable.content() + evidenceNotice, false);
+            }
             return ToolResult.success("Runtime verification unavailable: " + result.errorMessage()
-                    + ". This does not block your task.");
+                    + ". This does not block your task." + evidenceNotice);
         } else {
             String baseMsg = result.errorMessage() != null
                     ? result.errorMessage()
@@ -561,8 +578,18 @@ public class VerifyJourneyTool implements Tool {
                 log.warn("Failed to send verify_attention notification: {}", e.getMessage());
             }
             return ToolResult.internalError("VERIFY_JOURNEY_ASSERTION_FAILED",
-                    enrichedMsg + " (evidence bundle: " + saved.bundleId() + ")", ToolResult.EffectState.NONE);
+                    enrichedMsg + " (evidence bundle: " + saved.bundleId() + ")" + evidenceNotice, ToolResult.EffectState.NONE);
         }
+    }
+
+    private static ToolResult executedPublicationFailure(String code, String reason, JourneyResult result) {
+        return ToolResult.failed(ToolResult.ToolFailureType.VALIDATION, code,
+                reason + " The runtime verification finished with verdict '" + result.verdict()
+                        + "', but no evidence bundle was archived because publication validation failed. "
+                        + "Do not automatically rerun the journey - side effects may already have occurred."
+                        + interactionNotice(result),
+                ToolResult.Retryability.NEVER, ToolResult.EffectState.UNKNOWN, null,
+                Map.of("verdict", result.verdict()));
     }
 
     private static String normalizedClaim(String claim) {
@@ -681,11 +708,15 @@ public class VerifyJourneyTool implements Tool {
         catch (Throwable ignored) { return 0; }
     }
 
-    private List<EvidenceItem> buildEvidenceItems(JourneyResult result) {
+    private record PreparedEvidence(List<EvidenceItem> items, String notice) { }
+
+    private PreparedEvidence buildEvidenceItems(JourneyResult result, String mode) {
         List<EvidenceItem> items = new ArrayList<>();
         if (result.stepResults() == null) {
-            return items;
+            return new PreparedEvidence(items, "");
         }
+        long archivedBytes = 0;
+        int missingScreenshots = 0;
         for (StepResult step : result.stepResults()) {
             Map<String, Object> meta = new HashMap<>();
             meta.put("action", step.action());
@@ -697,14 +728,80 @@ public class VerifyJourneyTool implements Tool {
             if (step.consoleErrors() != null && !step.consoleErrors().isEmpty()) {
                 meta.put("consoleErrors", step.consoleErrors());
             }
+            if (step.method() != null) meta.put("method", step.method());
+            if (step.warning() != null) meta.put("warning", step.warning());
+            boolean screenshotExpected = "browser".equals(mode) || step.screenshotBase64() != null
+                    || step.screenshotError() != null;
+            String blobHash = null;
+            if (screenshotExpected) {
+                String encoded = step.screenshotBase64();
+                if (encoded == null) {
+                    screenshotGap(meta, "missing", step.screenshotError() != null
+                            ? step.screenshotError() : "reason_not_recorded");
+                } else if (encoded.length() > MAX_SCREENSHOT_BASE64_LENGTH) {
+                    screenshotGap(meta, "limit_exceeded", "single_image_limit_5_mib");
+                } else {
+                    byte[] bytes = null;
+                    try {
+                        bytes = Base64.getDecoder().decode(encoded);
+                    } catch (IllegalArgumentException invalidBase64) {
+                        screenshotGap(meta, "invalid", "invalid_base64");
+                    }
+                    if (bytes != null) {
+                        meta.put("bytes", bytes.length);
+                        if (bytes.length > MAX_SCREENSHOT_BYTES) {
+                            screenshotGap(meta, "limit_exceeded", "single_image_limit_5_mib");
+                        } else {
+                            String mime = ScreenshotFormat.detectMime(bytes);
+                            if (mime == null) {
+                                screenshotGap(meta, "invalid", "invalid_or_unsupported_image");
+                            } else {
+                                meta.put("mime", mime);
+                                if (archivedBytes + bytes.length > MAX_JOURNEY_SCREENSHOT_BYTES) {
+                                    screenshotGap(meta, "limit_exceeded", "journey_image_limit_20_mib");
+                                } else {
+                                    // Storage exceptions deliberately reach the evidence-persistence handler.
+                                    blobHash = evidenceStore.saveBlob(bytes);
+                                    archivedBytes += bytes.length; // Count references, even for duplicate hashes.
+                                    meta.put("screenshotStatus", "stored");
+                                }
+                            }
+                        }
+                    }
+                }
+                if (!"stored".equals(meta.get("screenshotStatus"))) missingScreenshots++;
+            }
 
-            String type = step.screenshotBase64() != null ? "screenshot" : "command";
+            String type = screenshotExpected ? "screenshot" : "command";
             String summary = String.format("Step %d [%s]: %s",
                     step.index(), step.action(), step.ok() ? "ok" : "failed");
 
-            items.add(new EvidenceItem(null, type, summary, null, meta));
+            items.add(new EvidenceItem(null, type, summary, blobHash, meta));
         }
-        return items;
+        String notice = interactionNotice(result);
+        if (missingScreenshots > 0) {
+            notice += "\nScreenshot evidence incomplete: " + missingScreenshots
+                    + " step(s) have missing, invalid, or over-limit screenshots. "
+                    + "See screenshotStatus/screenshotReason in the evidence bundle. "
+                    + "The executed step verdict is unchanged. Do not automatically rerun the journey to obtain images.";
+        }
+        return new PreparedEvidence(items, notice);
+    }
+
+    private static void screenshotGap(Map<String, Object> meta, String status, String reason) {
+        meta.put("screenshotStatus", status);
+        meta.put("screenshotReason", reason);
+    }
+
+    private static String interactionNotice(JourneyResult result) {
+        if (result == null || result.stepResults() == null) return "";
+        long assisted = result.stepResults().stream().filter(s -> "js_fallback".equals(s.method())).count();
+        long unknown = result.stepResults().stream().filter(s -> ("click".equals(s.action()) || "type".equals(s.action()))
+                && (s.method() == null || s.method().isBlank())).count();
+        String notice = assisted == 0 ? "" : "\nInteraction warning: " + assisted
+                + " step(s) used js_fallback; this result alone does not prove native user interaction works.";
+        if (unknown > 0) notice += "\nInteraction method was not recorded for " + unknown + " click/type step(s).";
+        return notice;
     }
 
     private static StepResult findFailedStep(List<StepResult> steps) {

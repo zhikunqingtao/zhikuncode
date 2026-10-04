@@ -95,6 +95,116 @@ describe('EvidenceBundleView', () => {
         expect(screen.getByText(/仅表示所列步骤在该次执行中通过/)).toBeInTheDocument();
     });
 
+    it('uses the image preview endpoint and displays stored screenshot metadata', async () => {
+        await renderBundle({ items: [{
+            id: 'image-1', type: 'screenshot', summary: 'Click evidence', blobSha256: 'abc123',
+            meta: { action: 'click', method: 'playwright', screenshotStatus: 'stored', mime: 'image/jpeg', bytes: 1234 },
+        }] });
+
+        expect(screen.getByRole('img', { name: 'Click evidence' })).toHaveAttribute('src', '/api/evidence/blob/abc123?preview=true');
+        expect(screen.getByText('执行方式：playwright')).toBeInTheDocument();
+        expect(screen.getByText(/截图已归档.*image\/jpeg.*1234 字节/)).toBeInTheDocument();
+        expect(screen.getByText('Verified')).toBeInTheDocument();
+    });
+
+    it('preserves a legacy screenshot source and ordinary blob media URLs', async () => {
+        await renderBundle({ items: [
+            { id: 'old-image', type: 'screenshot', summary: 'Legacy image', blobSha256: null, meta: { dataUrl: 'data:image/png;base64,AA==' } },
+            { id: 'video', type: 'video', summary: 'Existing video', blobSha256: 'video123', meta: {} },
+        ] });
+
+        expect(screen.getByRole('img', { name: 'Legacy image' })).toHaveAttribute('src', 'data:image/png;base64,AA==');
+        fireEvent.click(screen.getByRole('button', { name: /Videos/ }));
+        expect(document.querySelector('video')).toHaveAttribute('src', '/api/evidence/blob/video123');
+    });
+
+    it('reports legacy missing screenshots and never infers a native interaction', async () => {
+        await renderBundle({ items: [{
+            id: 'old-image', type: 'screenshot', summary: 'Legacy click', blobSha256: null, meta: { action: 'click', ok: true },
+        }] });
+
+        expect(screen.getByText('执行方式未记录')).toBeInTheDocument();
+        expect(screen.getByText('截图缺失：原因未记录')).toBeInTheDocument();
+        expect(screen.queryByRole('img')).not.toBeInTheDocument();
+        expect(screen.getByText('Verified')).toBeInTheDocument();
+    });
+
+    it('handles a missing or unreadable blob without changing the recorded verdict', async () => {
+        await renderBundle({ items: [{
+            id: 'image-1', type: 'screenshot', summary: 'Missing file', blobSha256: 'missing',
+            meta: { action: 'navigate', screenshotStatus: 'stored' },
+        }] });
+        fireEvent.error(screen.getByRole('img', { name: 'Missing file' }));
+
+        expect(screen.getByText('截图不可读取：文件缺失、损坏或加载失败')).toBeInTheDocument();
+        expect(screen.getByText('归档记录存在，当前无法读取')).toBeInTheDocument();
+        expect(screen.queryByText(/截图已归档/)).not.toBeInTheDocument();
+        expect(screen.queryByRole('img')).not.toBeInTheDocument();
+        expect(screen.getByText('Verified')).toBeInTheDocument();
+    });
+
+    it('shows fallback limitations and missing screenshot reasons on command steps', async () => {
+        await renderBundle({ items: [{
+            id: 'input-1', type: 'command', summary: 'Input succeeded', blobSha256: null,
+            meta: { action: 'type', ok: true, method: 'js_fallback', warning: 'Native input timed out', screenshotStatus: 'missing', screenshotReason: 'Page closed before capture' },
+        }] });
+
+        expect(screen.getByText('执行方式：js_fallback')).toBeInTheDocument();
+        expect(screen.getByText('Native input timed out')).toBeInTheDocument();
+        expect(screen.getByText(/不能单独证明原生用户交互可用/)).toBeInTheDocument();
+        expect(screen.getByText('截图缺失：Page closed before capture')).toBeInTheDocument();
+        expect(screen.getByText('Verified')).toBeInTheDocument();
+    });
+
+    it.each(['invalid', 'limit_exceeded'])('shows a %s screenshot gap without hiding the step', async (status) => {
+        await renderBundle({ items: [{
+            id: 'input-1', type: 'command', summary: 'Input step retained', blobSha256: null,
+            meta: { action: 'type', screenshotStatus: status, screenshotReason: 'Explicit archive reason' },
+        }] });
+
+        expect(screen.getByText('Input step retained')).toBeInTheDocument();
+        expect(screen.getByText('执行方式未记录')).toBeInTheDocument();
+        expect(screen.getByText(/Explicit archive reason/)).toBeInTheDocument();
+    });
+
+    it.each([
+        ['reason_not_recorded', '原因未记录'],
+        ['invalid_base64', '截图编码无效'],
+        ['single_image_limit_5_mib', '单张截图超过 5 MiB 限额'],
+        ['journey_image_limit_20_mib', '本次 Journey 截图归档剩余额度不足（总限额 20 MiB）'],
+        ['invalid_or_unsupported_image', '截图无效或不是支持的 JPEG/PNG 图片'],
+    ])('explains the screenshot reason code %s', async (reason, message) => {
+        await renderBundle({ items: [{
+            id: 'step-1', type: 'command', summary: 'Capture gap', blobSha256: null,
+            meta: { action: 'navigate', screenshotStatus: 'missing', screenshotReason: reason },
+        }] });
+
+        expect(screen.getByText(`截图缺失：${message}`)).toBeInTheDocument();
+        expect(screen.queryByText(reason, { exact: true })).not.toBeInTheDocument();
+    });
+
+    it('shows fallback limitations with a screenshot and isolates image failures', async () => {
+        await renderBundle({ items: [
+            { id: 'image-1', type: 'screenshot', summary: 'Assisted input', blobSha256: 'abc', meta: { action: 'type', method: 'js_fallback', warning: 'Native input failed', screenshotStatus: 'stored' } },
+            { id: 'image-2', type: 'screenshot', summary: 'Next step', blobSha256: 'def', meta: { action: 'navigate', screenshotStatus: 'stored' } },
+        ] });
+        fireEvent.error(screen.getByRole('img', { name: 'Assisted input' }));
+
+        expect(screen.getByText('Native input failed')).toBeInTheDocument();
+        expect(screen.getByText(/不能单独证明原生用户交互可用/)).toBeInTheDocument();
+        expect(screen.getByRole('img', { name: 'Next step' })).toHaveAttribute('src', '/api/evidence/blob/def?preview=true');
+    });
+
+    it('does not add journey warnings to ordinary command evidence', async () => {
+        await renderBundle({ kind: 'tests', items: [{
+            id: 'command-1', type: 'command', summary: 'Run tests', blobSha256: null,
+            meta: { command: 'npm test', stdout: 'passed', exitCode: 0 },
+        }] });
+
+        expect(screen.getByText('passed')).toBeInTheDocument();
+        expect(screen.queryByText(/执行方式|截图/)).not.toBeInTheDocument();
+    });
+
     it.each([
         ['empty journey', { items: [] }],
         ['unknown kind', { kind: 'unknown_kind' }],

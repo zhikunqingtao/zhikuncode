@@ -262,7 +262,19 @@ public class WebBrowserTool implements Tool {
         }
         BrowserResponse br = resp.get();
         if (!br.success()) {
-            return ToolResult.providerError(br.errorCode(), br.errorMessage(), ToolResult.Retryability.NEVER);
+            ToolResult failure = ToolResult.providerError(
+                    br.errorCode(), br.errorMessage(), ToolResult.Retryability.NEVER);
+            if (("click".equals(action) || "type".equals(action)) && br.data() != null) {
+                // Only carry interaction facts; arbitrary response data can contain large images.
+                for (String key : List.of("method", "warning")) {
+                    if (br.data().get(key) instanceof String value && !value.isBlank()) {
+                        String content = failure.content() == null ? "" : failure.content() + "\n";
+                        failure = failure.withContent(content + key + ": " + value, false)
+                                .withMetadata(key, value);
+                    }
+                }
+            }
+            return failure;
         }
         // 截图特殊处理：保存为文件，只返回路径给 LLM（避免 base64 撑爆上下文）
         if ("screenshot".equals(action) && br.data() != null && br.data().containsKey("screenshot_base64")) {

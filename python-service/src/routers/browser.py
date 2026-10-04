@@ -102,8 +102,13 @@ async def click(req: ClickRequest) -> BrowserResponse:
             no_wait_after=req.no_wait_after,
             force=req.force,
         )
-        if not data.get("success", True) is True and "error_code" in data:
-            return BrowserResponse(success=False, error_code=data["error_code"], error_message=data["error_message"])
+        if data.get("success") is False or data.get("clicked") is False:
+            return BrowserResponse(
+                success=False,
+                data=data,
+                error_code=data.get("error_code") or "BROWSER_CLICK_FAILED",
+                error_message=data.get("error_message") or data.get("error") or "Browser click failed",
+            )
         return BrowserResponse(success=True, data=data)
     except Exception as e:
         return BrowserResponse(
@@ -118,8 +123,13 @@ async def type_text(req: TypeRequest) -> BrowserResponse:
             req.session_id, req.selector, req.text, req.timeout,
             strict_session=req.strict_session,
         )
-        if not data.get("success", True) is True and "error_code" in data:
-            return BrowserResponse(success=False, error_code=data["error_code"], error_message=data["error_message"])
+        if data.get("success") is False:
+            return BrowserResponse(
+                success=False,
+                data=data,
+                error_code=data.get("error_code") or "BROWSER_TYPE_FAILED",
+                error_message=data.get("error_message") or data.get("error") or "Browser type failed",
+            )
         return BrowserResponse(success=True, data=data)
     except Exception as e:
         return BrowserResponse(

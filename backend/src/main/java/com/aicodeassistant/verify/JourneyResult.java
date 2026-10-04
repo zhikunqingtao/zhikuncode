@@ -32,7 +32,7 @@ public record JourneyResult(
         }
         List<StepResult> stepResults = r.stepResults().stream()
             .map(s -> new StepResult(s.index(), s.action(), s.ok(), s.durationMs(),
-                s.error(), s.consoleErrors(), s.screenshotBase64()))
+                s.error(), s.consoleErrors(), s.screenshotBase64(), s.method(), s.warning(), s.screenshotError()))
             .collect(Collectors.toList());
         return new JourneyResult(verdict, error, stepResults, r.artifacts() != null ? r.artifacts() : Map.of());
     }

@@ -127,19 +127,27 @@ async def _execute_journey(browser_service, request, session_id, session) -> Jou
     for i, step in enumerate(request.steps):
         timeout = step.get("timeout", browser_service.default_timeout)
         start_time = time.time()
+        result = {}
+        interaction_evidence = {}
+        screenshot_b64 = None
+        screenshot_error = "Not captured: screenshot collection was not reached"
 
         try:
             if step.get("action") == "navigate":
                 step = {**step, "url": urljoin(request.base_url.rstrip("/") + "/", step.get("url", ""))}
-            result = await _execute_step(browser_service, session_id, session, step, timeout)
+            result = await _execute_step(
+                browser_service, session_id, session, step, timeout,
+                interaction_evidence=interaction_evidence,
+            )
             duration_ms = int((time.time() - start_time) * 1000)
 
             # 每步截图 (JPEG quality=80)
-            screenshot_b64 = None
+            screenshot_error = None
             try:
                 screenshot_bytes = await session.page.screenshot(type="jpeg", quality=80)
                 screenshot_b64 = base64.b64encode(screenshot_bytes).decode()
             except Exception as e:
+                screenshot_error = f"{type(e).__name__}: {e}"
                 logger.warning(f"Step {i} screenshot failed: {e}")
 
             # 获取 console errors
@@ -155,6 +163,9 @@ async def _execute_journey(browser_service, request, session_id, session) -> Jou
                 screenshot_base64=screenshot_b64,
                 error=result.get("error"),
                 console_errors=console_errors,
+                method=result.get("method"),
+                warning=result.get("warning"),
+                screenshot_error=screenshot_error,
             )
             step_results.append(step_result)
 
@@ -164,14 +175,22 @@ async def _execute_journey(browser_service, request, session_id, session) -> Jou
 
         except Exception as e:
             duration_ms = int((time.time() - start_time) * 1000)
+            # Result validation can fail after a successful capture. Preserve the
+            # collected evidence, but do not reuse invalid optional model fields.
+            metadata = result if isinstance(result, dict) else {}
+            method = interaction_evidence.get("method", metadata.get("method"))
+            warning = metadata.get("warning")
             step_results.append(StepResultModel(
                 index=i,
                 action=step.get("action", "unknown"),
                 ok=False,
                 duration_ms=duration_ms,
                 error=str(e),
-                screenshot_base64=None,
+                screenshot_base64=screenshot_b64,
                 console_errors=[],
+                method=method if isinstance(method, str) else None,
+                warning=warning if isinstance(warning, str) else None,
+                screenshot_error=screenshot_error,
             ))
             break
 
@@ -202,7 +221,8 @@ async def _execute_journey(browser_service, request, session_id, session) -> Jou
 
 
 async def _execute_step(
-    service, session_id: str, session, step: Dict[str, Any], timeout: int
+    service, session_id: str, session, step: Dict[str, Any], timeout: int,
+    *, interaction_evidence: Dict[str, str] | None = None,
 ) -> Dict[str, Any]:
     """将 step DSL 映射到 browser_service 现有方法"""
     action = step["action"]
@@ -215,14 +235,27 @@ async def _execute_step(
     elif action == "click":
         # A timed-out click may already have taken effect. Do not retry it via JS
         # (the general browser helper does), which can undo a toggle or submit twice.
-        await session.page.click(step["selector"], timeout=timeout)
-        return {"success": True}
+        # Resolve inputs before the call boundary: a missing selector/page is not
+        # evidence that Playwright attempted the interaction.
+        selector = step["selector"]
+        native_click = session.page.click
+        try:
+            await native_click(selector, timeout=timeout)
+        except Exception:
+            if interaction_evidence is not None:
+                interaction_evidence["method"] = "playwright"
+            raise
+        return {"success": True, "method": "playwright"}
 
     elif action == "type":
         result = await service.type_text(session_id, step["selector"], step["text"], timeout=timeout)
+        interaction = ({"method": result.get("method"), "warning": result.get("warning")}
+                       if isinstance(result, dict) else {})
         if isinstance(result, dict) and result.get("success") is False:
-            return {"success": False, "error": result.get("error", "type_text failed")}
-        return {"success": True}
+            return {"success": False,
+                    "error": result.get("error") or result.get("error_message") or "type_text failed",
+                    **interaction}
+        return {"success": True, **interaction}
 
     elif action == "wait_for":
         result = await service.wait_for(

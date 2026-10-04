@@ -8,12 +8,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.ArgumentCaptor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.SimpleTransactionStatus;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.security.MessageDigest;
@@ -76,6 +78,151 @@ class EvidenceStoreEdgeCaseTest {
     // ─── Blob 写入类 ──────────────────────────────────────────────
 
     @Test
+    void saveBlob_rejectsExistingTruncatedContentWithoutOverwritingIt() throws Exception {
+        byte[] payload = "complete screenshot evidence".getBytes();
+        String expected = sha256Hex(payload);
+        Path target = blobPathOf(expected);
+        Files.createDirectories(target.getParent());
+        Files.writeString(target, "partial");
+
+        RuntimeException failure = assertThrows(RuntimeException.class, () -> store.saveBlob(payload));
+
+        assertTrue(failure.getMessage().contains("Failed to save blob"));
+        assertEquals("partial", Files.readString(target));
+    }
+
+    @Test
+    void saveBlob_rejectsExistingSameLengthWrongHash() throws Exception {
+        byte[] payload = "correct".getBytes();
+        String expected = sha256Hex(payload);
+        Path target = blobPathOf(expected);
+        Files.createDirectories(target.getParent());
+        Files.writeString(target, "corrupt");
+
+        assertThrows(RuntimeException.class, () -> store.saveBlob(payload));
+        assertEquals("corrupt", Files.readString(target));
+    }
+
+    @Test
+    void saveBlob_partialWriteFailureDoesNotPublishAndCleansTemporaryFile() throws Exception {
+        EvidenceStore faulting = spy(store);
+        byte[] payload = "complete evidence".getBytes();
+        doAnswer(invocation -> {
+            Files.writeString(invocation.getArgument(0), "partial");
+            throw new IOException("disk full");
+        }).when(faulting).writeBlob(any(Path.class), any(byte[].class));
+
+        RuntimeException failure = assertThrows(RuntimeException.class, () -> faulting.saveBlob(payload));
+
+        assertEquals("disk full", failure.getCause().getMessage());
+        assertFalse(Files.exists(blobPathOf(sha256Hex(payload))));
+        assertNoTemporaryBlobs();
+    }
+
+    @Test
+    void saveBlob_reusedConcurrentPublicationStillReportsCleanupFailure() throws Exception {
+        EvidenceStore faulting = spy(store);
+        byte[] payload = "complete evidence".getBytes();
+        Path published = blobPathOf(sha256Hex(payload));
+        IOException cleanupFailure = new IOException("temporary cleanup denied");
+        doAnswer(invocation -> {
+            invocation.callRealMethod();
+            // Deterministically model another writer publishing before the second existence check.
+            Files.copy(invocation.getArgument(0, Path.class), published);
+            return null;
+        }).when(faulting).writeBlob(any(Path.class), any(byte[].class));
+        doThrow(cleanupFailure).when(faulting).deleteTemporaryBlob(any(Path.class));
+
+        RuntimeException failure = assertThrows(RuntimeException.class, () -> faulting.saveBlob(payload));
+
+        assertTrue(failure.getMessage().contains("Failed to clean up blob temporary file"));
+        assertSame(cleanupFailure, failure.getCause());
+        assertArrayEquals(payload, Files.readAllBytes(published));
+        ArgumentCaptor<Path> temporary = ArgumentCaptor.forClass(Path.class);
+        verify(faulting).deleteTemporaryBlob(temporary.capture());
+        assertNotEquals(published, temporary.getValue());
+        assertArrayEquals(payload, Files.readAllBytes(temporary.getValue()));
+        verify(faulting, never()).moveBlobAtomically(any(Path.class), any(Path.class));
+        verifyNoInteractions(jdbcTemplate);
+    }
+
+    @Test
+    void saveBlob_writeFailureKeepsCleanupFailureSuppressed() throws Exception {
+        EvidenceStore faulting = spy(store);
+        byte[] payload = "complete evidence".getBytes();
+        IOException writeFailure = new IOException("disk full");
+        IOException cleanupFailure = new IOException("temporary cleanup denied");
+        doAnswer(invocation -> {
+            Files.writeString(invocation.getArgument(0, Path.class), "partial");
+            throw writeFailure;
+        }).when(faulting).writeBlob(any(Path.class), any(byte[].class));
+        doThrow(cleanupFailure).when(faulting).deleteTemporaryBlob(any(Path.class));
+
+        RuntimeException failure = assertThrows(RuntimeException.class, () -> faulting.saveBlob(payload));
+
+        assertTrue(failure.getMessage().contains("Failed to save blob"));
+        assertSame(writeFailure, failure.getCause());
+        assertArrayEquals(new Throwable[]{cleanupFailure}, writeFailure.getSuppressed());
+        assertFalse(Files.exists(blobPathOf(sha256Hex(payload))));
+        ArgumentCaptor<Path> temporary = ArgumentCaptor.forClass(Path.class);
+        verify(faulting).deleteTemporaryBlob(temporary.capture());
+        assertEquals("partial", Files.readString(temporary.getValue()));
+        verify(faulting, never()).moveBlobAtomically(any(Path.class), any(Path.class));
+        verifyNoInteractions(jdbcTemplate);
+    }
+
+    @Test
+    void saveBlob_unsupportedAtomicMoveFailsWithoutNonAtomicFallback() throws Exception {
+        EvidenceStore faulting = spy(store);
+        byte[] payload = "complete evidence".getBytes();
+        doThrow(new AtomicMoveNotSupportedException("temp", "blob", "unsupported"))
+                .when(faulting).moveBlobAtomically(any(Path.class), any(Path.class));
+
+        RuntimeException failure = assertThrows(RuntimeException.class, () -> faulting.saveBlob(payload));
+
+        assertInstanceOf(AtomicMoveNotSupportedException.class, failure.getCause());
+        assertFalse(Files.exists(blobPathOf(sha256Hex(payload))));
+        assertNoTemporaryBlobs();
+    }
+
+    @Test
+    void saveBlob_readersCannotSeeAnInProgressWrite() throws Exception {
+        EvidenceStore slow = spy(store);
+        byte[] payload = "complete evidence".getBytes();
+        String expected = sha256Hex(payload);
+        CountDownLatch partialWritten = new CountDownLatch(1);
+        CountDownLatch finishWriting = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            Path temporary = invocation.getArgument(0);
+            Files.writeString(temporary, "partial");
+            partialWritten.countDown();
+            assertTrue(finishWriting.await(5, TimeUnit.SECONDS));
+            Files.write(temporary, payload);
+            return null;
+        }).when(slow).writeBlob(any(Path.class), any(byte[].class));
+
+        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+            Future<String> saved = executor.submit(() -> slow.saveBlob(payload));
+            try {
+                assertTrue(partialWritten.await(5, TimeUnit.SECONDS));
+                assertTrue(store.readBlob(expected).isEmpty());
+                assertFalse(Files.exists(blobPathOf(expected)));
+            } finally {
+                finishWriting.countDown();
+            }
+            assertEquals(expected, saved.get(5, TimeUnit.SECONDS));
+            assertArrayEquals(payload, store.readBlob(expected).orElseThrow());
+        }
+        assertNoTemporaryBlobs();
+    }
+
+    private void assertNoTemporaryBlobs() throws IOException {
+        try (var paths = Files.walk(blobRoot)) {
+            assertTrue(paths.noneMatch(path -> path.getFileName().toString().startsWith(".blob-")));
+        }
+    }
+
+    @Test
     @DisplayName("TC-EC-01 saveBlob - 10MB+ 大文件写入 SHA-256 正确且字节完整落盘")
     void saveBlob_largePayload_storesAndHashesCorrectly() throws Exception {
         // 10MB + 余数，覆盖非整页边界
@@ -126,6 +273,7 @@ class EvidenceStoreEdgeCaseTest {
         assertTrue(Files.exists(blobPath));
         assertArrayEquals(payload, Files.readAllBytes(blobPath),
                 "并发写入后文件内容必须与原始一致，不得损坏");
+        assertNoTemporaryBlobs();
     }
 
     @Test

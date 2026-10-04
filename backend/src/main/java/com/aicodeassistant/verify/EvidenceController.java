@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -63,23 +64,39 @@ public class EvidenceController {
     }
 
     /**
-     * 流式下载 Blob 内容。
+     * 以默认附件下载方式读取 Blob，保留旧调用方式。
      *
      * @param sha256 Blob 的 SHA-256 十六进制
-     * @return 200 + 二进制流（application/octet-stream）；404 if blob not found
+     * @return 200 + application/octet-stream 附件；不存在或不可读取时返回 404
+     */
+    public ResponseEntity<byte[]> getBlob(String sha256) {
+        return getBlob(sha256, false);
+    }
+
+    /**
+     * 读取 Blob；仅在请求预览且内容通过 JPEG/PNG 格式检查时以内联图片返回。
+     *
+     * @param sha256 Blob 的 SHA-256 十六进制
+     * @param preview 是否请求图片预览，HTTP 参数省略时默认为 false
+     * @return 200 + 原始字节；预览图片使用 image/jpeg 或 image/png 与 inline，
+     *         其余使用 application/octet-stream 与 attachment；不存在或不可读取时返回 404
      */
     @GetMapping("/blob/{sha256}")
-    public ResponseEntity<byte[]> getBlob(@PathVariable String sha256) {
+    public ResponseEntity<byte[]> getBlob(@PathVariable String sha256,
+                                        @RequestParam(defaultValue = "false") boolean preview) {
         Optional<byte[]> data = evidenceStore.readBlob(sha256);
         if (data.isEmpty()) {
             log.debug("Blob not found: {}", sha256);
             return ResponseEntity.notFound().build();
         }
         byte[] bytes = data.get();
+        String imageMime = preview ? ScreenshotFormat.detectMime(bytes) : null;
+        boolean inline = imageMime != null;
         return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .contentType(inline ? MediaType.parseMediaType(imageMime) : MediaType.APPLICATION_OCTET_STREAM)
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        ContentDispositionEncoder.header("attachment", sha256, sha256))
+                        ContentDispositionEncoder.header(inline ? "inline" : "attachment", sha256, sha256))
+                .header("X-Content-Type-Options", "nosniff")
                 .contentLength(bytes.length)
                 .body(bytes);
     }

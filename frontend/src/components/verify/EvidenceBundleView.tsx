@@ -228,30 +228,72 @@ const ItemGroupRenderer: React.FC<{ type: string; items: EvidenceItem[] }> = ({ 
 // ---- screenshot ----
 const ScreenshotGrid: React.FC<{ items: EvidenceItem[] }> = ({ items }) => (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-        {items.map((item) => {
-            const src = pickImageSrc(item);
-            return (
-                <div key={item.id} className="border rounded overflow-hidden bg-surface2">
-                    {src ? (
-                        <img
-                            src={src}
-                            alt={item.summary ?? 'screenshot'}
-                            className="w-full h-24 object-cover"
-                            loading="lazy"
-                        />
-                    ) : (
-                        <div className="w-full h-24 flex items-center justify-center text-[13px] text-t2">
-                            no preview
-                        </div>
-                    )}
-                    <div className="px-1.5 py-1 text-[13px] text-t2 truncate">
-                        {item.summary ?? shortId(item.id)}
-                    </div>
-                </div>
-            );
-        })}
+        {items.map((item) => <ScreenshotCard key={item.id} item={item} />)}
     </div>
 );
+
+const ScreenshotCard: React.FC<{ item: EvidenceItem }> = ({ item }) => {
+    const src = pickImageSrc(item);
+    const [failedSrc, setFailedSrc] = useState<string | null>(null);
+    const unreadable = src !== null && src === failedSrc;
+    return (
+        <div className="border rounded overflow-hidden bg-surface2">
+            {src && !unreadable ? (
+                <img
+                    src={src}
+                    alt={item.summary ?? 'screenshot'}
+                    className="w-full h-24 object-cover"
+                    loading="lazy"
+                    onError={() => setFailedSrc(src)}
+                />
+            ) : (
+                <div className="w-full min-h-24 p-2 flex items-center justify-center text-[13px] text-t2">
+                    {unreadable ? '截图不可读取：文件缺失、损坏或加载失败' : '无截图预览'}
+                </div>
+            )}
+            <div className="px-1.5 py-1 text-[13px] text-t2 break-words">
+                {item.summary ?? shortId(item.id)}
+            </div>
+            <StepEvidenceDetails item={item} missingScreenshot={!src} unreadableScreenshot={unreadable} />
+        </div>
+    );
+};
+
+/** Journey facts remain separate from the verdict, including when no image was saved. */
+const StepEvidenceDetails: React.FC<{
+    item: EvidenceItem;
+    missingScreenshot?: boolean;
+    unreadableScreenshot?: boolean;
+}> = ({ item, missingScreenshot = false, unreadableScreenshot = false }) => {
+    const meta = item.meta ?? {};
+    const method = nonEmptyString(meta.method);
+    const warning = nonEmptyString(meta.warning);
+    const isInteraction = meta.action === 'click' || meta.action === 'type';
+    const status = nonEmptyString(meta.screenshotStatus);
+    const reason = nonEmptyString(meta.screenshotReason);
+    const missing = missingScreenshot || (status !== null && status !== 'stored') || reason !== null;
+    const mime = nonEmptyString(meta.mime);
+    const bytes = typeof meta.bytes === 'number' && Number.isFinite(meta.bytes) && meta.bytes >= 0 ? meta.bytes : null;
+    const screenshotDetails = [mime, bytes !== null ? `${bytes} 字节` : null].filter(Boolean).join('，');
+    const gapLabel = status === 'invalid' ? '截图无效'
+        : status === 'limit_exceeded' ? '截图未保存（超出限额）' : '截图缺失';
+    if (!method && !warning && !isInteraction && !missing && !status) return null;
+
+    return (
+        <div className="px-2 py-1 space-y-1 text-[13px] text-t2 break-words">
+            {(method || isInteraction) && <p>{method ? `执行方式：${method}` : '执行方式未记录'}</p>}
+            {warning && <p className="text-warn">{warning}</p>}
+            {method === 'js_fallback' && (
+                <p className="text-warn">此次操作使用 JS fallback，不能单独证明原生用户交互可用。</p>
+            )}
+            {missing ? (
+                <p className="text-warn">{gapLabel}：{screenshotReasonLabel(reason)}</p>
+            ) : status === 'stored' && (
+                <p>{unreadableScreenshot ? '归档记录存在，当前无法读取' : '截图已归档'}{screenshotDetails ? `（${screenshotDetails}）` : ''}</p>
+            )}
+        </div>
+    );
+};
 
 // ---- command ----
 const CommandList: React.FC<{ items: EvidenceItem[] }> = ({ items }) => (
@@ -282,6 +324,7 @@ const CommandList: React.FC<{ items: EvidenceItem[] }> = ({ items }) => (
                             {stdout}
                         </pre>
                     )}
+                    <StepEvidenceDetails item={item} />
                 </div>
             );
         })}
@@ -485,6 +528,22 @@ function pickBool(v: unknown): boolean | null {
     return null;
 }
 
+function nonEmptyString(value: unknown): string | null {
+    return typeof value === 'string' && value.trim().length > 0 ? value : null;
+}
+
+function screenshotReasonLabel(reason: string | null): string {
+    switch (reason) {
+        case null:
+        case 'reason_not_recorded': return '原因未记录';
+        case 'invalid_base64': return '截图编码无效';
+        case 'single_image_limit_5_mib': return '单张截图超过 5 MiB 限额';
+        case 'journey_image_limit_20_mib': return '本次 Journey 截图归档剩余额度不足（总限额 20 MiB）';
+        case 'invalid_or_unsupported_image': return '截图无效或不是支持的 JPEG/PNG 图片';
+        default: return reason;
+    }
+}
+
 function pickImageSrc(item: EvidenceItem): string | null {
     const meta = item.meta ?? {};
     if (typeof meta.dataUrl === 'string' && meta.dataUrl.length > 0) return meta.dataUrl;
@@ -494,7 +553,7 @@ function pickImageSrc(item: EvidenceItem): string | null {
         return `data:${mime};base64,${meta.base64}`;
     }
     if (item.blobSha256) {
-        return `/api/evidence/blob/${encodeURIComponent(item.blobSha256)}`;
+        return `/api/evidence/blob/${encodeURIComponent(item.blobSha256)}?preview=true`;
     }
     return null;
 }
