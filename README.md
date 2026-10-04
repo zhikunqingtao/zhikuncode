@@ -317,6 +317,8 @@ ZHIKUN_OSS_REQUEST_TIMEOUT_MS=120000
 
 可选自定义域名与预览：先自行完成目标 Bucket 的域名绑定、DNS 和 HTTPS 配置，再将 `ZHIKUN_OSS_PUBLIC_BASE_URL` 设为自己的 HTTPS 域名根地址（例如 `https://files.example.com`，不带端口、路径前缀、查询参数或片段）。产物发布、截图粘贴和远程文件引用会统一使用该域名，上传 Endpoint 不变。设置 `ZHIKUN_OSS_PREVIEW_ENABLED=true` 后，仅新上传的 HTML、纯文本、PDF、PNG/JPEG/GIF/WebP 使用 `inline`，其他类型仍作为附件；开启预览必须配置自定义域名，不能使用 OSS 默认域名。默认留空且关闭时保持原下载行为。
 
+OSS 关闭时，无效的自定义域／预览配置会产生警告并从 CSP 省略，不阻断启动；开启时仍会阻止启动。合法自定义域在 OSS 关闭时仍保留在 CSP 中，以支持历史图片。发布入口始终保留严格配置校验。剪贴板 API 会规范化 HEAD 返回的具体图片 MIME（统一大小写、去除参数），保留有效 CDN 转码类型；其他类型回退到文件字节检测结果。客户端声明的图片类型仍须匹配上传内容。
+
 本地部署可先配置阿里云 CLI 默认 Profile；也可将受限 RAM 用户或临时 STS 的 `ALIBABA_CLOUD_ACCESS_KEY_ID`、`ALIBABA_CLOUD_ACCESS_KEY_SECRET` 与可选 `ALIBABA_CLOUD_SECURITY_TOKEN` 写入本机 `.env`。不要提交真实值。旧式 `OSS_ACCESS_KEY_ID`、`OSS_ACCESS_KEY_SECRET`、`OSS_SESSION_TOKEN` 会被拒绝。
 
 > 身份只应具有目标 Bucket/前缀所需的最小 `PutObject`、`GetObject/HeadObject`、`PutObjectAcl` 和失败清理 `DeleteObject` 权限；Bucket 必须允许目标对象设置 `public-read`，否则上传会失败并尝试清理私有对象。
