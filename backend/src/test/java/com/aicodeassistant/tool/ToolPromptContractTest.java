@@ -135,6 +135,7 @@ class ToolPromptContractTest {
                 () -> assertTrue(description.contains("clarify requirements")),
                 () -> assertFalse(description.contains("ExitPlanMode")),
                 () -> assertFalse(description.contains("cannot see the plan")),
+                () -> assertFalse(description.contains("Users will always be able to select \"Other\"")),
                 () -> assertTrue(apiProperties(tool).containsKey("questions")));
     }
 

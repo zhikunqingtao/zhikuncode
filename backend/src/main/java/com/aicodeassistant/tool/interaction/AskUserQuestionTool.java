@@ -58,7 +58,6 @@ public class AskUserQuestionTool implements Tool {
                 - 每次调用必须包含 1–4 个问题，每个问题必须提供 2–4 个选项。
                 - 需要更多问题或选项时，应在保持原有选择语义的前提下拆分问题或分次询问。
                 - 不得为了满足数量限制而丢弃必要选项。
-                - Users will always be able to select "Other" to provide custom text input
                 - Set multiSelect on each question: true allows multiple answers; false or omission allows only one.
                 - Keep question wording consistent with multiSelect. If the question says "可多选" or \
                 allows multiple answers, you must set that question's multiSelect to true. Wording alone does not enable it.
