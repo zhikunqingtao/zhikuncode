@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -30,6 +31,7 @@ public class ToolCallTracker {
 
     private final List<ToolCallRecord> history = Collections.synchronizedList(new ArrayList<>());
     private final AtomicInteger consecutiveErrors = new AtomicInteger(0);
+    private final AtomicBoolean recoveryHintIssued = new AtomicBoolean(false);
 
     /**
      * 记录一次工具调用结果。
@@ -54,6 +56,7 @@ public class ToolCallTracker {
         history.add(new ToolCallRecord(toolName, success, errorMessage, Instant.now(), recoveryRelevant));
         if (success || !recoveryRelevant) {
             consecutiveErrors.set(0);
+            recoveryHintIssued.set(false);
         } else {
             int count = consecutiveErrors.incrementAndGet();
             log.debug("ToolCallTracker: consecutive errors = {} (tool={})", count, toolName);
@@ -65,6 +68,16 @@ public class ToolCallTracker {
      */
     public int getConsecutiveErrors() {
         return consecutiveErrors.get();
+    }
+
+    /** 当前连续失败段是否已向模型提供恢复提示；提示不重置真实错误计数。 */
+    public boolean isRecoveryHintIssued() {
+        return recoveryHintIssued.get();
+    }
+
+    /** 仅在恢复提示成功加入会话后调用。 */
+    public void markRecoveryHintIssued() {
+        recoveryHintIssued.set(true);
     }
 
     /**
@@ -131,6 +144,7 @@ public class ToolCallTracker {
     public void reset() {
         history.clear();
         consecutiveErrors.set(0);
+        recoveryHintIssued.set(false);
         log.debug("ToolCallTracker reset");
     }
 }

@@ -11,8 +11,8 @@ import java.util.List;
  * <p>
  * 评估优先级：
  * 1. Token 预算检查（> 95% 触发）
- * 2. 连续错误检查（≥ 3 次切换策略）
- * 3. 正常结束判断（stopReason + 无工具调用）
+ * 2. 正常结束判断（stopReason + 无工具调用）
+ * 3. 连续错误检查（≥ 3 次切换策略）
  * 4. 动态 maxTurns（base + consecutiveErrors * 2）
  * 5. 滑动窗口检查（最近 5 次全失败 → 请求用户输入）
  */
@@ -44,17 +44,17 @@ public class DefaultTerminationStrategy implements TerminationStrategy {
             return TerminationDecision.TERMINATE_BUDGET;
         }
 
-        // 2. 连续错误检查：≥ 3 → SWITCH_STRATEGY
+        // 2. 已完成的最终答复不应被此前工具失败挡住。
+        if (("end_turn".equals(context.stopReason()) || "stop".equals(context.stopReason()))
+                && !context.lastResponseHasToolCalls()) {
+            return TerminationDecision.TERMINATE_SUCCESS;
+        }
+
+        // 3. 连续错误检查：≥ 3 → SWITCH_STRATEGY
         if (context.consecutiveErrors() >= CONSECUTIVE_ERROR_THRESHOLD) {
             log.warn("Consecutive errors threshold reached: count={}, threshold={}",
                     context.consecutiveErrors(), CONSECUTIVE_ERROR_THRESHOLD);
             return TerminationDecision.SWITCH_STRATEGY;
-        }
-
-        // 3. 正常结束判断：stopReason 为 end_turn/stop + 无工具调用
-        if (("end_turn".equals(context.stopReason()) || "stop".equals(context.stopReason()))
-                && !context.lastResponseHasToolCalls()) {
-            return TerminationDecision.TERMINATE_SUCCESS;
         }
 
         // 4. 动态 maxTurns = base + consecutiveErrors * 2

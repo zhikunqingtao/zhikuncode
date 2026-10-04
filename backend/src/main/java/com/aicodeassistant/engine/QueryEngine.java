@@ -1259,7 +1259,41 @@ public class QueryEngine {
 
             // ===== Step 4: 收集 API 响应 =====
             log.debug("Turn {} Step4: streamChat returned, building AssistantMessage...", turn);
-            Message.AssistantMessage assistantMessage = collector.buildAssistantMessage();
+            Message.AssistantMessage assistantMessage;
+            try {
+                assistantMessage = collector.buildAssistantMessage();
+            } catch (RuntimeException failure) {
+                // Parsing happens after stream completion; keep this diagnostic outside
+                // retry, usage accounting, message persistence and tool execution.
+                recordCurrentRunEvent("llm_call_failed", () -> {
+                    Map<String, Object> failed = new LinkedHashMap<>();
+                    failed.put("requestId", llmRequestId);
+                    failed.put("provider", diagnosticValue(provider.getProviderName()));
+                    failed.put("model", effectiveModel);
+                    failed.put("turn", turn);
+                    failed.put("attemptCount", llmAttemptCount[0]);
+                    failed.put("durationMs", elapsedMillis(llmStartedNanos));
+                    failed.put("statusCode", failure instanceof LlmApiException api ? api.getStatusCode() : 0);
+                    failed.put("errorType", failure instanceof LlmApiException api && api.getErrorType() != null
+                            ? api.getErrorType() : SafeLogValue.errorType(failure));
+                    failed.put("failureStage", "response_parse");
+                    failed.put("stopReason", collector.diagnosticStopReason());
+                    failed.put("requestedMaxTokens", effectiveMaxTokens);
+                    failed.put("toolCount", collector.pendingTools.size());
+                    failed.put("toolInputChars", collector.pendingTools.values().stream()
+                            .mapToLong(pending -> pending.input.length()).sum());
+                    Usage rawUsage = collector.rawUsage();
+                    failed.put("usageReported", rawUsage != null);
+                    if (rawUsage != null) {
+                        failed.put("inputTokens", rawUsage.inputTokens());
+                        failed.put("outputTokens", rawUsage.outputTokens());
+                        failed.put("cacheReadInputTokens", rawUsage.cacheReadInputTokens());
+                        failed.put("cacheCreationInputTokens", rawUsage.cacheCreationInputTokens());
+                    }
+                    return failed;
+                });
+                throw failure;
+            }
             // 尾标记仅作为补答信号；原始正文仍完整持久化并交付给消费者。
             final boolean systemMarkerTerminated = isSystemMarkerTerminated(assistantMessage);
             Usage callUsage = assistantMessage.usage();
@@ -1529,6 +1563,10 @@ public class QueryEngine {
             );
 
             TerminationDecision decision = terminationStrategy.evaluate(loopContext);
+            // 同一连续失败段只提示一次；保留错误计数，且不重新评估并意外激活其他终止规则。
+            if (decision == TerminationDecision.SWITCH_STRATEGY && tracker.isRecoveryHintIssued()) {
+                decision = TerminationDecision.CONTINUE;
+            }
             log.debug("TerminationStrategy decision: {} (turn={}, errors={}, stopReason={})",
                     decision, turn, tracker.getConsecutiveErrors(), stopReason);
 
@@ -1571,6 +1609,7 @@ public class QueryEngine {
                                 "Please try a different approach or simplify your current task.")),
                         null, null);
                 state.addMessage(recoveryHint);
+                tracker.markRecoveryHintIssued();
                 handler.onTurnEnd(turn, "switch_strategy");
                 continue;
             }
@@ -2645,6 +2684,15 @@ public class QueryEngine {
         /** 原始 usage（nullable）— 保留"缺 usage"与"显式零值"的区别。 */
         Usage rawUsage() { return usage; }
 
+        private String diagnosticStopReason() {
+            if (stopReason == null || stopReason.isBlank()) return "unknown";
+            return switch (stopReason) {
+                case "end_turn", "stop", "tool_use", "tool_calls", "max_tokens", "length",
+                        "stop_sequence", "content_filter", "refusal", "pause_turn" -> stopReason;
+                default -> "other";
+            };
+        }
+
         private void flushThinkingBlock() {
             if (!currentThinking.isEmpty()) {
                 contentParts.add(new ContentBlock.ThinkingBlock(currentThinking.toString()));
@@ -2678,6 +2726,11 @@ public class QueryEngine {
 
         Message.AssistantMessage buildAssistantMessage() {
             if (terminalError != null) throw terminalError;
+            if (!pendingTools.isEmpty()
+                    && ("max_tokens".equals(stopReason) || "length".equals(stopReason))) {
+                throw new LlmApiException("TRUNCATED_TOOL_CALLS: " + stopReason, false, 0,
+                        "TRUNCATED_TOOL_CALLS", 0);
+            }
             flushTextBlock();
             List<ContentBlock> blocks = new ArrayList<>(contentParts.size());
             for (Object part : contentParts) {
@@ -2692,16 +2745,14 @@ public class QueryEngine {
                             ? objectMapper.createObjectNode()
                             : objectMapper.readTree(pending.input.toString());
                 } catch (Exception invalidJson) {
-                    throw new LlmApiException("INVALID_TOOL_INPUT_JSON", invalidJson, false);
+                    throw new LlmApiException("INVALID_TOOL_INPUT_JSON", invalidJson, false, 0,
+                            "INVALID_TOOL_INPUT_JSON", 0);
                 }
                 if (input == null || !input.isObject()) {
-                    throw new LlmApiException("INVALID_TOOL_INPUT_JSON: expected object", false);
+                    throw new LlmApiException("INVALID_TOOL_INPUT_JSON: expected object", false, 0,
+                            "INVALID_TOOL_INPUT_JSON", 0);
                 }
                 blocks.add(new ContentBlock.ToolUseBlock(pending.id, pending.name, input));
-            }
-            if (!pendingTools.isEmpty()
-                    && ("max_tokens".equals(stopReason) || "length".equals(stopReason))) {
-                throw new LlmApiException("TRUNCATED_TOOL_CALLS: " + stopReason, false);
             }
             return new Message.AssistantMessage(
                     UUID.randomUUID().toString(), Instant.now(), List.copyOf(blocks),

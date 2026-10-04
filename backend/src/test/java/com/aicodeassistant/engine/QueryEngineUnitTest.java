@@ -1205,32 +1205,71 @@ class QueryEngineUnitTest {
                     && user.content().stream().anyMatch(ContentBlock.ToolResultBlock.class::isInstance));
         }
 
-        @Test
-        void oneInvalidToolInputRejectsTheWholeTurnBeforeAnyToolStarts() {
+        @org.junit.jupiter.params.ParameterizedTest
+        @org.junit.jupiter.params.provider.ValueSource(strings = {"{", "[]", "null", "42"})
+        void oneInvalidToolInputRejectsTheWholeTurnBeforeAnyToolStarts(String input) {
             script((call, callback) -> finish(callback, "tool_use",
                     new LlmStreamEvent.ToolUseStart("valid", "Bash"),
                     new LlmStreamEvent.ToolInputDelta("valid", "{}"),
                     new LlmStreamEvent.ToolUseStart("broken", "Bash"),
-                    new LlmStreamEvent.ToolInputDelta("broken", "{")));
+                    new LlmStreamEvent.ToolInputDelta("broken", input)));
 
             var result = queryEngine.execute(buildConfig(), buildState("question"), handler);
 
             assertThat(result.isSuccess()).isFalse();
             assertThat(result.error()).contains("INVALID_TOOL_INPUT_JSON");
+            assertThat(requests).hasSize(1);
+            assertThat(handler.errors).singleElement().isInstanceOfSatisfying(LlmApiException.class, error -> {
+                assertThat(error.getErrorType()).isEqualTo("INVALID_TOOL_INPUT_JSON");
+                assertThat(error.isRetryable()).isFalse();
+            });
             verify(toolSession, never()).addTool(any(), any(), anyString(), any());
         }
 
-        @Test
-        void truncatedToolTurnStartsNoTools() {
-            script((call, callback) -> finish(callback, "max_tokens",
+        @org.junit.jupiter.params.ParameterizedTest
+        @org.junit.jupiter.params.provider.CsvSource({"max_tokens,{}", "max_tokens,{", "length,{}", "length,{"})
+        void truncatedToolTurnStartsNoTools(String stopReason, String input) {
+            script((call, callback) -> finish(callback, stopReason,
+                    new LlmStreamEvent.ToolUseStart("valid", "Bash"),
+                    new LlmStreamEvent.ToolInputDelta("valid", "{}"),
                     new LlmStreamEvent.ToolUseStart("truncated", "Bash"),
-                    new LlmStreamEvent.ToolInputDelta("truncated", "{}")));
+                    new LlmStreamEvent.ToolInputDelta("truncated", input)));
 
             var result = queryEngine.execute(buildConfig(), buildState("question"), handler);
 
             assertThat(result.isSuccess()).isFalse();
             assertThat(result.error()).contains("TRUNCATED_TOOL_CALLS");
+            assertThat(requests).hasSize(1);
+            assertThat(handler.errors).singleElement().isInstanceOfSatisfying(LlmApiException.class, error -> {
+                assertThat(error.getErrorType()).isEqualTo("TRUNCATED_TOOL_CALLS");
+                assertThat(error.isRetryable()).isFalse();
+            });
             verify(toolSession, never()).addTool(any(), any(), anyString(), any());
+        }
+
+        @Test
+        void providerErrorTakesPrecedenceOverTruncatedToolInput() {
+            LlmApiException protocolFailure = new LlmApiException("protocol failure", false, 0,
+                    "STREAM_PROTOCOL_ERROR", 0);
+            script((call, callback) -> {
+                callback.onEvent(new LlmStreamEvent.ToolUseStart("broken", "Bash"));
+                callback.onEvent(new LlmStreamEvent.ToolInputDelta("broken", "{"));
+                callback.onEvent(new LlmStreamEvent.MessageDelta(new Usage(10, 5, 0, 0), "max_tokens"));
+                callback.onError(protocolFailure);
+            });
+
+            var result = queryEngine.execute(buildConfig(), buildState("question"), handler);
+
+            assertThat(result.isSuccess()).isFalse();
+            assertThat(handler.errors).singleElement().isInstanceOfSatisfying(LlmApiException.class, error -> {
+                assertThat(error.getErrorType()).isEqualTo("STREAM_PROTOCOL_ERROR");
+                assertThat(error.isRetryable()).isFalse();
+                assertThat(error.getCause()).isSameAs(protocolFailure);
+            });
+            assertThat(requests).hasSize(1);
+            verify(toolSession, never()).addTool(any(), any(), anyString(), any());
+            verify(runTracker).recordEventBestEffort(eq(run.id()), eq("llm_call_failed"), any());
+            verify(runTracker, never()).recordEventBestEffort(eq(run.id()), eq("llm_call_completed"), any());
         }
 
         @Test
@@ -1250,6 +1289,8 @@ class QueryEngineUnitTest {
             assertThat(result.error()).contains("PERSISTENCE_FAILED", "TEST_WRITE_FAILED");
             verify(toolSession, never()).addTool(any(), any(), anyString(), any());
             assertThat(requests).hasSize(1);
+            verify(runTracker).recordEventBestEffort(eq(run.id()), eq("llm_call_completed"), any());
+            verify(runTracker, never()).recordEventBestEffort(eq(run.id()), eq("llm_call_failed"), any());
         }
 
         @Test
@@ -1846,6 +1887,8 @@ class QueryEngineUnitTest {
             assertThat(state.getObservedUsage().totalTokens()).isZero();
             assertThat(state.observationStatus()).isEqualTo(QueryLoopState.ObservationStatus.KNOWN);
             assertThat(handler.usageEvents).hasSize(1);
+            verify(runTracker).recordEventBestEffort(eq(run.id()), eq("llm_call_completed"), any());
+            verify(runTracker, never()).recordEventBestEffort(eq(run.id()), eq("llm_call_failed"), any());
         }
 
         @Test
@@ -1994,21 +2037,99 @@ class QueryEngineUnitTest {
             assertThat(state.getReportedUsageObservations()).isEqualTo(1);
         }
 
-        @Test
-        void invalidToolJsonDoesNotDiscardAlreadyReportedUsage() {
+        @org.junit.jupiter.params.ParameterizedTest
+        @org.junit.jupiter.params.provider.CsvSource({
+                "missing,false", "zero,false", "known,false",
+                "missing,true", "zero,true", "known,true"})
+        void parseFailureDiagnosticsPreserveRawUsageAndOriginalError(String usageMode, boolean recorderFails) {
+            Usage rawUsage = switch (usageMode) {
+                case "zero" -> new Usage(0, 0, 0, 0);
+                case "known" -> new Usage(10, 5, 3, 2);
+                default -> null;
+            };
+            String input = "{\"secret\":\"private-tool-input";
+            String stopReason = recorderFails ? "provider-private-stop" : "tool_use";
+            if (recorderFails) {
+                when(runTracker.recordEventBestEffort(eq(run.id()), eq("llm_call_failed"), any()))
+                        .thenThrow(new IllegalStateException("diagnostic recorder failed"));
+            }
+            AtomicInteger providerCalls = new AtomicInteger();
             script((call, callback) -> {
+                providerCalls.incrementAndGet();
                 callback.onEvent(new LlmStreamEvent.ToolUseStart("invalid-tool", "Bash"));
-                callback.onEvent(new LlmStreamEvent.ToolInputDelta("invalid-tool", "{"));
-                callback.onEvent(new LlmStreamEvent.MessageDelta(new Usage(10, 5, 0, 0), "tool_use"));
+                callback.onEvent(new LlmStreamEvent.ToolInputDelta("invalid-tool", input));
+                callback.onEvent(new LlmStreamEvent.MessageDelta(rawUsage, stopReason));
                 callback.onComplete();
             });
             QueryLoopState state = buildState("question");
+            List<Message> persisted = new ArrayList<>();
+            state.setPersistenceSink(persisted::add);
+            var result = queryEngine.execute(buildConfig(), state, handler);
+
+            assertThat(result.isSuccess()).isFalse();
+            assertThat(result.error()).contains("INVALID_TOOL_INPUT_JSON").doesNotContain("diagnostic recorder failed");
+            assertThat(handler.errors).singleElement().isInstanceOfSatisfying(LlmApiException.class, error -> {
+                assertThat(error.getErrorType()).isEqualTo("INVALID_TOOL_INPUT_JSON");
+                assertThat(error.isRetryable()).isFalse();
+                assertThat(error.getCause()).isInstanceOf(com.fasterxml.jackson.core.JsonProcessingException.class);
+            });
+            assertThat(providerCalls).hasValue(1);
+            assertThat(result.totalUsage().totalTokens()).isEqualTo(rawUsage == null ? 0 : rawUsage.totalTokens());
+            assertThat(state.getReportedUsageObservations()).isEqualTo(rawUsage == null ? 0 : 1);
+            assertThat(state.hasMissingUsageObservation()).isEqualTo(rawUsage == null);
+            // Failure retains observed accounting without adding success-path UI callbacks.
+            assertThat(handler.usageEvents).isEmpty();
+            assertThat(handler.assistantMessages).isEmpty();
+            assertThat(persisted).noneMatch(Message.AssistantMessage.class::isInstance);
+            verify(toolSession, never()).addTool(any(), any(), anyString(), any());
+
+            ArgumentCaptor<Object> failedEvent = ArgumentCaptor.forClass(Object.class);
+            ArgumentCaptor<Object> startedEvent = ArgumentCaptor.forClass(Object.class);
+            verify(runTracker).recordEventBestEffort(eq(run.id()), eq("llm_call_started"), startedEvent.capture());
+            verify(runTracker).recordEventBestEffort(eq(run.id()), eq("llm_call_failed"), failedEvent.capture());
+            verify(runTracker, never()).recordEventBestEffort(eq(run.id()), eq("llm_call_completed"), any());
+            Map<?, ?> data = (Map<?, ?>) failedEvent.getValue();
+            assertThat(data.get("requestId")).isEqualTo(((Map<?, ?>) startedEvent.getValue()).get("requestId"));
+            assertThat(data.get("failureStage")).isEqualTo("response_parse");
+            assertThat(data.get("stopReason")).isEqualTo(recorderFails ? "other" : "tool_use");
+            assertThat(data.get("requestedMaxTokens")).isEqualTo(8192);
+            assertThat(data.get("toolCount")).isEqualTo(1);
+            assertThat(data.get("toolInputChars")).isEqualTo((long) input.length());
+            assertThat(data.get("errorType")).isEqualTo("INVALID_TOOL_INPUT_JSON");
+            assertThat(data.get("usageReported")).isEqualTo(rawUsage != null);
+            assertThat(data.toString()).doesNotContain(input, "private-tool-input", "provider-private-stop");
+            if (rawUsage == null) {
+                assertThat(data.containsKey("inputTokens")).isFalse();
+                assertThat(data.containsKey("outputTokens")).isFalse();
+                assertThat(data.containsKey("cacheReadInputTokens")).isFalse();
+                assertThat(data.containsKey("cacheCreationInputTokens")).isFalse();
+            } else {
+                assertThat(data.get("inputTokens")).isEqualTo(rawUsage.inputTokens());
+                assertThat(data.get("outputTokens")).isEqualTo(rawUsage.outputTokens());
+                assertThat(data.get("cacheReadInputTokens")).isEqualTo(rawUsage.cacheReadInputTokens());
+                assertThat(data.get("cacheCreationInputTokens")).isEqualTo(rawUsage.cacheCreationInputTokens());
+            }
+        }
+
+        @Test
+        void cancellationAfterStreamBeforeParsingKeepsExistingCancellationPath() {
+            script((call, callback) -> {
+                finish(callback, "max_tokens", new LlmStreamEvent.ToolUseStart("broken", "Bash"),
+                        new LlmStreamEvent.ToolInputDelta("broken", "{"));
+                queryEngine.abort("test-session", AbortReason.USER_INTERRUPT);
+            });
+            QueryLoopState state = buildState("question");
+
             var result = queryEngine.execute(buildConfig(), state, handler);
 
             assertThat(result.isSuccess()).isFalse();
             assertThat(result.totalUsage().totalTokens()).isEqualTo(15);
             assertThat(state.getReportedUsageObservations()).isEqualTo(1);
+            assertThat(handler.errors).isEmpty();
+            assertThat(handler.assistantMessages).isEmpty();
             verify(toolSession, never()).addTool(any(), any(), anyString(), any());
+            verify(runTracker, never()).recordEventBestEffort(eq(run.id()), eq("llm_call_completed"), any());
+            verify(runTracker, never()).recordEventBestEffort(eq(run.id()), eq("llm_call_failed"), any());
         }
 
         @Test

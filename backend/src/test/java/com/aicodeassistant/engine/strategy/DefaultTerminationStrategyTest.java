@@ -2,9 +2,13 @@ package com.aicodeassistant.engine.strategy;
 
 import com.aicodeassistant.engine.strategy.TerminationStrategy.LoopContext;
 import com.aicodeassistant.engine.strategy.TerminationStrategy.ToolCallRecord;
+import com.aicodeassistant.engine.tracking.ToolCallTracker;
+import com.aicodeassistant.tool.ToolResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.time.Instant;
 import java.util.List;
@@ -162,5 +166,44 @@ class DefaultTerminationStrategyTest {
                 3, 10, 0, 5, true, null, 10_000L, 100_000L, permissionOutcomes);
 
         assertThat(strategy.evaluate(context)).isEqualTo(TerminationDecision.CONTINUE);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"end_turn,3", "stop,3", "end_turn,5", "stop,5"})
+    void completedFinalResponseIsNotBlockedByEarlierFailures(String stopReason, int failures) {
+        ToolCallTracker tracker = failedTracker(failures);
+        LoopContext context = new LoopContext(
+                6, 10, tracker.getConsecutiveErrors(), 0, false, stopReason,
+                10_000L, 100_000L, tracker.getRecentRecords(5));
+
+        assertThat(strategy.evaluate(context)).isEqualTo(TerminationDecision.TERMINATE_SUCCESS);
+    }
+
+    @Test
+    void budgetStillTakesPriorityOverFinalResponseAfterFailures() {
+        ToolCallTracker tracker = failedTracker(3);
+        LoopContext context = new LoopContext(
+                4, 10, tracker.getConsecutiveErrors(), 0, false, "end_turn",
+                96_000L, 100_000L, tracker.getRecentRecords(5));
+
+        assertThat(strategy.evaluate(context)).isEqualTo(TerminationDecision.TERMINATE_BUDGET);
+    }
+
+    @Test
+    void fiveActualFailuresStillUseSoftRecoveryInsteadOfEnablingANewStopRule() {
+        ToolCallTracker tracker = failedTracker(5);
+        LoopContext context = new LoopContext(
+                1, 10, tracker.getConsecutiveErrors(), 5, true, "tool_use",
+                10_000L, 100_000L, tracker.getRecentRecords(5));
+
+        assertThat(strategy.evaluate(context)).isEqualTo(TerminationDecision.SWITCH_STRATEGY);
+    }
+
+    private static ToolCallTracker failedTracker(int count) {
+        ToolCallTracker tracker = new ToolCallTracker();
+        for (int i = 0; i < count; i++) {
+            tracker.record("Read", ToolResult.validationError("FILE_NOT_FOUND", "missing"));
+        }
+        return tracker;
     }
 }

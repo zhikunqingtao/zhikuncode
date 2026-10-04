@@ -72,4 +72,58 @@ class ToolCallTrackerTest {
         assertThat(tracker.getConsecutiveErrors()).isEqualTo(1);
         assertThat(tracker.getRecentRecords(1).getFirst().recoveryRelevant()).isTrue();
     }
+
+    @Test
+    void recoveryHintDoesNotResetErrorsAndSuccessStartsANewStreak() {
+        ToolCallTracker tracker = new ToolCallTracker();
+        recordFailures(tracker, 3);
+        assertThat(tracker.isRecoveryHintIssued()).isFalse();
+
+        tracker.markRecoveryHintIssued();
+        recordFailures(tracker, 2);
+        assertThat(tracker.getConsecutiveErrors()).isEqualTo(5);
+        assertThat(tracker.isRecoveryHintIssued()).isTrue();
+        assertThat(tracker.getTotalRecords()).isEqualTo(5);
+
+        tracker.record("Read", ToolResult.success("found"));
+        assertThat(tracker.getConsecutiveErrors()).isZero();
+        assertThat(tracker.isRecoveryHintIssued()).isFalse();
+        recordFailures(tracker, 3);
+        assertThat(tracker.getConsecutiveErrors()).isEqualTo(3);
+        assertThat(tracker.isRecoveryHintIssued()).isFalse();
+    }
+
+    @Test
+    void expectedPermissionOutcomeClearsTheRecoveryHint() {
+        ToolCallTracker tracker = new ToolCallTracker();
+        recordFailures(tracker, 3);
+        tracker.markRecoveryHintIssued();
+
+        tracker.record("Read", ToolResult.permissionDenied("PERMISSION_USER_DENIED", "denied"));
+
+        assertThat(tracker.getConsecutiveErrors()).isZero();
+        assertThat(tracker.isRecoveryHintIssued()).isFalse();
+        recordFailures(tracker, 3);
+        assertThat(tracker.getConsecutiveErrors()).isEqualTo(3);
+        assertThat(tracker.isRecoveryHintIssued()).isFalse();
+    }
+
+    @Test
+    void resetClearsRecoveryHintAlongWithHistory() {
+        ToolCallTracker tracker = new ToolCallTracker();
+        recordFailures(tracker, 3);
+        tracker.markRecoveryHintIssued();
+
+        tracker.reset();
+
+        assertThat(tracker.getConsecutiveErrors()).isZero();
+        assertThat(tracker.getTotalRecords()).isZero();
+        assertThat(tracker.isRecoveryHintIssued()).isFalse();
+    }
+
+    private static void recordFailures(ToolCallTracker tracker, int count) {
+        for (int i = 0; i < count; i++) {
+            tracker.record("Read", ToolResult.validationError("FILE_NOT_FOUND", "missing"));
+        }
+    }
 }
