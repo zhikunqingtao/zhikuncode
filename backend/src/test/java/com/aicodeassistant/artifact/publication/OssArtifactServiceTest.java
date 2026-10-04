@@ -27,6 +27,7 @@ import java.time.Duration;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -39,6 +40,25 @@ import static org.mockito.Mockito.when;
 
 class OssArtifactServiceTest {
     @TempDir Path workspace;
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void invalidPublicConfigurationStillRejectsPublicationBeforeCreatingOssClient(boolean enabled) throws Exception {
+        var artifact = snapshot("report.txt", "safe report");
+        OssPublishProperties properties = properties();
+        properties.setEnabled(enabled);
+        properties.setPublicBaseUrl("http://files.example.com");
+        AtomicBoolean clientRequested = new AtomicBoolean();
+        OssArtifactService service = new OssArtifactService(properties, () -> {
+            clientRequested.set(true);
+            return mock(OSSClient.class);
+        });
+
+        assertThatThrownBy(() -> service.publish(artifact))
+                .isInstanceOf(OssPublishProperties.OssConfigurationException.class)
+                .hasMessage(enabled ? "OSS_PUBLIC_BASE_URL_INVALID" : "OSS_PUBLISHING_DISABLED");
+        assertThat(clientRequested).isFalse();
+    }
 
     @Test
     void uploadsPrivatelyVerifiesAndOnlyThenMakesObjectPublic() throws Exception {

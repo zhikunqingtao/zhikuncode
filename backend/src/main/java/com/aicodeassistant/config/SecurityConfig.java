@@ -1,6 +1,8 @@
 package com.aicodeassistant.config;
 
 import com.aicodeassistant.config.oss.OssPublishProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -39,10 +41,18 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+    private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, OssPublishProperties oss) throws Exception {
-        String publicOrigin = oss.publicBaseUrl();
+        String publicOrigin;
+        try {
+            publicOrigin = oss.publicBaseUrl();
+        } catch (OssPublishProperties.OssConfigurationException invalid) {
+            if (oss.isEnabled()) throw invalid;
+            log.warn("Ignoring invalid public domain configuration for disabled OSS: {}", invalid.getMessage());
+            publicOrigin = "";
+        }
         String ossMediaSource = publicOrigin.isEmpty() ? "" : " " + publicOrigin;
         http
                 // CSRF 禁用 — API-only 服务，使用 Token 认证
