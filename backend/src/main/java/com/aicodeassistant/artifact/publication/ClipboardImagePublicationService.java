@@ -1,6 +1,8 @@
 package com.aicodeassistant.artifact.publication;
 
 import com.aicodeassistant.config.oss.OssPublishProperties;
+import org.springframework.http.InvalidMediaTypeException;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -70,7 +72,8 @@ public class ClipboardImagePublicationService {
                 throw invalid("CLIPBOARD_OSS_URL_UNTRUSTED");
             }
             return new PublishedClipboardImage(published.artifactId(), published.fileName(),
-                    published.size(), published.sha256(), published.publicUrl(), published.mimeType());
+                    published.size(), published.sha256(), published.publicUrl(),
+                    imageMediaType(published.mimeType(), format.mediaType()));
         } catch (ClipboardImageException known) {
             throw known;
         } catch (OssPublishProperties.OssConfigurationException
@@ -83,6 +86,21 @@ public class ClipboardImagePublicationService {
                 try { Files.deleteIfExists(temporary); } catch (Exception ignored) { }
             }
         }
+    }
+
+    private static String imageMediaType(String publishedMimeType, String detectedMediaType) {
+        if (publishedMimeType != null && !publishedMimeType.isBlank()) {
+            try {
+                MediaType mediaType = MediaType.parseMediaType(publishedMimeType);
+                if (mediaType.isConcrete() && "image".equalsIgnoreCase(mediaType.getType())) {
+                    // Preserve CDN transcoding while keeping attachment classification stable.
+                    return (mediaType.getType() + "/" + mediaType.getSubtype()).toLowerCase(Locale.ROOT);
+                }
+            } catch (InvalidMediaTypeException invalid) {
+                // Presentation headers must not turn validated image bytes into a file attachment.
+            }
+        }
+        return detectedMediaType;
     }
 
     private static ImageFormat detectFormat(byte[] header) {
