@@ -139,7 +139,7 @@ const MermaidBlock: React.FC<MermaidBlockProps> = ({ code }) => {
         return (
             <div className="rounded-[14px] border border-[var(--v2-border-hairline)] bg-[var(--v2-bg-sunken)] p-6 flex items-center justify-center gap-2">
                 <div className="w-4 h-4 rounded-full bg-accent2 animate-pulse" />
-                <span className="text-sm text-[var(--v2-text-2)]">Mermaid 图表加载中…</span>
+                <span className="mermaid-loading-label text-sm text-[var(--v2-text-2)]">Mermaid 图表加载中…</span>
             </div>
         );
     }
@@ -148,11 +148,11 @@ const MermaidBlock: React.FC<MermaidBlockProps> = ({ code }) => {
     if (error) {
         return (
             <div className="rounded-[14px] border border-[color:color-mix(in_srgb,var(--v2-err)_50%,transparent)] bg-errsoft overflow-hidden">
-                <div className="flex items-center gap-2 px-4 py-2 bg-errsoft border-b border-[color:color-mix(in_srgb,var(--v2-err)_30%,transparent)] text-[13px] text-err">
+                <div className="mermaid-error-heading flex items-center gap-2 px-4 py-2 bg-errsoft border-b border-[color:color-mix(in_srgb,var(--v2-err)_30%,transparent)] text-[13px] text-err">
                     <AlertTriangle size={18} />
                     <span>Mermaid 渲染失败: {error}</span>
                 </div>
-                <pre className="p-4 panel-code text-[var(--v2-text-1)] overflow-x-auto whitespace-pre font-mono">
+                <pre className="mermaid-error-source p-4 panel-code text-[var(--v2-text-1)] overflow-x-auto whitespace-pre font-mono">
                     {code}
                 </pre>
             </div>
@@ -172,14 +172,14 @@ const MermaidBlock: React.FC<MermaidBlockProps> = ({ code }) => {
                 >
                     <button
                         onClick={handleCopySvg}
-                        className="panel-control p-1.5 rounded-md bg-[var(--v2-bg-surface)]/80 border border-[var(--v2-border-hairline)] hover:bg-[var(--v2-bg-hover)] text-[var(--v2-text-2)] hover:text-[var(--v2-text-1)] transition-colors backdrop-blur-sm"
+                        className="mermaid-export-button panel-control p-1.5 rounded-md bg-[var(--v2-bg-surface)]/80 border border-[var(--v2-border-hairline)] hover:bg-[var(--v2-bg-hover)] text-[var(--v2-text-2)] hover:text-[var(--v2-text-1)] transition-colors backdrop-blur-sm"
                         title="复制 SVG"
                     >
                         {copied ? <Check size={18} /> : <Copy size={18} />}
                     </button>
                     <button
                         onClick={handleDownloadPng}
-                        className="panel-control p-1.5 rounded-md bg-[var(--v2-bg-surface)]/80 border border-[var(--v2-border-hairline)] hover:bg-[var(--v2-bg-hover)] text-[var(--v2-text-2)] hover:text-[var(--v2-text-1)] transition-colors backdrop-blur-sm"
+                        className="mermaid-export-button panel-control p-1.5 rounded-md bg-[var(--v2-bg-surface)]/80 border border-[var(--v2-border-hairline)] hover:bg-[var(--v2-bg-hover)] text-[var(--v2-text-2)] hover:text-[var(--v2-text-1)] transition-colors backdrop-blur-sm"
                         title="下载 PNG"
                     >
                         <Download size={18} />

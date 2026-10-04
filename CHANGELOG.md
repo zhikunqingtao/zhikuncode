@@ -22,6 +22,7 @@
 - Run API 新增 `usageStatus`（`known/partial/unknown`）与 `verificationScope`（`artifact_manifest/unknown`）字段：用量口径限定为「本 Run 的已观测消费」，任务概览按同一 Run 联展示用量与状态，unknown 显示未报告、partial 仅统计已报告部分，不估算、不归集子 Run；产物验证字段范围限定为 `artifact_manifest`，未知状态安全标为范围未知。
 - 附件存储新增 `.metadata/<uuid>.json` 侧车文件保存原始显示名（版本、UUID、存储文件名、原名，不新增数据库表）；上传改为同文件系统临时文件 + 先发布元数据、再原子发布 payload，失败只清理本次文件。
 - 新增第四主题「星舰 HUD」：深空 HUD 视觉（切角面板/机械角标/罗盘雷达/网格地板/扫描线）、三个独立特效开关（电影级视觉/事件特效/动效三档）、TOKEN 警告琥珀脉冲、开机自检过渡、DRIFT 同步徽章；支持移动端面板开关。
+- 新增第五、六主题「花果晨」「灵霄夜」（大闹天宫重彩戏曲风）：万籁鸣色彩分区双主题（浅·花果暖色绢纸 / 深·天庭冷色群青夜）、浓郁/克制双档特效开关（朱砂牌匾 Header、朱印 logo、描金回纹带、令签 Tab、实色消息气泡、洒金箔与烫金文字）、AI 生成画意背景（可读性优先全静态）、皮影镂空悟空空状态 Hero、毛笔书写标题、开锣亮相入场仪式、湿墨洇开弹窗、盖印 toast、妖气 TOKEN 警告、「闭关」沉浸模式、「装裱间」装裱分享导出；配套本地书法字体（演示悠然小楷，OFL-1.1）与 WebP 素材资产。
 - `tools/office-regression/`：新增 XLSX/DOCX/PPTX/HTML 四类离线回归基建——固定 Playwright / LibreOffice / CJK 字体 / poppler 与基础镜像 digest，容器内 `--network none` 运行、证据输出到仓库外；四组均含正例与命中指定检测原因的受控反例（不允许以任意失败充当检出）。另新增后端 `BashTool → ManagedProcessRunner` 执行确定性生成/结构检查脚本的回归测试。Office 三格式当前无产品级生成入口，脚本属测试资产，本回归不外推为模型办公能力或生产保证；研究来源组不在本批，未接入 CI 门禁（按手动入口运行）。
 
 ### Changed

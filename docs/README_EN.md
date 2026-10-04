@@ -157,6 +157,16 @@ Eight AI coding tools reviewed the same commit. Their final reports were compare
 
 ---
 
+### Appearance Themes
+
+Choose from six themes: Light (`light`), Dark (`dark`), Liquid Glass (`glass`), Spaceship (`spaceship`), **Huaguo Morning / 花果晨** (`ink-havoc`), and **Lingxiao Night / 灵霄夜** (`ink-havoc-night`). Open **Appearance settings (外观设置)** in the desktop header or **Appearance (外观)** under the mobile composer's **More actions (更多操作)**. Settings apply immediately and are saved locally.
+
+The two ink themes draw on the rich colors and theatrical styling of *Havoc in Heaven*, with warm silk-paper and dark night palettes respectively. Each uses a dedicated accent color, so accent presets are disabled while either is active. Their additional controls include:
+
+- **Rich mode (浓郁模式)**: show gold patterns, decorative plaques, and solid message bubbles; turn it off for the calm presentation. Motion can independently be set to Full, Reduced, or Off.
+- **Retreat (闭关)**: hide decorative effects to focus on writing.
+- **Mounted share (装裱分享)**: export a single PNG card with the session title and an editable inscription, using a vertical scroll, horizontal scroll, or album-page layout.
+
 ### Conversation Workbench and Change Review
 
 New sessions start in the **development workbench with the Standard display mode**; the workbenches share the session, and the display mode can be Compact, Standard, or Full Process. The “Changes this turn” summary at the end of an assistant turn expands into a file list of per-operation changes for native `Edit`/`Write` operations that succeeded with a verifiable path in the turn.
@@ -742,7 +752,17 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 **Continuous Integration:**
 - **GitHub Actions Pipeline**: The main CI runs backend and Python tests plus frontend checks and builds. Docker image verification runs only on pushes to `main`.
 
-**Current Local Verification Snapshot (2026-09-02):**
+**Frontend Verification Snapshot (2026-10-04):**
+
+- **Frontend Vitest**: 127 test files passed; 1220 tests passed / 16 skipped (1236 total), including notification replacement, stale timer callbacks, unmount/remount behavior, and syntax palette contrast.
+- **Theme Browser Regression**: 16 scenarios at desktop/mobile viewport widths of 1440 / 390 px, with 8360 color and isolation assertions passed. Coverage includes both ink themes in rich/calm modes, the four existing themes, prose, link hover, inline code, tables, 99/100-line code blocks and manual highlighting, message actions, Mermaid, images, and mixed text/image messages.
+- **Known Skips**: Two Spaceship image-overlay interactions (one per viewport) are explicitly skipped because of an existing `clip-path` issue reproduced on `HEAD`, rather than a regression from this change. Image zoom, copy, and close checks passed for both ink themes.
+- **Static and Build Validation**: TypeScript, ESLint for changed source files, the Vite production build, and `git diff --check` passed. The build still warns about some chunks exceeding 1000 kB.
+
+These are frontend-only results, not a new full-stack verification. The browser regression uses real components and complete styles in independent Chromium contexts, blocks HTTP(S) requests, and does not connect to the backend or use real session data or the host clipboard. The backend and Python results below retain their original verification date.
+
+**Historical Local Verification Snapshot (2026-09-02):**
+
 - **Backend Unit/Integration Tests**: 1258 tests / 0 failure / 0 error / 62 skipped
 - **Python pytest**: 107 PASS
 - **Frontend vitest**: 207 PASS / 16 skipped (223 total)
@@ -758,7 +778,7 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 - **AI Coding Enhancement**: 6 modules (SelfCorrectionLoop / Precise Tokenizer / Skill Budget & Security / BashTool Dynamic Timeout / GitDiffTracker / SearchStrategyRouter) 33 cases + 238 unit tests + 7 integration tests + Feature Flag bi-directional verification, 100% PASS
 - **Feature Completeness**: 100% of planned v1.0 features verified
 
-**Test Framework Details:**
+**Historical Test Framework Details (2026-09-02):**
 
 | Framework | Layer | Coverage | Count |
 |-----------|-------|----------|-------|
@@ -780,7 +800,21 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 - Full v9.3 report: [docs/test-results/v9.3/](test-results/v9.3/)
 - Per-module results: [docs/test-results/](test-results/)
 - Frontend E2E scripts: [frontend/e2e/](../frontend/e2e/)
+- Isolated theme regression script: [frontend/tests/browser/theme-regression.mjs](../frontend/tests/browser/theme-regression.mjs)
 - E2E screenshots: [docs/test-results/screenshots/](test-results/screenshots/) (42 items)
+
+**Repeat the Theme Browser Regression:**
+
+From the repository root, install frontend dependencies and Playwright Chromium on first use, then run the [isolated regression script](../frontend/tests/browser/theme-regression.mjs):
+
+```bash
+cd frontend
+npm ci
+npx playwright install chromium
+npm run test:theme-regression
+```
+
+Once dependencies and Chromium are installed, rerun only `npm run test:theme-regression` from `frontend/`. No backend or frontend development server is required. Failure screenshots go to the system temporary directory; the output explicitly lists the Spaceship image-overlay skips described above.
 
 <details>
 <summary>📋 36 Test Modules Breakdown (click to expand)</summary>

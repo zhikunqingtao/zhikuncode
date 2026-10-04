@@ -39,11 +39,11 @@ const UserMessage: React.FC<UserMessageProps> = ({ message, disclosure }) => {
             <div className="mb-1 text-[12px] font-medium tracking-[.06em] text-t3">我</div>
 
             {/* Bubble（视觉换肤 §6.3.2：凸起白卡 + hairline 边 + 尾角 6px，右对齐） */}
-            <div className="min-w-0 max-w-[92%] sm:max-w-[76%] [overflow-wrap:anywhere] rounded-[14px] rounded-br-md border border-hairline bg-surfacev2 shadow-raised px-[17px] py-[11px] text-[15px] leading-[1.6] text-t1">
+            <div className="user-message-bubble min-w-0 max-w-[92%] sm:max-w-[76%] [overflow-wrap:anywhere] rounded-[14px] rounded-br-md border border-hairline bg-surfacev2 shadow-raised px-[17px] py-[11px] text-[15px] leading-[1.6] text-t1">
                 {disclosure && (
                     <button type="button" aria-expanded={expanded} aria-label={`用户问题，点击${expanded ? '收起' : '展开'}`}
                         onClick={disclosure.onToggle}
-                        className="panel-control flex min-h-11 w-full min-w-0 items-center gap-2 text-left focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring rounded-[10px]">
+                        className="user-message-disclosure panel-control flex min-h-11 w-full min-w-0 items-center gap-2 text-left focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring rounded-[10px]">
                         <span className="shrink-0 font-medium">用户问题</span>
                         {!expanded && <span className="min-w-0 flex-1 truncate text-[13px] text-t3">{summary}</span>}
                         <span className="ml-auto shrink-0 text-[13px] text-t2">{expanded ? '收起' : '展开'}</span>

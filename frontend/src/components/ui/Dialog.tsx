@@ -26,6 +26,9 @@ export interface DialogProps
     title?: React.ReactNode;
     /** 右上角关闭按钮（默认显示） */
     showClose?: boolean;
+    /** 外层 fixed 容器附加类名（如提升 z-index 以盖过高层级父弹层；
+        审查#2：移动端「更多操作」Sheet z-9999 内打开装裱间被遮挡，需 z-[10010]） */
+    containerClassName?: string;
     children?: React.ReactNode;
 }
 
@@ -42,6 +45,7 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
             triggerRef,
             title,
             showClose = true,
+            containerClassName,
             children,
             id,
             'aria-labelledby': ariaLabelledby,
@@ -181,7 +185,7 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
 
         return createPortal(
             <div
-                className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                className={`fixed inset-0 z-50 flex items-center justify-center p-4${containerClassName ? ` ${containerClassName}` : ''}`}
                 onPointerDown={(e) => {
                     backdropCloseArmedRef.current = e.target === backdropRef.current;
                 }}

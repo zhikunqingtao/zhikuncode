@@ -1,5 +1,6 @@
 @import './liquid-glass.css';
 @import './spaceship.css';
+@import './ink-havoc.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

@@ -16,6 +16,8 @@
 import { ChartNoAxesCombined, FileSpreadsheet, Gamepad2, TrainFront } from 'lucide-react';
 import { BrandLogo } from '@/components/ui/BrandLogo';
 import { Button, Chip, EmptyState, Kbd } from '@/components/ui';
+import { InkCalligraphyTitle } from '@/components/theme/InkCalligraphyTitle';
+import { InkShadowPuppet } from '@/components/theme/InkShadowPuppet';
 import { dispatchPromptTemplateFill } from '@/services/promptTemplateFill';
 
 interface QuickChip {
@@ -49,16 +51,20 @@ const QUICK_CHIPS: QuickChip[] = [
 
 export function EmptyHero() {
     return (
-        <EmptyState
+        // 波次3①：relative 锚定皮影层（absolute 落于标题侧后方右下，不抢文字）；
+        // h-full 保持原 min-h-full 垂直居中链不变；非浓郁档 InkShadowPuppet 返回 null 零变化
+        <div className="relative h-full">
+            <InkShadowPuppet />
+            <EmptyState
             variant="hero"
-            className="min-h-full max-md:py-6 [&_h1]:max-md:text-[34px] [&>p]:text-t2"
+            className="relative min-h-full max-md:py-6 [&_h1]:max-md:text-[34px] [&>p]:text-t2"
             badge={
                 <Chip variant="accent" className="h-7 px-3">
                     <BrandLogo className="h-5 w-5" />
                     zhikuncode
                 </Chip>
             }
-            title={<>今天想<b>构建</b>什么？</>}
+            title={<InkCalligraphyTitle fallback={<>今天想<b>构建</b>什么？</>} />}
             description="下达指令，剩下的一切交给zhikuncode"
             actions={
                 <>
@@ -90,5 +96,6 @@ export function EmptyHero() {
                 </>
             }
         />
+        </div>
     );
 }

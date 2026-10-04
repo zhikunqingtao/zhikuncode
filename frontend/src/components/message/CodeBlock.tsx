@@ -9,16 +9,15 @@
  * §7.2 代码块：bg-sunken2 + rounded-xl + border-hairline；
  * 头行（文件名或语言 + 复制 ghost 钮）；
  * 正文系统等宽字体 13px（手机 14px）/ 行高 1.65，横向滚动。
- * 语法色走 §4.2 design-tokens 语法表（zkSyntax 从 MONACO_ZK_THEMES 派生，
- * 主题感知；不新增/修改任何色值）。
+ * 语法色由 zkSyntax 按主题提供：默认浅深色沿用 §4.2 语法表，
+ * ink 双主题使用针对代码块背景校准的专属色板。
  */
 
 import React, { useCallback, useMemo, useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { Copy, Check } from 'lucide-react';
 import { useConfigStore } from '@/store/configStore';
-import { resolveTheme } from '@/styles/design-tokens';
-import { ZK_SYNTAX_STYLES } from '@/styles/zkSyntax';
+import { resolveZkSyntaxStyle } from '@/styles/zkSyntax';
 
 interface CodeBlockProps {
     code: string;
@@ -46,9 +45,20 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
 }) => {
     const [copied, setCopied] = useState(false);
     const [forceHighlight, setForceHighlight] = useState(false);
-    // 主题感知语法表（§4.2）：configStore 订阅保证主题切换即时重渲染
+    // 主题感知语法表（§4.2）：ink 双主题直达天宫色板，其余归一 light/dark；
+    // configStore 订阅保证主题切换即时重渲染
     const themeMode = useConfigStore(s => s.theme.mode);
-    const syntaxStyle = ZK_SYNTAX_STYLES[resolveTheme(themeMode)];
+    const syntaxStyle = resolveZkSyntaxStyle(themeMode);
+    const inkTheme = themeMode === 'ink-havoc' || themeMode === 'ink-havoc-night';
+    // 代码块始终使用自己的沉底；标题、控件和纯文本也须配合这块背景，不能继承用户气泡反色。
+    const inkColors = inkTheme ? {
+        '--code-ink-text': syntaxStyle['pre[class*="language-"]'].color,
+        '--code-ink-muted': syntaxStyle.comment.color,
+        color: syntaxStyle['pre[class*="language-"]'].color,
+    } as React.CSSProperties : undefined;
+    const controlColors = inkTheme
+        ? 'text-[color:var(--code-ink-muted)] hover:text-[color:var(--code-ink-text)]'
+        : 'text-t4 hover:text-t1';
 
     const resolvedLang = useMemo(
         () => language ?? inferLanguage(fileName) ?? 'text',
@@ -76,17 +86,17 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
     }, [highlightLines]);
 
     return (
-        <div className="code-block relative rounded-[10px] border border-hairline bg-sunken2 overflow-hidden">
+        <div className="code-block relative rounded-[10px] border border-hairline bg-sunken2 overflow-hidden" style={inkColors}>
             {/* Header：文件名或语言 + 复制 */}
             <div className="flex items-center gap-2 border-b border-hairline px-3 py-1.5">
-                <span className="min-w-0 flex-1 truncate font-mono text-[13px] text-t3">
+                <span className={`min-w-0 flex-1 truncate font-mono text-[13px] ${inkTheme ? 'text-[color:var(--code-ink-muted)]' : 'text-t3'}`}>
                     {fileName ?? resolvedLang}
                 </span>
                 <span className="flex shrink-0 items-center gap-1">
                     {isLong && !forceHighlight && (
                         <button
                             onClick={() => setForceHighlight(true)}
-                            className="panel-control rounded-md px-1.5 py-1 text-[13px] text-t4 transition-colors duration-fast hover:bg-hover2 hover:text-t1"
+                            className={`panel-control rounded-md px-1.5 py-1 text-[13px] transition-colors duration-fast hover:bg-hover2 ${controlColors}`}
                         >
                             Enable highlighting
                         </button>
@@ -94,11 +104,11 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
                     {copyable && (
                         <button
                             onClick={handleCopy}
-                            className="panel-control rounded-md p-1 text-t4 transition-colors duration-fast hover:bg-hover2 hover:text-t1"
+                            className={`panel-control rounded-md p-1 transition-colors duration-fast hover:bg-hover2 ${controlColors}`}
                             aria-label="Copy code"
                             title={copied ? '已复制' : '复制'}
                         >
-                            {copied ? <Check size={14} className="text-ok" /> : <Copy size={14} />}
+                            {copied ? <Check size={14} className="text-ok" style={inkTheme ? { color: syntaxStyle.string.color } : undefined} /> : <Copy size={14} />}
                         </button>
                     )}
                 </span>
@@ -130,7 +140,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
                     </SyntaxHighlighter>
                 ) : (
                     <pre
-                        className="px-3.5 py-3 text-t1 overflow-x-auto whitespace-pre"
+                        className={`px-3.5 py-3 overflow-x-auto whitespace-pre ${inkTheme ? 'text-[color:var(--code-ink-text)]' : 'text-t1'}`}
                         style={{ fontFamily: CODE_FONT_FAMILY, fontSize: 'var(--code-font-size)', lineHeight: 'var(--code-line-height)' }}
                     >
                         {code}

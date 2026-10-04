@@ -1,0 +1,1468 @@
+/* ============================================================
+   大闹天宫 · 重彩戏曲风主题（ink-havoc 浅·花果晨 / ink-havoc-night 深·灵霄夜）
+   设计参考：ink-havoc-tokens.css（万籁明「色彩分区管理」：花果山暖色 ⇄ 天庭冷色）
+   色板：朱砂 #C03A2B · 鎏金 #E0A92E · 宣纸 #F7F0DC · 群青夜 #1A2334 · 鲜紫 #9A6FC0
+
+   门控 class（ThemeProvider 按 theme.inkHavocFx 写入 <html>）：
+     fx-ink-rich —— 浓郁档（描金纹样/角标装饰显现；移除即零残留回克制档）
+     motion-full | motion-reduced | motion-off —— 动效三档（语义复用星舰，见文件末门控块）
+   强调色：ink 双模式 accent 不随用户预设，由 applyAccent 运行时内联写死
+     （浅=朱砂系 #C03A2B / 深=鎏金系 #E0A92E）；本文件同名变量仅为首帧 fallback。
+   素材：画意图/宣纸肌理 webp + 行楷 woff2 + patterns/*.svg，位于 ../assets/theme/ink-havoc/
+   ============================================================ */
+
+/* ---------- 行楷（牌匾/品牌/标题用字；正文/代码保持系统栈） ---------- */
+@font-face {
+  font-family: 'BrushKaiti';
+  src: url('../assets/theme/ink-havoc/brush-kaiti.woff2') format('woff2');
+  font-display: swap;
+}
+
+/* ----------------------------------------------------------------------------
+   0. 两主题共享令牌：夜空碑刻代码块 / diff / 张光宇色谱 / 圆角 / 字体 / 动效
+   -------------------------------------------------------------------------- */
+html.ink-havoc,
+html.ink-havoc-night {
+  /* 代码块「夜空碑刻」：两主题共用深底 */
+  --v2-code-bg: #1E2739;
+  --ink-code-head: rgba(237,229,208,.07);  /* 代码块标题栏底 */
+  --ink-code-line: rgba(237,229,208,.10);  /* 代码块分隔线 */
+  --ink-code-line-number: #6E7787;         /* 行号 */
+  /* 语法八色（取色板） */
+  --ink-code-keyword:   #E85D4A;  /* 关键字 · 朱砂 */
+  --ink-code-string:    #46B08C;  /* 字符串 · 翠绿 */
+  --ink-code-function:  #E0A92E;  /* 函数 · 鎏金 */
+  --ink-code-type:      #5FA8D8;  /* 类型 · 石青 */
+  --ink-code-variable:  #EDE5D0;  /* 变量 · 月白 */
+  --ink-code-comment:   #8A94A8;  /* 注释 · 云灰 */
+  --ink-code-number:    #F47983;  /* 数字 · 桃红 */
+  --ink-code-attribute: #D9A05B;  /* 属性 · 藤黄 */
+  /* diff 块（同碑刻深底）→ v2 槽位 */
+  --v2-diff-add-bg:    rgba(70,176,140,.13);
+  --v2-diff-remove-bg: rgba(232,93,74,.13);
+  --ink-diff-add: #46B08C;
+  --ink-diff-del: #E85D4A;
+
+  /* 张光宇《大闹天宫》人物造型色谱 8 色 → --v2-chart-1..8（两主题共用） */
+  --v2-chart-1: #3A5F8A;  /* 钴蓝 */
+  --v2-chart-2: #5FA8D8;  /* 群青 */
+  --v2-chart-3: #F47983;  /* 桃红 */
+  --v2-chart-4: #B0764A;  /* 赭石 */
+  --v2-chart-5: #9A6FC0;  /* 鲜紫 */
+  --v2-chart-6: #E0A92E;  /* 鹅黄 */
+  --v2-chart-7: #E85D4A;  /* 大红 */
+  --v2-chart-8: #46B08C;  /* 翠绿 */
+
+  /* 圆角：小件沿用 v2 刻度；面板档（波次1增强⑥「碑石感」）收到 2px——
+     「不是纸，是墙」，如被风雨磨去棱角的碑石（云游敦煌）。
+     rounded-panel/rounded-t-panel 全走此变量：弹窗/下拉/底部 Sheet 一并跟随 */
+  --v2-r-xs: 6px;
+  --v2-r-sm: 10px;
+  --v2-r-md: 14px;
+  --v2-r-lg: 16px;
+  --v2-r-panel: 2px;
+  --v2-r-pill: 999px;
+
+  /* 字体：display=行楷（牌匾/印文/品牌字）；body=系统栈；mono=等宽 */
+  --ink-font-display: 'BrushKaiti', "Kaiti SC", "STKaiti", serif;
+  --ink-font-body: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --ink-font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* 动效令牌（reduced-motion 下装饰动画全关） */
+  --ink-dur-fast: 150ms;    /* 微交互 */
+  --ink-dur-base: 250ms;    /* 常规过渡 */
+  --ink-dur-slow: 400ms;    /* 面板/卡片 */
+  --ink-dur-boot: 1400ms;   /* 开屏晕染总时长（入场仪式第二阶段接入） */
+  --ink-ease-out: cubic-bezier(.16,1,.3,1);    /* 水墨晕染缓出 */
+  --ink-ease-opera: steps(3,end);              /* 戏曲顿挫：致敬逐格动画 12fps */
+  --ink-ease-stamp: cubic-bezier(.2,1.4,.4,1); /* 印章落印过冲 */
+
+  /* 两主题统一的牌匾/印文用色 */
+  --ink-gold-bright: #E0A92E;  /* 牌匾鎏金文字色 */
+  --ink-on-seal: #FFF8E7;      /* 印文压色 */
+  --ink-plaque-text: #F8ECCB;  /* 牌匾主文字 */
+  --ink-plaque-text-2: #EFDFAE;/* 牌匾次文字 */
+
+  /* 宣纸肌理：平铺尺寸两主题一致（混合模式/透明度按主题分设） */
+  --ink-grain-image: url("../assets/theme/ink-havoc/texture-xuan-paper.webp");
+  --ink-grain-size: 420px;
+
+  /* 波次1增强⑦：洒金箔碎点（内联 SVG feTurbulence 提点 data-uri；fractalNoise
+     baseFrequency≈0.9 + feColorMatrix 把稀疏噪点提为金色碎箔，浓郁档伪元素复用） */
+  --ink-gilt-fleck: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='11'/%3E%3CfeColorMatrix values='0 0 0 0 0.88 0 0 0 0 0.69 0 0 0 0 0.27 0 0 0 26 -17'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+
+/* ----------------------------------------------------------------------------
+   1. 浅 · 花果晨（花果山暖色分区 · 绢纸底）
+   -------------------------------------------------------------------------- */
+html.ink-havoc {
+  /* ---------- 旧版 §8.6 变量（对齐 globals.css :root 清单） ---------- */
+  --bg-primary: #F7F0DC;
+  --bg-secondary: #F0E5C8;
+  --text-primary: #2E2822;
+  --text-secondary: #958871;
+  --border: #DECFA8;
+  --code-bg: #1E2739;
+  --diff-add: rgba(70,176,140,.13);
+  --diff-remove: rgba(232,93,74,.13);
+  --bg-hover: rgba(192,58,43,.08);
+  --text-muted: #958871;
+
+  /* 扩展色板 — Tailwind 集成 */
+  --color-surface: #FDF8E8;
+  --color-surface-elevated: #FBF4DE;
+  --color-surface-sunken: #EBDFBB;
+  --color-muted: #958871;
+  --color-border: #DECFA8;
+  --color-text: #2E2822;
+  --color-text-secondary: #6B5F4C;
+  --color-text-muted: #A89B82;
+  --color-code-bg: #1E2739;
+  --color-code-border: #D8C89E;
+  --color-success: #1F8A70;
+  --color-success-bg: rgba(31,138,112,.10);
+  --color-warning: #A87C1E;
+  --color-warning-bg: rgba(168,124,30,.12);
+  --color-danger: #C03A2B;
+  --color-danger-bg: rgba(192,58,43,.10);
+  --color-scrollbar: #C9B98F;
+  --color-scrollbar-hover: #B8912E;
+  --color-skeleton: #E7DCC0;
+  --color-overlay: rgba(46,40,34,.42);
+
+  /* ---------- v2 全套（令牌取自 ink-havoc-tokens 浅板；缺失槽位就近补齐） ---------- */
+  /* 基底 → v2 槽位 */
+  --v2-bg-app: #F7F0DC;        /* 宣纸米白 · 主背景 */
+  --v2-bg-surface: #FDF8E8;    /* 胡粉 · 卡片/Header */
+  --v2-bg-surface-2: #F0E5C8;  /* 绢本米黄 · 侧栏 */
+  --v2-bg-sunken: #E8DDBB;     /* 补齐槽位：绢本沉底 */
+  --v2-bg-hover: var(--v2-accent-soft);  /* hover 行为=accent 软底 */
+  --v2-bg-active: #F0E3BC;     /* 藤黄淡 · 选中/行高亮 */
+  /* 文字（text-3/4 沿用松烟灰） */
+  --v2-text-1: #2E2822;  /* 墨色 */
+  --v2-text-2: #958871;  /* 松烟灰 */
+  --v2-text-3: #958871;
+  --v2-text-4: #958871;
+  /* 边框 */
+  --v2-border-hairline: #DECFA8;  /* 淡赭 */
+  --v2-border-strong: #B8912E;    /* 强描边取装饰金 */
+  --v2-overlay: rgba(46,40,34,.40); /* 补齐槽位：墨色遮罩 */
+  /* 强调与语义（accent 五槽位仅为首帧 fallback，运行时由 applyAccent 内联写死同值） */
+  --v2-accent: #C03A2B;                 /* 朱砂 · 主强调（大圣红/脸谱红心） */
+  --v2-accent-strong: #9E2F23;          /* 牌匾深朱砂 */
+  --v2-accent-soft: rgba(192,58,43,.12);
+  --v2-accent-ring: rgba(192,58,43,.35);
+  --v2-ok: #1F8A70;    --v2-ok-soft: rgba(31,138,112,.10);    --v2-ok-strong: #1F8A70;
+  --v2-warn: #A87C1E;  --v2-warn-soft: rgba(168,124,30,.12);  --v2-warn-strong: #A87C1E;
+  --v2-err: #C03A2B;   --v2-err-soft: rgba(192,58,43,.10);    --v2-err-strong: #C03A2B;
+  --focus-ring: #3A5F8A;  /* 群青 · 聚焦 */
+  /* 阴影（波次1增强⑥「碑石感」重写：横向收窄纵向拉长 + 内圈 1px 发丝线
+     （主题边框色 40%）；shadow-e1..e4 全走此令牌，弹窗/dropdown/tooltip 一并跟随） */
+  --ink-stele-line: inset 0 0 0 1px rgba(222,207,168,.40);  /* 发丝线 · 淡赭 40% */
+  --ink-shadow-1: 0 6px 16px -8px rgba(43,33,28,.30), var(--ink-stele-line);
+  --ink-shadow-2: 0 12px 28px -14px rgba(43,33,28,.35), var(--ink-stele-line);
+  --v2-shadow-xs: 0 3px 8px -5px rgba(43,33,28,.26), var(--ink-stele-line);
+  --v2-shadow-sm: var(--ink-shadow-1);
+  --v2-shadow-md: var(--ink-shadow-2);
+  --v2-shadow-lg: 0 20px 44px -18px rgba(43,33,28,.42), inset 0 0 0 1px rgba(222,207,168,.45);
+  --v2-shadow-inset: inset 0 1px 4px rgba(80,64,32,.12);
+  --v2-shadow-raised: inset 0 1px 0 rgba(255,252,240,.9), 0 2px 6px rgba(80,64,32,.10);
+  --v2-shadow-raised-hover: inset 0 1px 0 rgba(255,252,240,.9), 0 4px 10px rgba(80,64,32,.14);
+  --v2-shadow-pressed: inset 0 2px 5px rgba(80,64,32,.16);
+  --v2-shadow-soft: 0 10px 28px rgba(80,64,32,.12);
+  --v2-shadow-soft-sm: 0 3px 12px rgba(80,64,32,.08);
+  /* 皮肤专属 */
+  --ink-gold: #B8912E;        /* 装饰金：rich 描边/纹样色 */
+  --ink-accent-2: #1F8A70;    /* 翠绿 · 次强调 */
+  --ink-peach: #D95F6E;       /* 桃红 · 点缀 */
+  --ink-violet: #7A4E9E;      /* 鲜紫 · 点缀 */
+  --ink-gold-deep: #A87C1E;   /* 鎏金深 · 点缀 */
+  --ink-info: #3A5F8A;        /* info 语义（v2 无槽位） */
+  --ink-seal: #C03A2B;        /* 印泥朱砂 · 印章/徽章底 */
+  --ink-on-accent: #FDF6E3;   /* 朱砂底压色文字 */
+  --ink-gold-soft: rgba(184,145,46,.18);  /* 金软光晕（rich 卡片投影层） */
+  --ink-plaque-bg: linear-gradient(180deg, #A93426, #7E241A); /* 戏台匾额（rich Header） */
+  /* 背景画意与宣纸肌理（克制档：若隐若现）
+     画意可见度由「面纱」控制：可见度 ≈ 1 − --ink-bg-veil 的 alpha
+     （画意图是 background 单层，无法单独设 opacity，面纱 alpha 即透明度换算） */
+  --ink-bg-image: url("../assets/theme/ink-havoc/bg-paper-morning.webp"); /* 花果晨背景画 */
+  --ink-bg-veil: rgba(247,240,220,.82);  /* 面纱压画意（克制档 → 画意约 18% 可见，可读性优先） */
+  --ink-grain-blend: multiply;
+  --ink-grain-opacity: .10;
+  /* 回纹分隔带（克制档；纹样 patterns/huiwen-border.svg） */
+  --ink-fret-color: var(--v2-text-2);
+  --ink-fret-opacity: .25;
+
+  /* 波次1增强⑥：面板细噪点（feTurbulence data-uri，黑粒 alpha 2.8% ≤3%） */
+  --ink-panel-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.028 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ----------------------------------------------------------------------------
+   2. 深 · 灵霄夜（天庭冷色分区 · 群青夜底）
+   -------------------------------------------------------------------------- */
+html.ink-havoc-night {
+  /* ---------- 旧版 §8.6 变量（对齐 globals.css .dark 清单） ---------- */
+  --bg-primary: #1A2334;
+  --bg-secondary: #222D42;
+  --text-primary: #EDE5D0;
+  --text-secondary: #98A2B8;
+  --border: #3B4A66;
+  --code-bg: #1E2739;
+  --diff-add: rgba(70,176,140,.16);
+  --diff-remove: rgba(232,93,74,.16);
+  --bg-hover: rgba(224,169,46,.10);
+  --text-muted: #6E7787;
+
+  /* 扩展色板 — Tailwind 集成 */
+  --color-surface: #2B3850;
+  --color-surface-elevated: #33415C;
+  --color-surface-sunken: #141C2B;
+  --color-muted: #98A2B8;
+  --color-border: #3B4A66;
+  --color-text: #EDE5D0;
+  --color-text-secondary: #B8C0D2;
+  --color-text-muted: #6E7787;
+  --color-code-bg: #1E2739;
+  --color-code-border: #3B4A66;
+  --color-success: #46B08C;
+  --color-success-bg: rgba(70,176,140,.14);
+  --color-warning: #E0A92E;
+  --color-warning-bg: rgba(224,169,46,.14);
+  --color-danger: #E85D4A;
+  --color-danger-bg: rgba(232,93,74,.14);
+  --color-scrollbar: #44536F;
+  --color-scrollbar-hover: #C9A227;   /* hover 描金（对齐皮肤滚动条约定） */
+  --color-skeleton: #33415C;
+  --color-overlay: rgba(8,12,20,.62);
+
+  /* ---------- v2 全套（令牌取自 ink-havoc-tokens 深板；缺失槽位就近补齐） ---------- */
+  /* 基底 → v2 槽位 */
+  --v2-bg-app: #1A2334;        /* 群青夜 · 主背景 */
+  --v2-bg-surface: #2B3850;    /* 夜空蓝灰 · 卡片/Header */
+  --v2-bg-surface-2: #222D42;  /* 石青暗 · 侧栏 */
+  --v2-bg-sunken: #131B29;     /* 补齐槽位：夜空沉底 */
+  --v2-bg-hover: var(--v2-accent-soft);
+  --v2-bg-active: #31405C;     /* 选中/行高亮 */
+  /* 文字（text-3/4 沿用云灰） */
+  --v2-text-1: #EDE5D0;  /* 月白 */
+  --v2-text-2: #98A2B8;  /* 云灰 */
+  --v2-text-3: #98A2B8;
+  --v2-text-4: #98A2B8;
+  /* 边框 */
+  --v2-border-hairline: #3B4A66;
+  --v2-border-strong: #C9A227;  /* 强描边取装饰描金 */
+  --v2-overlay: rgba(8,12,20,.62); /* 补齐槽位：玄夜遮罩 */
+  /* 强调与语义（accent 五槽位仅为首帧 fallback，运行时由 applyAccent 内联写死同值） */
+  --v2-accent: #E0A92E;                 /* 鎏金 · 主强调（金箍棒/天宫金碧） */
+  --v2-accent-strong: #C98F1F;          /* 深一档鎏金 */
+  --v2-accent-soft: rgba(224,169,46,.16);
+  --v2-accent-ring: rgba(224,169,46,.42);
+  --v2-ok: #46B08C;    --v2-ok-soft: rgba(70,176,140,.14);    --v2-ok-strong: #46B08C;
+  --v2-warn: #E0A92E;  --v2-warn-soft: rgba(224,169,46,.14);  --v2-warn-strong: #E0A92E;
+  --v2-err: #E85D4A;   --v2-err-soft: rgba(232,93,74,.14);    --v2-err-strong: #E85D4A;
+  --focus-ring: #E85D4A;  /* 朱砂 · 聚焦（夜版提亮） */
+  /* 阴影（波次1增强⑥「碑石感」重写：横向收窄纵向拉长（深档加深）+ 内圈发丝线） */
+  --ink-stele-line: inset 0 0 0 1px rgba(59,74,102,.42);  /* 发丝线 · 石青暗 42% */
+  --ink-shadow-1: 0 6px 16px -8px rgba(0,0,0,.55), var(--ink-stele-line);
+  --ink-shadow-2: 0 12px 28px -14px rgba(0,0,0,.62), var(--ink-stele-line);
+  --v2-shadow-xs: 0 3px 8px -5px rgba(0,0,0,.50), var(--ink-stele-line);
+  --v2-shadow-sm: var(--ink-shadow-1);
+  --v2-shadow-md: var(--ink-shadow-2);
+  --v2-shadow-lg: 0 22px 48px -18px rgba(0,0,0,.68), inset 0 0 0 1px rgba(59,74,102,.50);
+  --v2-shadow-inset: inset 0 1px 4px rgba(0,0,0,.45);
+  --v2-shadow-raised: inset 0 1px 0 rgba(237,229,208,.06), 0 2px 8px rgba(0,0,0,.40);
+  --v2-shadow-raised-hover: inset 0 1px 0 rgba(237,229,208,.08), 0 4px 12px rgba(0,0,0,.46);
+  --v2-shadow-pressed: inset 0 2px 6px rgba(0,0,0,.50);
+  --v2-shadow-soft: none;
+  --v2-shadow-soft-sm: none;
+  /* 皮肤专属 */
+  --ink-gold: #C9A227;        /* 装饰描金：rich 描边/纹样色 */
+  --ink-accent-2: #46B08C;    /* 翠绿 · 次强调 */
+  --ink-peach: #F47983;       /* 桃红 · 点缀 */
+  --ink-violet: #9A6FC0;      /* 鲜紫 · 点缀 */
+  --ink-azure: #5FA8D8;       /* 石青亮 · 点缀（天宫琉璃） */
+  --ink-info: #5FA8D8;        /* info 语义（v2 无槽位） */
+  --ink-seal: #E85D4A;        /* 印泥朱砂（夜版提亮） */
+  --ink-on-accent: #1A2334;   /* 鎏金底压色文字 */
+  --ink-gold-soft: rgba(201,162,39,.22);
+  --ink-plaque-bg: linear-gradient(180deg, #B03A2A, #8C2A1E); /* 戏台匾额（rich Header） */
+  /* 背景画意与宣纸肌理（克制档：夜空云纹若隐若现；可见度语义同浅板注释） */
+  --ink-bg-image: url("../assets/theme/ink-havoc/bg-heaven-night.webp"); /* 灵霄夜背景画 */
+  --ink-bg-veil: rgba(26,35,52,.95);  /* 面纱压画意（克制档近纯色 → 画意约 5% 可见，可读性优先） */
+  --ink-grain-blend: soft-light;
+  --ink-grain-opacity: .07;
+  /* 回纹分隔带（克制档） */
+  --ink-fret-color: var(--v2-text-2);
+  --ink-fret-opacity: .25;
+
+  /* 波次1增强⑥：面板细噪点（feTurbulence data-uri，白粒 alpha 2.5% ≤3%） */
+  --ink-panel-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.025 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ----------------------------------------------------------------------------
+   3. 浓郁档增量（fx-ink-rich）：描金纹样显现；移除 class 即零残留回克制档
+   -------------------------------------------------------------------------- */
+/* 两主题共用的浓郁增量 */
+html.ink-havoc.fx-ink-rich,
+html.ink-havoc-night.fx-ink-rich {
+  --ink-fret-color: var(--ink-gold);   /* 回纹带改描金色 */
+  --ink-fret-opacity: .4;              /* 细淡一线：0.8 过粗喧宾夺主 → 0.4 */
+}
+/* 背景画意浓度（可读性优先：浓郁档也仅若隐若现；灵霄夜曾 50% 可见被批太花扰阅读，全面收敛） */
+html.ink-havoc.fx-ink-rich {
+  --ink-bg-veil: rgba(247,240,220,.55);
+}
+html.ink-havoc-night.fx-ink-rich {
+  --ink-bg-veil: rgba(26,35,52,.90);
+}
+
+/* ---------- 选中文本（浅朱砂 20% 墨字 / 深鎏金底墨字） ---------- */
+html.ink-havoc ::selection {
+  background: rgba(192,58,43,.20);
+  color: #2E2822;
+}
+html.ink-havoc-night ::selection {
+  background: rgba(224,169,46,.92);
+  color: #2B211C;
+}
+
+/* ============================================================
+   氛围背景：底色渐变 + 画意图 webp（面纱压透明度）+ 宣纸肌理平铺
+   浅 multiply 深 soft-light；克制档面纱高压（画意若隐若现），浓郁档显现
+   ============================================================ */
+.ink-havoc .app-workspace {
+  background-image:
+    /* 面纱（最上层压画意，透明度由 --ink-bg-veil 随档联动） */
+    linear-gradient(165deg, var(--ink-bg-veil), var(--ink-bg-veil)),
+    /* 花果晨背景画 */
+    var(--ink-bg-image),
+    /* 宣纸肌理平铺（multiply 融入绢纸底） */
+    var(--ink-grain-image),
+    /* 绢纸底色渐变 */
+    linear-gradient(165deg, #F7F0DC 0%, #F3EAD0 55%, #EDE1BE 100%);
+  background-size: auto, cover, var(--ink-grain-size), auto;
+  background-position: center, center, 0 0, center;
+  background-repeat: no-repeat, no-repeat, repeat, no-repeat;
+  background-blend-mode: normal, normal, multiply, normal;
+}
+
+.ink-havoc-night .app-workspace {
+  background-image:
+    linear-gradient(165deg, var(--ink-bg-veil), var(--ink-bg-veil)),
+    /* 灵霄夜背景画 */
+    var(--ink-bg-image),
+    /* 宣纸肌理平铺（soft-light 融入群青夜底） */
+    var(--ink-grain-image),
+    /* 群青夜底色渐变 */
+    linear-gradient(165deg, #1A2334 0%, #1D2940 55%, #233252 100%);
+  background-size: auto, cover, var(--ink-grain-size), auto;
+  background-position: center, center, 0 0, center;
+  background-repeat: no-repeat, no-repeat, repeat, no-repeat;
+  background-blend-mode: normal, normal, soft-light, normal;
+}
+
+/* ============================================================
+   组件级特化（克制档即有，浓郁档加强）：底色/边框对齐色板
+   ============================================================ */
+.ink-havoc .app-header {
+  border-bottom: 1px solid #DECFA8;
+  background:
+    linear-gradient(180deg, rgba(184,145,46,.08), rgba(184,145,46,0) 70%),
+    rgba(253,248,232,.88);
+}
+
+.ink-havoc .app-sidebar {
+  border-right: 1px solid #DECFA8;
+  background: rgba(240,229,200,.72);
+}
+
+.ink-havoc-night .app-header {
+  border-bottom: 1px solid #3B4A66;
+  background:
+    linear-gradient(180deg, rgba(201,162,39,.07), rgba(201,162,39,0) 70%),
+    rgba(43,56,80,.82);
+}
+
+.ink-havoc-night .app-sidebar {
+  border-right: 1px solid #3B4A66;
+  background: rgba(34,45,66,.82);
+}
+
+/* ---------- Header 品牌 logo 印章化（ink 双主题全档生效） ----------
+   默认蓝色小鸟 SVG 在朱砂牌匾上出戏：img 退出布局（display:none），
+   按钮 ::before 作为 flex 子项原位补一枚朱红方印「知」（30px ≈ 原 h-8 w-8 尺寸，
+   布局尺寸与可点击区域不变）；calm 即小印，rich 外圈加 1px 描金。
+   印泥取 --ink-seal（浅 #C03A2B / 深夜版提亮 #E85D4A——深档若压暗至 #8C1F14
+   会与 rich 朱砂牌匾同色消失，故沿用提亮色，与 demo 夜版一致）。 */
+.ink-havoc .app-header button[aria-label="返回首页"] img,
+.ink-havoc-night .app-header button[aria-label="返回首页"] img {
+  display: none;
+}
+.ink-havoc .app-header button[aria-label="返回首页"]::before,
+.ink-havoc-night .app-header button[aria-label="返回首页"]::before {
+  content: "知";
+  flex: none;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 5px;
+  background: var(--ink-seal);
+  color: var(--ink-on-seal);
+  border: 2px solid rgba(255,252,240,.92);   /* 白边如钤印 */
+  font-family: var(--ink-font-display);
+  font-size: 17px;
+  line-height: 1;
+  box-shadow: 0 1px 3px rgba(60,16,8,.35);
+}
+html.ink-havoc.fx-ink-rich .app-header button[aria-label="返回首页"]::before,
+html.ink-havoc-night.fx-ink-rich .app-header button[aria-label="返回首页"]::before {
+  /* rich：外圈 1px 描金 */
+  box-shadow: 0 0 0 1px var(--ink-gold), 0 1px 3px rgba(60,16,8,.4);
+}
+
+/* 会话卡片：淡赭描边，hover 转装饰金 */
+.ink-havoc .app-sidebar .session-card {
+  border-color: #DECFA8;
+  background: rgba(253,248,232,.60);
+}
+.ink-havoc .app-sidebar .session-card:hover {
+  border-color: #B8912E;
+  box-shadow: var(--ink-shadow-1);
+}
+.ink-havoc-night .app-sidebar .session-card {
+  border-color: #3B4A66;
+  background: rgba(43,56,80,.55);
+}
+.ink-havoc-night .app-sidebar .session-card:hover {
+  border-color: #C9A227;
+  box-shadow: var(--ink-shadow-1);
+}
+
+/* ---------- 主区卡片 92–95% 不透明底（两主题全档） ----------
+   让背景画意在卡片间隙/边缘微微透出；墨色/月白正文在其上对比度仍 ≥4.5:1 */
+.ink-havoc main .turn-card > section,
+.ink-havoc main .assistant-message > .rounded-panel,
+.ink-havoc main .user-message > .bg-surfacev2 {
+  background-color: rgba(253,248,232,.94);
+}
+.ink-havoc-night main .turn-card > section,
+.ink-havoc-night main .assistant-message > .rounded-panel,
+.ink-havoc-night main .user-message > .bg-surfacev2 {
+  background-color: rgba(43,56,80,.93);
+}
+
+/* ---------- 会话卡片 active 增强（两主题全档） ----------
+   globals.css 已有 .session-active-pill（accent 淡底 + 左缘光柱），
+   此处把左缘竖条收到 3px 并提升淡底/光晕可见度（浅朱砂 / 深鎏金，随 --v2-accent 走） */
+.ink-havoc .session-active-pill {
+  background: color-mix(in srgb, var(--v2-accent) 15%, transparent);
+  box-shadow:
+    0 0 10px -2px color-mix(in srgb, var(--v2-accent) 30%, transparent),
+    var(--v2-shadow-raised);
+}
+.ink-havoc .session-active-pill::before { width: 3px; }
+.ink-havoc-night .session-active-pill {
+  background: color-mix(in srgb, var(--v2-accent) 18%, transparent);
+  box-shadow:
+    0 0 12px -2px color-mix(in srgb, var(--v2-accent) 38%, transparent),
+    var(--v2-shadow-raised);
+}
+.ink-havoc-night .session-active-pill::before { width: 3px; }
+
+/* 浓郁档加强：Header 牌匾化——朱砂底 + 上下 2px 描金边（#C9A227）+ 品牌文字鎏金 */
+html.ink-havoc.fx-ink-rich .app-header {
+  border-top: 2px solid #C9A227;
+  border-bottom: 2px solid #C9A227;
+  background: linear-gradient(180deg, #CB4B38 0%, #C03A2B 52%, #A63325 100%);
+}
+html.ink-havoc-night.fx-ink-rich .app-header {
+  border-top: 2px solid #C9A227;
+  border-bottom: 2px solid #C9A227;
+  background: linear-gradient(180deg, #9C2A1C 0%, #8C1F14 52%, #721810 100%);
+}
+/* 牌匾内文字：品牌鎏金，图标/次文字转牌匾压色（朱砂底上保持可读） */
+html.ink-havoc.fx-ink-rich .app-header .font-semibold,
+html.ink-havoc-night.fx-ink-rich .app-header .font-semibold {
+  color: var(--ink-gold-bright);
+  text-shadow: 0 1px 2px rgba(60,16,8,.45);
+}
+html.ink-havoc.fx-ink-rich .app-header .text-t1,
+html.ink-havoc-night.fx-ink-rich .app-header .text-t1 { color: var(--ink-plaque-text); }
+html.ink-havoc.fx-ink-rich .app-header .text-t2,
+html.ink-havoc.fx-ink-rich .app-header .text-t3,
+html.ink-havoc-night.fx-ink-rich .app-header .text-t2,
+html.ink-havoc-night.fx-ink-rich .app-header .text-t3 { color: var(--ink-plaque-text-2); }
+html.ink-havoc.fx-ink-rich .app-header button:hover,
+html.ink-havoc-night.fx-ink-rich .app-header button:hover { background-color: rgba(255,248,231,.12); }
+
+html.ink-havoc.fx-ink-rich .app-sidebar,
+html.ink-havoc-night.fx-ink-rich .app-sidebar {
+  border-right-color: var(--ink-gold);
+}
+
+/* 浓郁档加强：主按钮（新会话类）印章化——朱砂底白文 + 描金边 + 行楷印文 */
+html.ink-havoc.fx-ink-rich .app-sidebar .bg-accent2-strong,
+html.ink-havoc-night.fx-ink-rich .app-sidebar .bg-accent2-strong {
+  background-color: var(--ink-seal);
+  color: var(--ink-on-seal);
+  border: 1.5px solid var(--ink-gold);
+  border-radius: 8px;
+  box-shadow: 0 2px 0 rgba(60,16,8,.32), inset 0 0 0 1px rgba(255,248,231,.22);
+  font-family: var(--ink-font-display);
+  letter-spacing: .12em;
+}
+
+/* 浓郁档加强：active tab 令签化——顶部内嵌描金小旗 + 主题描边。
+   真实 tab（DensitySwitch 精简/标准/完整过程、WorkbenchViewSwitch、ui/Tabs）
+   均为固定行高的胶囊分段控件，旧版 padding-top:10px 会挤破行高导致文字错位；
+   改为零布局扰动：小旗 ::before 直接内嵌在 tab 顶缘（top:0），描边走 inset 阴影。 */
+html.ink-havoc.fx-ink-rich [role="tab"],
+html.ink-havoc-night.fx-ink-rich [role="tab"] {
+  position: relative;
+  overflow: visible;
+}
+/* active 描边：浅档朱砂 / 深档鎏金（即 --v2-accent），小旗统一描金 */
+html.ink-havoc.fx-ink-rich [role="tab"][aria-selected="true"] {
+  box-shadow: inset 0 0 0 1px rgba(192,58,43,.7), var(--v2-shadow-raised);
+}
+html.ink-havoc-night.fx-ink-rich [role="tab"][aria-selected="true"] {
+  box-shadow: inset 0 0 0 1px rgba(224,169,46,.75), var(--v2-shadow-raised);
+}
+html.ink-havoc.fx-ink-rich [role="tab"][aria-selected="true"]::before,
+html.ink-havoc-night.fx-ink-rich [role="tab"][aria-selected="true"]::before {
+  content: "";
+  position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 10px; height: 6px;
+  background: var(--ink-gold);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 62%, 0 100%); /* 令签小旗：底边 V 形缺角 */
+}
+
+/* ============================================================
+   浓郁档：输入区 / AI 卡片 / 用户气泡特化（全部 fx-ink-rich 收口，calm 零变化）
+   ============================================================ */
+/* ---- 输入框容器：1px 描金边（40%），focus 时描金加深 + 描金 ring ---- */
+html.ink-havoc.fx-ink-rich .chat-composer-surface,
+html.ink-havoc-night.fx-ink-rich .chat-composer-surface {
+  border-color: color-mix(in srgb, var(--ink-gold) 40%, transparent);
+}
+html.ink-havoc.fx-ink-rich .chat-composer-surface:focus-within,
+html.ink-havoc-night.fx-ink-rich .chat-composer-surface:focus-within {
+  border-color: color-mix(in srgb, var(--ink-gold) 78%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ink-gold) 18%, transparent), var(--v2-shadow-md);
+}
+html.ink-havoc.fx-ink-rich .chat-composer-surface textarea[aria-label="输入消息"],
+html.ink-havoc-night.fx-ink-rich .chat-composer-surface textarea[aria-label="输入消息"] {
+  border: 1px solid color-mix(in srgb, var(--ink-gold) 40%, transparent);
+}
+html.ink-havoc.fx-ink-rich .chat-composer-surface textarea[aria-label="输入消息"]:focus,
+html.ink-havoc-night.fx-ink-rich .chat-composer-surface textarea[aria-label="输入消息"]:focus {
+  border-color: var(--ink-gold);
+  /* focus:ring-accent2-ring 的 ring 颜色改描金（Tailwind ring 走 --tw-ring-color，不碰阴影结构） */
+  --tw-ring-color: color-mix(in srgb, var(--ink-gold) 45%, transparent);
+}
+/* ---- 发送按钮：圆形印章化——朱砂底白文纸飞机 + 金描边（仅桌面卡片形态；移动胶囊不动） ---- */
+@media (min-width: 768px) {
+  html.ink-havoc.fx-ink-rich .chat-composer-surface button[aria-label="发送消息"],
+  html.ink-havoc.fx-ink-rich .chat-composer-surface button[aria-label="发送运行中干预"],
+  html.ink-havoc-night.fx-ink-rich .chat-composer-surface button[aria-label="发送消息"],
+  html.ink-havoc-night.fx-ink-rich .chat-composer-surface button[aria-label="发送运行中干预"] {
+    border-radius: 50%;
+    background-color: var(--ink-seal);
+    color: var(--ink-on-seal);
+    border: 2px solid var(--ink-gold);
+    box-shadow: 0 2px 6px rgba(60,16,8,.30), inset 0 0 0 1px rgba(255,248,231,.25);
+  }
+  html.ink-havoc.fx-ink-rich .chat-composer-surface button[aria-label="发送消息"]:hover:not(:disabled),
+  html.ink-havoc.fx-ink-rich .chat-composer-surface button[aria-label="发送运行中干预"]:hover:not(:disabled),
+  html.ink-havoc-night.fx-ink-rich .chat-composer-surface button[aria-label="发送消息"]:hover:not(:disabled),
+  html.ink-havoc-night.fx-ink-rich .chat-composer-surface button[aria-label="发送运行中干预"]:hover:not(:disabled) {
+    background-color: var(--ink-seal);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ink-gold) 30%, transparent), 0 3px 10px rgba(60,16,8,.36);
+  }
+}
+
+/* ---- AI 消息卡片：1px 描金细边（约 30%）+ 金软光晕（轮次卡与独立卡同命中） ---- */
+html.ink-havoc.fx-ink-rich main .turn-card > section,
+html.ink-havoc.fx-ink-rich main .assistant-message > .rounded-panel,
+html.ink-havoc-night.fx-ink-rich main .turn-card > section,
+html.ink-havoc-night.fx-ink-rich main .assistant-message > .rounded-panel {
+  border-color: color-mix(in srgb, var(--ink-gold) 32%, transparent);
+  box-shadow: 0 0 0 1px var(--ink-gold-soft), var(--v2-shadow-xs);
+}
+
+/* ---- 用户消息实色气泡：浅档朱砂实底白文 / 深档鎏金实底墨字，右上角内嵌云头小角饰 ---- */
+html.ink-havoc.fx-ink-rich .user-message > .bg-surfacev2 {
+  --ink-user-fg: #FFF8E7;
+  --ink-user-code-bg: rgba(43,33,28,.18);
+  position: relative;
+  background-color: #C03A2B;
+  color: var(--ink-on-seal);
+  border-color: color-mix(in srgb, var(--ink-gold) 55%, transparent);
+  box-shadow: 0 2px 8px rgba(60,16,8,.28), inset 0 0 0 1px rgba(255,248,231,.18);
+}
+html.ink-havoc-night.fx-ink-rich .user-message > .bg-surfacev2 {
+  --ink-user-fg: #2B211C;
+  --ink-user-code-bg: rgba(237,229,208,.24);
+  position: relative;
+  background-color: #E0A92E;
+  color: #2B211C;
+  border-color: color-mix(in srgb, var(--ink-gold) 75%, transparent);
+  box-shadow: 0 2px 10px rgba(0,0,0,.42), inset 0 0 0 1px rgba(43,33,28,.16);
+}
+/* 只为 Markdown 正文设置私有颜色；代码块、图片浮层与图表继续使用自身主题令牌。 */
+html:is(.ink-havoc, .ink-havoc-night).fx-ink-rich .user-message-bubble > .text-block {
+  --ink-prose-fg: var(--ink-user-fg);
+  --ink-prose-code-bg: var(--ink-user-code-bg);
+  color: var(--ink-prose-fg);
+}
+html:is(.ink-havoc, .ink-havoc-night).fx-ink-rich .user-message-bubble > .text-block :is(.markdown-muted-heading, .markdown-quote, .markdown-task-marker, .markdown-link, .markdown-inline-code) {
+  color: var(--ink-prose-fg);
+}
+html:is(.ink-havoc, .ink-havoc-night).fx-ink-rich .user-message-bubble > .text-block .markdown-link {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+html:is(.ink-havoc, .ink-havoc-night).fx-ink-rich .user-message-bubble > .text-block .markdown-inline-code {
+  background-color: var(--ink-prose-code-bg);
+}
+html:is(.ink-havoc, .ink-havoc-night).fx-ink-rich .user-message-bubble > .text-block .markdown-quote {
+  border-color: color-mix(in srgb, var(--ink-prose-fg) 65%, transparent);
+}
+/* 表格为独立阅读面，链接与行内代码在表内继承本地配色，不使用气泡反色。 */
+html:is(.ink-havoc, .ink-havoc-night).fx-ink-rich .user-message-bubble > .text-block .markdown-table {
+  --ink-prose-fg: var(--v2-text-1);
+  --ink-prose-code-bg: var(--v2-bg-sunken);
+  color: var(--ink-prose-fg);
+  background-color: var(--v2-bg-surface);
+}
+/* 表头自带 surface-2 底，克制档也不能直接用对比不足的主题强调色。 */
+html:is(.ink-havoc, .ink-havoc-night) .user-message-bubble > .text-block .markdown-table .markdown-link {
+  color: var(--v2-text-1);
+}
+/* Mermaid 三种状态使用独立阅读面，两种浓度都保持足够对比。
+   仅匹配 Markdown 嵌入组件的语义钩子，不覆盖生成 SVG 内部的图表配色。 */
+html:is(.ink-havoc, .ink-havoc-night) .text-block .markdown-embed {
+  --ink-mermaid-fg: var(--v2-text-1);
+  color: var(--ink-mermaid-fg);
+  background-color: var(--v2-bg-sunken);
+  border-radius: 14px;
+}
+html:is(.ink-havoc, .ink-havoc-night) .text-block .markdown-embed :is(.mermaid-loading-label, .mermaid-error-heading, .mermaid-error-source, .mermaid-export-button) {
+  color: var(--ink-mermaid-fg);
+}
+html:is(.ink-havoc, .ink-havoc-night) .text-block .markdown-embed .mermaid-export-button:focus-visible {
+  outline-color: var(--ink-mermaid-fg);
+}
+/* 消息操作与折叠摘要属于气泡本身，限定到直属操作区，避免命中嵌入内容。 */
+html:is(.ink-havoc, .ink-havoc-night).fx-ink-rich .user-message-bubble > .user-message-disclosure,
+html:is(.ink-havoc, .ink-havoc-night).fx-ink-rich .user-message-bubble > .user-message-disclosure > :is(span, svg),
+html:is(.ink-havoc, .ink-havoc-night).fx-ink-rich .user-message-bubble > .message-actions > :is(button, .message-timestamp) {
+  color: var(--ink-user-fg);
+}
+html:is(.ink-havoc, .ink-havoc-night).fx-ink-rich .user-message-bubble > .message-actions > button > svg {
+  color: inherit;
+}
+html:is(.ink-havoc, .ink-havoc-night).fx-ink-rich .user-message-bubble > .message-actions > .message-copy-all {
+  background-color: var(--ink-user-code-bg);
+  border-color: color-mix(in srgb, var(--ink-user-fg) 65%, transparent);
+}
+/* MessageActions 的通用 hover:!text-t1 需要局部覆盖，其他主题保留原 hover。 */
+html:is(.ink-havoc, .ink-havoc-night).fx-ink-rich .user-message-bubble > .message-actions > .message-action-button:hover {
+  color: var(--ink-user-fg) !important;
+}
+html:is(.ink-havoc, .ink-havoc-night).fx-ink-rich .user-message-bubble > .message-actions > button:focus-visible,
+html:is(.ink-havoc, .ink-havoc-night).fx-ink-rich .user-message-bubble > .user-message-disclosure:focus-visible {
+  outline-color: var(--ink-user-fg);
+  --tw-ring-color: color-mix(in srgb, var(--ink-user-fg) 65%, transparent);
+}
+/* 云头小角饰：内嵌气泡右上角，随压色 45%（纹样锚左上角，scaleX(-1) 翻转到右上） */
+html.ink-havoc.fx-ink-rich .user-message > .bg-surfacev2::after,
+html.ink-havoc-night.fx-ink-rich .user-message > .bg-surfacev2::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 15px;
+  height: 15px;
+  background: currentColor;
+  opacity: .45;
+  pointer-events: none;
+  transform: scaleX(-1);
+  -webkit-mask: url("../assets/theme/ink-havoc/patterns/ruyi-cloud-corner.svg") center / contain no-repeat;
+  mask: url("../assets/theme/ink-havoc/patterns/ruyi-cloud-corner.svg") center / contain no-repeat;
+}
+
+/* ---------- 响应式：<768px 精简装饰层（仿 spaceship.css HUD 裁剪） ----------
+   保留：收窄帘幕；隐藏：回纹分隔带（拥挤）；四角云纹角标已全局移除（见上）。 */
+@media (max-width: 767px) {
+  html.ink-havoc.fx-ink-rich .ink-huiwen-band,
+  html.ink-havoc-night.fx-ink-rich .ink-huiwen-band { display: none; }
+  html.ink-havoc.fx-ink-rich .ink-curtain,
+  html.ink-havoc-night.fx-ink-rich .ink-curtain { width: 22px; }
+}
+
+/* ============================================================
+   书法字体应用点（品牌/标题类；正文/代码/表格不动）
+   命中真实类名：①品牌名 ②Header 会话标题（SessionTitle 按钮内 .truncate）
+   ③弹窗标题（ui/Dialog h2.text-xl，设置/会话详情等） ④空状态 Hero 大标题
+   ============================================================ */
+.ink-havoc .app-header .font-semibold,
+.ink-havoc-night .app-header .font-semibold,
+.ink-havoc .app-header [aria-label="查看会话详情"] .truncate,
+.ink-havoc-night .app-header [aria-label="查看会话详情"] .truncate,
+.ink-havoc [role="dialog"] h2.text-xl,
+.ink-havoc-night [role="dialog"] h2.text-xl,
+.ink-havoc h1[class*="text-[clamp(34px"],
+.ink-havoc-night h1[class*="text-[clamp(34px"],
+.ink-havoc .ink-display,
+.ink-havoc-night .ink-display {
+  font-family: var(--ink-font-display);
+}
+
+/* ============================================================
+   ===== 浓郁档装饰层（fx-ink-rich 收口；组件 InkHavocFxLayer） =====
+   组件仅 ink 双模式 + cinematic 时挂载；纹样取 patterns/*.svg（现役：
+   huiwen-border 回纹带），以 mask 染色跟随 --ink-fret-color。
+   ============================================================ */
+/* 装饰层容器：fixed overlay（妖气雾 z-25 之上，toast z-40/弹窗 z-50 之下）。
+   默认 inset:0 全视口兜底；组件挂载后用 inline style 锚定到主内容区 <main>
+   （不含底部状态栏）——四角云纹/帘幕/回纹带全部落在「戏台」内，
+   避开侧栏文字区与状态栏（见 InkHavocFxLayer.tsx「戏台锚定」）。 */
+.ink-havoc-fx-layer {
+  position: fixed; inset: 0; z-index: 30;
+  pointer-events: none; overflow: hidden;
+}
+/* 四角云纹角标已按产品决策移除（压字压控件）；
+   纹样资产保留 assets/theme/ink-havoc/patterns/ruyi-cloud-corner.svg 备用。 */
+/* 回纹分隔带（描金横向重复；装饰组件挂载于 Header 下沿）。
+   惊艳度冲刺修正：14px 高 0.8 浓度过粗过密喧宾夺主 → 6px 细线 + opacity .4，
+   左右两端各 80px 线性渐隐（mask 叠加渐变层 source-in/intersect 复合）。 */
+html.ink-havoc.fx-ink-rich .ink-huiwen-band,
+html.ink-havoc-night.fx-ink-rich .ink-huiwen-band {
+  height: 6px;
+  pointer-events: none;
+  background-color: var(--ink-fret-color);
+  -webkit-mask:
+    url("../assets/theme/ink-havoc/patterns/huiwen-border.svg") left center / auto 100% repeat-x,
+    linear-gradient(90deg, transparent 0, #000 80px, #000 calc(100% - 80px), transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask:
+    url("../assets/theme/ink-havoc/patterns/huiwen-border.svg") left center / auto 100% repeat-x,
+    linear-gradient(90deg, transparent 0, #000 80px, #000 calc(100% - 80px), transparent 100%);
+  mask-composite: intersect;
+  opacity: var(--ink-fret-opacity);
+}
+/* 顶边回纹带落位：戏台顶缘（即 h-14 Header 下沿）平铺一线 */
+html.ink-havoc.fx-ink-rich .ink-huiwen-band.band-top,
+html.ink-havoc-night.fx-ink-rich .ink-huiwen-band.band-top {
+  position: absolute; top: 0; left: 0; right: 0;
+}
+/* 戏台帘幕（两侧描金软光渐隐；默认 translateX(±100%) 屏外待命，ink-boot 时滑开） */
+html.ink-havoc.fx-ink-rich .ink-curtain,
+html.ink-havoc-night.fx-ink-rich .ink-curtain {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 42px;
+  pointer-events: none;
+  background: linear-gradient(180deg, var(--ink-gold-soft), transparent 70%);
+}
+html.ink-havoc.fx-ink-rich .ink-curtain.left,
+html.ink-havoc-night.fx-ink-rich .ink-curtain.left {
+  left: 0; transform: translateX(-100%);
+  border-right: 1px solid var(--ink-gold);
+}
+html.ink-havoc.fx-ink-rich .ink-curtain.right,
+html.ink-havoc-night.fx-ink-rich .ink-curtain.right {
+  right: 0; transform: translateX(100%);
+  border-left: 1px solid var(--ink-gold);
+}
+
+/* ---- 灵霄夜云海微漂移（rich + motion-full；prefers-reduced-motion 不播） ----
+/* ============================================================
+   背景动态层已全部移除（产品决策·可读性优先）：
+   云海幽灵层 90s 漂移 / 云纹视差双层（JS 鼠标视差 + CSS 自漂移）/ 动态光影三团。
+   背景现仅 app-workspace 一层面纱压画意（低可见、全静态）。
+   ============================================================ */
+
+/* ============================================================
+   ===== 入场仪式「开锣亮相」（html.ink-boot 驱动） =====
+   ThemeProvider 在进入 ink 集合时写入 ink-boot（1600ms 摘除）：
+   左右帘幕自台口滑开（900ms），主区晕染淡入（500ms，delay 400ms）。
+   动画填充用 backwards：结束后还原默认态，避免 fill-forwards 残留
+   filter（会在 .app-workspace 上生成固定定位包含块）。
+   prefers-reduced-motion 时整段不播。
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  html.ink-boot .ink-curtain.left {
+    animation: ink-curtain-open-left 900ms var(--ink-ease-out) backwards;
+  }
+  html.ink-boot .ink-curtain.right {
+    animation: ink-curtain-open-right 900ms var(--ink-ease-out) backwards;
+  }
+  html.ink-boot .app-workspace {
+    animation: ink-boot-bloom 500ms var(--ink-ease-out) 400ms backwards;
+  }
+}
+@keyframes ink-curtain-open-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+@keyframes ink-curtain-open-right {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}
+@keyframes ink-boot-bloom {
+  from { opacity: 0; transform: scale(1.012); filter: blur(8px); }
+  to { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+
+/* ============================================================
+   ===== 妖气：TOKEN 警告态（紫黑雾） =====
+   token-warning class 由 useTokenWarningClass 按 messageStore 写入；
+   组合选择器 html.ink-havoc(.-night).token-warning 收口，非本主题零泄漏。
+   视觉：body::before 静态多层紫黑雾（鲜紫 #9A6FC0 30% + 玄黑 60%）
+   + 纯 opacity 呼吸脉冲 1.2s（不动 box-shadow 尺寸，合成器友好）。
+   ============================================================ */
+html.ink-havoc.token-warning body::before,
+html.ink-havoc-night.token-warning body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 25; /* 低于装饰层(30)/toast(40)/弹窗(50) */
+  pointer-events: none;
+  background:
+    /* 鲜紫妖气 · 左上 */
+    radial-gradient(ellipse 78% 58% at 16% 6%, rgba(154,111,192,.30), transparent 62%),
+    /* 鲜紫妖气 · 右下 */
+    radial-gradient(ellipse 86% 66% at 86% 92%, rgba(154,111,192,.24), transparent 64%),
+    /* 玄黑压角 */
+    radial-gradient(ellipse 120% 100% at 50% 50%, transparent 46%, rgba(18,10,26,.60) 100%);
+  animation: ink-miasma-breathe 1.2s ease-in-out infinite;
+}
+@keyframes ink-miasma-breathe {
+  0%, 100% { opacity: .55; }
+  50% { opacity: 1; }
+}
+
+/* ============================================================
+   ===== 动态光影层已移除（产品决策·可读性优先） =====
+   原三团漂移光团（ink-light-play/blob）与云纹视差、云海幽灵层一并退场，
+   --ink-light-* 变量定义已随清理移除。
+   ============================================================ */
+
+/* ============================================================
+   ===== 波次1增强⑥ 碑石感卡片（双档常驻，克制档即生效） =====
+   圆角令牌/阴影令牌已在主题块重写（--v2-r-panel:2px、纵长阴影+发丝线），
+   本区块兜底硬编码圆角的卡片类 + 大面积面板细噪点。
+   选择器严格 html.ink-havoc* 收口，glass 等其他主题零泄漏。
+   ============================================================ */
+/* 硬编码圆角统一收到 2px：会话卡片 / 消息卡片（轮次卡+用户气泡）/ toast / 输入框容器 */
+html.ink-havoc .app-sidebar .session-card,
+html.ink-havoc-night .app-sidebar .session-card,
+html.ink-havoc main .turn-card > section,
+html.ink-havoc-night main .turn-card > section,
+html.ink-havoc .user-message > .bg-surfacev2,
+html.ink-havoc-night .user-message > .bg-surfacev2,
+html.ink-havoc .toast-card,
+html.ink-havoc-night .toast-card,
+html.ink-havoc .chat-composer-surface,
+html.ink-havoc-night .chat-composer-surface {
+  border-radius: 2px;
+}
+/* 浮层统一跟随：e3/e4 高层级阴影即弹层语义（dropdown/自动补全/权限菜单/固定面板），
+   一并收 2px 碑石圆角（rounded-panel 用户已由 --v2-r-panel 覆盖） */
+html.ink-havoc .shadow-e3,
+html.ink-havoc .shadow-e4,
+html.ink-havoc-night .shadow-e3,
+html.ink-havoc-night .shadow-e4 {
+  border-radius: 2px;
+}
+/* 大面积面板细噪点：bg-surfacev2 全命中（卡片/弹窗/下拉/toast），
+   feTurbulence data-uri alpha ≤3%（变量按主题分设黑粒/白粒） */
+html.ink-havoc .bg-surfacev2,
+html.ink-havoc-night .bg-surfacev2 {
+  background-image: var(--ink-panel-noise);
+  background-size: 220px;
+}
+
+/* ============================================================
+   ===== 波次1增强⑦ 洒金箔（浓郁档收口；克制档零变化） =====
+   「少即是贵」：金箔碎点只落边角（mask 端部/角区并集渐隐），
+   feTurbulence 提点 data-uri + screen 混合 + opacity 0.12-0.18。
+   全部伪元素实现，不动组件 DOM。
+   ============================================================ */
+/* 朱砂牌匾 Header：碎点收在牌匾左右两端（中段文字区留净） */
+html.ink-havoc.fx-ink-rich .app-header::after,
+html.ink-havoc-night.fx-ink-rich .app-header::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: var(--ink-gilt-fleck);
+  background-size: 140px;
+  mix-blend-mode: screen;
+  opacity: .15;
+  -webkit-mask:
+    linear-gradient(90deg, #000 0, transparent 130px),
+    linear-gradient(270deg, #000 0, transparent 130px);
+  mask:
+    linear-gradient(90deg, #000 0, transparent 130px),
+    linear-gradient(270deg, #000 0, transparent 130px);
+}
+/* 朱印 logo：碎点收在印面两对角 */
+html.ink-havoc.fx-ink-rich .app-header button[aria-label="返回首页"],
+html.ink-havoc-night.fx-ink-rich .app-header button[aria-label="返回首页"] {
+  position: relative;
+}
+html.ink-havoc.fx-ink-rich .app-header button[aria-label="返回首页"]::after,
+html.ink-havoc-night.fx-ink-rich .app-header button[aria-label="返回首页"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-image: var(--ink-gilt-fleck);
+  background-size: 140px;
+  mix-blend-mode: screen;
+  opacity: .16;
+  -webkit-mask:
+    linear-gradient(135deg, #000 0, transparent 28px),
+    linear-gradient(315deg, #000 0, transparent 28px);
+  mask:
+    linear-gradient(135deg, #000 0, transparent 28px),
+    linear-gradient(315deg, #000 0, transparent 28px);
+}
+/* 印章化「新建会话」按钮：碎点收在按钮两短边 */
+html.ink-havoc.fx-ink-rich .app-sidebar .bg-accent2-strong,
+html.ink-havoc-night.fx-ink-rich .app-sidebar .bg-accent2-strong {
+  position: relative;
+  overflow: hidden;  /* 金箔碎点收在印面内 */
+}
+html.ink-havoc.fx-ink-rich .app-sidebar .bg-accent2-strong::after,
+html.ink-havoc-night.fx-ink-rich .app-sidebar .bg-accent2-strong::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: var(--ink-gilt-fleck);
+  background-size: 140px;
+  mix-blend-mode: screen;
+  opacity: .14;
+  -webkit-mask:
+    linear-gradient(110deg, #000 0, transparent 36px),
+    linear-gradient(290deg, #000 0, transparent 36px);
+  mask:
+    linear-gradient(110deg, #000 0, transparent 36px),
+    linear-gradient(290deg, #000 0, transparent 36px);
+}
+
+/* ============================================================
+   ===== 波次1增强⑧ 烫金文字（浓郁档收口；仅品牌名与 Hero 大标题） =====
+   灵霄夜（深底）：亮金渐变 + 3.5s 光泽扫过（扫光仅 motion-full 播放）；
+   花果晨：Hero 在浅纸底用暗金渐变（亮金对比度不足）静态不扫光，
+   Header 品牌名在朱砂牌匾（深底）上沿用亮金渐变、同为静态（浅档不播扫光）。
+   克制档/正文/会话标题不烫金。
+   ============================================================ */
+html.ink-havoc-night.fx-ink-rich .app-header .font-semibold,
+html.ink-havoc-night.fx-ink-rich h1[class*="text-[clamp(34px"],
+html.ink-havoc.fx-ink-rich .app-header .font-semibold {
+  background-image: linear-gradient(100deg, #8a6d1f, #f5d67a 35%, #b8860b 55%, #fcf6ba 75%, #aa771c);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;  /* 覆盖牌匾文字阴影：透明填色下阴影会显形 */
+}
+html.ink-havoc.fx-ink-rich h1[class*="text-[clamp(34px"] {
+  background-image: linear-gradient(100deg, #7a5c14, #a87c1e 45%, #8a6d1f);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html.ink-havoc-night.fx-ink-rich.motion-full .app-header .font-semibold,
+  html.ink-havoc-night.fx-ink-rich.motion-full h1[class*="text-[clamp(34px"] {
+    animation: ink-gilt-sheen 3.5s linear infinite;
+  }
+}
+@keyframes ink-gilt-sheen {
+  from { background-position: 200% 0; }
+  to { background-position: -20% 0; }
+}
+
+/* ============================================================
+   ===== 波次2增强② 毛笔书写标题（浓郁档收口；InkCalligraphyTitle 仅浓郁档渲染） =====
+   「落墨成书」：空状态 Hero 大标题以行楷字形轮廓（hero-calligraphy.ts 提取）
+   逐 contour 勾勒——stroke-dashoffset 1→0 按字序/contour 序错峰
+   （组件内联 --ink-calli-delay），cubic-bezier(.45,0,.25,1) 模拟
+   起笔顿→行笔提→收笔回锋；末笔落定后 fill 淡入、描边淡出（--ink-calli-fill-delay）。
+   path 默认态即成品字（fill 着色、无描边）：calm 档组件不渲染 SVG（回退文本），
+   motion-reduced/off 与 prefers-reduced-motion 直接显示成品字（动画仅
+   motion-full + no-preference 挂载，backwards 填充落笔前空白）。
+   ============================================================ */
+/* 尺寸对齐原标题字阶 clamp(34px,5.4vw,50px)（含上下预留，字身≈字阶） */
+html.ink-havoc.fx-ink-rich .ink-calli-title,
+html.ink-havoc-night.fx-ink-rich .ink-calli-title {
+  display: block;
+  margin: 0 auto;
+  height: clamp(44px, 6.2vw, 62px);
+  width: auto;
+  max-width: 100%;
+  overflow: visible;  /* 行楷撇捺出锋，不裁字缘 */
+}
+/* 成品字着色：花果晨墨字朱砂睛 / 灵霄夜月白鎏金睛（描金同源 --v2-accent） */
+html.ink-havoc .ink-calli-title {
+  --ink-calli-fill: #2E2822;     /* 墨色 */
+  --ink-calli-stroke: #2E2822;   /* 墨线勾勒 */
+}
+html.ink-havoc-night .ink-calli-title {
+  --ink-calli-fill: #EDE5D0;     /* 月白 */
+  --ink-calli-stroke: #F8ECCB;   /* 亮线勾勒（深底可见） */
+}
+/* 填充层：整字合并 path（evenodd 内孔镂空），成品态即最终字 */
+.ink-calli-title .ink-calli-fill-path {
+  fill: var(--ink-calli-fill);
+  stroke: none;
+}
+.ink-calli-title .ink-calli-fill-path.is-accent {
+  fill: var(--v2-accent);  /* 「构建」两字同原文案 <b> 高亮 */
+}
+/* 描边层：逐 contour，仅承载书写动画；成品态隐藏 */
+.ink-calli-title .ink-calli-path {
+  fill: none;
+  stroke: none;
+}
+/* 书写动画：仅浓郁档 + motion-full + 系统未降级时播放。
+   审查#4修复：fill-mode both——delay 期应用首帧（空），播完保留末帧（成品），
+   标题不再回隐；审查-字形修复：填充层 evenodd 合并路径与描边层分离，
+   描边勾勒 → 填充淡入 → 描边淡出，三线衔接。 */
+@media (prefers-reduced-motion: no-preference) {
+  html.ink-havoc.fx-ink-rich.motion-full .ink-calli-fill-path,
+  html.ink-havoc-night.fx-ink-rich.motion-full .ink-calli-fill-path {
+    animation: ink-calli-fill-fade .38s ease-out var(--ink-calli-fill-delay, 2.4s) both;
+  }
+  html.ink-havoc.fx-ink-rich.motion-full .ink-calli-path,
+  html.ink-havoc-night.fx-ink-rich.motion-full .ink-calli-path {
+    stroke: var(--ink-calli-stroke);
+    stroke-width: 26;          /* upm 网格 26 ≈ 成字 1px 墨线 */
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 1;       /* pathLength=1（组件内联），单位化路径长 */
+    stroke-dashoffset: 1;
+    animation:
+      ink-calli-stroke .75s cubic-bezier(.45,0,.25,1) var(--ink-calli-delay, 0s) both,
+      ink-calli-stroke-fade .38s ease-out var(--ink-calli-fill-delay, 2.4s) both;
+  }
+  html.ink-havoc.fx-ink-rich.motion-full .ink-calli-path.is-accent,
+  html.ink-havoc-night.fx-ink-rich.motion-full .ink-calli-path.is-accent {
+    stroke: var(--v2-accent);
+  }
+}
+@keyframes ink-calli-stroke {
+  to { stroke-dashoffset: 0; }
+}
+/* 描边淡出（填充淡入同刻，先墨线后成字） */
+@keyframes ink-calli-stroke-fade {
+  from { stroke-opacity: 1; }
+  to { stroke-opacity: 0; }
+}
+/* 填充淡入（evenodd 合并路径，内孔镂空随 fill 生效） */
+@keyframes ink-calli-fill-fade {
+  from { fill-opacity: 0; }
+  to { fill-opacity: 1; }
+}
+
+/* ============================================================
+   ===== 波次2增强④ 湿墨洇开弹窗（浓郁档 + motion-full 收口） =====
+   「墨落宣纸，自一角洇开」：弹窗/命令面板/下拉菜单入场以
+   radial-gradient mask（圆心 12% 8% 左上角）0%→150% 展开揭示，
+   同构渐变关键帧插值（560ms 先快后慢阻尼）；入场瞬间叠加
+   url(#ink-bleed-edge)（feTurbulence+feDisplacementMap scale 4，
+   defs 由 InkHavocFxLayer 常驻输出）制造洇边毛糙，
+   100% 帧 filter:none + animation backwards → 结束即一次性摘除
+   （性能红线：filter/mask 均不残留，只余元素自身样式）。
+   落点选择器：ui/Dialog 等 role=dialog 面板（设置弹窗/权限/询问/移动端
+   抽屉权限菜单）、scale-in 弹层面板（文件预览/技能/记忆等）、命令面板
+   .glass-menu。MobileBottomSheet（framer 滑入）与 Drawer（transition
+   滑入）均不命中（前者无 role/scale-in 于面板，后者挂载即播且
+   backwards 不残留 transform，滑入语义不受扰）。
+   calm 档（无 fx-ink-rich）保持原 scale-in；motion-reduced/off 与
+   prefers-reduced-motion 直接显示（规则仅挂 motion-full+no-preference）。
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  html.ink-havoc.fx-ink-rich.motion-full :is([role="dialog"].shadow-e4, .shadow-e4.motion-safe\:animate-scale-in, .glass-menu),
+  html.ink-havoc-night.fx-ink-rich.motion-full :is([role="dialog"].shadow-e4, .shadow-e4.motion-safe\:animate-scale-in, .glass-menu) {
+    animation: ink-bleed-reveal 560ms cubic-bezier(.22,.68,.26,1) backwards;
+  }
+}
+@keyframes ink-bleed-reveal {
+  0% {
+    opacity: .3;
+    transform: scale(.985);
+    filter: url(#ink-bleed-edge);
+    -webkit-mask-image: radial-gradient(circle at 12% 8%, #000 0%, transparent 0%);
+    mask-image: radial-gradient(circle at 12% 8%, #000 0%, transparent 0%);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  99% {
+    filter: url(#ink-bleed-edge);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: none;
+    -webkit-mask-image: radial-gradient(circle at 12% 8%, #000 150%, transparent 172%);
+    mask-image: radial-gradient(circle at 12% 8%, #000 150%, transparent 172%);
+  }
+}
+
+/* ============================================================
+   ===== 波次1增强① 盖印仪式（toast 朱印；InkSealStamp 仅浓郁档渲染） =====
+   「趋势-加速-落定」三段节奏：scale(1.6)→1 + rotate(±3° 随机，组件内联
+   --ink-seal-rotate) + opacity，cubic-bezier(.2,1.5,.35,1) 微过冲；
+   落定瞬间 2×2 粒墨点溅出淡出。动画仅 motion-full 播放；
+   motion-reduced/off 与 prefers-reduced-motion 印章直接静态显示。
+   ============================================================ */
+html.ink-havoc .ink-seal-stamp,
+html.ink-havoc-night .ink-seal-stamp {
+  position: relative;
+  flex: none;
+  width: 19px;
+  height: 19px;
+  margin-top: 1px;
+  display: grid;
+  place-items: center;
+  border-radius: 3px;
+  background: var(--ink-seal);
+  color: var(--ink-on-seal);
+  border: 1.5px solid rgba(255,252,240,.85);  /* 白边如钤印 */
+  font-family: var(--ink-font-display);
+  font-size: 12px;
+  line-height: 1;
+  box-shadow: 0 1px 2px rgba(60,16,8,.30);
+  transform: rotate(var(--ink-seal-rotate, 0deg));  /* 落定角 ±3°（组件内联） */
+}
+/* 印泥「吃进」卡片底色：浅档 multiply；
+   深档 multiply 会糊进深底不可见，改 normal + 微透明做印泥压感 */
+html.ink-havoc .ink-seal-stamp { mix-blend-mode: multiply; }
+html.ink-havoc-night .ink-seal-stamp { opacity: .94; }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* 落定动画（趋势 scale1.6 → 加速 → 落定微过冲） */
+  html.ink-havoc.motion-full .ink-seal-stamp,
+  html.ink-havoc-night.motion-full .ink-seal-stamp {
+    animation: ink-seal-land 380ms cubic-bezier(.2,1.5,.35,1) backwards;
+  }
+  /* 墨点溅出：落定瞬间（≈55% ≙ 210ms）自印缘四点溅出淡出（只动 transform/opacity） */
+  html.ink-havoc.motion-full .ink-seal-stamp::before,
+  html.ink-havoc-night.motion-full .ink-seal-stamp::before,
+  html.ink-havoc.motion-full .ink-seal-stamp::after,
+  html.ink-havoc-night.motion-full .ink-seal-stamp::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--ink-seal);
+    pointer-events: none;
+    animation: ink-seal-splatter 420ms ease-out 200ms backwards;
+  }
+  html.ink-havoc.motion-full .ink-seal-stamp::before,
+  html.ink-havoc-night.motion-full .ink-seal-stamp::before {
+    box-shadow: 9px -7px 0 0 var(--ink-seal), -8px -5px 0 -.5px var(--ink-seal);
+  }
+  html.ink-havoc.motion-full .ink-seal-stamp::after,
+  html.ink-havoc-night.motion-full .ink-seal-stamp::after {
+    width: 2.5px;
+    height: 2.5px;
+    box-shadow: -9px 6px 0 0 var(--ink-seal), 7px 8px 0 -.5px var(--ink-seal);
+  }
+}
+@keyframes ink-seal-land {
+  0%   { opacity: 0; transform: scale(1.6) rotate(calc(var(--ink-seal-rotate, 0deg) * 2)); }
+  55%  { opacity: 1; transform: scale(.94) rotate(var(--ink-seal-rotate, 0deg)); }
+  78%  { transform: scale(1.05) rotate(var(--ink-seal-rotate, 0deg)); }
+  100% { opacity: 1; transform: scale(1) rotate(var(--ink-seal-rotate, 0deg)); }
+}
+@keyframes ink-seal-splatter {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(.4); }
+  25%  { opacity: .9; }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.2); }
+}
+
+/* ============================================================
+   动效门控（html.motion-* 由 ThemeProvider 按 inkHavocFx.motion 写入，与星舰共用类名）
+   分档语义（与星舰对齐）：
+   - motion-full    完整：装饰循环 + 事件特效全部启用
+   - motion-reduced 精简：关闭装饰循环（浓郁档装饰动画），保留事件/瞬态反馈（妖气雾呼吸）
+   - motion-off     关闭：全部动画与过渡静止（状态信息动画豁免白名单除外）
+   另：系统 prefers-reduced-motion: reduce 时强制降级（末尾 media query）。
+   ============================================================ */
+
+/* ---------- 装饰循环（仅 motion-full 播放；reduced/off 关闭） ----------
+   浓郁档装饰动画登记（妖气雾属事件特效不在此列） */
+html.ink-havoc.motion-reduced .ink-huiwen-band,
+html.ink-havoc.motion-reduced .ink-curtain,
+html.ink-havoc-night.motion-reduced .ink-huiwen-band,
+html.ink-havoc-night.motion-reduced .ink-curtain { animation: none; }
+
+/* motion-off：全元素动画/过渡静止（硬关闭；fx class 仅 ink 模式存在） */
+html.ink-havoc.motion-off *,
+html.ink-havoc.motion-off *::before,
+html.ink-havoc.motion-off *::after,
+html.ink-havoc-night.motion-off *,
+html.ink-havoc-night.motion-off *::before,
+html.ink-havoc-night.motion-off *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* motion-off 豁免：状态信息动画恢复播放（装饰动画仍冻结；transition 冻结不豁免）。
+   白名单与星舰一致：加载旋转 / 骨架屏与流式光标 / 运行中呼吸点 / 会话状态脉冲点。 */
+html.ink-havoc.motion-off .animate-spin,
+html.ink-havoc-night.motion-off .animate-spin {
+  animation: spin 1s linear infinite !important;
+}
+html.ink-havoc.motion-off .animate-pulse,
+html.ink-havoc-night.motion-off .animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+}
+html.ink-havoc.motion-off .animate-accent-pulse,
+html.ink-havoc-night.motion-off .animate-accent-pulse {
+  animation: accentPulse 1.6s ease-in-out infinite !important;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html.ink-havoc.motion-off .motion-safe\:animate-pulse,
+  html.ink-havoc-night.motion-off .motion-safe\:animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+  }
+}
+
+/* 系统级降级：prefers-reduced-motion 时即便 motion-full 也关闭装饰/事件动画。 */
+@media (prefers-reduced-motion: reduce) {
+  html.ink-havoc .app-sidebar .session-card,
+  html.ink-havoc-night .app-sidebar .session-card { transition: none; }
+  html.ink-havoc .ink-huiwen-band,
+  html.ink-havoc .ink-curtain,
+  html.ink-havoc-night .ink-huiwen-band,
+  html.ink-havoc-night .ink-curtain { animation: none; }
+  /* 妖气雾呼吸兜底关闭（雾本体保留，仅静止） */
+  html.ink-havoc.token-warning body::before,
+  html.ink-havoc-night.token-warning body::before { animation: none; }
+}
+
+/* ============================================================
+   ===== 波次3增强① 皮影镂空 Hero（浓郁档收口；InkShadowPuppet 仅浓郁档渲染） =====
+   「灯影戏」：空状态 Hero 标题侧后方（右下）立皮影镂空悟空挥棒剪影，衬暖金背光。
+   背光 radial-gradient 暖金光晕独立呼吸（scale 1→1.06，8s），桌面细指针 +
+   motion-full 随鼠标 ±10px lerp（组件内 hook，仿波次2③）；皮影 mask 染墨色，
+   drop-shadow 灯影边光，translateY ±4px 8s 自浮动——皮影在幕布上活了。
+   calm 档组件不渲染（零残留）；motion-reduced/off 与 prefers-reduced-motion
+   全部静止（背光/浮动动画仅 motion-full+no-preference 挂载）；
+   闭关模式（html.ink-retreat）组件返回 null，此处规则兜底 display:none。
+   ============================================================ */
+/* 容器：Hero 右下锚定（absolute 相对 EmptyHero 包装层），不抢文字不拦截指针 */
+html.ink-havoc.fx-ink-rich .ink-shadow-puppet,
+html.ink-havoc-night.fx-ink-rich .ink-shadow-puppet {
+  position: absolute;
+  right: clamp(16px, 5vw, 72px);
+  bottom: clamp(24px, 7vh, 88px);
+  width: clamp(150px, 20vw, 250px);
+  aspect-ratio: 720 / 846;  /* 剪影素材原始宽高比（720×846） */
+  pointer-events: none;
+  z-index: 0;  /* EmptyState 内容 relative 自然叠于其前 */
+}
+/* 背光层：外层承载 JS 视差 transform（组件内联），内层承载 CSS 呼吸 */
+.ink-shadow-backlight {
+  position: absolute;
+  inset: -22%;  /* 光晕比剪影大一圈，漫出幕布 */
+  will-change: transform;
+}
+.ink-shadow-backlight-inner {
+  width: 100%;
+  height: 100%;
+  /* 暖金光晕：中心鎏金实，向外 60%/50% 处过渡为朱砂/鲜紫透明（分档见下） */
+  background: radial-gradient(circle at 50% 46%,
+    rgba(224,169,46,.55) 0%,
+    var(--ink-shadow-glow-mid, rgba(192,58,43,.28)) 60%,
+    transparent 72%);
+}
+html.ink-havoc .ink-shadow-backlight-inner {
+  --ink-shadow-glow-mid: rgba(192,58,43,.28);  /* 花果晨：鎏金→朱砂 60% 透明 */
+}
+html.ink-havoc-night .ink-shadow-backlight-inner {
+  --ink-shadow-glow-mid: rgba(154,111,192,.24);  /* 灵霄夜：鎏金→鲜紫 50% 透明 */
+  background: radial-gradient(circle at 50% 46%,
+    rgba(224,169,46,.48) 0%,
+    var(--ink-shadow-glow-mid) 50%,
+    transparent 68%);
+}
+/* 皮影层：镂空剪影 mask 染墨色（镂空处透出背光），灯影边光描缘 */
+.ink-shadow-figure {
+  position: absolute;
+  inset: 0;
+  background: rgba(46,40,34,.88);   /* 花果晨墨色 88% */
+  -webkit-mask-image: url("../assets/theme/ink-havoc/shadow-puppet-wukong.webp");
+  mask-image: url("../assets/theme/ink-havoc/shadow-puppet-wukong.webp");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  filter: drop-shadow(0 0 18px rgba(224,169,46,.35));  /* 灯影边光 */
+}
+html.ink-havoc-night .ink-shadow-figure {
+  background: rgba(20,16,12,.92);   /* 灵霄夜墨色 92%（深档更沉） */
+}
+/* 呼吸与浮动：仅 motion-full + 系统未降级播放（只动 transform） */
+@media (prefers-reduced-motion: no-preference) {
+  html.ink-havoc.fx-ink-rich.motion-full .ink-shadow-backlight-inner,
+  html.ink-havoc-night.fx-ink-rich.motion-full .ink-shadow-backlight-inner {
+    animation: ink-shadow-breathe 8s ease-in-out infinite alternate;
+  }
+  html.ink-havoc.fx-ink-rich.motion-full .ink-shadow-figure,
+  html.ink-havoc-night.fx-ink-rich.motion-full .ink-shadow-figure {
+    animation: ink-shadow-float 8s ease-in-out infinite alternate;
+  }
+}
+@keyframes ink-shadow-breathe {
+  from { transform: scale(1); }
+  to   { transform: scale(1.06); }
+}
+@keyframes ink-shadow-float {
+  from { transform: translateY(-4px); }
+  to   { transform: translateY(4px); }
+}
+/* 响应式：<768px 精简装饰层（仿浓郁档装饰裁剪惯例），小屏不立皮影 */
+@media (max-width: 767px) {
+  .ink-shadow-puppet { display: none; }
+}
+/* 闭关兜底：组件已返回 null，规则双保险 */
+html.ink-retreat .ink-shadow-puppet { display: none; }
+
+/* ============================================================
+   ===== 波次3增强② 闭关模式（html.ink-retreat；双档可用） =====
+   「收起装饰，专注书写」：ThemeProvider 按 inkHavocFx.retreat 写入 class——
+   装饰层/动态光影由 InkHavocFxLayer 退场不挂载；此块兜底覆盖组件外装饰：
+   画意背景变纯色渐变、洒金箔伪元素摘除、烫金扫光/书写/洇开动画静止。
+   功能反馈保留：toast 盖印 / 妖气雾（token-warning body::before）/ 加载态不动。
+   ============================================================ */
+/* 背景：画意图与宣纸肌理退场，只余纯色底渐变 */
+html.ink-havoc.ink-retreat .app-workspace {
+  background-image: linear-gradient(165deg, #F7F0DC 0%, #F3EAD0 55%, #EDE1BE 100%);
+}
+html.ink-havoc-night.ink-retreat .app-workspace {
+  background-image: linear-gradient(165deg, #1A2334 0%, #1D2940 55%, #233252 100%);
+}
+/* 洒金箔碎点（牌匾/logo/新建会话按钮伪元素）摘除 */
+html.ink-retreat .app-header::after,
+html.ink-retreat .app-header button[aria-label="返回首页"]::after,
+html.ink-retreat .app-sidebar .bg-accent2-strong::after {
+  content: none;
+}
+/* 动态光影兜底（组件已不挂载，双保险） */
+html.ink-retreat .ink-havoc-fx-layer { display: none; }
+/* 烫金扫光静止（静态金字保留字级处理；扫光属装饰循环）。
+   审查#7修复：!important 兜底——浓郁档动效规则带 .fx-ink-rich.motion-full
+   双 class 优先级更高，曾致闭关下扫光/书写/洇开仍播放（与 motion-off 块同范式） */
+html.ink-retreat .app-header .font-semibold,
+html.ink-retreat h1[class*="text-[clamp(34px"] {
+  animation: none !important;
+}
+/* 毛笔书写标题：闭关下直接显示成品字（动画静止即默认成品态） */
+html.ink-retreat :is(.ink-calli-path, .ink-calli-fill-path) { animation: none !important; }
+/* 洇开弹窗：闭关下回退常规入场（摘掉 reveal 动画即零 mask/filter 残留） */
+html.ink-retreat :is([role="dialog"].shadow-e4, .shadow-e4.motion-safe\:animate-scale-in, .glass-menu) {
+  animation: none !important;
+}
+
+/* ---------- 挂匾/摘匾仪式（InkRetreatCeremony portal；ink 双模式全档） ----------
+   匾：朱砂底书法体「闭关」+ 描金边 + 角落朱砂小印「静」，顶部居中落下。 */
+.ink-retreat-plaque {
+  position: fixed;
+  top: 72px;  /* Header 之下 */
+  left: 50%;
+  z-index: 60;  /* 压过弹窗 z-50：仪式即最强反馈 */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 22px 10px 26px;
+  border-radius: 3px;
+  background: var(--ink-plaque-bg, linear-gradient(180deg, #B03A2A, #8C2A1E));
+  border: 2px solid var(--ink-gold, #C9A227);
+  box-shadow: 0 10px 28px -10px rgba(60,16,8,.55);
+  color: var(--ink-plaque-text, #F8ECCB);
+  font-family: var(--ink-font-display);
+  font-size: 26px;
+  line-height: 1;
+  letter-spacing: .12em;
+  pointer-events: none;  /* 仪式纯展示，不拦截操作 */
+}
+.ink-retreat-plaque-seal {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 3px;
+  background: var(--ink-seal, #C03A2B);
+  color: var(--ink-on-seal, #FFF8E7);
+  border: 1.5px solid rgba(255,252,240,.85);
+  font-size: 13px;
+  box-shadow: 0 1px 2px rgba(60,16,8,.30);
+}
+/* 落匾：自顶部落下 → 微过冲定格（定格 900ms 由组件驻留定时器保证）→ 淡出 */
+@media (prefers-reduced-motion: no-preference) {
+  html.ink-havoc.motion-full .ink-retreat-plaque.is-enter,
+  html.ink-havoc-night.motion-full .ink-retreat-plaque.is-enter {
+    animation: ink-retreat-drop 1.6s cubic-bezier(.22,.9,.3,1) forwards;
+  }
+  html.ink-havoc.motion-full .ink-retreat-plaque.is-exit,
+  html.ink-havoc-night.motion-full .ink-retreat-plaque.is-exit {
+    animation: ink-retreat-lift 1s ease-in forwards;
+  }
+  /* 简化档（reduced/off）：200ms 淡入淡出（组件驻留同步缩短至 500/400ms） */
+  html.ink-havoc.motion-reduced .ink-retreat-plaque,
+  html.ink-havoc-night.motion-reduced .ink-retreat-plaque,
+  html.ink-havoc.motion-off .ink-retreat-plaque,
+  html.ink-havoc-night.motion-off .ink-retreat-plaque {
+    animation: ink-retreat-fade 200ms ease-out forwards;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ink-retreat-plaque { animation: ink-retreat-fade 200ms ease-out forwards; }
+}
+@keyframes ink-retreat-drop {
+  0%   { opacity: 0; transform: translate(-50%, -140%); }
+  25%  { opacity: 1; transform: translate(-50%, 4%); }   /* 落下微过冲 */
+  32%  { transform: translate(-50%, 0); }                /* 定格（持续至淡出） */
+  81%  { opacity: 1; transform: translate(-50%, 0); }    /* ≈900ms 定格后收起 */
+  100% { opacity: 0; transform: translate(-50%, 0) scale(.92); }
+}
+@keyframes ink-retreat-lift {
+  0%   { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, -140%); }  /* 摘匾：上升淡出 */
+}
+@keyframes ink-retreat-fade {
+  from { opacity: 0; transform: translate(-50%, 0); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* 闭关匾补遗：基态居中（动画未起/禁用时不偏移）；
+   motion-off 冻结豁免——挂匾/摘匾属瞬态操作反馈（同状态动画白名单语义），
+   简化为 200ms 淡入淡出而非完全静止滞留 */
+.ink-retreat-plaque { transform: translate(-50%, 0); }
+html.ink-havoc.motion-off .ink-retreat-plaque,
+html.ink-havoc-night.motion-off .ink-retreat-plaque {
+  animation: ink-retreat-fade 200ms ease-out forwards !important;
+}

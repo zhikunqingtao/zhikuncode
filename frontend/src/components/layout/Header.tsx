@@ -11,11 +11,11 @@ import { GlassMaterial } from '@/components/theme/GlassMaterial';
  */
 
 import { useEffect } from 'react';
-import { Menu, Sun, Moon, Sparkles, Rocket, Keyboard, ChevronDown, Coins, Loader2 } from 'lucide-react';
+import { Menu, Sun, Moon, Sparkles, Rocket, Flower2, Landmark, Keyboard, ChevronDown, Coins, Loader2, Flag } from 'lucide-react';
 import { useSessionStore } from '@/store/sessionStore';
 import { useCostStore } from '@/store/costStore';
 import { useDialogStore } from '@/store/dialogStore';
-import { normalizeThemeMode, useConfigStore } from '@/store/configStore';
+import { defaultInkHavocFx, normalizeThemeMode, useConfigStore } from '@/store/configStore';
 import { useModelStore } from '@/store/modelStore';
 import { useBridgeStore } from '@/store/bridgeStore';
 import { clearSessionSelection } from '@/services/sessionActivation';
@@ -51,7 +51,10 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
     const { sessionCost, totalCost, usage } = useCostStore();
     const { bridgeStatus } = useBridgeStore();
     const { openDialog } = useDialogStore();
-    const { theme } = useConfigStore();
+    const { theme, setTheme } = useConfigStore();
+    // 波次3② 闭关令旗：仅 ink 双主题显示（normalizeTheme 保证 fx 恒有值，瞬态默认兜底）
+    const isInkMode = theme.mode === 'ink-havoc' || theme.mode === 'ink-havoc-night';
+    const inkFx = theme.inkHavocFx ?? defaultInkHavocFx();
 
     // 动态加载可用模型列表（统一从 modelStore 缓存读取；移动端头部展示当前模型名）
     const {
@@ -83,6 +86,8 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
         dark: { label: '深色', icon: Moon },
         glass: { label: '液态玻璃', icon: Sparkles },
         spaceship: { label: '星舰', icon: Rocket },
+        'ink-havoc': { label: '花果晨', icon: Flower2 },
+        'ink-havoc-night': { label: '灵霄夜', icon: Landmark },
     }[normalizeThemeMode(theme.mode)];
     const ThemeIcon = currentTheme.icon;
     const currentModelName = availableModels.find(item => item.id === model)?.displayName ?? model ?? '';
@@ -175,6 +180,21 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                         ∑ ${totalCost.toFixed(3)}
                     </span>
                 </div>
+
+                {/* 波次3② 闭关令旗（ink 双主题限定）：挂匾收起装饰专注书写 / 摘匾装饰回归；
+                    仪式动画由 App 挂载的 InkRetreatCeremony 订阅 retreat 翻转驱动 */}
+                {isInkMode && (
+                    <button
+                        type="button"
+                        onClick={() => setTheme({ inkHavocFx: { ...inkFx, retreat: !inkFx.retreat } })}
+                        className={`panel-control hidden md:inline-flex ${HEADER_BUTTON_CLASS}${inkFx.retreat ? ' text-accent2-ink' : ''}`}
+                        title="闭关 · 收起装饰，专注书写"
+                        aria-label="闭关 · 收起装饰，专注书写"
+                        aria-pressed={inkFx.retreat}
+                    >
+                        <Flag className="w-4 h-4" aria-hidden="true" />
+                    </button>
+                )}
 
                 {/* 显示当前主题；点击选择，不再循环切换。 */}
                 <button

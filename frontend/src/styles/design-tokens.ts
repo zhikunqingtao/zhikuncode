@@ -148,16 +148,17 @@ export const CHART_COLORS = {
     dark: ['#8A8FF0', '#5FC4B2', '#E0A94A', '#EF6B63', '#6DB4E6', '#B58CD6', '#A3C24E', '#8B99AD'],
 } as const;
 
-export type ThemeMode = 'light' | 'dark' | 'glass' | 'spaceship';
+export type ThemeMode = 'light' | 'dark' | 'glass' | 'spaceship' | 'ink-havoc' | 'ink-havoc-night';
 
 /**
  * resolveTheme — effectiveTheme 解析（§4.5 第二职责）
- * Glass → 'light'；Spaceship → 'dark'（星舰 HUD 为深空暗色系）；其余原样返回。
+ * Glass → 'light'；Spaceship → 'dark'（星舰 HUD 为深空暗色系）；
+ * ink-havoc（花果晨绢纸底）→ 'light'；ink-havoc-night（灵霄夜群青底）→ 'dark'；其余原样返回。
  * Recharts / Mermaid / Monaco 三处统一消费，替代裸 isDark 布尔。
  */
 export function resolveTheme(mode: ThemeMode): 'light' | 'dark' {
-    if (mode === 'glass') return 'light';
-    if (mode === 'spaceship') return 'dark';
+    if (mode === 'glass' || mode === 'ink-havoc') return 'light';
+    if (mode === 'spaceship' || mode === 'ink-havoc-night') return 'dark';
     return mode;
 }
 

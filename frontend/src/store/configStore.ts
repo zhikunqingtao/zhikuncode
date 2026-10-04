@@ -11,7 +11,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { broadcastMiddleware } from './broadcastMiddleware';
 import { DEFAULT_ACCENT_HEX } from '@/theme/accents';
-import type { ThemeConfig, SpaceshipFxConfig, OutputStyleDef, Config } from '@/types';
+import type { ThemeConfig, SpaceshipFxConfig, InkHavocFxConfig, OutputStyleDef, Config } from '@/types';
 
 export interface ConfigStoreState {
     // 状态
@@ -42,11 +42,13 @@ const DEFAULT_THEME: ThemeConfig = {
     fontFamily: 'monospace',
     borderRadius: 'md',
     spaceshipFx: defaultSpaceshipFx(),
+    inkHavocFx: defaultInkHavocFx(),
 };
 
 /** 旧 system 偏好按当前系统外观迁移一次；未知值回退浅色。 */
 export function normalizeThemeMode(mode: unknown): ThemeConfig['mode'] {
-    if (mode === 'light' || mode === 'dark' || mode === 'glass' || mode === 'spaceship') return mode;
+    if (mode === 'light' || mode === 'dark' || mode === 'glass' || mode === 'spaceship'
+        || mode === 'ink-havoc' || mode === 'ink-havoc-night') return mode;
     if (mode === 'system' && typeof window !== 'undefined'
         && typeof window.matchMedia === 'function'
         && window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
@@ -74,6 +76,27 @@ export function normalizeSpaceshipFx(value: unknown, base: SpaceshipFxConfig = d
     };
 }
 
+/** inkHavocFx 默认值：系统偏好减少动态时 motion 默认 'reduced'（仍可手动切回 full）；闭关默认关闭 */
+export function defaultInkHavocFx(): InkHavocFxConfig {
+    const reduced = typeof window !== 'undefined'
+        && typeof window.matchMedia === 'function'
+        && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    return { cinematic: true, motion: reduced ? 'reduced' : 'full', retreat: false };
+}
+
+/** inkHavocFx 字段级归一：非法值逐项回退 base/默认，保证三档 motion 恒为合法值 */
+export function normalizeInkHavocFx(value: unknown, base: InkHavocFxConfig = defaultInkHavocFx()): InkHavocFxConfig {
+    const update = value && typeof value === 'object' && !Array.isArray(value)
+        ? value as Partial<InkHavocFxConfig> : {};
+    const motion = update.motion === 'full' || update.motion === 'reduced' || update.motion === 'off'
+        ? update.motion : base.motion;
+    return {
+        cinematic: typeof update.cinematic === 'boolean' ? update.cinematic : base.cinematic,
+        retreat: typeof update.retreat === 'boolean' ? update.retreat : base.retreat,
+        motion,
+    };
+}
+
 export function normalizeTheme(value: unknown, base: ThemeConfig = DEFAULT_THEME): ThemeConfig {
     const raw = value && typeof value === 'object' && !Array.isArray(value) ? value as Partial<ThemeConfig> : {};
     // 字符串形式的 mode 先断言进联合类型，合法性由下方 normalizeThemeMode 白名单兜底
@@ -83,6 +106,7 @@ export function normalizeTheme(value: unknown, base: ThemeConfig = DEFAULT_THEME
         ...update,
         mode: normalizeThemeMode(update.mode ?? base.mode),
         spaceshipFx: normalizeSpaceshipFx(raw.spaceshipFx, base.spaceshipFx ?? defaultSpaceshipFx()),
+        inkHavocFx: normalizeInkHavocFx(raw.inkHavocFx, base.inkHavocFx ?? defaultInkHavocFx()),
     };
 }
 

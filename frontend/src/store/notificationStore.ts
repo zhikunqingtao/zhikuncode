@@ -30,6 +30,8 @@ export const useNotificationStore = create<NotificationStoreState>()(
         notifications: [],
 
         addNotification: (config) => set(d => {
+            // key 是通知身份；替换后移到末尾，进入最新通知的可见窗口。
+            d.notifications = d.notifications.filter(n => n.key !== config.key);
             d.notifications.push({
                 key: config.key,
                 level: config.level,

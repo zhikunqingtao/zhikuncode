@@ -51,6 +51,9 @@ import { useVirtualKeyboard } from '@/hooks/useVirtualKeyboard';
 import { SessionMergePanel } from '@/components/session/SessionMergePanel';
 import { isMergeSource, selectMergeSourceIds, useSessionMergeStore } from '@/store/sessionMergeStore';
 import { SpaceshipHudLayer } from '@/components/theme/SpaceshipHudLayer';
+import { InkHavocFxLayer } from '@/components/theme/InkHavocFxLayer';
+import { InkRetreatCeremony } from '@/components/theme/InkRetreatCeremony';
+import { ToastContainer } from '@/components/common/ToastContainer';
 
 /**
  * §7.6 移动态虚拟键盘桥（仅 isMobile 时挂载，桌面零副作用）：
@@ -503,6 +506,10 @@ function App() {
       <SessionMergePanel />
       {/* 星舰 HUD 电影级装饰层：spaceship + cinematic 门控，fixed overlay，与 GlassMaterial 并存不冲突 */}
       <SpaceshipHudLayer />
+      {/* 大闹天宫浓郁档装饰层：ink 双模式 + cinematic 门控，fixed overlay（角标/回纹带/帘幕） */}
+      <InkHavocFxLayer />
+      {/* 波次3② 闭关挂匾/摘匾仪式：订阅 retreat 翻转自播自收（ink 双模式全档） */}
+      <InkRetreatCeremony />
       <AppLayout>
         <div className="chat-workspace h-full flex flex-col">
           <div className="chat-content flex-1 overflow-hidden">
@@ -563,6 +570,11 @@ function App() {
       {/* Global Dialogs */}
       <DialogManager />
       <ProjectSelectionDialog />
+
+      {/* 通知 Toast 容器（§8.2.6a）：notificationStore 唯一渲染者。
+          波次1增强①盖印仪式前置——此前未挂载导致通知只进不出，此处补齐挂载；
+          ink 浓郁档下 toast 左侧朱印由 InkSealStamp 承载 */}
+      <ToastContainer />
 
       {/* 停止任务二次确认 — 桌面/平板 Dialog，手机 Bottom Sheet */}
       <InterruptConfirmDialog

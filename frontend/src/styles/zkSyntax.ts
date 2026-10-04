@@ -6,7 +6,8 @@
  * 浅色四色为定稿色经 WCAG 4.5:1 同色相加深后的终值；深色使用定稿原值。
  */
 import type { CSSProperties } from 'react';
-import { TOKENS } from './design-tokens';
+import { TOKENS, resolveTheme } from './design-tokens';
+import type { ThemeMode } from './design-tokens';
 
 export type ZkSyntaxStyle = Record<string, CSSProperties>;
 
@@ -46,6 +47,32 @@ const DARK_PALETTE: SyntaxPalette = {
     text4: TOKENS.dark['--v2-text-4'],
 };
 
+/** 花果晨语法色板：保留重彩色相，按代码块绢本沉底校准至至少 4.5:1。 */
+const INK_HUAGUO_PALETTE: SyntaxPalette = {
+    key: '#805832',      // 赭石（类型/类名/属性）
+    string: '#366B4A',   // 石绿压深
+    number: '#9D2933',   // 胭脂
+    keyword: '#A04337',  // 土红（九色鹿北魏土红）
+    fn: '#3A5F8A',       // 群青（天庭冷色）
+    comment: '#695F4E',  // 松烟
+    text1: '#2E2822',    // 墨色
+    text2: '#6B5F4E',    // 墨灰褐（标点/operator）
+    text4: '#6D5F41',    // 赭色（行号）
+};
+
+/** 灵霄夜（ink-havoc-night 深）语法色板：提亮版，取皮肤令牌（朱膘/翠绿/鎏金/石青/桃红/灰绢） */
+const INK_LINGXIAO_PALETTE: SyntaxPalette = {
+    key: '#5FA8D8',      // 石青亮
+    string: '#46B08C',   // 翠绿
+    number: '#F47983',   // 桃红
+    keyword: '#E85D4A',  // 朱膘（朱砂提亮）
+    fn: '#E0A92E',       // 鎏金（金箍棒）
+    comment: '#98A2B8',  // 灰绢
+    text1: '#EDE5D0',    // 月白
+    text2: '#A0A8BC',    // 灰蓝（标点/operator）
+    text4: '#7684A3',    // 蓝灰（行号）
+};
+
 function buildZkSyntaxStyle(p: SyntaxPalette): ZkSyntaxStyle {
     const base: CSSProperties = { color: p.text1, background: 'transparent', textShadow: 'none' };
     const comment: CSSProperties = { color: p.comment, fontStyle: 'italic' };
@@ -83,3 +110,19 @@ export const ZK_SYNTAX_STYLES: Record<'light' | 'dark', ZkSyntaxStyle> = {
     light: ZK_SYNTAX_LIGHT,
     dark: ZK_SYNTAX_DARK,
 };
+
+/** 花果晨语法样式（ink-havoc 浅主题代码块） */
+export const ZK_SYNTAX_INK_HUAGUO: ZkSyntaxStyle = buildZkSyntaxStyle(INK_HUAGUO_PALETTE);
+
+/** 灵霄夜语法样式（ink-havoc-night 深主题代码块） */
+export const ZK_SYNTAX_INK_LINGXIAO: ZkSyntaxStyle = buildZkSyntaxStyle(INK_LINGXIAO_PALETTE);
+
+/**
+ * resolveZkSyntaxStyle — 按主题模式取语法样式（ink 双主题直达专属色板，
+ * 其余主题经 resolveTheme 归一 light/dark；新增主题只需扩展本函数）
+ */
+export function resolveZkSyntaxStyle(mode: string): ZkSyntaxStyle {
+    if (mode === 'ink-havoc') return ZK_SYNTAX_INK_HUAGUO;
+    if (mode === 'ink-havoc-night') return ZK_SYNTAX_INK_LINGXIAO;
+    return ZK_SYNTAX_STYLES[resolveTheme(mode as ThemeMode)];
+}

@@ -16,7 +16,7 @@
  * 派生（globals.css），无需写入。未知 hex 一律回退青瓷（默认色）。
  */
 
-export type EffectiveTheme = 'light' | 'dark' | 'glass' | 'spaceship';
+export type EffectiveTheme = 'light' | 'dark' | 'glass' | 'spaceship' | 'ink-havoc' | 'ink-havoc-night';
 
 export interface AccentLightValues {
     accent: string;
@@ -138,6 +138,19 @@ export const ACCENT_PRESETS: readonly AccentPreset[] = [
  * @param effectiveTheme 有效主题（glass 拥有独立清透档，不再归一为 light）
  */
 export function applyAccent(hex: string, effectiveTheme: EffectiveTheme): void {
+    // 大闹天宫重彩戏曲风：accent 不随用户预设，写死主题色（浅=朱砂系 / 深=鎏金系），提前返回
+    if (effectiveTheme === 'ink-havoc' || effectiveTheme === 'ink-havoc-night') {
+        const ink = effectiveTheme === 'ink-havoc'
+            ? { accent: '#C03A2B', accentInk: '#C03A2B', strong: '#9E2F23', soft: 'rgba(192,58,43,.12)', ring: 'rgba(192,58,43,.35)' }
+            : { accent: '#E0A92E', accentInk: '#E0A92E', strong: '#C98F1F', soft: 'rgba(224,169,46,.16)', ring: 'rgba(224,169,46,.42)' };
+        const style = document.documentElement.style;
+        style.setProperty('--v2-accent', ink.accent);
+        style.setProperty('--v2-accent-ink', ink.accentInk);
+        style.setProperty('--v2-accent-strong', ink.strong);
+        style.setProperty('--v2-accent-soft', ink.soft);
+        style.setProperty('--v2-accent-ring', ink.ring);
+        return;
+    }
     const normalized = normalizeAccentHex(hex);
     const preset = ACCENT_PRESETS.find((p) => p.hex === normalized) ?? ACCENT_PRESETS[0];
     const variant = effectiveTheme === 'dark' ? preset.dark

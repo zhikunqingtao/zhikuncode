@@ -165,7 +165,7 @@ const TextBlock: React.FC<TextBlockProps> = ({ text, streaming = false }) => {
             if (!match && !codeStr.includes('\n')) {
                 return (
                     <code
-                        className="px-1.5 py-0.5 rounded-md bg-sunken2 text-[13px] max-md:text-sm font-mono text-t1"
+                        className="markdown-inline-code px-1.5 py-0.5 rounded-md bg-sunken2 text-[13px] max-md:text-sm font-mono text-t1"
                         {...props}
                     >
                         {children}
@@ -175,7 +175,7 @@ const TextBlock: React.FC<TextBlockProps> = ({ text, streaming = false }) => {
 
             // Mermaid diagram
             if (lang === 'mermaid') {
-                return <MermaidBlock code={codeStr} />;
+                return <div className="markdown-embed"><MermaidBlock code={codeStr} /></div>;
             }
 
             // Fenced code block
@@ -184,7 +184,7 @@ const TextBlock: React.FC<TextBlockProps> = ({ text, streaming = false }) => {
         // Headings（视觉换肤 §1.6 字阶：h1 22 / h2 18 / h3 15，全部 600）
         h1: ({ children }) => <h1 className="text-[22px] leading-snug font-semibold mt-6 mb-3">{children}</h1>,
         h2: ({ children }) => <h2 className="text-[18px] leading-snug font-semibold mt-6 mb-2">{children}</h2>,
-        h3: ({ children }) => <h3 className="text-[15px] leading-snug font-semibold mt-4 mb-2 text-t2">{children}</h3>,
+        h3: ({ children }) => <h3 className="markdown-muted-heading text-[15px] leading-snug font-semibold mt-4 mb-2 text-t2">{children}</h3>,
         // Paragraphs：含图片的段落改用 <div> 输出，避免 MarkdownImage/ImageBlock
         // 的块级容器造成 p > div 非法嵌套（validateDOMNesting 告警）
         p: ({ node, children }) => {
@@ -214,14 +214,14 @@ const TextBlock: React.FC<TextBlockProps> = ({ text, streaming = false }) => {
         input: ({ node: _node, ...props }) => {
             if (props.type === 'checkbox') {
                 return props.checked
-                    ? <Check size={14} className="mt-1 shrink-0 text-ok" aria-label="已完成" />
-                    : <Square size={13} className="mt-1 shrink-0 text-t4" aria-label="未完成" />;
+                    ? <Check size={14} className="markdown-task-marker mt-1 shrink-0 text-ok" aria-label="已完成" />
+                    : <Square size={13} className="markdown-task-marker mt-1 shrink-0 text-t4" aria-label="未完成" />;
             }
             return <input {...props} />;
         },
         // Blockquotes
         blockquote: ({ children }) => (
-            <blockquote className="border-l-4 border-accent2 pl-4 my-3 text-t2 italic">
+            <blockquote className="markdown-quote border-l-4 border-accent2 pl-4 my-3 text-t2 italic">
                 {children}
             </blockquote>
         ),
@@ -231,7 +231,7 @@ const TextBlock: React.FC<TextBlockProps> = ({ text, streaming = false }) => {
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-accent2-ink hover:text-accent2-ink underline"
+                className="markdown-link text-accent2-ink hover:text-accent2-ink underline"
             >
                 {children}
             </a>
@@ -239,7 +239,7 @@ const TextBlock: React.FC<TextBlockProps> = ({ text, streaming = false }) => {
         // Tables
         table: ({ children }) => (
             <div className="overflow-x-auto my-3">
-                <table className="min-w-full border-collapse text-sm">
+                <table className="markdown-table min-w-full border-collapse text-sm">
                     {children}
                 </table>
             </div>

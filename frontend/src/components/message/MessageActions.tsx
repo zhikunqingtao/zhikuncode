@@ -81,7 +81,7 @@ const MessageActions: React.FC<MessageActionsProps> = ({ message, isStreaming = 
     return (
         <div
             className={cn(
-                'mt-2 flex items-center justify-end gap-2 border-t border-hairline pt-1.5',
+                'message-actions mt-2 flex items-center justify-end gap-2 border-t border-hairline pt-1.5',
                 className,
             )}
         >
@@ -90,7 +90,7 @@ const MessageActions: React.FC<MessageActionsProps> = ({ message, isStreaming = 
                     type="button"
                     onClick={handleCopyAll}
                     className={cn(
-                        'inline-flex h-[32px] shrink-0 items-center justify-center gap-1 rounded-full border px-2.5 transition-colors duration-fast',
+                        'message-copy-all inline-flex h-[32px] shrink-0 items-center justify-center gap-1 rounded-full border px-2.5 transition-colors duration-fast',
                         'focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent2-ink',
                         copyAllState === 'failed'
                             ? 'border-err bg-errsoft text-err'
@@ -119,7 +119,7 @@ const MessageActions: React.FC<MessageActionsProps> = ({ message, isStreaming = 
                 </button>
             )}
             <span
-                className="text-[13px] text-t4 tabular-nums select-none transition-colors duration-fast group-hover:text-t3"
+                className="message-timestamp text-[13px] text-t4 tabular-nums select-none transition-colors duration-fast group-hover:text-t3"
                 data-testid="message-timestamp"
             >
                 {formatMessageTime(message.timestamp)}

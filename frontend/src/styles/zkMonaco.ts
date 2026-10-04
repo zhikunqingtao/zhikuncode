@@ -44,11 +44,11 @@ function subscribeThemeChanges(): void {
     );
 }
 
-/** 当前生效主题（DOM 类为准；spaceship 等同 dark 基准，glass 无 dark 类 → light；system 由应用方落类） */
+/** 当前生效主题（DOM 类为准；spaceship/ink-havoc-night 等同 dark 基准，glass 无 dark 类 → light；system 由应用方落类） */
 export function getEffectiveTheme(): 'light' | 'dark' {
     if (typeof document === 'undefined') return 'light';
     const cls = document.documentElement.classList;
-    return cls.contains('dark') || cls.contains('spaceship') ? 'dark' : 'light';
+    return cls.contains('dark') || cls.contains('spaceship') || cls.contains('ink-havoc-night') ? 'dark' : 'light';
 }
 
 /** 当前应使用的 Monaco zk 主题名 */

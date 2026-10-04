@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ruyi-cloud-corner.svg — 如意云头角标（双层云头叠影）
+  用途：界面主视觉区四角装饰（托底角花，压于内容层下）。
+  出处：《大闹天宫》碧云寺浮雕云纹（与 demo 内联 ruyiPath 同构，已验证）。
+  建议用法：
+    · 直接 <img> / CSS background 置于四角；color 由 ink-cloud-color 驱动
+      （calm=v2-accent / rich=ink-gold），透明度 ink-cloud-opacity，
+      尺寸 ink-cloud-size（calm 56px / rich 72px）。
+    · 其余三角用 CSS transform 翻转：右上 scaleX(-1)、左下 scaleY(-1)、右下 scale(-1,-1)。
+    · 内联为 React/SVGR 组件时，可用 #echo 选择器在 calm 档隐藏叠影层（demo 行为）。
+  注：注释中 ink-* / v2-* 为 tokens/ink-havoc-tokens.css 的 CSS 变量名（XML 注释不含双横线，实际变量带双横线前缀）。
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72"
+     fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+  <defs>
+    <!-- 如意云头：三峰螺旋卷云 + 内卷纹 + 下垂云尾（64 坐标系，供主层与叠影层复用） -->
+    <g id="ruyi">
+      <path d="M32 54 C20 54 11 46 13 36 C14 29 20 26 25 27 C22 17 26 10 32 10 C38 10 42 17 39 27 C44 26 50 29 51 36 C53 46 44 54 32 54 Z"/>
+      <path d="M21 40 C20 35 26 33 28 37"/>
+      <path d="M43 40 C44 35 38 33 36 37"/>
+      <path d="M32 54 C32 60 38 61 42 58 C45 56 44 51 40 52"/>
+    </g>
+  </defs>
+
+  <!-- 叠影层（rich 档显示；calm 档可隐藏，对应 demo .corner .echo） -->
+  <use id="echo" href="#ruyi" transform="translate(10 10) scale(.92)" opacity=".38"/>
+
+  <!-- 沿顶边/左边延展的云脚（角花臂） -->
+  <path d="M32 12 C44 7 57 8 66 15"/>
+  <path d="M13 34 C8 44 8 55 15 63"/>
+
+  <!-- 主云头（锚定左上角） -->
+  <use href="#ruyi" transform="translate(3 3) scale(.92)"/>
+</svg>

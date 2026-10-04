@@ -523,13 +523,24 @@ export interface SpaceshipFxConfig {
     motion: 'full' | 'reduced' | 'off';
 }
 
+/** 大闹天宫重彩戏曲风主题专属特效开关（仅 mode='ink-havoc'/'ink-havoc-night' 时生效） */
+export interface InkHavocFxConfig {
+    /** 浓郁档：描金纹样/角标装饰层显现（html class fx-ink-rich） */
+    cinematic: boolean;
+    /** 动效档：full 完整 / reduced 精简 / off 关闭（语义复用星舰三档） */
+    motion: 'full' | 'reduced' | 'off';
+    /** 闭关模式：装饰层全部退场专注书写（html class ink-retreat；功能反馈保留） */
+    retreat: boolean;
+}
+
 export interface ThemeConfig {
-    mode: 'light' | 'dark' | 'glass' | 'spaceship';
+    mode: 'light' | 'dark' | 'glass' | 'spaceship' | 'ink-havoc' | 'ink-havoc-night';
     accentColor: string;
     fontSize?: string;
     fontFamily?: string;
     borderRadius?: string;
     spaceshipFx?: SpaceshipFxConfig;
+    inkHavocFx?: InkHavocFxConfig;
 }
 
 export interface OutputStyleDef {
