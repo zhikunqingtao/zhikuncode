@@ -41,6 +41,15 @@ public final class ProviderErrorClassifier {
     private ProviderErrorClassifier() {}
 
     /**
+     * 未分类错误的重试提示：保留最近一层 LLM 异常的决定，包括流开始后禁用重试的包装。
+     * 无 LLM 异常时使用调用方默认值；不替代 {@link #classify(Throwable)} 的 HTTP/连接分类。
+     */
+    public static boolean retryableOrDefault(Throwable error, boolean defaultRetryable) {
+        LlmApiException llm = findLlmApiException(error);
+        return llm == null ? defaultRetryable : llm.isRetryable();
+    }
+
+    /**
      * 沿 cause 链查找 {@link LlmApiException} 并按 HTTP 状态码分类；
      * 无 HTTP 状态时再检查 cause 链中的 {@link ConnectException}（连接拒绝/不可达）。
      *

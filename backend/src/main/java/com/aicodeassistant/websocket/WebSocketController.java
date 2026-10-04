@@ -715,7 +715,8 @@ public class WebSocketController implements PermissionNotifier {
                     executeQuery(sessionId, msg.text(), imagesForQuery, modelOverride);
                 } catch (Exception e) {
                     log.error("QueryEngine 执行异常: sessionId={}", sessionId, e);
-                    sendError(sessionId, "query_error", e.getMessage() != null ? e.getMessage() : "Unknown error", true);
+                    sendError(sessionId, "query_error", e.getMessage() != null ? e.getMessage() : "Unknown error",
+                            ProviderErrorClassifier.retryableOrDefault(e, true));
                 }
             });
             tokenTransferred = true;
@@ -1216,7 +1217,8 @@ public class WebSocketController implements PermissionNotifier {
                         classified.errorCode(), classified.httpStatus());
             } else {
                 sendError(sessionId, "query_error",
-                        error.getMessage() != null ? error.getMessage() : "Unknown error", true);
+                        error.getMessage() != null ? error.getMessage() : "Unknown error",
+                        ProviderErrorClassifier.retryableOrDefault(error, true));
             }
         }
 
@@ -1483,7 +1485,8 @@ public class WebSocketController implements PermissionNotifier {
                                                         payload.command(), sessionId, e);
                                                 sendError(sessionId, "query_error",
                                                         e.getMessage() != null ? e.getMessage()
-                                                                : "Unknown error", true);
+                                                                : "Unknown error",
+                                                        ProviderErrorClassifier.retryableOrDefault(e, true));
                                             }
                                         });
                             } else {

@@ -177,20 +177,22 @@ describe('error 事件契约解析', () => {
         expect(banner?.timeout).toBe(0);
     });
 
-    it.each(['INTERNAL_ERROR', 'query_error'])('%s 仍终止生成中状态并标记运行工具失败', code => {
+    it.each(['INTERNAL_ERROR', 'query_error'].flatMap(code =>
+        [true, false].map(retryable => ({ code, retryable })),
+    ))('$code retryable=$retryable 仍终止生成中状态并标记运行工具失败', ({ code, retryable }) => {
         useMessageStore.getState().appendStreamDelta('部分输出');
         useMessageStore.getState().startToolCall('failed-run-tool', 'Bash', { command: 'sleep 30' });
         dispatch({
             type: 'error',
             code,
             message: '内部错误',
-            retryable: true,
+            retryable,
         } as ServerMessage);
 
         const system = findSystemMessage();
         expect(system?.subtype).toBe('error');
         expect(system?.errorCode).toBe(code);
-        expect(system?.retryable).toBe(true);
+        expect(system?.retryable).toBe(retryable);
         expect(useNotificationStore.getState().notifications).toHaveLength(0);
         expect(useSessionStore.getState().status).toBe('idle');
         expect(useMessageStore.getState().streamingMessageId).toBeNull();

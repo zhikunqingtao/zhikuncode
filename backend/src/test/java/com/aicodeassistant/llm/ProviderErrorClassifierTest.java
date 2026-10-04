@@ -137,4 +137,38 @@ class ProviderErrorClassifierTest {
                 new LlmApiException("weird status", false, 200)));
         assertNull(ProviderErrorClassifier.classify(null));
     }
+
+    @Test
+    void unclassifiedRetryabilityUsesTheNearestLlmException() {
+        var original = new LlmApiException("stream failure", true);
+        var suppressed = original.withRetryable(false);
+        assertFalse(ProviderErrorClassifier.retryableOrDefault(suppressed, true));
+        assertFalse(ProviderErrorClassifier.retryableOrDefault(
+                new IllegalStateException("outer", suppressed), true));
+        assertTrue(ProviderErrorClassifier.retryableOrDefault(
+                new RuntimeException("outer", new LlmApiException("retry", false).withRetryable(true)), false));
+        assertTrue(ProviderErrorClassifier.retryableOrDefault(original, false));
+        assertNull(ProviderErrorClassifier.classify(suppressed));
+    }
+
+    @Test
+    void unknownErrorsPreserveTheCallersDefault() {
+        assertTrue(ProviderErrorClassifier.retryableOrDefault(new RuntimeException("unknown"), true));
+        assertFalse(ProviderErrorClassifier.retryableOrDefault(new RuntimeException("unknown"), false));
+        assertTrue(ProviderErrorClassifier.retryableOrDefault(null, true));
+        assertFalse(ProviderErrorClassifier.retryableOrDefault(null, false));
+    }
+
+    @Test
+    void retryabilitySearchHasTheSameSixteenExceptionLimit() {
+        Throwable error = new LlmApiException("no retry", false);
+        for (int i = 0; i < 15; i++) error = new RuntimeException("wrapper", error);
+        assertFalse(ProviderErrorClassifier.retryableOrDefault(error, true));
+        assertTrue(ProviderErrorClassifier.retryableOrDefault(new RuntimeException("outside limit", error), true));
+
+        RuntimeException first = new RuntimeException("first");
+        RuntimeException second = new RuntimeException("second", first);
+        first.initCause(second);
+        assertTrue(ProviderErrorClassifier.retryableOrDefault(first, true));
+    }
 }
