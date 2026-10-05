@@ -4,12 +4,12 @@
   <img src="assets/logo.svg" alt="ZhikunCode" width="120" />
   <h1>ZhikunCode</h1>
   <p><strong>Open-Source AI Coding Assistant — Deploy Once, Control Everything from Your Browser</strong></p>
-  <p>Multi-Agent Collaboration · Docker Self-Hosted · Direct Integration with Chinese LLMs · Defense-in-Depth Security</p>
+  <p>Agent Delegation and Background Tasks · Docker Self-Hosted · Direct Integration with Chinese LLMs · Defense-in-Depth Security</p>
 
   <p>
     <a href="#-quick-start">Quick Start</a> ·
     <a href="#-key-features">Key Features</a> ·
-    <a href="https://zhikunqingtao.github.io/zhikuncode/#demo">Demo</a> ·
+    <a href="https://zhikunqingtao.github.io/zhikuncode/#case-study">Case Studies</a> ·
     <a href="#-open-engineering-cases">Engineering Cases</a> ·
     <a href="#-swe-bench-lite-evaluation">SWE-bench</a> ·
     <a href="#-cli-tools">CLI Tools</a> ·
@@ -138,7 +138,7 @@ Eight AI coding tools reviewed the same commit. Their final reports were compare
 | 📦 | **Current Delivery Projection** | Correlates the current request, final response, deliverables, pending Interactions, activities, and Evidence through the current Root Run and its recursive child Runs, preventing results from different executions from being presented as one delivery. Legacy Sessions that cannot be correlated exactly are explicitly marked as compatibility fallbacks |
 | 🔀 | **Session Context Merge** | Bring summaries, text records of persisted activity, and temporary artifacts with established ownership from 2–5 idle sessions into a new session. Source sessions are preserved; the new session waits for your next instruction and does not automatically merge project code |
 | 🔗 | **Local File References** | Direct local access adds a canonical path through the native picker without uploading content. ECS, remote, and proxied access uses the browser picker, immediately publishes the file as a permanently public OSS object, and adds its URL to the prompt. OSS must be configured for remote references |
-| 🤖 | **Multi-Agent Collaboration** | Three collaboration modes: Team (fixed roles) / Swarm (dynamic negotiation) / SubAgent (parent-child delegation). Complex tasks are automatically distributed |
+| 🤖 | **Agent Delegation and Background Tasks** | Five child-Agent roles, independent contexts, and parallel execution; synchronous results, current-Run background result aggregation, and queryable background Tasks with cancellation requests |
 | 🔒 | **Unified Authorization Security** | Every core tool passes through the Tool Gateway: canonical input freezing → Operation Analyzer risk/resource analysis → system invariants → RUN/SESSION/WORKSPACE grant matching or durable permission interaction → final dynamic recheck → structured result auditing. High-risk operations are ONCE-only, and unknown MCP/dynamic tools default to one-time approval |
 | 🇨🇳 | **Native Chinese LLM Support** | Qwen / DeepSeek / Moonshot / Zhipu GLM / MiniMax work out of the box with direct connections from mainland China — no VPN required |
 | 🐳 | **One-Command Docker Deployment** | `docker compose up -d` starts the Java backend and bundled static frontend by default; the image also includes the optional managed Python service, and data stays local |
@@ -490,12 +490,12 @@ ZhikunCode has completed an end-to-end SWE-bench Lite evaluation (300 instances,
 | Web UI | ✅ Full-featured | ⚠️ Experimental browser UI | ❌ | ⚠️ Web ver. | ✅ | ⚠️ GitHub.com |
 | Docker Self-hosted | ✅ Full web service | ⚠️ CLI container | ❌ | ⚠️ Enterprise | ❌ | ❌ |
 | Chinese LLM Support | ✅ Native | ⚠️ Compatible API | ⚠️ Compatible API | ❌ | ❌ | ❌ |
-| Multi-Agent | ✅ Team/Swarm/Sub | ❌ | ✅ Kanban + CLI parallel | ✅ Multi-Agents | ✅ Sub-Agents | ✅ /fleet + Agent Mode |
+| Multi-Agent | ✅ Agent delegation + background tasks | ❌ | ✅ Kanban + CLI parallel | ✅ Multi-Agents | ✅ Sub-Agents | ✅ /fleet + Agent Mode |
 | Full Browser Control¹ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Security Sandbox | ✅ 8-layer | ❌ | ❌ | ⚠️ Enterprise | ✅ OS-level | ⚠️ GitHub permission policies |
 | MCP Tool Extension | ✅ | ⚠️ 3rd-party | ✅ | ✅ | ✅ | ✅ |
 | CLI Terminal Tools | ✅ aica + 35+ slash cmds | ✅ CLI-first | ✅ CLI 2.0 | ✅ Cursor CLI | ✅ CLI-only | ✅ Copilot CLI |
-| Extensible Skill System | ✅ Markdown-driven + 6-level sources | ❌ | ❌ | ✅ Rules | ✅ Hooks | ❌ |
+| Extensible Skill System | ✅ Markdown-driven + bundled/project/user skills | ❌ | ❌ | ✅ Rules | ✅ Hooks | ❌ |
 | Plugin System | ✅ Java SPI plugins + sandbox isolation + hot reload | ❌ | ❌ | ✅ Plugins | ✅ Skills/Hooks | ✅ Plugins |
 | Cross-Session Memory | ✅ 3-layer memory + BM25 search | ❌ | ❌ | ✅ Rules | ✅ Memory | ❌ |
 | Activity Tracking & Approval | ✅ L1/L2/L3 Three-layer | ❌ | ❌ | ❌ | ✅ Permission Mgmt | ❌ |
@@ -555,7 +555,7 @@ ZhikunCode uses a three-tier architecture: the Java backend handles core orchest
 | Layer | Tech Stack | Responsibilities |
 |-------|-----------|-----------------|
 | **Backend** | Java 21, Spring Boot 3.4.x, WebSocket, SQLite | Core orchestration engine, LLM API routing, Agent management, built-in tools and MCP dynamic extensions, unified authorization gateway, session persistence |
-| **Frontend** | React 18, TypeScript 5.6, Vite 5, TailwindCSS, Monaco Editor, xterm.js, Zustand | Conversational UI, code editor, built-in terminal, file browser, settings panel, real-time streaming output, Agent collaboration visualization |
+| **Frontend** | React 18, TypeScript 5.6, Vite 5, TailwindCSS, Monaco Editor, xterm.js, Zustand | Conversational UI, code editor, built-in terminal, file browser, settings panel, real-time streaming output, delegation results |
 | **Python Service** | FastAPI, Uvicorn, Python 3.11+ | Code analysis, AST parsing, MCP tool bridging |
 
 ### Docker Deployment Architecture
@@ -694,7 +694,7 @@ A new Web session must first select an authorized directory. In remote and Docke
 - The backend security default for `ZHIKUN_LOCAL_PICKER_ENABLED` is `false`. For local quick starts, `./start.sh` enables the picker only when neither `ZHIKUN_WORKSPACE_ALLOWED_ROOTS` nor the picker variable has a non-empty value; an explicit `false` or configured allowed roots is preserved and never implicitly enables it. Remote, reverse-proxied, and production deployments should explicitly keep it disabled and configure allowed roots.
 - Python uses `WORKSPACE_ROOT` as the default anchor for relative paths. When `ZHIKUN_WORKSPACE_ALLOWED_ROOTS` is configured, Python routes enforce the same roots; only the loopback development mode with no allowed roots and an explicitly enabled local picker may analyze another absolute path selected by the user.
 
-### Authorization Scopes and Multi-Agent Inheritance
+### Authorization Scopes and Child Agent Inheritance
 
 | Scope | Lifetime | Sub-Agent behavior |
 |-------|----------|--------------------|
@@ -734,15 +734,14 @@ The following paths are always protected by system security invariants; permissi
 - Dedicated tests cover authorization, Bash, paths, symlinks, WebSocket behavior, concurrency, and database CAS
 - Includes command injection, path traversal, permission bypass, and other attack scenarios
 - **New defense-in-depth in v9.3**:
-  - **CWE-22 Path Traversal**: `CoordinatorService.getScratchpadDir` sessionId allowlist (11 unit tests) + `SwarmController.createSwarm` teamName allowlist (8 unit tests). Even if upstream URI interception is bypassed, the allowlist remains the final on-disk line of defense
+  - **CWE-22 Path Traversal**: `CoordinatorService.getScratchpadDir` sessionId allowlist (11 unit tests). Even if upstream URI interception is bypassed, the allowlist remains the final on-disk line of defense
   - **Cross-User Access Isolation (P2-A)**: `BrowserReplayController` two-layer gate — sessionId format validation returns 400 + principal ownership validation returns 403, with MVP anonymous-session compatibility
 
-  **v9.3 Security Defense Summary:**
+  **Selected v9.3 Security Defenses:**
 
   | Defense Layer | Location | Protection Mechanism | Unit Tests |
   |--------------|----------|---------------------|------------|
   | P1-2 | `CoordinatorService.getScratchpadDir` | sessionId allowlist `^[A-Za-z0-9_-]{1,128}$` | 11 |
-  | E1 | `SwarmController.createSwarm` | teamName allowlist `^[A-Za-z0-9_-]{1,64}$` | 8 |
   | P2-A | `BrowserReplayController` | sessionId format validation (400) + principal ownership validation (403) | — |
 
 - These scenarios have dedicated tests; run the full security suite locally or through the specialized workflows.
@@ -773,7 +772,7 @@ These are frontend-only results, not a new full-stack verification. The browser 
 
 **Historical Specialized and E2E Baselines:**
 - **36-Module REST/WS/LLM/Session Smoke**: 45/45 PASS (42 REST + 1 WS STOMP + 1 LLM live inference + 1 Session persistence)
-- **E2E Differentiated Pipelines**: Task 6 Multi-Agent Collaboration (CoordinatorEventBus) · Task 7 Visualization Auto-Routing (`/visualize` mermaid/json/text) · Task 8 Browser Semantic Snapshot MVP (`/snap`) — all end-to-end PASS
+- **E2E Differentiated Pipelines**: Task 7 Visualization Auto-Routing (`/visualize` mermaid/json/text) · Task 8 Browser Semantic Snapshot MVP (`/snap`) — all end-to-end PASS
 - **APOS Phase 1 E2E**: 62 cases (9 modules, including 28 core features + 34 supporting paths) 100% PASS, covering Activity UI / Data Flow / Three-layer Display / Signal Marking / Feature Flag / Backend API / Responsive / Persistence, with 4 bug fix regressions
 - **APOS Phase 2 E2E**: 5 modules, 50 cases (Change Impact Panorama / Pipeline View & DAG / Anomaly Detection & Alert / Mobile Responsive / Phase 2 Integration) 48 PASS / 2 SKIP, pass rate 96%
 - **APOS Risk Fix Verification**: 11 cases 100% PASS (tool invocation / batch operations / concurrency race conditions / API fallback)
@@ -784,19 +783,18 @@ These are frontend-only results, not a new full-stack verification. The browser 
 
 | Framework | Layer | Coverage | Count |
 |-----------|-------|----------|-------|
-| JUnit 5 + Mockito | Backend Unit/Integration | Context/Authorization Gateway/Skill/Plugin/LLM/MCP/Memory/Concurrency/SSE/Persistence/Tool/Coordinator/Swarm/Workbench projection etc. | 1258 tests / 0 failure / 0 error / 62 skipped |
+| JUnit 5 + Mockito | Backend Unit/Integration | Context/Authorization Gateway/Skill/Plugin/LLM/MCP/Memory/Concurrency/SSE/Persistence/Tool/Workbench projection etc. (selected coverage) | 1258 tests / 0 failure / 0 error / 62 skipped |
 | Vitest | Frontend Unit | Store lifecycle/cross-tab sync/streaming/permission interactions/reconnect recovery/workbench and route boundaries | 207 PASS / 16 skipped |
-| Playwright + Node scripts | E2E | Simple Workbench / Coordinator WS subscription / Three visualization viewTypes / Browser snapshot MVP / APOS Phase 1 full-stack / APOS Phase 2 full-stack | Simple Workbench 7/7 PASS; Task 6/7/8/APOS historical baseline green |
+| Playwright + Node scripts | E2E | Simple Workbench / Three visualization viewTypes / Browser snapshot MVP / APOS Phase 1 full-stack / APOS Phase 2 full-stack | Simple Workbench 7/7 PASS; Task 7/8/APOS historical baseline green |
 | Pytest | Python Service | Token estimation/file processing/browser automation/semantic snapshots/code analyzers/CLI | 107 PASS |
 
-**Performance Baseline (v9.3, 490 real request samples):**
+**Selected Performance Baselines (v9.3; original report: 490 real request samples):**
 
 | Metric | p50 | p95 | p99 |
 |--------|-----|-----|-----|
 | REST API (14 endpoints mixed) | 1.5ms | 2.3ms | 4.3ms |
 | WS STOMP Handshake | 2.22ms | 4.58ms | 6.22ms |
 | Browser Semantic Snapshot (warm) | 9.23ms | 12.20ms | 12.26ms |
-| Swarm Creation | 2.39ms | 4.90ms | 12.40ms |
 
 **Detailed Test Data & Evidence:**
 - Full v9.3 report: [docs/test-results/v9.3/](test-results/v9.3/)
@@ -819,7 +817,7 @@ npm run test:theme-regression
 Once dependencies and Chromium are installed, rerun only `npm run test:theme-regression` from `frontend/`. No backend or frontend development server is required. Failure screenshots go to the system temporary directory; the output explicitly lists the Spaceship image-overlay skips described above.
 
 <details>
-<summary>📋 36 Test Modules Breakdown (click to expand)</summary>
+<summary>📋 Selected Historical Test Modules (original report: 36 modules; original numbering retained; click to expand)</summary>
 
 | # | Module | Cases | Pass Rate | Notes |
 |---|--------|-------|-----------|-------|
@@ -833,7 +831,6 @@ Once dependencies and Chromium are installed, rerun only `npm run test:theme-reg
 | 8 | Memory System | 7 | 86% | ★ First coverage |
 | 9 | Skill System | 7 | 100% | ★ First coverage |
 | 10 | Plugin System & MCP | 11 | 100% | ★ First coverage |
-| 11 | Multi-Agent Collaboration | 6 | 100% | — |
 | 12 | Python Service | 15 | 100% | 1 BUG fixed |
 | 13 | Frontend E2E & UI | 7 | 86% | 1 PARTIAL |
 | 14 | File History & API | 11 | 100% | ★ First coverage |
@@ -935,7 +932,9 @@ Translate the selected code to {{language}}, preserving original logic and comme
 
 In the Web input, enter `/skill translate`, fill in `language=python` or `python` in the dialog's arguments field, then execute.
 
-**Supported frontmatter fields:**
+**Parseable frontmatter fields:**
+
+When the model calls the `Skill` tool, the rendered body is returned as a tool result; Web `/skill` sends the rendered prompt into the current conversation through the command path.
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -943,26 +942,26 @@ In the Web input, enter `/skill translate`, fill in `language=python` or `python
 | `name` | string | Display name (overrides filename) |
 | `arguments` | list | Parameter definition list |
 | `argument_hint` | string | Parameter hint text |
-| `when_to_use` | string | Conditions for automatic model invocation |
+| `when_to_use` | string | Usage-condition description metadata |
 | `allowed_tools` | list | Tools declared by the skill; does not replace actual tool permission controls |
-| `context` | string | `inline` (default, inject into current conversation) or `fork` (create independent sub-agent) |
-| `model` | string | Specify model (`inherit` uses parent model) |
+| `context` | string | `inline` (default) returns the rendered body as tool output; `fork` returns the body and execution metadata without automatically creating a child Agent |
+| `model` | string | Model declaration (`inherit` means no override); the executor returns this metadata without automatically switching models |
 | `version` | string | Skill version number |
-| `disable_model_invocation` | boolean | Prevent model from auto-invoking (default: false) |
-| `user_invocable` | boolean | Allow user manual invocation (default: true) |
+| `disable_model_invocation` | boolean | Model-invocation preference (default: false); the current tool entry does not enforce it as an invocation restriction |
+| `user_invocable` | boolean | Manual-invocation preference (default: true); current entry points do not use it to restrict invocation |
 | `hooks` | object | Hook configuration (reserved) |
-| `effort` | string | Reasoning effort level (low/medium/high) |
-| `agent` | string | Associated agent name (only effective in fork mode) |
-| `paths` | list | File path glob patterns |
-| `shell` | string | Shell type (bash or powershell, default: bash) |
+| `effort` | string | Reasoning-effort declaration included in fork result metadata; does not automatically adjust model requests |
+| `agent` | string | Agent-name declaration included in fork result metadata; does not automatically create that Agent |
+| `paths` | list | Declared file path glob patterns (metadata) |
+| `shell` | string | Shell-type declaration (default: bash); does not automatically start or switch shells |
 
 > Files in watched skill directories support hot updates with 500ms debounce. Deleting an override does not automatically restore its built-in definition. After changing bundled resources or removing overrides, rebuild and restart the backend, then refresh the frontend menu.
 
 **Security & Runtime Controls:**
 - **Skill Loading & Context**: Skill loading has no fixed cumulative token quota per skill or session. Model context capacity, turn and output limits still apply; repeated loading still increases actual input token usage.
 - **Tool Declarations**: `allowed_tools` describes intended tools; runtime enforcement of this list is not guaranteed, and actual tool permissions still apply
-- **Injection Protection**: Shell injection triple-vector interception (`$()` / backticks / pipes), parameter length limit 2000 chars
-- **Fork Depth Control**: Fork-mode Skill nesting depth ≤3 levels, preventing infinite recursion
+- **Argument Checks**: The `Skill` tool entry checks each parsed argument against a 2,000-character limit and six dangerous regex patterns: `$(...)`, backticks, `; command`, pipe commands, `&& rm`, and `${...}`. Subsequent tool calls still pass through actual authorization and execution checks.
+- **Fork Depth Check**: Fork mode checks the current context depth and rejects calls at depth ≥3; this entry still only returns the rendered body and metadata.
 
 ---
 
@@ -1219,9 +1218,9 @@ From your browser, you can manage the entire AI coding workflow:
 - **Conversational coding** — Describe requirements in natural language; the Agent generates code with real-time streaming output
 - **Permission approvals** — Every sensitive operation triggers an approval prompt: allow / deny / modify
 - **Plan discussion** — Review, discuss, and confirm Agent-proposed plans in the browser
-- **Task management** — Monitor progress, interrupt execution, reassign tasks
+- **Task management** — Inspect task status and results, request cancellation by task ID, and check termination confirmation
 - **File browsing** — Navigate and view the project file tree directly in the browser
-- **Agent collaboration visualization** — See real-time status of each Agent in multi-Agent mode
+- **Delegation results** — Inspect subtask results through tool responses in the conversation
 
 ### Real-Time Communication
 
@@ -1248,100 +1247,100 @@ ZhikunCode provides cross-platform bridging capabilities through the Bridge modu
 
 ---
 
-## 🤖 Multi-Agent Collaboration
+## 🤖 Agent Delegation and Background Tasks
 
-ZhikunCode offers three Agent collaboration modes and five typed Agent definitions for tasks of varying complexity.
+Delegate independent investigation, implementation, or verification to child Agents while the main Agent retains the overall goal. Use background Tasks for execution that needs its own queryable status and output. Both support longer work alongside the main conversation, with distinct responsibilities.
 
-### Five Built-in Agent Types
+### Five Built-in Agent Roles
 
-Built on Java 21 sealed interfaces with compile-time exhaustiveness checking. Each Agent type has its own toolset, model preference, and system prompt:
+The `Agent` tool selects a role through `subagent_type`. `SubAgentExecutor` creates a separate child session and context for every call, guided by its role prompt and currently available tools:
 
-| Agent Type | Purpose | Toolset | Model Preference |
-|-----------|---------|---------|------------------|
-| **General-Purpose** | Full implementation capability | Enabled tools, subject to sub-agent exclusions and authorization | Inherits parent |
-| **Explore** | Read-only code search | Edit/Write denied | Lightweight (light) |
-| **Verification** | Adversarial test validation | Edit/Write denied | Inherits parent |
-| **Plan** | Analysis & solution design | Edit/Write denied | Inherits parent |
-| **Guide** | Documentation & usage guidance | Only Glob/Grep/Read/WebFetch/WebSearch | Lightweight (light) |
+| Role | Suitable Work | Tool Scope |
+|------|---------------|------------|
+| **explore** | Search code, trace calls, locate implementations and risks | Enabled tools excluding direct editing tools and role-specific exclusions |
+| **verification** | Reproduce issues, run tests, find counterexamples, and report evidence | Enabled tools excluding direct editing tools and role-specific exclusions; follows the verification role's file-protection rules |
+| **plan** | Analyze requirements, compare approaches, and break down implementation | Enabled tools excluding direct editing tools and role-specific exclusions |
+| **general-purpose** | Implement features, fix issues, and complete full subtasks | Enabled tools, subject to common exclusions and authorization |
+| **guide** | Consult documentation and explain configuration or usage | Only Glob, Grep, Read, WebFetch, and WebSearch |
 
-> All sub-agents exclude `Agent`, `TeamCreate`, `TeamDelete`, `TaskCreate`, and `VerifyPlanExecution`. The `Edit`/`Write` exclusions above remove those direct tools; Bash/MCP still follow existing authorization, so this is not a complete read-only sandbox.
+The tool pool is assembled from enabled built-in, plugin, and MCP tools, then filtered by common exclusions and role allow/deny rules. Child Agents do not receive nested delegation or verification-orchestration entry points such as `Agent`, `TaskCreate`, or `VerifyPlanExecution`. Explore, verification, and plan exclude direct editing tools such as `Edit`, `Write`, and `NotebookEdit`. Available shell, browser, and MCP operations still follow authorization; tool filtering alone is not a complete read-only sandbox.
 
-### Team Mode — Fixed Roles
+**Verification requires evidence.** The `verification` role prompt protects source code, existing tests, configuration, dependencies, and lockfiles. Within authorization, it permits test execution and reproducible verification artifacts, caches, and temporary scripts; it prohibits dependency installation and Git writes for verification. Dynamic claims must cite actual commands and tool output, while static analysis must be identified as such. Reports must probe the main risk with counterexamples and distinguish **PASS** (acceptance scope verified without major gaps), **FAIL** (a confirmed failure), and **PARTIAL** (no confirmed failure, but important checks remain incomplete). These are role execution and reporting rules; conclusions should be reviewed against the actual evidence.
 
-Team collaboration with predefined roles. Each Agent has a clear set of responsibilities and tools.
+### Independent Contexts, Parallel Execution, and Result Collection
 
-```
-┌─────────────┐
-│   Leader     │  Task assignment & result aggregation
-└──────┬──────┘
-       │
-  ┌────┴────┐
-  ▼         ▼
-┌──────┐ ┌──────┐
-│Agent A│ │Agent B│  Parallel execution, independent toolsets
-│Backend│ │Frontend│
-└──────┘ └──────┘
-```
+Each delegation's `prompt` should state the goal, known findings, file paths, authorization boundaries, and expected deliverables; the child starts with its own context. Independent `Agent` calls in the same turn can execute concurrently on Virtual Threads, useful for investigating separate modules or completing non-conflicting subtasks. Writes in a shared directory still need non-overlapping scope: separate context does not isolate files.
 
-- Use case: frontend/backend split development, test + dev collaboration
-- Agents communicate via `TeamMailbox` (async, ConcurrentLinkedQueue)
-- Tasks shared through `SharedTaskList` FIFO queue with claim & status tracking
-- `InProcessBackend` runs multiple Workers concurrently via Virtual Threads
+| Entry Point | Invocation and Result Flow | Suitable Work |
+|----------------|----------------------------|---------------|
+| **Agent (synchronous)** | Child session executes → status and result return → main Agent continues | The next step depends on this result |
+| **Agent (background)** | `run_in_background=true` → agent ID and output file path return → background execution → current Run collects results → main Agent synthesizes | The main Agent has other independent work to do |
+| **TaskCreate** | Submit background execution → task ID returns → TaskList/TaskGet retrieve status and output | Execution needing separate queries, output updates, or cancellation requests |
+| **TodoWrite** | Update the plan and progress checklist | Record steps and completion without starting execution |
 
-### Swarm Mode — Dynamic Negotiation
+`BackgroundAgentTracker` registers background Agents by parent session and parent Run. WebSocket events announce start, completion, and failure. `BACKGROUND_AGENT_WAIT` is enabled by default: before the main Run finishes, `QueryEngine` waits for undelivered background Agent results belonging to **that Run**, adds them to context as task data, and resumes the main Agent to produce a consolidated answer. Results do not become new authorization or execution instructions.
 
-Dynamic multi-Worker collaboration built on Java 21 virtual threads, orchestrated by the Coordinator through a four-phase workflow:
+Ordinary execution truncates answer bodies exceeding **100,000 characters** and adds a marker; the Worktree path applies the same treatment to combined result, delivery, and recovery content. Exception recovery and additional information follow separate handling, so this is not a universal limit on final responses. Background output files store the processed results. Automatic collection into the parent Run includes the first **4,000 characters** of each file, adds a truncation marker when needed, and retains the file path. Read that path for more saved content; the file itself may already contain a truncated result.
 
-```
-Research → Synthesis → Implementation → Verification
-```
+A child Agent's base execution-wait budget defaults to **30 minutes**, with a default configured cap of **30 minutes**. After an execution-wait timeout, the default exit window is a further **30 seconds**. Child-session initialization and worktree preparation and delivery are outside this execution-wait timer, so it is not an end-to-end call duration limit.
 
-Phases follow strict sequential order (no skipping). Each phase records timestamps and result summaries. `CoordinatorWorkflow` manages the full phase lifecycle.
+Each parent Run background-result wait batch has a separate default **31-minute** budget, timed independently of the child execution wait. A new batch receives a new budget; wakeups within one batch do not reset its deadline. Disable waiting with `FEATURE_BACKGROUND_AGENT_WAIT=false`, or configure `AGENT_TIMEOUT_MAX_WAIT_MINUTES`; adjust it when raising the child timeout limit. A wait timeout explicitly reports `BACKGROUND_AGENT_WAIT_TIMEOUT`. Cancellation, interrupted waiting, or the main Run's turn limit can also leave result collection incomplete. This collection flow belongs to background `Agent` calls; `TaskCreate` results are retrieved through task tools.
 
-- Use case: complex refactoring, large-scale code migrations
-- Worker count adjusts dynamically, no pre-declaration needed
-- Workers inherit the parent query’s selected model unless `workerModel` is explicitly set; missing both values is an error
-- One Virtual Thread per Worker, 30-minute timeout protection
-- Worker toolsets precisely controlled via allowList/denyList
-- Workers use the root-session authorization subject; matching SESSION/WORKSPACE grants can be reused by descendants under identical constraints
-- Operations without a matching grant use Durable Interaction in the root-session browser, with SQLite persistence, ACK, reconnect recovery, and server-authoritative terminal decisions
-- Real-time status pushed via STOMP WebSocket
-- Active Swarms managed by Caffeine cache, 4-hour TTL auto-evicts stale instances
+### Model Selection, Authorization, and Actual Execution Status
 
-### SubAgent Mode — Parent-Child Delegation
+All five roles resolve models in this order: **explicit `model` parameter → parent query model → `premium` alias**. `model` can select an available model name or the `light`, `standard`, and `premium` aliases. Configure aliases under `agent.model-aliases` in `application.yml`; all three currently default to `qwen3.8-max-0902`.
 
-The main Agent delegates subtasks to independent child Agents, with three isolation levels:
+Child Agents use the linked root session, root Run, and agent ancestry for authorization. Matching SESSION/WORKSPACE grants can be reused according to their tool semantics and constraints; inheritance does not expand paths, commands, risk levels, or resources. Operations requiring human approval use the root session's durable interaction flow.
 
-| Isolation Mode | Behavior | Use Case |
-|---------------|----------|----------|
-| **NONE** | Shares parent Agent working directory | Lightweight subtasks |
-| **WORKTREE** | Creates a Git worktree from the project’s committed HEAD; safely completed work is merged automatically, failures or unknown states preserve the work | Experimental changes needing isolation |
-| **Fork** | Inherits parent session’s full message history, reuses LLM KV cache | Continuation tasks needing full context |
+Execution results distinguish `completed`, `failed`, `timeout`, `interrupted`, and `max_turns`, and background results preserve the actual end reason. An execution-wait timeout signals abort and allows an exit window, returning partial progress when recoverable. An execution-wait timeout or cancellation request alone does not confirm all managed execution has stopped; use termination confirmation and recovery information to decide subsequent handling.
+
+`AgentConcurrencyController` provides **30 global** and **10 per-session** concurrency admission slots, with a **3-level** execution-depth limit. Requests exceeding limits are rejected. Slots are released according to the execution path; releasing a slot does not confirm that the underlying execution has stopped.
+
+### Working Directories and Safe Delivery
+
+The `Agent` tool exposes two `isolation` choices:
+
+| Isolation | Behavior | Suitable Work |
+|-----------|----------|---------------|
+| **none** (default) | Uses the parent working directory with a separate child-session context | Investigation, verification, and subtasks with clear file ownership |
+| **worktree** | Creates an independent Git worktree from the project's committed HEAD; automatically merges changes back after safety checks | Implementation or experiments needing isolated file changes |
 
 WORKTREE excludes uncommitted parent changes and never automatically stashes or commits the parent directory. The execution directory matches its prompt, without expanding Project authorization. The authorized root must be a valid repository root; an execution subdirectory within it is mapped into the new tree. Unborn and detached HEADs are not supported for automatic delivery.
 
-Automatic three-way integration requires successful execution, quiescent managed work, and verified target branch, history and working-tree state. Delivered work with a cleanup failure remains completed with a warning. Undelivered work, conflicts, timeouts and unconfirmed termination preserve the worktree and branch with recovery locations. Naturally exited Git commands do not cause hook background processes to be killed for cleanup. On Linux and macOS, directories are retained while ordinary descendants remain in the managed process group; daemons that deliberately leave that group are outside this guarantee. Other platforms retain the existing best-effort tracking without the same descendant-exit guarantee. Stopping the service does not remove worktrees or agent branches. Delivery respects Git ignore rules: ignored files are not force-added and may be removed with the directory during normal cleanup; deliverables that must be preserved belong in non-ignored paths. Uncommitted content inside submodules blocks delivery; submodules are not recursively committed.
+Automatic integration requires successful execution, quiescent managed work, and verified target branch, history and working-tree state. Delivered work with a cleanup failure remains completed with a warning. Undelivered work, conflicts, timeouts and unconfirmed termination preserve the worktree and branch with recovery locations. Naturally exited Git commands do not cause hook background processes to be killed for cleanup. On Linux and macOS, directories are retained while ordinary descendants remain in the managed process group; daemons that deliberately leave that group are outside this guarantee. Other platforms retain the existing best-effort tracking without the same descendant-exit guarantee. Stopping the service does not remove worktrees or agent branches. Delivery respects Git ignore rules: ignored files are not force-added and may be removed with the directory during normal cleanup; deliverables that must be preserved belong in non-ignored paths. Uncommitted content inside submodules blocks delivery; submodules are not recursively committed.
 
 `Worktree remove` safely cleans only currently registered, project-owned and unoccupied empty or delivered worktrees; it is not a force-discard command. Preserved temporary directories are not permanent archives, and automatic management across restarts is not promised. Manual cleanup also conservatively checks managed background work in the creating and calling sessions; an unrelated background task in either session can defer cleanup. Internal serialization does not cover external Git or concurrent writes through other tools.
 
-- Supports background async execution (`BackgroundAgentTracker`), real-time pushing start/complete/fail events via WebSocket for live monitoring of agent execution progress
-- Per-agent 5-minute timeout, results capped at 100,000 characters
 
-### Three-Layer Concurrency Safety
+### Background Tasks and Planning Checklists
 
-`AgentConcurrencyController` enforces three-layer limits via Semaphore + session-level counters:
+`TaskCreate` immediately submits real background execution and returns a task ID with a creation acknowledgment. Success is determined by the execution result. Supported types are `agent`, `shell`, and the single general-purpose child-agent compatibility types `local_workflow`, `monitor_mcp`, and `dream`; the latter three do not provide recurring monitoring or special priority.
 
-| Dimension | Limit | Protection Target |
-|-----------|-------|-------------------|
-| Global concurrency | ≤ 30 agents | Memory & API pressure |
-| Session concurrency | ≤ 10 agents/session | Interactive resource isolation |
-| Nesting depth | ≤ 3 levels | Prevents infinite recursion |
+Tasks normally follow `PENDING → RUNNING → COMPLETED / FAILED / CANCELLED`; cancellation before execution can move directly to `CANCELLED`. During execution, cancellation first records a request, with a terminal status published after execution and its managed resources exit. The default per-task timeout is **30 minutes**; a timeout ends as `FAILED` with its cause retained. Tasks share **10 concurrent slots** across the service process. Full capacity immediately returns `TASK_CAPACITY_REACHED` rather than queuing for a slot; this limit is separate from Agent concurrency limits.
 
-Slots are auto-released via RAII pattern (`try-with-resources`), ensuring no resource leaks on exception paths.
+| Tool | Responsibility | Results and Boundaries |
+|------|----------------|------------------------|
+| **TaskCreate** | Create and start background execution | Track the returned `taskId`; successful creation does not mean successful execution |
+| **TaskList** | List tasks in the current session | Inspect status and output previews, optionally filtering by status |
+| **TaskGet** | Query a task in the current session | Retrieve status, stored output, available errors, cancellation requests, and termination confirmation; returned content has a length limit |
+| **TaskUpdate** | Replace a task's stored output | Does not change execution status; final execution output may replace an interim note |
+| **TaskStop** | Request cancellation of a current-session task by `taskId` | The acknowledgment confirms the request; use TaskGet to confirm exit |
+| **TodoWrite** | Maintain a plan or progress checklist | Records pending and completed work without starting background execution |
 
-### Model Alias Routing
+`TaskCoordinator` owns Task execution status. Queries distinguish cancellation requested (`cancellationRequested`) from termination confirmed (`terminationConfirmed`). Task records live in the service process's memory. Stored output and errors, and query responses, each have length limits and may be truncated. `TaskUpdate` can revise output after execution ends without changing status or errors. `TaskStop` takes the ID of a Task record; the agent ID returned by a background Agent belongs to a separate execution flow.
 
-Agents use a three-level fallback strategy for model resolution: user parameter → Agent type default → global default. Aliases are configured in `application.yml` under `agent.model-aliases` (`light`, `standard`, and `premium` currently default to `qwen3.8-max-0902`), avoiding hardcoded model names — configure once, apply everywhere.
+A typical workflow starts with parallel exploration. The main Agent synthesizes findings, implements or delegates the changes, and uses verification evidence to complete delivery.
+
+```text
+Parallel exploration: explore Agents investigate separate scopes
+  -> Main Agent synthesizes findings and the implementation plan
+  -> Implementation by the main Agent or a delegated Agent
+  -> verification Agent performs checks
+  -> Commands, outputs, and verification findings are reported
+  -> Main Agent reviews evidence and delivers the result
+```
+
+For a long command or agent task requiring separate tracking, start it with `TaskCreate`, inspect it with `TaskList`/`TaskGet`, and request cancellation with `TaskStop` when needed. Use `TodoWrite` for the plan and progress checklist.
 
 ---
 
@@ -1448,19 +1447,19 @@ ZhikunCode provides built-in tools across the development lifecycle and supports
 | **Command Execution** | Bash, PowerShell, REPL | Shell sandbox execution (dynamic timeout classification + controlled recovery hints, no automatic retry), Windows PowerShell, interactive REPL sessions |
 | **Git Operations** | Git, Worktree | Git command execution, Worktree management |
 | **Web Tools** | WebSearch, WebFetch, WebBrowser | Web search, page fetching, browser automation |
-| **Agent Collaboration** | Agent | Create and manage sub-Agents |
-| **Task Management** | TaskCreate, TaskGet, TaskList, TaskUpdate, TaskStop, TaskOutput | Background execution and results within the current session; TaskUpdate changes output only, while TaskCoordinator owns execution status |
+| **Agent Delegation** | Agent | Five roles, independent contexts, parallel execution, and synchronous or background result collection |
+| **Task Management** | TaskCreate, TaskGet, TaskList, TaskUpdate, TaskStop | Current-session background execution, status and result queries, output updates, and cancellation requests |
 | **Interaction** | AskUserQuestion, Brief, Sleep, TodoWrite | User questions, basic context display, wait, todo lists; multiple-choice questions that allow multiple answers require multiSelect |
 | **Scheduled Tasks** | CronCreate, CronList, CronDelete | Cron job management |
 | **Plan Tools** | EnterPlanMode, ExitPlanMode, VerifyPlanExecution | EnterPlanMode/ExitPlanMode are not wired to permission changes and return PLAN_MODE_UNAVAILABLE; VerifyPlanExecution checks files, content, or command results |
-| **Configuration** | Config, SendMessage, SyntheticOutput | Config management, message sending, synthetic output |
+| **Configuration** | Config, SyntheticOutput | Configuration management and synthetic output |
 | **Monitoring** | Monitor, CtxInspect, TerminalCapture | System monitoring, context inspection, terminal output capture |
 | **Verification** | VerifyJourney | Runtime verification — end-to-end browser testing, HTTP API assertion chains, hybrid-mode auto-switching; implemented by internal BrowserVerifier and HttpApiVerifier strategies |
 | **MCP Extensions** | MCP tool adapters | Connect to external MCP services (dynamically registered) |
 
 The `PLAN` permission mode remains available independently of the planning panel. `/plan` and `/plan on [name]` show the frontend planning panel; `/plan off` hides it. These commands do not change session permissions. The `EnterPlanMode`/`ExitPlanMode` tools also do not change permissions, submit approvals, or display plan files.
 
-`TaskCreate` immediately submits background execution; use `TodoWrite` for a planning checklist. Supported types are `agent`, `shell`, and the single-invocation compatibility types `local_workflow`, `monitor_mcp`, and `dream` (the latter three currently use the general-purpose agent without recurring monitoring or special priority). Other types are explicitly rejected. A creation acknowledgment does not mean execution succeeded; inspect `TaskGet`/`TaskList` for results. `TaskStop` requests cancellation of the specified task; execution may still be exiting after the request is acknowledged, so check its status. `TaskUpdate` does not accept manual execution-status changes.
+See “Agent Delegation and Background Tasks” above for task creation, queries, output updates, cancellation, and how these differ from `TodoWrite`.
 
 `Edit` requires a non-empty match when updating an existing file. Use `Write` to populate an existing empty file. An empty `old_string` can still create a file that does not yet exist.
 
@@ -1468,13 +1467,12 @@ The `PLAN` permission mode remains available independently of the planning panel
 
 ## 📈 Visualization
 
-ZhikunCode includes 11 built-in visualization features that make data and status transparent throughout the AI coding process:
+ZhikunCode provides visualizations for data and status throughout the AI coding process:
 
 | Feature | Description |
 |---------|-------------|
 | **Mermaid Diagram Rendering** | Mermaid code blocks in AI responses are automatically rendered as interactive vector diagrams, with copy SVG / download PNG support |
 | **API Sequence Diagram** | Automatically extracts tool call records from conversations and generates Mermaid sequence diagrams, with filtering and detail viewing |
-| **Agent DAG** | Real-time display of multi-Agent task dependency graphs, built on React Flow, with TB/LR layout switching |
 | **Git Timeline** | Visualizes Git commit history with Diff viewing and Blame view, auto-colored by commit type |
 | **Tool Progress Visualization** | Displays progress bars, ETA estimates, and a mini log viewer during tool execution |
 | **File Tree Navigation** | Sidebar project file tree with search filtering, virtual scrolling, and file type icons |
@@ -1495,7 +1493,7 @@ ZhikunCode includes 11 built-in visualization features that make data and status
 
 ### Model Selection and Routing
 
-Main queries use the user-selected model; Swarm workers inherit the parent query model by default. Fast queries and summaries have independent configuration: fast queries default to Bailian `deepseek-v4.1-flash`; summaries default to the direct DeepSeek endpoint `deepseek-flash`. Vision fallback applies only when the selected model cannot accept images. Bailian and direct DeepSeek use separate model IDs, endpoints and keys.
+Main queries use the user-selected model; child Agents resolve models as explicit `model` → parent query model → `premium` alias. Fast queries and summaries have independent configuration: fast queries default to Bailian `deepseek-v4.1-flash`; summaries default to the direct DeepSeek endpoint `deepseek-flash`. Vision fallback applies only when the selected model cannot accept images. Bailian and direct DeepSeek use separate model IDs, endpoints and keys.
 
 Bailian V4.1 Flash streaming requests, fast queries and summaries send `thinking.type=enabled` and the string `reasoning_effort="max"`; the direct DeepSeek endpoint sends the same parameters for streaming requests and summaries (`chatSync` non-streaming fast queries do not inject thinking). Tests on 2026-09-15 confirmed that the Token Plan endpoint accepts `"max"` and rejects integers; its internal numeric mapping remains unverified.
 
@@ -1575,6 +1573,8 @@ Specs and reasoning parameters verified on 2026-09-17. References: [Astra](https
 
 | Variable | Required | Default | Description |
 |----------|:---:|---------|-------------|
+| `FEATURE_BACKGROUND_AGENT_WAIT` | — | true | Wait for and summarize background Agent results belonging to the current parent Run; set false to disable |
+| `AGENT_TIMEOUT_MAX_WAIT_MINUTES` | — | 31 | Wait budget per batch of background Agent results, in minutes; does not change child Agent execution timeouts |
 | `ZHIKUN_COORDINATOR_MODE` | — | 0 | Feature flag, enable coordinator mode (0=off, 1=on) |
 | `ZHIKUN_DELETE_CONFIRM_CODE` | — | Empty | Optional session-deletion confirmation code; when set, deleting a session in Web requires entering this code |
 | `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.8-max-0902 | DashScope available models (comma-separated) |
@@ -1582,6 +1582,8 @@ Specs and reasoning parameters verified on 2026-09-17. References: [Astra](https
 | `LLM_PROVIDER_DEEPSEEK_MODELS` | — | deepseek-flash | DeepSeek models; defaults to V4.1 Flash (comma-separated) |
 | `LLM_PROVIDER_MOONSHOT_MODELS` | — | kimi-k3 | Moonshot available models (comma-separated) |
 | `LLM_PROVIDER_ZHIPU_MODELS` | — | glm-5.3,glm-5.3-flash | Zhipu GLM available models (comma-separated) |
+
+The two background-wait variables above must reach the backend process environment. For Docker, pass them explicitly through `environment` in a Compose override; adding them only to the project `.env` does not forward them automatically.
 
 **Context Management Configuration (application.yml):**
 
@@ -1698,18 +1700,15 @@ ZhikunCode does not run any telemetry. Your API Key connects directly to your co
 </details>
 
 <details>
-<summary><b>Q5: How do I use multi-Agent collaboration?</b></summary>
+<summary><b>Q5: How do I use Agent delegation and background Tasks?</b></summary>
 
-ZhikunCode offers three collaboration modes:
+Describe the task, each subtask's scope, and the expected results, for example:
 
-- **Team** — Fixed roles: create a team, each Agent works in parallel according to its role
-- **Swarm** — Dynamic negotiation: tasks are automatically decomposed, Workers are dynamically assigned, four-phase workflow
-- **SubAgent** — Parent-child delegation: the main Agent delegates subtasks to child Agents with isolated execution
+> “Have two explore Agents investigate the authentication API and frontend login flow in parallel, reporting file locations and risks. Synthesize their findings into a change plan. After implementation, have a verification Agent run the authorized tests and report evidence.”
 
-Just describe your requirement in the conversation, for example:
-> "Refactor the user authentication module — one Agent handles the backend API, another handles the frontend pages"
+The main Agent can wait synchronously or use `run_in_background=true` to continue other work before collecting the current Run's results. Specify `isolation=worktree` when file changes need isolation: execution starts from committed HEAD and integrates changes after safety checks.
 
-The Agent will automatically select the appropriate collaboration mode.
+For execution requiring ongoing queries, ask to “run the tests with TaskCreate, then retrieve the result with TaskGet.” To cancel, use TaskStop with that task ID and check termination confirmation. TodoWrite maintains the planning checklist. See “Agent Delegation and Background Tasks” above for roles, model selection, and delivery boundaries.
 
 </details>
 
@@ -1868,10 +1867,3 @@ If this project is useful to you, a Star ⭐ would be appreciated.
 <div align="center">
   <p>Built with ❤️ and AI</p>
 </div>
-
-### Background Agent Wait
-
-`BACKGROUND_AGENT_WAIT` is enabled by default: the main run waits for this turn's background agents to finish before summarizing their results.
-The default wait budget is 31 minutes, covering the default 30-minute sub-agent limit plus the 30-second exit window; exceeding the budget still reports `BACKGROUND_AGENT_WAIT_TIMEOUT`.
-Disable the wait with `FEATURE_BACKGROUND_AGENT_WAIT=false`, or tune the budget via `AGENT_TIMEOUT_MAX_WAIT_MINUTES`.
-Each wait cycle receives the full budget independently instead of sharing one run-level deadline; if you raise the sub-agent timeout limit, adjust the wait budget accordingly; the budget caps each background-result wait, not an unlimited-wait guarantee.

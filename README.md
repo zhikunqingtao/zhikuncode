@@ -4,12 +4,12 @@
   <img src="docs/assets/logo.svg" alt="ZhikunCode" width="120" />
   <h1>ZhikunCode</h1>
   <p><strong>开源 AI 编程助手 — 部署一次，浏览器全流程操控</strong></p>
-  <p>多 Agent 协作 · Docker 自托管 · 国产大模型直连 · 深度安全架构</p>
+  <p>Agent 委派与后台任务 · Docker 自托管 · 国产大模型直连 · 深度安全架构</p>
 
   <p>
     <a href="#-快速开始">快速开始</a> ·
     <a href="#-特性亮点">核心特性</a> ·
-    <a href="https://zhikunqingtao.github.io/zhikuncode/#demo">在线演示</a> ·
+    <a href="https://zhikunqingtao.github.io/zhikuncode/#case-study">案例展示</a> ·
     <a href="#-公开工程案例">公开工程案例</a> ·
     <a href="#-swe-bench-lite-评测">SWE-bench 评测</a> ·
     <a href="#-cli-工具">CLI 工具</a> ·
@@ -144,7 +144,7 @@ ZhikunCode 使用 Kimi K3 在 2026-08-09 凌晨一次性完成了一个纯静态
 | 🔀 | **会话资料合并** | 将 2～5 个空闲会话的摘要、已持久化过程文本和可确认归属的临时产物整理到一个新会话，保留来源会话；新会话等待下一条指令，不自动合并工程代码 |
 | 📁 | **Project 与 Run 控制** | 直连本机可选用原生目录选择器，远程部署只浏览配置的 allowed roots；Project 经真实路径规范化并持久授权，Session 拒绝客户端任意 `workingDirectory`。运行中输入按 Session 投递并返回 queued/applied/rejected，支持取消、包含 INTERRUPTED 的 CAS 单一终态与 WebSocket 恢复 |
 | 🔗 | **引用本地文件** | 直连本机通过系统选择器把 canonical 路径加入提示词（不上传内容）；ECS、远程或代理访问通过浏览器选择文件，立即上传为 OSS 永久公开对象，再把地址加入提示词。远程上传需要先配置 OSS |
-| 🤖 | **多 Agent 协作** | Team（固定分工）/ Swarm（动态协商）/ SubAgent（主从委派）三种协作模式，复杂任务自动分工 |
+| 🤖 | **Agent 委派与后台任务** | 五种子 Agent 角色、独立上下文与并行执行；同步结果回传、当前 Run 后台结果汇总，以及可查询、可请求取消的后台任务 |
 | 🔒 | **统一授权安全架构** | 所有核心工具统一经过 Tool Gateway：规范化输入冻结 → Operation Analyzer 风险与资源分析 → 系统不变量检查 → RUN/SESSION/WORKSPACE Grant 匹配或持久权限交互 → 执行前动态复检 → 结构化结果审计。高风险操作只允许单次授权；专用 Network/MCP Analyzer 对 SAFE/GUARDED 操作支持按工具记住 RUN/SESSION 授权，未知 MCP/动态工具默认只能单次审批 |
 | 🇨🇳 | **国产大模型直连** | 千问 / DeepSeek / Moonshot / 智谱GLM / MiniMax 开箱即用，国内网络直连，无需科学上网 |
 | 🐳 | **Docker 一键部署** | `docker compose up -d` 默认启动 Java 后端和内置静态前端；镜像同时包含可选的受管 Python 服务，数据存本地 |
@@ -496,12 +496,12 @@ ZhikunCode 已完成 SWE-bench Lite（300 实例，pass@1）官方 harness 评�
 | Web UI | ✅ 全功能 | ⚠️ 实验浏览器 UI | ❌ | ⚠️ Web版 | ✅ | ⚠️ GitHub.com |
 | Docker 一键自托管 | ✅ 完整 Web 服务 | ⚠️ CLI 容器化 | ❌ | ⚠️ 企业付费 | ❌ | ❌ |
 | 国产大模型直连 | ✅ 原生支持 | ⚠️ 需配置兼容 API | ⚠️ 需配置兼容 API | ❌ | ❌ | ❌ |
-| 多 Agent 协作 | ✅ Team/Swarm/Sub | ❌ | ✅ Kanban + CLI 并行 | ✅ Multi-Agents | ✅ Sub-Agents | ✅ /fleet + Agent Mode |
+| 多 Agent 协作 | ✅ Agent 委派 + 后台任务 | ❌ | ✅ Kanban + CLI 并行 | ✅ Multi-Agents | ✅ Sub-Agents | ✅ /fleet + Agent Mode |
 | 浏览器全流程操控¹ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | 安全沙箱 | ✅ 8层 | ❌ | ❌ | ⚠️ 企业级 | ✅ OS级 | ⚠️ GitHub 权限策略 |
 | MCP 工具扩展 | ✅ | ⚠️ 第三方 | ✅ | ✅ | ✅ | ✅ |
 | CLI 终端工具 | ✅ aica + 35+ 斜杠命令 | ✅ CLI-first | ✅ CLI 2.0 | ✅ Cursor CLI | ✅ CLI-only | ✅ Copilot CLI |
-| 可扩展skill技能系统 | ✅ Markdown 驱动 + 6 级来源 | ❌ | ❌ | ✅ Rules | ✅ Hooks | ❌ |
+| 可扩展skill技能系统 | ✅ Markdown 驱动 + 内置/项目/用户技能 | ❌ | ❌ | ✅ Rules | ✅ Hooks | ❌ |
 | 插件系统 | ✅ Java SPI 插件 + 沙箱隔离 + 热重载 | ❌ | ❌ | ✅ Plugins | ✅ Skills/Hooks | ✅ Plugins |
 | 跨会话记忆 | ✅ 三层记忆 + BM25 搜索 | ❌ | ❌ | ✅ Rules | ✅ Memory | ❌ |
 | 活动追踪与审批 | ✅ L1/L2/L3 三层 | ❌ | ❌ | ❌ | ✅ 权限管理 | ❌ |
@@ -561,7 +561,7 @@ ZhikunCode 采用三端分离架构，Java 后端负责核心编排，React 前�
 | 层 | 技术栈 | 职责 |
 |----|--------|------|
 | **后端** | Java 21, Spring Boot 3.4.x, WebSocket, SQLite | 核心编排引擎、LLM API 路由、Agent 管理、内置工具与 MCP 动态扩展、统一授权网关、会话持久化 |
-| **前端** | React 18, TypeScript 5.6, Vite 5, TailwindCSS, Monaco Editor, xterm.js, Zustand | 对话式交互 UI、代码编辑器、内置终端、文件浏览器、设置面板、实时流式输出、Agent 协作可视化 |
+| **前端** | React 18, TypeScript 5.6, Vite 5, TailwindCSS, Monaco Editor, xterm.js, Zustand | 对话式交互 UI、代码编辑器、内置终端、文件浏览器、设置面板、实时流式输出、委派结果查看 |
 | **Python 服务** | FastAPI, Uvicorn, Python 3.11+ | 代码分析、AST 解析、MCP 工具桥接 |
 
 ### Docker 部署架构
@@ -706,7 +706,7 @@ Web 新会话必须先选择一个已授权目录。远程和 Docker 部署的�
 - 后端的 `ZHIKUN_LOCAL_PICKER_ENABLED` 安全默认值为 `false`。使用 `./start.sh` 本地快速启动时，如果 `ZHIKUN_WORKSPACE_ALLOWED_ROOTS` 和该变量均无非空配置，脚本会为直连本机桌面场景启用 picker；显式设置 `false` 或配置 allowed roots 时不会被覆盖或隐式启用。远程、反向代理和生产部署应显式保持关闭并配置 allowed roots。
 - Python 的 `WORKSPACE_ROOT` 是相对路径的默认锚点。配置 `ZHIKUN_WORKSPACE_ALLOWED_ROOTS` 后，Python 路由同样严格限制在这些根目录内；只有未配置 allowed roots 且显式启用本机 picker 的 loopback 开发模式，才允许分析用户选择的其他绝对路径。
 
-### 授权范围与多 Agent 继承
+### 授权范围与子 Agent 继承
 
 | 范围 | 生命周期 | 子 Agent 行为 |
 |------|----------|---------------|
@@ -748,15 +748,14 @@ Web 新会话必须先选择一个已授权目录。远程和 Docker 部署的�
 - 权限、Bash、路径、符号链接、WebSocket、并发和数据库 CAS 均有专项测试覆盖
 - 包含命令注入、路径穿越、权限绕过等攻击场景
 - **v9.3 深度防御新增**：
-  - **CWE-22 路径穿越**：`CoordinatorService.getScratchpadDir` sessionId 白名单（11 单测）+ `SwarmController.createSwarm` teamName 白名单（8 单测），即使上游 URI 拦截被绕过，白名单仍为最终落盘防线
+  - **CWE-22 路径穿越**：`CoordinatorService.getScratchpadDir` sessionId 白名单（11 单测），即使上游 URI 拦截被绕过，白名单仍为最终落盘防线
   - **跨用户访问隔离（P2-A）**：`BrowserReplayController` 双层闸门 —— sessionId 格式校验返回 400 + principal 归属校验返回 403，MVP 匿名会话兼容
 
-  **v9.3 安全防御汇总：**
+  **v9.3 安全防御摘录：**
 
   | 防御层级 | 位置 | 防护机制 | 单测数 |
   |---------|------|---------|-------|
   | P1-2 | `CoordinatorService.getScratchpadDir` | sessionId 白名单 `^[A-Za-z0-9_-]{1,128}$` | 11 |
-  | E1 | `SwarmController.createSwarm` | teamName 白名单 `^[A-Za-z0-9_-]{1,64}$` | 8 |
   | P2-A | `BrowserReplayController` | sessionId 格式校验 (400) + principal 归属校验 (403) | — |
 
 - 上述场景均有专项测试覆盖；完整安全套件通过本地回归或专项工作流执行。
@@ -787,7 +786,7 @@ Web 新会话必须先选择一个已授权目录。远程和 Docker 部署的�
 
 **历史专项与 E2E 基线：**
 - **36 模块 REST/WS/LLM/Session 冒烟**：45/45 PASS（42 REST + 1 WS STOMP + 1 LLM 真推理 + 1 Session 持久化）
-- **E2E 差异化链路**：Task 6 多 Agent 协作（CoordinatorEventBus）· Task 7 可视化自动路由（`/visualize` mermaid/json/text）· Task 8 浏览器语义快照 MVP（`/snap`）全链路 PASS
+- **E2E 差异化链路**：Task 7 可视化自动路由（`/visualize` mermaid/json/text）· Task 8 浏览器语义快照 MVP（`/snap`）全链路 PASS
 - **APOS Phase 1 E2E**：62 用例（9 模块，含 28 原始功能 + 34 支撑链路）100% PASS，覆盖 Activity 基础 UI / 数据流转 / 三层展示 / Signal 标记 / Feature Flag / 后端 API / 响应式 / 持久化，含 4 Bug 修复回归
 - **APOS Phase 2 E2E**：5 模块 50 用例（变更影响全景 / Pipeline 视图与 DAG / 异常检测与告警 / 移动端响应式 / Phase 2 集成功能）48 PASS / 2 SKIP，通过率 96%
 - **APOS 风险修复专项**：11 用例 100% PASS（工具调用 / 批量操作 / 并发竞态 / API 降级）
@@ -798,19 +797,18 @@ Web 新会话必须先选择一个已授权目录。远程和 Docker 部署的�
 
 | 框架 | 层级 | 覆盖范围 | 数量 |
 |------|------|---------|------|
-| JUnit 5 + Mockito | 后端单元/集成测试 | 上下文/授权网关/技能/插件/LLM/MCP/记忆/并发/SSE/持久化/工具/Coordinator/Swarm/工作台投影等 | 1258 tests / 0 failure / 0 error / 62 skipped |
+| JUnit 5 + Mockito | 后端单元/集成测试 | 上下文/授权网关/技能/插件/LLM/MCP/记忆/并发/SSE/持久化/工具/工作台投影等（覆盖范围摘录） | 1258 tests / 0 failure / 0 error / 62 skipped |
 | Vitest | 前端单元测试 | Store 生命周期/跨 Tab 同步/流式渲染/权限交互/重连恢复/工作台与路由边界 | 207 PASS / 16 skipped |
-| Playwright + 节点脚本 | 端到端 E2E | 简洁工作台 / Coordinator WS 订阅 / 可视化 3 种 viewType / 浏览器快照 MVP / APOS Phase 1 全栈 / APOS Phase 2 全栈 | 简洁工作台 7/7 PASS；Task 6/7/8/APOS 历史基线全绿 |
+| Playwright + 节点脚本 | 端到端 E2E | 简洁工作台 / 可视化 3 种 viewType / 浏览器快照 MVP / APOS Phase 1 全栈 / APOS Phase 2 全栈 | 简洁工作台 7/7 PASS；Task 7/8/APOS 历史基线全绿 |
 | Pytest | Python 服务测试 | Token 估算/文件处理/浏览器自动化/语义快照/代码分析器/CLI | 107 PASS |
 
-**性能基线（v9.3，490 次真实请求采样）：**
+**性能基线摘录（v9.3，原报告共 490 次真实请求采样）：**
 
 | 指标 | p50 | p95 | p99 |
 |-----|-----|-----|-----|
 | REST API（14 端点混合） | 1.5ms | 2.3ms | 4.3ms |
 | WS STOMP 握手 | 2.22ms | 4.58ms | 6.22ms |
 | 浏览器语义快照（热路径） | 9.23ms | 12.20ms | 12.26ms |
-| Swarm 创建 | 2.39ms | 4.90ms | 12.40ms |
 
 **详细测试数据与证据：**
 - v9.3 完整报告：[docs/test-results/v9.3/](docs/test-results/v9.3/)
@@ -831,7 +829,7 @@ npm run test:theme-regression
 该测试无需启动后端或前端开发服务器，失败截图写入系统临时目录；输出会明确列出上述星舰图片浮层跳过项。
 
 <details>
-<summary>📋 36个测试模块详细分类（点击展开）</summary>
+<summary>📋 历史测试模块摘录（原报告共 36 个模块，保留原编号，点击展开）</summary>
 
 | # | 模块 | 用例数 | 通过率 | 备注 |
 |---|------|--------|--------|------|
@@ -845,7 +843,6 @@ npm run test:theme-regression
 | 8 | 记忆系统 | 7 | 86% | ★ 首次覆盖 |
 | 9 | 技能系统 | 7 | 100% | ★ 首次覆盖 |
 | 10 | 插件系统与 MCP | 11 | 100% | ★ 首次覆盖 |
-| 11 | 多 Agent 协作 | 6 | 100% | — |
 | 12 | Python 服务 | 15 | 100% | 1 BUG 已修复 |
 | 13 | 前端 E2E 与 UI | 7 | 86% | 1 PARTIAL |
 | 14 | 文件历史与补充 API | 11 | 100% | ★ 首次覆盖 |
@@ -947,7 +944,9 @@ arguments:
 
 Web 调用方式：输入 `/skill translate`，在弹窗参数栏填写 `language=python` 或 `python`，再执行。
 
-**支持的 frontmatter 字段：**
+**可解析的 frontmatter 字段：**
+
+模型调用 `Skill` 工具时，渲染正文通过工具结果返回；Web `/skill` 通过命令路径将渲染提示送入当前对话。
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
@@ -955,26 +954,26 @@ Web 调用方式：输入 `/skill translate`，在弹窗参数栏填写 `languag
 | `name` | string | 显示名称（覆盖文件名） |
 | `arguments` | list | 参数定义列表 |
 | `argument_hint` | string | 参数提示文本 |
-| `when_to_use` | string | 模型自动调用的条件 |
+| `when_to_use` | string | 使用条件描述元数据 |
 | `allowed_tools` | list | 技能声明的工具列表；不能替代实际工具权限控制 |
-| `context` | string | `inline`（默认，注入当前对话）或 `fork`（创建独立子代理） |
-| `model` | string | 指定模型（`inherit` 使用父模型） |
+| `context` | string | `inline`（默认）将渲染正文作为工具结果返回；`fork` 返回正文和执行元数据，当前入口不自动创建子代理 |
+| `model` | string | 模型声明（`inherit` 表示不指定覆盖）；当前执行器返回此元数据，不自动切换模型 |
 | `version` | string | 技能版本号 |
-| `disable_model_invocation` | boolean | 禁止模型自动调用（默认 false） |
-| `user_invocable` | boolean | 用户可手动调用（默认 true） |
+| `disable_model_invocation` | boolean | 模型调用偏好声明（默认 false）；当前工具入口未据此禁止模型调用 |
+| `user_invocable` | boolean | 手动调用偏好声明（默认 true）；当前入口未据此限制调用 |
 | `hooks` | object | 钩子配置（预留） |
-| `effort` | string | 推理努力等级（low/medium/high） |
-| `agent` | string | 关联代理名称（仅 fork 模式有效） |
-| `paths` | list | 文件路径 glob 模式列表 |
-| `shell` | string | Shell 类型（bash 或 powershell，默认 bash） |
+| `effort` | string | 推理强度声明；fork 结果携带此元数据，当前不自动调整模型请求 |
+| `agent` | string | 关联代理名称声明；fork 结果携带此元数据，当前不自动创建对应代理 |
+| `paths` | list | 文件路径 glob 模式声明（元数据） |
+| `shell` | string | Shell 类型声明（默认 bash）；当前不据此启动或切换 Shell |
 
 > 已监听目录中的技能文件支持热更新（500ms 防抖）。删除同名覆盖文件不会自动恢复内置定义；修改内置资源或清理覆盖文件后，应重新构建并重启后端，再刷新前端菜单。
 
 **安全与运行控制：**
 - **技能加载与上下文**：不设置单技能或会话累计的 token 加载额度；模型上下文容量、运行轮次和输出限制仍然适用，重复加载仍会增加实际输入 token 消耗。
 - **工具声明**：`allowed_tools` 描述预期工具；当前不保证运行时强制执行这份列表，实际工具权限仍然适用
-- **注入防护**：Shell 注入三向量拦截（`$()` / 反引号 / 管道），参数长度限制 2000 字符
-- **Fork 深度控制**：fork 模式 Skill 嵌套深度 ≤3 层，防止无限递归
+- **参数检查**：`Skill` 工具入口对每个已解析参数检查 2000 字符上限，并匹配六类危险正则模式：`$(...)`、反引号、`; command`、管道命令、`&& rm`、`${...}`；后续工具调用仍经过实际授权与执行检查。
+- **Fork 深度检查**：fork 模式检查调用时的当前上下文深度，深度 ≥3 时拒绝；该入口仍只返回渲染正文与元数据。
 
 ---
 
@@ -1231,9 +1230,9 @@ aica --continue "fix the bug we just discussed"
 - **对话式编程** — 输入自然语言需求，Agent 自动生成代码，实时流式输出
 - **权限审批** — 每个敏感操作都会弹出审批请求，你可以 允许/拒绝/修改
 - **方案协商** — Agent 提出方案后可以在浏览器中讨论、修改、确认
-- **任务管控** — 查看任务进度、中断执行、重新分配
+- **任务管控** — 查看任务状态与结果，按任务 ID 请求取消并查询停止确认
 - **文件浏览** — 在浏览器中直接查看和导航项目文件树
-- **Agent 协作可视化** — 多 Agent 模式下实时查看各 Agent 工作状态
+- **委派结果查看** — 通过对话中的工具结果查看子任务结果
 
 ### 实时通信
 
@@ -1260,75 +1259,63 @@ ZhikunCode 通过 Bridge 模块提供跨端桥接（Cross-Platform Bridge）能�
 
 ---
 
-## 🤖 多 Agent 协作
+## 🤖 Agent 委派与后台任务
 
-ZhikunCode 提供三种 Agent 协作模式和五种类型化 Agent，适用于不同复杂度的任务。
+把独立调查、实现或验证交给子 Agent，让主 Agent 保持对整体目标的掌握；把需要持续查询的执行交给后台 Task，用任务 ID 跟踪状态与结果。两者都能让耗时工作与主对话配合推进，各自承担明确的职责。
 
-### 五种内置 Agent 类型
+### 五种内置 Agent 角色
 
-基于 Java 21 sealed interface 实现编译期穷尽性检查，每种 Agent 有独立的工具集、模型偏好和系统提示：
+`Agent` 工具通过 `subagent_type` 选择角色，`SubAgentExecutor` 为每次调用创建独立子会话与上下文，由角色提示和当前可用工具共同约束执行：
 
-| Agent 类型 | 用途 | 工具集 | 模型偏好 |
-|-----------|------|--------|----------|
-| **通用 (general-purpose)** | 完整实现能力 | 当前启用工具，受子代理禁用名单与授权约束 | 继承父级 |
-| **探索 (explore)** | 只读代码搜索 | 禁止 Edit/Write | 轻量模型 (light) |
-| **验证 (verification)** | 对抗性测试验证 | 禁止 Edit/Write | 继承父级 |
-| **规划 (plan)** | 分析与方案设计 | 禁止 Edit/Write | 继承父级 |
-| **引导 (guide)** | 文档与使用指南 | 仅 Glob/Grep/Read/WebFetch/WebSearch | 轻量模型 (light) |
+| 角色 | 适合的任务 | 工具范围 |
+|------|-----------|---------|
+| **探索（explore）** | 搜索代码、梳理调用链、定位实现与风险 | 当前启用工具中排除直接编辑工具与角色禁用项 |
+| **验证（verification）** | 复现问题、执行测试、寻找反例并给出证据 | 当前启用工具中排除直接编辑工具与角色禁用项；遵守验证角色的文件保护约束 |
+| **规划（plan）** | 分析需求、比较方案、拆解实施步骤 | 当前启用工具中排除直接编辑工具与角色禁用项 |
+| **通用（general-purpose）** | 实现功能、修复问题、完成完整子任务 | 当前启用工具，受公共禁用项与授权约束 |
+| **引导（guide）** | 查阅文档、解释配置与用法 | 仅 Glob、Grep、Read、WebFetch、WebSearch |
 
-> 所有子 Agent 均排除 `Agent`、`TeamCreate`、`TeamDelete`、`TaskCreate` 和 `VerifyPlanExecution`。上表的 `Edit`／`Write` 排除仅移除这些直接工具；Bash／MCP 仍遵守现有授权，不代表完整的只读沙箱。
+工具池从当前启用的内置工具、插件和 MCP 工具组装，再应用公共禁用项及角色 allow/deny 规则。子 Agent 不提供 `Agent`、`TaskCreate`、`VerifyPlanExecution` 等嵌套委派或验证编排入口。探索、验证和规划角色排除 `Edit`、`Write`、`NotebookEdit` 等直接编辑工具；仍可用的 Shell、浏览器或 MCP 操作继续受授权约束，工具过滤本身不是完整只读沙箱。
 
-### Team 模式 — 固定分工
+**验证以证据为准。** `verification` 的角色提示要求保护源码、现有测试、配置、依赖与锁文件，在授权范围内执行测试并允许生成可复现的验证产物、缓存和临时脚本；不得为验证而安装依赖或进行 Git 写入。动态验证结论须引用实际命令和工具输出，静态分析须明确标注。报告需针对主要风险进行反例检查，并区分 **PASS**（验收范围已验证且无重大缺口）、**FAIL**（已确认失败）与 **PARTIAL**（尚未确认失败，但关键验证未完成）。这些是角色执行与报告规范，最终应结合实际证据审阅结论。
 
-预定义角色的团队协作。每个 Agent 有明确的职责和工具集。
+### 独立上下文、并行执行与结果回收
 
-```
-┌─────────────┐
-│   Leader     │  任务分配与结果聚合
-└──────┬──────┘
-       │
-  ┌────┴────┐
-  ▼         ▼
-┌──────┐ ┌──────┐
-│Agent A│ │Agent B│  并行执行，独立工具集
-│后端开发│ │前端开发│
-└──────┘ └──────┘
-```
+每次委派都需要在 `prompt` 中交代目标、已知结论、文件路径、授权边界与预期交付；子 Agent 从独立上下文开始。多个相互独立的 `Agent` 调用可在同一轮通过 Virtual Thread 并行执行，适合分别调查不同模块，或并行完成互不冲突的子任务。共享目录中的文件修改仍需避免重叠；上下文独立不等于文件隔离。
 
-- 适用场景：前后端分离开发、测试+开发协作
-- 通过 `TeamMailbox` 进行 Agent 间异步消息传递（ConcurrentLinkedQueue）
-- 通过 `SharedTaskList` 共享 FIFO 任务队列，支持任务认领与状态追踪
-- `InProcessBackend` 使用 Virtual Thread 并发执行多个 Worker
+| 入口 | 调用与结果链路 | 适合场景 |
+|---------|---------------|---------|
+| **Agent（同步）** | 子会话执行 → 返回状态与结果 → 主 Agent 继续 | 下一步依赖该子任务结论 |
+| **Agent（后台）** | `run_in_background=true` → 返回代理 ID 与输出文件路径 → 后台执行 → 当前 Run 收集结果 → 主 Agent 汇总 | 主 Agent 还有其他独立工作可推进 |
+| **TaskCreate** | 提交后台执行 → 返回任务 ID → TaskList／TaskGet 查询状态与输出 | 需要单独查询、更新输出或请求取消的执行 |
+| **TodoWrite** | 更新计划与进度清单 | 记录步骤与完成情况，不启动执行 |
 
-### Swarm 模式 — 动态协商
+后台 Agent 由 `BackgroundAgentTracker` 按父会话和父 Run 登记，WebSocket 推送启动、完成和失败事件。默认启用 `BACKGROUND_AGENT_WAIT`：主 Run 准备结束时，`QueryEngine` 等待**当前 Run** 尚未交付的后台 Agent 结果，将其作为任务数据回填上下文，再由主 Agent 生成汇总。结果不会成为新的授权或执行指令。
 
-基于 Java 21 虚拟线程的动态多 Worker 协作，由 Coordinator 编排四阶段工作流：
+常规执行会对超过 **100,000 字符**的答案正文截断并附标记；Worktree 路径对包含交付、恢复信息的合成内容作同样处理。异常恢复及附加信息另有处理，因此这不是所有最终响应的统一硬上限。后台输出文件保存处理后的结果，父 Run 自动回填每个文件的前 **4,000 字符**，超长时附截断标记，并保留文件路径；可按路径读取更多已保存内容，文件本身也可能已被截断。
 
-```
-Research → Synthesis → Implementation → Verification
-```
+子 Agent 执行等待的基础预算默认 **30 分钟**，默认配置上限也为 **30 分钟**；执行等待超时后默认再等待 **30 秒**供退出。子会话初始化与 Worktree 准备、交付不计入这段执行等待计时，因此它不是调用总耗时上限。
 
-四阶段严格顺序不可跳过，每个阶段记录时间戳和结果摘要。`CoordinatorWorkflow` 管理完整的阶段生命周期。
+父 Run 每批后台结果等待另设默认 **31 分钟**预算，与子执行等待分别计时；新一批等待独立获得预算，同一批唤醒不会刷新截止时间。可通过 `FEATURE_BACKGROUND_AGENT_WAIT=false` 关闭等待，或用 `AGENT_TIMEOUT_MAX_WAIT_MINUTES` 调整预算；提高子代理超时上限时应同步调整。等待超时会明确报告 `BACKGROUND_AGENT_WAIT_TIMEOUT`；取消、等待中断或主 Run 轮次耗尽也可能使结果收集未完成。此结果回收链路属于后台 `Agent`；`TaskCreate` 的执行结果通过任务工具查询。
 
-- 适用场景：复杂重构、大规模代码迁移
-- Worker 数量动态调整，无需预声明
-- Worker 未显式配置模型时继承父查询的用户选择；`workerModel` 显式配置优先。两者均缺失时明确报错
-- 每个 Worker 一个 Virtual Thread，30 分钟超时保护
-- Worker 工具集通过 allowList/denyList 精确控制
-- Worker 使用根会话授权主体进行权限裁决；符合约束的 SESSION/WORKSPACE Grant 可被后代复用
-- 未命中 Grant 的操作通过 Durable Interaction 发送到根会话浏览器，支持 SQLite 持久化、ACK、重连恢复和服务端终态裁决
-- 实时状态通过 STOMP WebSocket 推送到前端
-- 活跃 Swarm 使用 Caffeine 缓存管理，4 小时 TTL 自动清理异常实例
+### 模型选择、授权与真实执行状态
 
-### SubAgent 模式 — 主从委派
+子 Agent 的模型解析顺序为 **显式 `model` 参数 → 父查询模型 → `premium` 别名**，五种角色遵循同一规则。`model` 可选择可用的实际模型名或 `light`、`standard`、`premium` 别名；别名在 `application.yml` 的 `agent.model-aliases` 中配置，当前三者默认均为 `qwen3.8-max-0902`。
 
-主 Agent 将子任务委派给独立的子 Agent 执行，支持三种隔离级别：
+子 Agent 使用关联的根会话、根 Run 与代理祖先链进行权限裁决。符合工具语义和约束的 SESSION／WORKSPACE Grant 可按规则复用；继承不会扩大路径、命令、风险或资源范围。需要人工授权的操作通过根会话的持久交互流程处理。
 
-| 隔离模式 | 行为 | 适用场景 |
-|---------|------|----------|
-| **NONE** | 共享父 Agent 工作目录 | 轻量级子任务 |
-| **WORKTREE** | 基于项目已提交 HEAD 创建独立 Git Worktree；正常完成且状态安全时自动三方合回，失败或未知时保留成果 | 需要隔离的实验性变更 |
-| **Fork** | 继承父会话完整消息历史，复用 LLM KV cache | 需要完整上下文的延续任务 |
+执行结果区分 `completed`、`failed`、`timeout`、`interrupted` 和 `max_turns`，后台结果保留实际结束原因。执行等待超时会发出中止信号并等待退出窗口，能够恢复时附带部分进展；执行等待超时或取消请求本身不等于所有受管执行已经停止，应结合停止确认与恢复信息判断后续处理。
+
+`AgentConcurrencyController` 提供全局 **30** 个、每会话 **10** 个并发准入名额，并设 **3 层**执行深度上限。超限请求会被拒绝；名额按执行路径释放，名额释放不构成底层执行已停止的确认。
+
+### 工作目录与安全交付
+
+`Agent` 的 `isolation` 提供两种选择：
+
+| 隔离方式 | 行为 | 适合场景 |
+|---------|------|---------|
+| **none**（默认） | 使用父工作目录，子会话上下文独立 | 代码调查、验证、文件范围清晰的子任务 |
+| **worktree** | 从项目已提交 HEAD 创建独立 Git Worktree，通过安全检查后自动合回 | 需要隔离文件修改的实现或实验 |
 
 WORKTREE 不包含父工作区未提交的修改，也不会自动 stash 或提交父目录；实际执行目录与提示一致，原 Project 授权边界不扩大。授权根必须是有效仓库根；其内部子目录可映射到新树执行，无初始提交或 detached HEAD 不支持自动交付。
 
@@ -1336,24 +1323,36 @@ WORKTREE 不包含父工作区未提交的修改，也不会自动 stash 或提�
 
 `Worktree remove` 仅安全清理本进程登记、属于当前项目且已无占用的空树或已交付工作区，不提供强制丢弃。保留目录不是永久归档，也不承诺跨重启自动恢复管理。手动清理还会保守检查创建会话与当前会话的受管后台任务；同会话中无关的后台任务也可能使清理暂缓。内部串行化不覆盖外部 Git 或其他工具的并发写入。
 
-- 支持后台异步执行（`BackgroundAgentTracker`），通过 WebSocket 实时推送启动/完成/失败事件，用户可实时监控代理执行进度
-- 单个 Agent 5 分钟超时，结果最大 100,000 字符截断保护
 
-### 三层并发安全
+### 后台 Task 与计划清单
 
-`AgentConcurrencyController` 通过 Semaphore + 会话级计数器强制执行三层限制：
+`TaskCreate` 立即提交实际后台执行，返回任务 ID 和创建回执；任务是否成功由执行结果决定。支持 `agent`、`shell`，以及单次通用子代理兼容类型 `local_workflow`、`monitor_mcp`、`dream`；后三者不提供周期监控或特殊优先级。
 
-| 维度 | 限制 | 保护目标 |
-|------|------|----------|
-| 全局并发 | ≤ 30 个 Agent | 内存与 API 并发压力 |
-| 会话并发 | ≤ 10 个 Agent/会话 | 交互式场景资源隔离 |
-| 嵌套深度 | ≤ 3 层 | 防止无限递归 |
+任务通常经历 `PENDING → RUNNING → COMPLETED / FAILED / CANCELLED`；开始前取消可直接进入 `CANCELLED`。运行中的取消先登记请求，待执行与所属受管资源退出后发布终态。单任务默认 **30 分钟**超时，超时退出记为 `FAILED` 并保留超时原因。Task 在服务进程内共享 **10 个**并发名额，满额立即返回 `TASK_CAPACITY_REACHED`，不会排队等待空位；这一限额独立于 Agent 并发限制。
 
-槽位通过 RAII 模式（`try-with-resources`）自动释放，确保异常路径不会泄漏资源。
+| 工具 | 职责 | 结果与边界 |
+|------|------|-----------|
+| **TaskCreate** | 创建并启动后台任务 | 用返回的 `taskId` 跟踪；创建成功不代表执行成功 |
+| **TaskList** | 列出当前会话的任务 | 查看状态与输出摘要，可按状态筛选 |
+| **TaskGet** | 查询当前会话内指定任务 | 获取状态、已保存的输出和可用错误信息，以及取消请求和停止确认字段；返回内容受长度限制 |
+| **TaskUpdate** | 替换任务的存储输出 | 不改变执行状态；运行中的临时说明可被最终执行输出替换 |
+| **TaskStop** | 按 `taskId` 请求取消当前会话的任务 | 回执表示请求已发出，继续用 TaskGet 确认退出 |
+| **TodoWrite** | 维护计划与进度清单 | 记录待办与完成情况，不启动后台执行 |
 
-### 模型别名路由
+Task 的执行状态由 `TaskCoordinator` 管理，查询区分“已请求取消”（`cancellationRequested`）与“停止已确认”（`terminationConfirmed`）。任务记录保存在服务进程内存中；输出与错误的存储、查询返回各有长度限制，超过时可能截断。`TaskUpdate` 可在任务结束后修订输出，但不会改写状态或错误；`TaskStop` 使用 Task 记录的任务 ID，后台 Agent 回执中的代理 ID 属于另一条执行链路。
 
-Agent 使用三级回退策略解析模型：用户参数 → Agent 类型默认 → 全局默认。通过 `application.yml` 中的 `agent.model-aliases` 配置别名映射；当前 `light`、`standard`、`premium` 默认均为 `qwen3.8-max-0902`，可通过配置统一调整，避免在 Agent 定义中硬编码模型名称。
+典型用法：并行探索后，由主 Agent 汇总并决定自行实现或委派，再通过验证证据完成交付。
+
+```text
+并行探索：多个 explore Agent 分别调查
+  -> 主 Agent 汇总结论与实施方案
+  -> 实现（主 Agent 完成或委派）
+  -> verification Agent 执行验证
+  -> 提交命令、输出与验证结论
+  -> 主 Agent 审阅证据并交付
+```
+
+需要单独跟踪长命令或后台代理任务时，用 `TaskCreate` 启动、`TaskList`／`TaskGet` 查询，必要时用 `TaskStop` 请求取消。计划拆解与进度展示使用 `TodoWrite`。
 
 ---
 
@@ -1460,19 +1459,19 @@ ZhikunCode 提供 **40+ 内置工具**，并支持 MCP、插件与平台条件�
 | **命令执行** | Bash、PowerShell、REPL | Shell 沙箱执行（动态超时分类 + 受控恢复提示，不自动重试）、Windows PowerShell、交互式 REPL 会话 |
 | **Git 操作** | Git、Worktree | Git 命令执行、Worktree 管理 |
 | **Web 工具** | WebSearch、WebFetch、WebBrowser | 网络搜索、网页抓取、浏览器自动化 |
-| **Agent 协作** | Agent | 创建和管理子 Agent |
-| **任务管理** | TaskCreate、TaskGet、TaskList、TaskUpdate、TaskStop、TaskOutput | 当前会话的后台任务执行与结果查询；TaskUpdate 仅更新输出，执行状态由 TaskCoordinator 管理 |
+| **Agent 委派** | Agent | 五种角色、独立上下文、并行执行、同步或后台结果回收 |
+| **任务管理** | TaskCreate、TaskGet、TaskList、TaskUpdate、TaskStop | 当前会话的后台执行、状态与结果查询、输出更新和取消请求 |
 | **交互** | AskUserQuestion、Brief、Sleep、TodoWrite | 用户提问、基础上下文展示、等待、任务清单；多选问题须显式设置 multiSelect |
 | **定时任务** | CronCreate、CronList、CronDelete | 定时任务管理 |
 | **计划工具** | EnterPlanMode、ExitPlanMode、VerifyPlanExecution | EnterPlanMode／ExitPlanMode 尚未接入权限切换，返回 PLAN_MODE_UNAVAILABLE；VerifyPlanExecution 提供文件、内容与命令结果检查 |
-| **配置** | Config、SendMessage、SyntheticOutput | 配置管理、消息发送、合成输出 |
+| **配置** | Config、SyntheticOutput | 配置管理、合成输出 |
 | **监控** | Monitor、CtxInspect、TerminalCapture | 系统监控、上下文检查、终端输出捕获 |
 | **验证** | VerifyJourney | 运行时验证 — 浏览器端到端测试、HTTP API 断言链、混合模式自动切换；内部由 BrowserVerifier、HttpApiVerifier 策略实现 |
 | **MCP 扩展** | MCP 工具适配器 | 连接外部 MCP 服务（动态注册） |
 
 `PLAN` 权限模式仍然可用，与计划面板相互独立。`/plan` 和 `/plan on [名称]` 显示前端计划面板，`/plan off` 隐藏面板；这些命令不会改变会话权限。`EnterPlanMode`／`ExitPlanMode` 工具也不会切换权限、提交审批或展示计划文件。
 
-`TaskCreate` 会立即提交后台执行；计划清单使用 `TodoWrite`。支持 `agent`、`shell`，以及单次子代理兼容类型 `local_workflow`、`monitor_mcp`、`dream`（后三者当前均使用通用代理，不提供周期监控或特殊优先级）；其他类型明确拒绝。创建回执不代表执行成功，结果以 `TaskGet`／`TaskList` 为准。`TaskStop` 请求取消指定任务，返回请求已发出时执行可能仍在退出，应继续查询状态；`TaskUpdate` 不接受手动设置执行状态。
+后台任务的创建、查询、输出更新与取消流程，以及它们和 `TodoWrite` 的用途区别，见上文“Agent 委派与后台任务”。
 
 `Edit` 更新已有文件时要求非空匹配；已有空文件请用 `Write` 填入内容。不存在的文件仍可通过 `Edit` 的空 `old_string` 创建。
 
@@ -1480,13 +1479,12 @@ ZhikunCode 提供 **40+ 内置工具**，并支持 MCP、插件与平台条件�
 
 ## 📈 可视化
 
-ZhikunCode 内置 11 项可视化能力，让 AI 编程过程中的数据和状态一目了然：
+ZhikunCode 提供多种可视化能力，展示 AI 编程过程中的数据和状态：
 
 | 功能 | 说明 |
 |------|------|
 | **Mermaid 图表渲染** | AI 回复中的 mermaid 代码块自动渲染为交互式矢量图，支持复制 SVG / 下载 PNG |
 | **API 序列图** | 自动从会话中提取工具调用记录，生成 Mermaid 序列图，支持过滤和详情查看 |
-| **Agent DAG** | 实时展示多 Agent 协作的任务依赖图，基于 React Flow，支持 TB/LR 布局切换 |
 | **Git 时间线** | 可视化 Git 提交历史，支持 Diff 查看和 Blame 视图，commit 类型自动着色 |
 | **工具进度可视化** | 工具执行过程显示进度条、ETA 预估和迷你日志查看器 |
 | **文件树导航** | 侧边栏项目文件树，支持搜索过滤、虚拟滚动、文件类型图标 |
@@ -1507,7 +1505,7 @@ ZhikunCode 内置 11 项可视化能力，让 AI 编程过程中的数据和状�
 
 ### 模型选择与路由
 
-主对话使用用户选择的模型；Swarm 缺省 Worker 继承父查询模型。快速查询与压缩摘要使用各自配置：快速查询默认百炼 `deepseek-v4.1-flash`，压缩摘要默认 DeepSeek 官方直连 `deepseek-flash`；只有当前模型不支持图片时才触发视觉兜底。百炼与 DeepSeek 直连的模型 ID、端点和 Key 独立。
+主对话使用用户选择的模型；子 Agent 按显式 `model` → 父查询模型 → `premium` 别名解析模型。快速查询与压缩摘要使用各自配置：快速查询默认百炼 `deepseek-v4.1-flash`，压缩摘要默认 DeepSeek 官方直连 `deepseek-flash`；只有当前模型不支持图片时才触发视觉兜底。百炼与 DeepSeek 直连的模型 ID、端点和 Key 独立。
 
 百炼 V4.1 Flash 的流式请求、快速查询和压缩摘要统一发送 `thinking.type=enabled`、字符串 `reasoning_effort="max"`；DeepSeek 官方直连的流式请求与压缩摘要同样发送该参数组合（`chatSync` 非流式快速查询不注入 thinking）。2026-09-15 Token Plan 实测接受 `"max"`、拒绝整数；未验证内部数值映射。
 
@@ -1587,6 +1585,8 @@ ZhikunCode 内置 11 项可视化能力，让 AI 编程过程中的数据和状�
 
 | 变量 | 必填 | 默认值 | 说明 |
 |------|:---:|--------|------|
+| `FEATURE_BACKGROUND_AGENT_WAIT` | — | true | 等待并汇总当前父 Run 的后台 Agent 结果；设为 false 关闭 |
+| `AGENT_TIMEOUT_MAX_WAIT_MINUTES` | — | 31 | 每批后台 Agent 结果的等待预算，单位分钟；不修改子 Agent 执行超时 |
 | `ZHIKUN_COORDINATOR_MODE` | — | 0 | Feature flag，启用协调器模式（0=关闭，1=开启） |
 | `ZHIKUN_DELETE_CONFIRM_CODE` | — | 空 | 删除会话二次确认验证码；配置后 Web 删除会话须输入该验证码，未配置保持原确认流程 |
 | `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.8-max-0902 | 按量计费 DashScope 可用模型列表（逗号分隔；实际目录可动态扩展） |
@@ -1594,6 +1594,8 @@ ZhikunCode 内置 11 项可视化能力，让 AI 编程过程中的数据和状�
 | `LLM_PROVIDER_DEEPSEEK_MODELS` | — | deepseek-flash | DeepSeek 可用模型列表；默认使用 V4.1 Flash（逗号分隔） |
 | `LLM_PROVIDER_MOONSHOT_MODELS` | — | kimi-k3 | Moonshot 可用模型列表（逗号分隔） |
 | `LLM_PROVIDER_ZHIPU_MODELS` | — | glm-5.3,glm-5.3-flash | 智谱 GLM 可用模型列表（逗号分隔） |
+
+上述两个后台等待变量需进入后端进程环境；Docker 部署须通过 Compose override 的 `environment` 显式传入，仅写入项目 `.env` 不会自动透传。
 
 **上下文管理配置（application.yml）：**
 
@@ -1710,18 +1712,15 @@ ZhikunCode 不运行任何遥测服务。API Key 直连你配置的 LLM 服务�
 </details>
 
 <details>
-<summary><b>Q5：多 Agent 协作怎么用？</b></summary>
+<summary><b>Q5：Agent 委派与后台任务怎么用？</b></summary>
 
-ZhikunCode 提供三种协作模式：
+在对话中说明任务、分工范围和预期结果，例如：
 
-- **Team** — 固定分工：创建团队后，每个 Agent 按角色分工并行执行
-- **Swarm** — 动态协商：自动拆解任务，Worker 动态分配，四阶段工作流
-- **SubAgent** — 主从委派：主 Agent 将子任务委派给子 Agent，支持隔离执行
+> “让两个 explore Agent 并行调查认证接口和前端登录流程，分别给出文件位置与风险；你汇总结论后提出修改方案。实现完成后，再让 verification Agent 执行已授权的测试并报告证据。”
 
-在对话中直接描述需求即可触发，例如：
-> "重构这个项目的用户认证模块，一个 Agent 负责后端 API，一个负责前端页面"
+主 Agent 可同步等待子任务，或通过 `run_in_background=true` 在推进其他工作后收集当前 Run 的结果。需要隔离文件修改时可指定 `isolation=worktree`，执行基于已提交 HEAD 的独立工作区，并在安全检查通过后合回。
 
-Agent 会自动选择合适的协作模式。
+需要持续查询的后台执行，可要求“用 TaskCreate 运行测试，随后用 TaskGet 查询结果”；取消时按该任务 ID 使用 TaskStop，并查询停止是否确认。TodoWrite 用于计划清单。具体角色、模型选择与交付边界见上文“Agent 委派与后台任务”。
 
 </details>
 
@@ -1880,10 +1879,3 @@ docker compose up -d
 <div align="center">
   <p>用 ❤️ 和 AI 构建</p>
 </div>
-
-### 后台代理等待
-
-默认启用 `BACKGROUND_AGENT_WAIT`：主 Run 等待本轮后台代理完成，再汇总结果。
-默认等待预算为 31 分钟，覆盖子代理默认最长 30 分钟及 30 秒退出窗口；超出等待预算仍会报告 `BACKGROUND_AGENT_WAIT_TIMEOUT`。
-可用 `FEATURE_BACKGROUND_AGENT_WAIT=false` 关闭等待，或通过 `AGENT_TIMEOUT_MAX_WAIT_MINUTES` 调整预算。
-每个等待周期独立获得完整预算，不在整个 Run 内累计；若提高子代理超时上限，应同步调整等待预算；该预算是单次后台结果等待的限额，不是无限等待保证。

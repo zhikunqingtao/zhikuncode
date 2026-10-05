@@ -236,9 +236,9 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
     <a aria-label="11辅助系统" title="11辅助系统" class="nav-item" href="#s11"><div class="ni" style="background:rgba(245,158,11,.15);color:#F59E0B">11</div><span>辅助系统</span></a>
     <a aria-label="▸观测与恢复" title="▸观测与恢复" class="nav-item" href="#svg-observability"><div class="ni" style="background:rgba(6,182,212,.15);color:#06B6D4">▸</div><span>观测与恢复</span></a>
 
-    <div class="nav-section-label">多Agent 协调</div>
-    <a aria-label="12多Agent协调" title="12多Agent协调" class="nav-item" href="#s8"><div class="ni" style="background:rgba(245,158,11,.15);color:#F59E0B">12</div><span>多Agent协调</span></a>
-    <a aria-label="▸三模式协调" title="▸三模式协调" class="nav-item" href="#svg-coord"><div class="ni" style="background:rgba(123,97,255,.15);color:#7B61FF">▸</div><span>三模式协调</span></a>
+    <div class="nav-section-label">Agent / Task</div>
+    <a aria-label="12Agent与Task" title="12Agent与Task" class="nav-item" href="#s8"><div class="ni" style="background:rgba(245,158,11,.15);color:#F59E0B">12</div><span>Agent与Task</span></a>
+    <a aria-label="▸Agent执行交付" title="▸Agent执行交付" class="nav-item" href="#svg-coord"><div class="ni" style="background:rgba(123,97,255,.15);color:#7B61FF">▸</div><span>Agent执行交付</span></a>
 
     <div class="nav-section-label">React 前端</div>
     <a aria-label="13React 前端" title="13React 前端" class="nav-item" href="#s12"><div class="ni" style="background:rgba(59,130,246,.15);color:#3B82F6">13</div><span>React 前端</span></a>
@@ -440,7 +440,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <text x="117" y="345" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">LLM Provider</text>
       <text x="117" y="359" text-anchor="middle" fill="#6B70A0" font-size="8">26文件</text>
       <rect x="185" y="328" width="115" height="40" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
-      <text x="242" y="345" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">Multi-Agent</text>
+      <text x="242" y="345" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">Agent 委派</text>
       <text x="242" y="359" text-anchor="middle" fill="#6B70A0" font-size="8">5 类 Agent</text>
       <rect x="310" y="328" width="115" height="40" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
       <text x="367" y="345" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">Bash Security</text>
@@ -565,7 +565,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
 
       <!-- Zustand Store -->
       <rect x="30" y="398" width="210" height="48" rx="8" fill="#0F1221" stroke="#10B981" stroke-width="1.2"/>
-      <text x="135" y="418" text-anchor="middle" font-size="9" fill="#10B981" font-weight="600">Store 文件 (36个)</text>
+      <text x="135" y="418" text-anchor="middle" font-size="9" fill="#10B981" font-weight="600">Store 文件</text>
       <text x="135" y="434" text-anchor="middle" font-size="7" fill="#6B70A0">messageStore · sessionStore · activityStore ...</text>
 
       <!-- UI Render -->
@@ -776,7 +776,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <text x="269" y="312" text-anchor="middle" fill="#6B70A0" font-size="9">30文件(main)</text>
 
       <rect x="348" y="278" width="130" height="44" rx="6" fill="#0F1221" stroke="#F59E0B" stroke-width="1"/>
-      <text x="413" y="296" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600">Multi-Agent</text>
+      <text x="413" y="296" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600">Agent 委派</text>
       <text x="413" y="312" text-anchor="middle" fill="#6B70A0" font-size="9">5类 Agent · 受控协作</text>
 
       <rect x="492" y="278" width="150" height="44" rx="6" fill="#0F1221" stroke="#F59E0B" stroke-width="1"/>
@@ -789,7 +789,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
 
       <rect x="204" y="338" width="130" height="44" rx="6" fill="#0F1221" stroke="#F59E0B" stroke-width="1"/>
       <text x="269" y="356" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600">Skill</text>
-      <text x="269" y="372" text-anchor="middle" fill="#6B70A0" font-size="9">6级加载</text>
+      <text x="269" y="372" text-anchor="middle" fill="#6B70A0" font-size="9">三类来源加载</text>
 
       <rect x="348" y="338" width="130" height="44" rx="6" fill="#0F1221" stroke="#F59E0B" stroke-width="1"/>
       <text x="413" y="356" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600">Security</text>
@@ -1975,7 +1975,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
   </div>
 
   <div class="card java-accent" style="margin-top:12px">
-    <div style="padding:12px 16px;font-size:.82rem;line-height:1.8">主对话跟随用户选择；Swarm Worker 默认继承父查询模型。快速查询用 LLM_FAST_MODEL，摘要用独立的 LLM_COMPACT_MODEL，图片兜底用 LLM_VISION_FALLBACK_MODEL；快速查询与图片兜底默认 deepseek-v4.1-flash（百炼），摘要默认 deepseek-flash（DeepSeek 官方直连）。两款默认模型的流式请求与压缩摘要均发送 thinking=enabled、reasoning_effort=&quot;max&quot;（DeepSeek 官方直连的非流式快速查询不注入 thinking）。</div>
+    <div style="padding:12px 16px;font-size:.82rem;line-height:1.8">主对话跟随用户选择；Agent 优先使用显式 model，其次继承父查询模型，最后由 premium 别名兜底；Agent 型 Task 沿用继承与兜底规则。快速查询用 LLM_FAST_MODEL，摘要用独立的 LLM_COMPACT_MODEL，图片兜底用 LLM_VISION_FALLBACK_MODEL；快速查询与图片兜底默认 deepseek-v4.1-flash（百炼），摘要默认 deepseek-flash（DeepSeek 官方直连）。两款默认模型的流式请求与压缩摘要均发送 thinking=enabled、reasoning_effort=&quot;max&quot;（DeepSeek 官方直连的非流式快速查询不注入 thinking）。</div>
     <div class="card-title" onclick="toggleDetail(this)"><span class="toggle">▶</span> 辅助组件</div>
     <div class="card-detail">
       <div class="grid-3" style="font-size:.8rem">
@@ -2807,8 +2807,6 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <text x="490" y="296" font-size="6" fill="#6B80A0">convertAndSendToUser()</text>
       <text x="328" y="310" font-size="6.5" fill="#0EA571" font-weight="600">/topic/session/{id}</text>
       <text x="490" y="310" font-size="6" fill="#6B80A0">convertAndSend() broadcast</text>
-      <text x="328" y="324" font-size="6.5" fill="#0EA571" font-weight="600">/queue/coordinator/{id}</text>
-      <text x="490" y="324" font-size="6" fill="#6B80A0">CoordinatorEventBus</text>
 
       <!-- Message type count -->
       <line x1="330" y1="332" x2="572" y2="332" stroke="#2A2D45" stroke-width=".5"/>
@@ -3128,8 +3126,8 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
           <div style="font-weight:700;color:var(--java);margin-bottom:8px">执行 & 终端</div>
           <div class="tree">
             <div class="tree-item"><span class="tn">BashTool</span> <span class="tv">→ Sec §5</span></div>
-            <div class="tree-item"><span class="tn">TaskTool</span></div>
-            <div class="tree-item"><span class="tn">NotebookTool</span></div>
+            <div class="tree-item"><span class="tn">TaskCreateTool</span></div>
+            <div class="tree-item"><span class="tn">NotebookEditTool</span></div>
           </div>
           <div style="font-weight:700;color:var(--cyan);margin-bottom:8px;margin-top:12px">搜索 & 分析</div>
           <div class="tree">
@@ -3141,7 +3139,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
         <div>
           <div style="font-weight:700;color:var(--purple);margin-bottom:8px">Agent & 协作</div>
           <div class="tree">
-            <div class="tree-item"><span class="tn">SubAgentTool</span></div>
+            <div class="tree-item"><span class="tn">AgentTool</span></div>
             <div class="tree-item"><span class="tn">MemoryTool</span> <span class="tv">→ §11</span></div>
             <div class="tree-item"><span class="tn">McpTool</span> <span class="tv">→ §7</span></div>
           </div>
@@ -3174,7 +3172,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <rect width="1000" height="680" fill="#0B0D17"/><rect width="1000" height="680" fill="url(#gridTool)"/>
 
       <!-- Title -->
-      <text x="500" y="30" text-anchor="middle" fill="#e8e8f0" font-size="14" font-weight="700" style="font-family:'JetBrains Mono',monospace">51 个工具 × 5 层执行管道</text>
+      <text x="500" y="30" text-anchor="middle" fill="#e8e8f0" font-size="14" font-weight="700" style="font-family:'JetBrains Mono',monospace">内置工具 × 5 层执行管道</text>
 
       <!-- ===== LEFT: TOOL CATEGORIES ===== -->
       <rect x="30" y="48" width="440" height="590" rx="10" fill="url(#gToolCat)" stroke="#F59E0B" stroke-width="1" filter="url(#glowTool)"/>
@@ -3237,7 +3235,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <text x="204" y="503" fill="#e8e8f0" font-size="8.5" style="font-family:'JetBrains Mono',monospace">CronTools</text>
 
       <!-- Remaining tools label -->
-      <text x="250" y="555" text-anchor="middle" fill="#a0a0b8" font-size="9" style="font-family:'JetBrains Mono',monospace">+ SubAgentTool, McpTool, MemoryTool, NotebookTool ...</text>
+      <text x="250" y="555" text-anchor="middle" fill="#a0a0b8" font-size="9" style="font-family:'JetBrains Mono',monospace">+ AgentTool, McpTool, MemoryTool, NotebookEditTool ...</text>
 
       <!-- ===== RIGHT: EXECUTION PIPELINE ===== -->
       <rect x="520" y="48" width="450" height="590" rx="10" fill="url(#gPipeline)" stroke="#06B6D4" stroke-width="1" filter="url(#glowPipe)"/>
@@ -4198,7 +4196,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
 
       <rect x="305" y="692" width="118" height="30" rx="5" fill="#0F1226" stroke="#84CC16" stroke-width=".7"/>
       <text x="364" y="705" text-anchor="middle" fill="#84CC16" font-size="8" font-weight="700" style="font-family:'JetBrains Mono',monospace">ToolRegistry</text>
-      <text x="364" y="716" text-anchor="middle" fill="#6B70A0" font-size="6.5" style="font-family:'JetBrains Mono',monospace">51工具·调用</text>
+      <text x="364" y="716" text-anchor="middle" fill="#6B70A0" font-size="6.5" style="font-family:'JetBrains Mono',monospace">工具注册·调用</text>
 
       <rect x="430" y="692" width="108" height="30" rx="5" fill="#0F1226" stroke="#84CC16" stroke-width=".7"/>
       <text x="484" y="705" text-anchor="middle" fill="#84CC16" font-size="8" font-weight="700" style="font-family:'JetBrains Mono',monospace">ModelRegistry</text>
@@ -5563,16 +5561,16 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       </div>
     </div>
     <div class="card java-accent">
-      <div class="card-title" onclick="toggleDetail(this)"><span class="toggle">▶</span> Skill 系统 <span class="tag java">15 个内置 Skill · 动态扩展</span></div>
+      <div class="card-title" onclick="toggleDetail(this)"><span class="toggle">▶</span> Skill 系统 <span class="tag java">13 个内置 Skill · 动态扩展</span></div>
       <div class="card-detail">
         <div class="tree">
-          <div class="tree-item"><span class="tn">SkillRegistry</span><span class="tv">15 个内置 Skill，按 BUNDLED / PROJECT / USER / PLUGIN / MANAGED / MCP 六层来源合并，WatchService 热重载</span></div>
-          <div class="tree-item"><span class="tn">Bundled Catalog</span><span class="tv">commit · review · fix · test · pr · debug · verify · stuck · remember · software-architecture · csv-data-summarizer · prompt-engineering · test-driven-development · publish-oss · publish-meoo</span></div>
-          <div class="tree-item"><span class="tn">SkillDefinition</span><span class="tv">record 类型 · SkillSource 枚举 6 值</span></div>
+          <div class="tree-item"><span class="tn">SkillRegistry</span><span class="tv">13 个内置 Skill；BUNDLED → PROJECT → USER 依次注册，同名后者覆盖；项目目录热重载</span></div>
+          <div class="tree-item"><span class="tn">Bundled Catalog</span><span class="tv">commit · review · test · pr · debug · verify · remember · software-architecture · csv-data-summarizer · prompt-engineering · test-driven-development · publish-oss · publish-meoo</span></div>
+          <div class="tree-item"><span class="tn">SkillDefinition</span><span class="tv">record 类型 · SkillSource 六值描述来源，不构成加载优先级</span></div>
           <div class="tree-item"><span class="tn">FrontmatterParser</span><span class="tv">简化 YAML 解析 (key: value / 列表项)</span></div>
           <div class="tree-item"><span class="tn">FrontmatterData</span><span class="tv">16 个 frontmatter 字段</span></div>
-          <div class="tree-item"><span class="tn">SkillExecutor</span><span class="tv">inline/fork 分发 · 120s 超时 · 参数校验</span></div>
-          <div class="tree-item"><span class="tn">SkillToolValidator</span><span class="tv">参数注入检测 + fork 嵌套深度 ≤3 (allowed-tools 白名单仅声明，运行时未拦截)</span></div>
+          <div class="tree-item"><span class="tn">SkillExecutor</span><span class="tv">Skill 工具的正文 / 元数据返回 · 结果构造等待 120s · 参数校验</span></div>
+          <div class="tree-item"><span class="tn">SkillToolValidator</span><span class="tv">参数注入检测；当前嵌套深度 ≥3 时拒绝 fork (allowed-tools 白名单仅声明，运行时未拦截)</span></div>
         </div>
       </div>
     </div>
@@ -6099,9 +6097,9 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
   </div>
 
 
-  <!-- SVG 插画: Skill 系统任务分解架构 -->
+  <!-- SVG 插画: Skill 系统加载与正文返回架构 -->
   <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:28px;margin-top:24px">
-    <h4 style="font-size:.88rem;font-weight:700;margin-bottom:16px;color:var(--text);text-align:center">Skill 系统加载与执行架构 <span style="color:var(--text3);font-weight:400;font-size:.75rem">— 15 个内置 Skill · inline/fork 双模式 · 动态来源合并</span></h4>
+    <h4 style="font-size:.88rem;font-weight:700;margin-bottom:16px;color:var(--text);text-align:center">Skill 系统加载与执行架构 <span style="color:var(--text3);font-weight:400;font-size:.75rem">— 13 个内置 Skill · 工具结果 / 命令提示 · 三类来源加载</span></h4>
     <div id="diagram-reference-37" class="reference-scroll" tabindex="0" role="region" aria-label="架构图 37，可横向滚动"><svg id="audit-diagram-37" viewBox="0 0 960 480" xmlns="http://www.w3.org/2000/svg" style="width:100%;min-width:750px">
       <defs>
         <linearGradient id="gSkillIn" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#10B981" stop-opacity=".25"/><stop offset="100%" stop-color="#10B981" stop-opacity=".06"/></linearGradient>
@@ -6112,26 +6110,26 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <rect width="960" height="480" rx="12" fill="#0B0D17"/>
       <rect x="1" y="1" width="958" height="478" rx="11" fill="none" stroke="#252840" stroke-width="1"/>
 
-      <!-- 左侧: 高级任务输入 -->
+      <!-- 左侧: Skill 工具与 Web 技能命令入口 -->
       <rect x="30" y="170" width="130" height="80" rx="10" fill="url(#gSkillIn)" stroke="#10B981" stroke-width="1.5"/>
-      <text x="95" y="200" text-anchor="middle" fill="#10B981" font-size="11" font-weight="700" style="font-family:'JetBrains Mono',monospace">高级任务</text>
-      <text x="95" y="218" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">用户指令</text>
-      <text x="95" y="232" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">Slash Command</text>
+      <text x="95" y="200" text-anchor="middle" fill="#10B981" font-size="11" font-weight="700" style="font-family:'JetBrains Mono',monospace">Skill 入口</text>
+      <text x="95" y="218" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">工具调用 / Web</text>
+      <text x="95" y="232" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">技能命令</text>
 
       <!-- 箭头: 输入 → SkillRegistry -->
       <line x1="160" y1="210" x2="200" y2="210" stroke="#10B981" stroke-width="2"/>
       <polygon points="198,205 206,210 198,215" fill="#10B981"/>
 
-      <!-- 中心: SkillRegistry → SkillExecutor → 任务分解 -->
+      <!-- 中心: 技能定义、工具结果构造与命令提示返回 -->
       <rect x="210" y="30" width="440" height="380" rx="10" fill="url(#gSkillCore)" stroke="#F59E0B" stroke-width="1.2"/>
-      <text x="430" y="52" text-anchor="middle" fill="#F59E0B" font-size="12" font-weight="700" style="font-family:'JetBrains Mono',monospace">Skill 核心引擎</text>
+      <text x="430" y="52" text-anchor="middle" fill="#F59E0B" font-size="12" font-weight="700" style="font-family:'JetBrains Mono',monospace">Skill 加载与正文返回</text>
 
       <!-- SkillRegistry -->
       <rect x="230" y="66" width="200" height="70" rx="8" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
       <text x="330" y="86" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600" style="font-family:'JetBrains Mono',monospace">SkillRegistry</text>
       <text x="330" y="102" text-anchor="middle" fill="#e8e8f0" font-size="8.5" style="font-family:'JetBrains Mono',monospace">SkillRegistry.java</text>
-      <text x="330" y="118" text-anchor="middle" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">SkillSource 6 类 · 3 类已加载</text>
-      <text x="330" y="130" text-anchor="middle" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">SkillDefinition.java · 来源与元数据</text>
+      <text x="330" y="118" text-anchor="middle" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">BUNDLED → PROJECT → USER</text>
+      <text x="330" y="130" text-anchor="middle" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">三类依次注册 · 同名后者覆盖</text>
 
       <!-- FrontmatterParser -->
       <rect x="450" y="66" width="180" height="70" rx="8" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
@@ -6146,55 +6144,55 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
 
       <!-- SkillExecutor -->
       <rect x="260" y="166" width="200" height="60" rx="8" fill="#151829" stroke="#F59E0B" stroke-width="1"/>
-      <text x="360" y="190" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600" style="font-family:'JetBrains Mono',monospace">SkillExecutor</text>
-      <text x="360" y="206" text-anchor="middle" fill="#e8e8f0" font-size="8.5" style="font-family:'JetBrains Mono',monospace">SkillExecutor.java</text>
-      <text x="360" y="220" text-anchor="middle" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">inline/fork 分发 · 120s 超时</text>
+      <text x="360" y="190" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600" style="font-family:'JetBrains Mono',monospace">SkillTool → SkillExecutor</text>
+      <text x="360" y="206" text-anchor="middle" fill="#e8e8f0" font-size="8.5" style="font-family:'JetBrains Mono',monospace">inline / fork 结果构造</text>
+      <text x="360" y="220" text-anchor="middle" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">结果构造等待超时：120s</text>
 
-      <!-- SkillTool -->
+      <!-- Web /skill 命令独立解析，不经过 SkillExecutor -->
       <rect x="480" y="166" width="150" height="60" rx="8" fill="#151829" stroke="#06B6D4" stroke-width=".8"/>
-      <text x="555" y="190" text-anchor="middle" fill="#06B6D4" font-size="10" font-weight="600" style="font-family:'JetBrains Mono',monospace">SkillTool</text>
-      <text x="555" y="206" text-anchor="middle" fill="#e8e8f0" font-size="8.5" style="font-family:'JetBrains Mono',monospace">SkillTool.java</text>
-      <text x="555" y="220" text-anchor="middle" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">Agent ↔ Skill桥接</text>
+      <text x="555" y="190" text-anchor="middle" fill="#06B6D4" font-size="10" font-weight="600" style="font-family:'JetBrains Mono',monospace">SkillCommand</text>
+      <text x="555" y="206" text-anchor="middle" fill="#e8e8f0" font-size="8.5" style="font-family:'JetBrains Mono',monospace">Web /skill 技能命令</text>
+      <text x="555" y="220" text-anchor="middle" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">PROMPT → 当前会话</text>
 
       <!-- ArgumentSubstitution -->
       <rect x="310" y="242" width="200" height="44" rx="8" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
       <text x="410" y="262" text-anchor="middle" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">ArgumentSubstitution.java</text>
       <text x="410" y="278" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">参数替换引擎</text>
 
-      <!-- 箭头: Executor → Skill池 -->
-      <line x1="360" y1="286" x2="360" y2="304" stroke="#3B82F6" stroke-width="1.5" stroke-dasharray="4,3"/>
-      <polygon points="355,302 360,310 365,302" fill="#3B82F6"/>
+      <!-- 技能正文 → 参数替换，不表示分派执行节点 -->
+      <line x1="360" y1="304" x2="360" y2="286" stroke="#3B82F6" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <polygon points="355,294 360,286 365,294" fill="#3B82F6"/>
 
-      <!-- Skill实现节点池 -->
+      <!-- 内置技能示例区，保留原有卡位 -->
       <rect x="230" y="312" width="400" height="86" rx="8" fill="url(#gSkillPool)" stroke="#3B82F6" stroke-width="1"/>
-      <text x="430" y="332" text-anchor="middle" fill="#3B82F6" font-size="10" font-weight="700" style="font-family:'JetBrains Mono',monospace">Skill 实现节点池</text>
+      <text x="430" y="332" text-anchor="middle" fill="#3B82F6" font-size="10" font-weight="700" style="font-family:'JetBrains Mono',monospace">内置技能示例</text>
 
-      <!-- 内置 Skill 节点 (BUNDLED 来源 · 全部 inline 模式) -->
+      <!-- 内置 Skill 示例，按各自 frontmatter 解析 -->
       <rect x="242" y="340" width="65" height="24" rx="5" fill="#151829" stroke="#10B981" stroke-width=".6"/>
       <text x="274" y="356" text-anchor="middle" fill="#10B981" font-size="7.5" style="font-family:'JetBrains Mono',monospace">commit</text>
       <rect x="315" y="340" width="60" height="24" rx="5" fill="#151829" stroke="#10B981" stroke-width=".6"/>
       <text x="345" y="356" text-anchor="middle" fill="#10B981" font-size="7.5" style="font-family:'JetBrains Mono',monospace">review</text>
       <rect x="383" y="340" width="45" height="24" rx="5" fill="#151829" stroke="#10B981" stroke-width=".6"/>
-      <text x="405" y="356" text-anchor="middle" fill="#10B981" font-size="7.5" style="font-family:'JetBrains Mono',monospace">fix</text>
+      <text x="405" y="356" text-anchor="middle" fill="#10B981" font-size="7.5" style="font-family:'JetBrains Mono',monospace">debug</text>
       <rect x="436" y="340" width="50" height="24" rx="5" fill="#151829" stroke="#10B981" stroke-width=".6"/>
       <text x="461" y="356" text-anchor="middle" fill="#10B981" font-size="7.5" style="font-family:'JetBrains Mono',monospace">test</text>
       <rect x="494" y="340" width="45" height="24" rx="5" fill="#151829" stroke="#10B981" stroke-width=".6"/>
       <text x="516" y="356" text-anchor="middle" fill="#10B981" font-size="7.5" style="font-family:'JetBrains Mono',monospace">pr</text>
 
-      <!-- fork 模式标识 (需 frontmatter context:fork) -->
+      <!-- fork 仅描述 Skill 工具返回的元数据 -->
       <rect x="550" y="340" width="72" height="24" rx="5" fill="#151829" stroke="#06B6D4" stroke-width=".6" stroke-dasharray="3 2"/>
-      <text x="586" y="356" text-anchor="middle" fill="#06B6D4" font-size="7" style="font-family:'JetBrains Mono',monospace">fork (用户定义)</text>
+      <text x="586" y="356" text-anchor="middle" fill="#06B6D4" font-size="7" style="font-family:'JetBrains Mono',monospace">fork 元数据</text>
 
       <!-- inline/fork 模式标注 -->
-      <text x="242" y="382" fill="#10B981" font-size="7" style="font-family:'JetBrains Mono',monospace">● inline (默认) — 注入当前对话</text>
-      <text x="450" y="382" fill="#06B6D4" font-size="7" style="font-family:'JetBrains Mono',monospace">● fork — 创建子 Agent</text>
-      <text x="242" y="394" fill="#6B70A0" font-size="7" style="font-family:'JetBrains Mono',monospace">内置 5 个 .md (无 frontmatter · 默认 inline) · 用户/项目 Skill 可声明 fork</text>
+      <text x="242" y="382" fill="#10B981" font-size="7" style="font-family:'JetBrains Mono',monospace">● inline — 正文作为 tool_result</text>
+      <text x="450" y="382" fill="#06B6D4" font-size="7" style="font-family:'JetBrains Mono',monospace">● fork — 正文 + 元数据</text>
+      <text x="242" y="394" fill="#6B70A0" font-size="7" style="font-family:'JetBrains Mono',monospace">内置共 13 项；示例仅展示部分 · frontmatter 按技能解析</text>
 
-      <!-- 右侧: 结果聚合输出 -->
+      <!-- 右侧: 技能正文交给当前会话 -->
       <rect x="670" y="170" width="130" height="80" rx="10" fill="url(#gSkillOut)" stroke="#A855F7" stroke-width="1.5"/>
-      <text x="735" y="200" text-anchor="middle" fill="#A855F7" font-size="11" font-weight="700" style="font-family:'JetBrains Mono',monospace">结果聚合</text>
-      <text x="735" y="218" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">输出合并</text>
-      <text x="735" y="232" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">返回Agent</text>
+      <text x="735" y="200" text-anchor="middle" fill="#A855F7" font-size="11" font-weight="700" style="font-family:'JetBrains Mono',monospace">技能正文</text>
+      <text x="735" y="218" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">工具结果 / 命令提示</text>
+      <text x="735" y="232" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">当前会话继续</text>
 
       <!-- 箭头: 核心 → 输出 -->
       <line x1="650" y1="210" x2="668" y2="210" stroke="#A855F7" stroke-width="2"/>
@@ -6202,19 +6200,19 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
 
       <!-- 右下: SkillSource 加载源说明 (源码对齐) -->
       <rect x="670" y="300" width="260" height="140" rx="8" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
-      <text x="800" y="318" text-anchor="middle" fill="#F59E0B" font-size="9.5" font-weight="700" style="font-family:'JetBrains Mono',monospace">SkillSource 枚举 · 优先级 高→低</text>
-      <text x="678" y="334" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">1. MANAGED — 企业管理 <预留></text>
-      <text x="678" y="348" fill="#3B82F6" font-size="7.5" style="font-family:'JetBrains Mono',monospace">2. USER — ~/.zhikun/skills/ ✓</text>
-      <text x="678" y="362" fill="#3B82F6" font-size="7.5" style="font-family:'JetBrains Mono',monospace">3. PROJECT — .zhikun/skills/ ✓</text>
-      <text x="678" y="376" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">4. PLUGIN — 插件提供 <预留></text>
-      <text x="678" y="390" fill="#10B981" font-size="7.5" style="font-family:'JetBrains Mono',monospace">5. BUNDLED — 内置 5 个 ✓</text>
-      <text x="678" y="404" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">6. MCP — MCP 构建 <预留></text>
+      <text x="800" y="318" text-anchor="middle" fill="#F59E0B" font-size="9.5" font-weight="700" style="font-family:'JetBrains Mono',monospace">SkillSource · 六种来源枚举</text>
+      <text x="678" y="334" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">MANAGED — 企业管理（预留）</text>
+      <text x="678" y="348" fill="#3B82F6" font-size="7.5" style="font-family:'JetBrains Mono',monospace">USER — ~/.zhikun/skills/ ✓</text>
+      <text x="678" y="362" fill="#3B82F6" font-size="7.5" style="font-family:'JetBrains Mono',monospace">PROJECT — .zhikun/skills/ ✓</text>
+      <text x="678" y="376" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">PLUGIN — 插件提供（预留）</text>
+      <text x="678" y="390" fill="#10B981" font-size="7.5" style="font-family:'JetBrains Mono',monospace">BUNDLED — 内置 13 项 ✓</text>
+      <text x="678" y="404" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">MCP — MCP 构建（预留）</text>
       <text x="800" y="422" text-anchor="middle" fill="#6B70A0" font-size="7" style="font-family:'JetBrains Mono',monospace">加载顺序: BUNDLED→PROJECT→USER (后覆盖前)</text>
       <text x="800" y="434" text-anchor="middle" fill="#F59E0B" font-size="7" style="font-family:'JetBrains Mono',monospace">WatchService 热重载 · DEBOUNCE_MS=500</text>
 
       <!-- 底部统计条 -->
       <rect x="30" y="460" width="900" height="14" rx="4" fill="#151829"/>
-      <text x="480" y="471" text-anchor="middle" fill="#6B70A0" font-size="9" style="font-family:'JetBrains Mono',monospace">skill/ 9文件 · SkillRegistry FrontmatterParser SkillTool SkillExecutor SkillToolValidator</text>
+      <text x="480" y="471" text-anchor="middle" fill="#6B70A0" font-size="9" style="font-family:'JetBrains Mono',monospace">SkillRegistry · FrontmatterParser · SkillTool / SkillExecutor · SkillCommand · SkillToolValidator</text>
     </svg></div>
   </div>
 
@@ -6226,7 +6224,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <div style="background:#0F1221;border:1px solid #252840;border-radius:8px;padding:12px">
         <div style="color:#F59E0B;font-weight:700;margin-bottom:6px;font-size:.82rem">▸ FrontmatterData 字段 (16)</div>
         <div style="color:#9FA4C4;font-family:'JetBrains Mono',monospace;font-size:.7rem;line-height:1.55">
-          description · name · allowedTools · argumentHint · arguments · whenToUse · version · model · disableModelInvocation · userInvocable · hooks · effort<span style="color:#10B981">context</span> · agent · paths · shell
+          description · name · allowedTools · argumentHint · arguments · whenToUse · version · model · disableModelInvocation · userInvocable · hooks · effort · <span style="color:#10B981">context</span> · agent · paths · shell
         </div>
         <div style="color:#6B70A0;font-size:.7rem;margin-top:6px">默认: context=<code style="color:#10B981">inline</code> · shell=<code style="color:#10B981">bash</code> · userInvocable=<code style="color:#10B981">true</code></div>
       </div>
@@ -6235,10 +6233,10 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <div style="background:#0F1221;border:1px solid #252840;border-radius:8px;padding:12px">
         <div style="color:#06B6D4;font-weight:700;margin-bottom:6px;font-size:.82rem">▸ SkillExecutor 执行模式</div>
         <div style="color:#9FA4C4;font-size:.72rem;line-height:1.55">
-          • <span style="color:#10B981">inline</span> (默认): 渲染后的 prompt 作为用户消息注入当前对话<br>
-          • <span style="color:#06B6D4">fork</span>: 返回 prompt + metadata (agent/model/effort) 供外层 AgentService 创建子代理<br>
-          • Skill 加载不再按会话累计额度拦截；模型上下文容量保护保持不变<br>
-          • 超时: <code style="color:#F59E0B">SKILL_TIMEOUT_SECONDS = 120</code> (CompletableFuture.orTimeout)
+          • Skill 工具的 <span style="color:#10B981">inline</span>：渲染正文通过 tool_result 返回<br>
+          • <span style="color:#06B6D4">fork</span>：返回正文及 agent/model/effort 等元数据，不创建子 Agent<br>
+          • Web 的 <code>/skill</code> 走 SkillCommand：渲染后由 PROMPT 路径继续当前会话<br>
+          • <code style="color:#F59E0B">120s</code> 仅限制 inline/fork 的结果构造等待，不含此前解析/渲染或后续模型执行
         </div>
       </div>
 
@@ -6246,8 +6244,8 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <div style="background:#0F1221;border:1px solid #252840;border-radius:8px;padding:12px">
         <div style="color:#EF4444;font-weight:700;margin-bottom:6px;font-size:.82rem">▸ SkillToolValidator 安全检查</div>
         <div style="color:#9FA4C4;font-size:.72rem;line-height:1.55">
-          • <code style="color:#F59E0B">MAX_ARG_LENGTH = 2000</code> 字符<br>
-          • <code style="color:#F59E0B">MAX_FORK_NESTING_DEPTH = 3</code><br>
+          • 每个解析参数：<code style="color:#F59E0B">MAX_ARG_LENGTH = 2000</code> 字符<br>
+          • <code style="color:#F59E0B">MAX_FORK_NESTING_DEPTH = 3</code>：当前嵌套深度 ≥3 时拒绝 fork<br>
           • 6 个 shell 注入正则: <code style="color:#10B981">$(...)</code> · <code style="color:#10B981">`...`</code> · <code style="color:#10B981">; cmd</code> · <code style="color:#10B981">| cmd</code> · <code style="color:#10B981">&amp;&amp; rm</code> · <code style="color:#10B981">${...}</code><br>
           • SkillExecutor 集成: <span style="color:#10B981">validateArgs() ✓</span> · <span style="color:#10B981">validateForkPermission() ✓</span><br>
           • <span style="color:#F59E0B">allowed-tools 白名单声明 (运行时验证规划中，validate() 当前仅测试覆盖)</span>
@@ -6270,7 +6268,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
 
     <div style="margin-top:14px;padding:10px 12px;background:#0F1221;border-left:3px solid #F59E0B;border-radius:4px;font-size:.72rem;color:#9FA4C4;line-height:1.55">
       <span style="color:#F59E0B;font-weight:700">稳定职责锚点：</span>
-      SkillRegistry（六层来源与热重载） · SkillDefinition（来源和元数据） · SkillExecutor（渲染、超时和 fork） · SkillToolValidator（参数、嵌套和注入检查）。具体源码行号随提交变化，不作为架构契约。
+      SkillRegistry（BUNDLED → PROJECT → USER 注册与项目热重载） · SkillDefinition（六值来源枚举与元数据） · SkillExecutor（工具正文 / 元数据返回） · SkillCommand（命令提示返回）。加载不设会话累计额度，模型上下文容量保护仍适用；具体源码行号不作为架构契约。
     </div>
   </div>
 
@@ -6303,613 +6301,245 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
   </div>
 </div>
 
-<!-- ============ SECTION 8: MULTI-AGENT ============ -->
+<!-- ============ SECTION 8: AGENT AND TASK EXECUTION ============ -->
 <div class="section" id="s8">
   <div class="section-head">
     <span class="section-num java">12</span>
-    <h2>多Agent协调系统</h2>
-    <span class="meta">5 类内置 Agent · Team / Swarm / SubAgent 三种协作模式</span>
+    <h2>Agent 与后台 Task</h2>
+    <span class="meta">5 类 Agent · 同步 / 并行 / 后台委派 · 会话级任务管理</span>
   </div>
 
   <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;font-size:.78rem">
-    <span class="tag java">Team模式</span><span class="tag purple">Swarm模式</span><span class="tag cyan">SubAgent模式</span>
-    <span style="color:var(--text3);margin-left:auto">general-purpose · explore · verification · plan · guide</span>
+    <span class="tag java">Agent 委派</span><span class="tag cyan">后台 Agent 汇总</span><span class="tag purple">Task 生命周期</span>
   </div>
-
   <div class="card java-accent">
     <div class="card-title" style="cursor:default">根 Session 身份、授权与验证产物归属</div>
     <p style="font-size:.78rem;color:var(--text2)">子 Agent 通过 root session / root run 身份匹配受约束 Grant，不建立第二套授权权威。Artifact 保留 agent 与 parent run 关联；显式发布候选来自同一持久化根 Session 的根 Run 与授权后代 Run，目标条目必须已验证且发布前哈希仍匹配。</p>
   </div>
 
   <div class="card" style="margin-top:16px;padding:0;overflow:hidden;border:1px solid var(--border2)">
-  <div style="padding:16px 20px 8px;font-size:.85rem;font-weight:700;color:var(--java);letter-spacing:.02em">▸ 多Agent协作系统 — Team / Swarm / SubAgent 三模式全景</div>
-  <div id="diagram-reference-40" class="reference-scroll" tabindex="0" role="region" aria-label="架构图 40，可横向滚动"><svg id="audit-diagram-40" viewBox="0 0 1000 750" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
-    <defs>
-      <linearGradient id="gMaTeam" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#3B82F6" stop-opacity=".15"/><stop offset="100%" stop-color="#3B82F6" stop-opacity=".03"/></linearGradient>
-      <linearGradient id="gMaSwarm" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#A855F7" stop-opacity=".15"/><stop offset="100%" stop-color="#A855F7" stop-opacity=".03"/></linearGradient>
-      <linearGradient id="gMaSub" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#06B6D4" stop-opacity=".15"/><stop offset="100%" stop-color="#06B6D4" stop-opacity=".03"/></linearGradient>
-      <linearGradient id="gMaBase" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#F59E0B" stop-opacity=".12"/><stop offset="100%" stop-color="#F59E0B" stop-opacity=".03"/></linearGradient>
-      <filter id="glowMa"><feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#F59E0B" flood-opacity=".25"/></filter>
-      <marker id="maMa" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#F59E0B"/></marker>
-      <marker id="maMaB" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#3B82F6"/></marker>
-      <marker id="maMaP" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#A855F7"/></marker>
-      <marker id="maMaC" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#06B6D4"/></marker>
-      <pattern id="gridMa" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#252840" stroke-width=".5" opacity=".35"/></pattern>
-    </defs>
-    <rect width="1000" height="750" fill="#0B0D17"/><rect width="1000" height="750" fill="url(#gridMa)"/>
-
-    <!-- ===== Leader Agent (Top Center) ===== -->
-    <ellipse cx="500" cy="60" rx="160" ry="38" fill="#151829" stroke="#F59E0B" stroke-width="2" filter="url(#glowMa)"/>
-    <text x="500" y="55" text-anchor="middle" fill="#F59E0B" font-size="13" font-weight="700" style="font-family:'JetBrains Mono',monospace">Leader Agent</text>
-    <text x="500" y="73" text-anchor="middle" fill="#6B70A0" font-size="9" style="font-family:'JetBrains Mono',monospace">CoordinatorWorkflowEngine</text>
-
-    <!-- Arrows from Leader to three modes -->
-    <line x1="380" y1="90" x2="180" y2="140" stroke="#3B82F6" stroke-width="1.5" class="anim-line" marker-end="url(#maMaB)"/>
-    <line x1="500" y1="98" x2="500" y2="140" stroke="#A855F7" stroke-width="1.5" class="anim-line" marker-end="url(#maMaP)"/>
-    <line x1="620" y1="90" x2="820" y2="140" stroke="#06B6D4" stroke-width="1.5" class="anim-line" marker-end="url(#maMaC)"/>
-
-    <!-- ===== LEFT: Team Mode ===== -->
-    <rect x="30" y="140" width="300" height="420" rx="12" fill="url(#gMaTeam)" stroke="#3B82F6" stroke-width="1.5"/>
-    <text x="180" y="168" text-anchor="middle" fill="#3B82F6" font-size="14" font-weight="700" style="font-family:'JetBrains Mono',monospace">Team Mode</text>
-    <text x="180" y="185" text-anchor="middle" fill="#6B70A0" font-size="9" style="font-family:'JetBrains Mono',monospace">多代理并行协作 · 邮箱通信</text>
-
-    <!-- TeamManager -->
-    <rect x="60" y="205" width="240" height="40" rx="8" fill="#151829" stroke="#3B82F6" stroke-width="1"/>
-    <text x="180" y="222" text-anchor="middle" fill="#3B82F6" font-size="10" font-weight="600" style="font-family:'JetBrains Mono',monospace">TeamManager</text>
-    <text x="180" y="237" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">团队成员管理</text>
-
-    <!-- TeamMailbox -->
-    <rect x="60" y="260" width="240" height="40" rx="8" fill="#151829" stroke="#3B82F6" stroke-width="1"/>
-    <text x="180" y="277" text-anchor="middle" fill="#3B82F6" font-size="10" font-weight="600" style="font-family:'JetBrains Mono',monospace">TeamMailbox</text>
-    <text x="180" y="292" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">ConcurrentLinkedQueue</text>
-
-    <!-- Workers -->
-    <rect x="60" y="320" width="72" height="50" rx="6" fill="#151829" stroke="#3B82F6" stroke-width=".8"/>
-    <text x="96" y="342" text-anchor="middle" fill="#e8e8f0" font-size="8" style="font-family:'JetBrains Mono',monospace">Worker</text>
-    <text x="96" y="358" text-anchor="middle" fill="#3B82F6" font-size="7" style="font-family:'JetBrains Mono',monospace">Agent A</text>
-
-    <rect x="144" y="320" width="72" height="50" rx="6" fill="#151829" stroke="#3B82F6" stroke-width=".8"/>
-    <text x="180" y="342" text-anchor="middle" fill="#e8e8f0" font-size="8" style="font-family:'JetBrains Mono',monospace">Worker</text>
-    <text x="180" y="358" text-anchor="middle" fill="#3B82F6" font-size="7" style="font-family:'JetBrains Mono',monospace">Agent B</text>
-
-    <rect x="228" y="320" width="72" height="50" rx="6" fill="#151829" stroke="#3B82F6" stroke-width=".8"/>
-    <text x="264" y="342" text-anchor="middle" fill="#e8e8f0" font-size="8" style="font-family:'JetBrains Mono',monospace">Worker</text>
-    <text x="264" y="358" text-anchor="middle" fill="#3B82F6" font-size="7" style="font-family:'JetBrains Mono',monospace">Agent C</text>
-
-    <!-- Mailbox arrows -->
-    <line x1="96" y1="318" x2="96" y2="300" stroke="#3B82F6" stroke-width=".8" stroke-dasharray="3 3"/>
-    <line x1="180" y1="318" x2="180" y2="300" stroke="#3B82F6" stroke-width=".8" stroke-dasharray="3 3"/>
-    <line x1="264" y1="318" x2="264" y2="300" stroke="#3B82F6" stroke-width=".8" stroke-dasharray="3 3"/>
-
-    <!-- SharedTaskList -->
-    <rect x="60" y="390" width="240" height="36" rx="8" fill="#151829" stroke="#3B82F6" stroke-width=".8"/>
-    <text x="180" y="412" text-anchor="middle" fill="#9FA4C4" font-size="9" style="font-family:'JetBrains Mono',monospace">SharedTaskList</text>
-
-    <!-- ResultAggregator -->
-    <rect x="60" y="440" width="240" height="36" rx="8" fill="#151829" stroke="#3B82F6" stroke-width=".8"/>
-    <text x="180" y="462" text-anchor="middle" fill="#9FA4C4" font-size="9" style="font-family:'JetBrains Mono',monospace">ResultAggregator</text>
-
-    <!-- Team通信说明 -->
-    <text x="180" y="510" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">Worker 间通过 Mailbox 异步通信</text>
-    <text x="180" y="525" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">Leader 通过 TaskList 分配任务</text>
-    <text x="180" y="540" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">结果汇聚至 ResultAggregator</text>
-
-    <!-- ===== CENTER: Swarm Mode ===== -->
-    <rect x="350" y="140" width="300" height="420" rx="12" fill="url(#gMaSwarm)" stroke="#A855F7" stroke-width="1.5"/>
-    <text x="500" y="168" text-anchor="middle" fill="#A855F7" font-size="14" font-weight="700" style="font-family:'JetBrains Mono',monospace">Swarm Mode</text>
-    <text x="500" y="185" text-anchor="middle" fill="#6B70A0" font-size="9" style="font-family:'JetBrains Mono',monospace">Virtual Thread 并行 · CoordinatorWorkflowEngine 四阶段流水线</text>
-
-    <!-- SwarmService -->
-    <rect x="375" y="205" width="250" height="40" rx="8" fill="#151829" stroke="#A855F7" stroke-width="1"/>
-    <text x="500" y="222" text-anchor="middle" fill="#A855F7" font-size="10" font-weight="600" style="font-family:'JetBrains Mono',monospace">SwarmService</text>
-    <text x="500" y="237" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">Java 21 Virtual Thread · Caffeine TTL 4h</text>
-
-    <!-- Four phases pipeline -->
-    <rect x="375" y="260" width="120" height="32" rx="6" fill="#151829" stroke="#3B82F6" stroke-width="1"/>
-    <text x="435" y="280" text-anchor="middle" fill="#3B82F6" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">1. Research</text>
-    <text x="498" y="280" fill="#6B70A0" font-size="12">→</text>
-    <rect x="505" y="260" width="120" height="32" rx="6" fill="#151829" stroke="#A855F7" stroke-width="1"/>
-    <text x="565" y="280" text-anchor="middle" fill="#A855F7" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">2. Synthesis</text>
-
-    <rect x="375" y="304" width="120" height="32" rx="6" fill="#151829" stroke="#F59E0B" stroke-width="1"/>
-    <text x="435" y="324" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">3. Implementation</text>
-    <text x="498" y="324" fill="#6B70A0" font-size="12">→</text>
-    <rect x="505" y="304" width="120" height="32" rx="6" fill="#151829" stroke="#10B981" stroke-width="1"/>
-    <text x="565" y="324" text-anchor="middle" fill="#10B981" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">4. Verification</text>
-
-    <!-- SwarmWorkerRunner -->
-    <rect x="375" y="355" width="250" height="36" rx="8" fill="#151829" stroke="#A855F7" stroke-width=".8"/>
-    <text x="500" y="377" text-anchor="middle" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">SwarmWorkerRunner</text>
-
-    <!-- WorkerStateTracker -->
-    <rect x="375" y="400" width="250" height="36" rx="8" fill="#151829" stroke="#A855F7" stroke-width=".8"/>
-    <text x="500" y="422" text-anchor="middle" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">WorkerStateTracker</text>
-
-    <!-- SwarmState -->
-    <rect x="375" y="445" width="250" height="36" rx="8" fill="#151829" stroke="#A855F7" stroke-width=".8"/>
-    <text x="500" y="467" text-anchor="middle" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">SwarmState · 状态管理</text>
-
-    <!-- Swarm说明 -->
-    <text x="500" y="510" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">模型：显式 workerModel 优先，否则继承父查询</text>
-    <text x="500" y="525" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">模型均缺失则报错；阶段间同步屏障</text>
-    <text x="500" y="540" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">SwarmController 对外API</text>
-
-    <!-- ===== RIGHT: SubAgent Mode ===== -->
-    <rect x="670" y="140" width="300" height="420" rx="12" fill="url(#gMaSub)" stroke="#06B6D4" stroke-width="1.5"/>
-    <text x="820" y="168" text-anchor="middle" fill="#06B6D4" font-size="14" font-weight="700" style="font-family:'JetBrains Mono',monospace">SubAgent Mode</text>
-    <text x="820" y="185" text-anchor="middle" fill="#6B70A0" font-size="9" style="font-family:'JetBrains Mono',monospace">独立子代理 · root identity 授权继承</text>
-
-    <!-- SubAgentExecutor -->
-    <rect x="695" y="205" width="250" height="44" rx="8" fill="#151829" stroke="#06B6D4" stroke-width="1.2"/>
-    <text x="820" y="224" text-anchor="middle" fill="#06B6D4" font-size="11" font-weight="700" style="font-family:'JetBrains Mono',monospace">SubAgentExecutor</text>
-    <text x="820" y="241" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">子代理执行与隔离</text>
-
-    <!-- Authorization subject resolution -->
-    <rect x="695" y="270" width="250" height="40" rx="8" fill="#151829" stroke="#EF4444" stroke-width="1"/>
-    <text x="820" y="287" text-anchor="middle" fill="#EF4444" font-size="10" font-weight="600" style="font-family:'JetBrains Mono',monospace">AuthorizationSubjectResolver</text>
-    <text x="820" y="302" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">解析 root session / root run / actor run</text>
-
-    <!-- Grant inheritance diagram -->
-    <rect x="720" y="330" width="80" height="30" rx="6" fill="#151829" stroke="#06B6D4" stroke-width=".8"/>
-    <text x="760" y="349" text-anchor="middle" fill="#06B6D4" font-size="8" style="font-family:'JetBrains Mono',monospace">SubAgent</text>
-    <text x="808" y="349" fill="#EF4444" font-size="10">→</text>
-    <rect x="820" y="330" width="60" height="30" rx="6" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
-    <text x="850" y="349" text-anchor="middle" fill="#EF4444" font-size="8" style="font-family:'JetBrains Mono',monospace">Subject</text>
-    <text x="888" y="349" fill="#F59E0B" font-size="10">→</text>
-    <rect x="900" y="330" width="60" height="30" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
-    <text x="930" y="349" text-anchor="middle" fill="#F59E0B" font-size="8" style="font-family:'JetBrains Mono',monospace">Grant</text>
-
-    <!-- Authorization inheritance label -->
-    <text x="820" y="380" text-anchor="middle" fill="#EF4444" font-size="8" style="font-family:'JetBrains Mono',monospace">root identity 授权继承 →</text>
-
-    <!-- InProcessBackend -->
-    <rect x="695" y="400" width="250" height="36" rx="8" fill="#151829" stroke="#06B6D4" stroke-width=".8"/>
-    <text x="820" y="422" text-anchor="middle" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">InProcessBackend</text>
-
-    <!-- WorkflowPhase -->
-    <rect x="695" y="445" width="250" height="36" rx="8" fill="#151829" stroke="#06B6D4" stroke-width=".8"/>
-    <text x="820" y="467" text-anchor="middle" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">WorkflowPhase</text>
-
-    <!-- SubAgent说明 -->
-    <text x="820" y="510" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">子Agent独立Agent Loop</text>
-    <text x="820" y="525" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">按 root session/root run 匹配 Grant</text>
-    <text x="820" y="540" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">不再存在独立冒泡权限权威</text>
-
-    <!-- ===== BOTTOM: Shared Infrastructure ===== -->
-    <rect x="30" y="590" width="940" height="130" rx="12" fill="url(#gMaBase)" stroke="#F59E0B" stroke-width="1"/>
-    <text x="500" y="615" text-anchor="middle" fill="#F59E0B" font-size="12" font-weight="700" style="font-family:'JetBrains Mono',monospace">共享基础设施</text>
-
-    <rect x="60" y="630" width="200" height="32" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
-    <text x="160" y="650" text-anchor="middle" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">CoordinatorPromptBuilder</text>
-
-    <rect x="280" y="630" width="180" height="32" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
-    <text x="370" y="650" text-anchor="middle" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">CoordinatorEventBus</text>
-
-    <rect x="480" y="630" width="160" height="32" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
-    <text x="560" y="650" text-anchor="middle" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">CoordinatorService</text>
-
-    <rect x="660" y="630" width="170" height="32" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
-    <text x="745" y="650" text-anchor="middle" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">CoordinatorWorkflow</text>
-
-    <rect x="850" y="630" width="100" height="32" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
-    <text x="900" y="650" text-anchor="middle" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">SwarmConfig</text>
-
-    <!-- Summary bar -->
-    <rect x="60" y="680" width="900" height="28" rx="6" fill="#0F1221" stroke="#252840" stroke-width="1"/>
-    <text x="80" y="698" fill="#F59E0B" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">coordinator/ 19文件</text>
-    <text x="240" y="698" fill="#06B6D4" font-size="9" style="font-family:'JetBrains Mono',monospace">+ tool/agent/SubAgentExecutor</text>
-    <text x="450" y="698" fill="#A855F7" font-size="9" style="font-family:'JetBrains Mono',monospace">Swarm: Virtual Thread并发</text>
-    <text x="670" y="698" fill="#3B82F6" font-size="9" style="font-family:'JetBrains Mono',monospace">Team: 邮箱通信</text>
-    <text x="830" y="698" fill="#EF4444" font-size="9" style="font-family:'JetBrains Mono',monospace">授权继承: ROOT_AND_DESCENDANTS</text>
-  </svg></div>
-</div>
-
-  <!-- ===== 三模式协调对比 SVG ===== -->
-  <h3 id="svg-coord" style="font-size:1rem;font-weight:700;margin:28px 0 12px;color:#7B61FF;letter-spacing:.02em;scroll-margin-top:24px">三模式协调对比 — Team · Swarm · SubAgent</h3>
-
-  <div class="card" style="margin-top:0;padding:0;overflow:hidden;border:1px solid var(--border2)">
-    <div style="padding:16px 20px 8px;font-size:.85rem;font-weight:700;color:#7B61FF;letter-spacing:.02em">▸ CoordinatorWorkflowEngine 统一调度 — 三模式对比与转换</div>
-<div id="diagram-reference-41" class="reference-scroll" tabindex="0" role="region" aria-label="架构图 41，可横向滚动"><svg id="coord-svg" width="100%" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" style="display:block;font-family:'JetBrains Mono',monospace">
-  <defs>
-    <linearGradient id="coord-grad-team" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#3B82F6" stop-opacity=".18"/><stop offset="100%" stop-color="#3B82F6" stop-opacity=".04"/></linearGradient>
-    <linearGradient id="coord-grad-swarm" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#10B981" stop-opacity=".18"/><stop offset="100%" stop-color="#10B981" stop-opacity=".04"/></linearGradient>
-    <linearGradient id="coord-grad-sub" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F59E0B" stop-opacity=".18"/><stop offset="100%" stop-color="#F59E0B" stop-opacity=".04"/></linearGradient>
-    <linearGradient id="coord-grad-engine" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#7B61FF" stop-opacity=".2"/><stop offset="100%" stop-color="#7B61FF" stop-opacity=".05"/></linearGradient>
-    <filter id="coord-glow"><feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#7B61FF" flood-opacity=".3"/></filter>
-    <marker id="coord-ar-b" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#3B82F6"/></marker>
-    <marker id="coord-ar-g" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#10B981"/></marker>
-    <marker id="coord-ar-o" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#F59E0B"/></marker>
-    <marker id="coord-ar-p" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#7B61FF"/></marker>
-    <pattern id="coord-grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#252840" stroke-width=".5" opacity=".35"/></pattern>
-    <style>
-      .coord-anim{stroke-dasharray:8 12;animation:pulse-flow 1.5s linear infinite}
-    </style>
-  </defs>
-  <rect width="1000" height="500" fill="#0B0D17"/><rect width="1000" height="500" fill="url(#coord-grid)"/>
-
-  <!-- ===== TOP: CoordinatorWorkflowEngine ===== -->
-  <rect x="250" y="16" width="500" height="52" rx="10" fill="url(#coord-grad-engine)" stroke="#7B61FF" stroke-width="2" filter="url(#coord-glow)"/>
-  <text x="500" y="38" text-anchor="middle" fill="#7B61FF" font-size="12" font-weight="700">CoordinatorWorkflowEngine — 统一调度入口</text>
-  <text x="500" y="56" text-anchor="middle" fill="#9FA4C4" font-size="9">四阶段检测 · 不委派理解验证 · 阶段跳跃警告 · WebSocket推送</text>
-
-  <!-- Arrows from engine to three modes -->
-  <line x1="370" y1="68" x2="170" y2="100" stroke="#3B82F6" stroke-width="1.5" class="coord-anim" marker-end="url(#coord-ar-b)"/>
-  <line x1="500" y1="68" x2="500" y2="100" stroke="#10B981" stroke-width="1.5" class="coord-anim" marker-end="url(#coord-ar-g)"/>
-  <line x1="630" y1="68" x2="830" y2="100" stroke="#F59E0B" stroke-width="1.5" class="coord-anim" marker-end="url(#coord-ar-o)"/>
-
-  <!-- Decision labels on arrows -->
-  <text x="260" y="82" fill="#3B82F6" font-size="7.5" opacity=".8">固定角色分工</text>
-  <text x="490" y="82" fill="#10B981" font-size="7.5" opacity=".8">复杂流水线</text>
-  <text x="700" y="82" fill="#F59E0B" font-size="7.5" opacity=".8">独立子任务</text>
-
-  <!-- ===== LEFT: Team Mode ===== -->
-  <rect x="30" y="100" width="280" height="340" rx="10" fill="url(#coord-grad-team)" stroke="#3B82F6" stroke-width="1.5"/>
-  <text x="170" y="124" text-anchor="middle" fill="#3B82F6" font-size="13" font-weight="700">Team 模式</text>
-  <text x="170" y="140" text-anchor="middle" fill="#6B70A0" font-size="8">多代理并行 · Leader分配 · 邮箱通信</text>
-
-  <!-- Key classes -->
-  <rect x="50" y="155" width="240" height="28" rx="6" fill="#151829" stroke="#3B82F6" stroke-width=".8"/>
-  <text x="170" y="173" text-anchor="middle" fill="#3B82F6" font-size="9" font-weight="600">TeamManager</text>
-  <rect x="50" y="190" width="240" height="28" rx="6" fill="#151829" stroke="#3B82F6" stroke-width=".8"/>
-  <text x="170" y="208" text-anchor="middle" fill="#3B82F6" font-size="9" font-weight="600">TeamMailbox · ConcurrentLinkedQueue</text>
-  <rect x="50" y="225" width="240" height="28" rx="6" fill="#151829" stroke="#3B82F6" stroke-width=".8"/>
-  <text x="170" y="243" text-anchor="middle" fill="#9FA4C4" font-size="9">SharedTaskList · FIFO认领</text>
-  <rect x="50" y="260" width="240" height="28" rx="6" fill="#151829" stroke="#3B82F6" stroke-width=".8"/>
-  <text x="170" y="278" text-anchor="middle" fill="#9FA4C4" font-size="9">InProcessBackend · Virtual Thread并行</text>
-
-  <!-- Communication diagram -->
-  <text x="170" y="305" text-anchor="middle" fill="#3B82F6" font-size="8" font-weight="600">通信机制</text>
-  <rect x="60" y="312" width="60" height="22" rx="4" fill="#151829" stroke="#3B82F6" stroke-width=".6"/>
-  <text x="90" y="326" text-anchor="middle" fill="#e8e8f0" font-size="7">Leader</text>
-  <rect x="135" y="312" width="60" height="22" rx="4" fill="#151829" stroke="#3B82F6" stroke-width=".6"/>
-  <text x="165" y="326" text-anchor="middle" fill="#e8e8f0" font-size="7">Mailbox</text>
-  <rect x="210" y="312" width="60" height="22" rx="4" fill="#151829" stroke="#3B82F6" stroke-width=".6"/>
-  <text x="240" y="326" text-anchor="middle" fill="#e8e8f0" font-size="7">Workers</text>
-  <line x1="120" y1="323" x2="135" y2="323" stroke="#3B82F6" stroke-width="1" marker-end="url(#coord-ar-b)"/>
-  <line x1="195" y1="323" x2="210" y2="323" stroke="#3B82F6" stroke-width="1" marker-end="url(#coord-ar-b)"/>
-
-  <!-- Scenario -->
-  <rect x="50" y="345" width="240" height="40" rx="6" fill="rgba(59,130,246,0.06)" stroke="#3B82F6" stroke-width=".5" stroke-dasharray="4 3"/>
-  <text x="170" y="361" text-anchor="middle" fill="#3B82F6" font-size="8" font-weight="600">适用场景</text>
-  <text x="170" y="377" text-anchor="middle" fill="#6B70A0" font-size="7.5">前后端拆分 · 固定角色协作 · 测试+开发</text>
-
-  <!-- Mode char -->
-  <rect x="50" y="395" width="240" height="36" rx="6" fill="#0F1221" stroke="#252840" stroke-width=".8"/>
-  <text x="70" y="411" fill="#3B82F6" font-size="7.5" font-weight="600">并行度</text><text x="125" y="411" fill="#e8e8f0" font-size="7.5">Worker数(1-20)</text>
-  <text x="70" y="424" fill="#3B82F6" font-size="7.5" font-weight="600">同步</text><text x="125" y="424" fill="#e8e8f0" font-size="7.5">异步邮箱 + TaskList FIFO</text>
-
-  <!-- ===== CENTER: Swarm Mode ===== -->
-  <rect x="360" y="100" width="280" height="340" rx="10" fill="url(#coord-grad-swarm)" stroke="#10B981" stroke-width="1.5"/>
-  <text x="500" y="124" text-anchor="middle" fill="#10B981" font-size="13" font-weight="700">Swarm 模式</text>
-  <text x="500" y="140" text-anchor="middle" fill="#6B70A0" font-size="8">Virtual Thread并行 · 四阶段流水线 · 阶段同步</text>
-
-  <!-- Key classes -->
-  <rect x="380" y="155" width="240" height="28" rx="6" fill="#151829" stroke="#10B981" stroke-width=".8"/>
-  <text x="500" y="173" text-anchor="middle" fill="#10B981" font-size="9" font-weight="600">SwarmService</text>
-  <rect x="380" y="190" width="240" height="28" rx="6" fill="#151829" stroke="#10B981" stroke-width=".8"/>
-  <text x="500" y="208" text-anchor="middle" fill="#10B981" font-size="9" font-weight="600">SwarmWorkerRunner · Virtual Thread</text>
-  <rect x="380" y="225" width="240" height="28" rx="6" fill="#151829" stroke="#10B981" stroke-width=".8"/>
-  <text x="500" y="243" text-anchor="middle" fill="#9FA4C4" font-size="9">SwarmState · Caffeine TTL 4h</text>
-  <rect x="380" y="260" width="240" height="28" rx="6" fill="#151829" stroke="#10B981" stroke-width=".8"/>
-  <text x="500" y="278" text-anchor="middle" fill="#9FA4C4" font-size="9">AuthorizationSubjectResolver · root session/root run</text>
-
-  <!-- Four phases -->
-  <text x="500" y="305" text-anchor="middle" fill="#10B981" font-size="8" font-weight="600">四阶段流水线</text>
-  <rect x="385" y="312" width="52" height="20" rx="4" fill="#151829" stroke="#3B82F6" stroke-width=".6"/>
-  <text x="411" y="325" text-anchor="middle" fill="#3B82F6" font-size="6.5">Research</text>
-  <text x="440" y="325" fill="#6B70A0" font-size="8">→</text>
-  <rect x="445" y="312" width="52" height="20" rx="4" fill="#151829" stroke="#A855F7" stroke-width=".6"/>
-  <text x="471" y="325" text-anchor="middle" fill="#A855F7" font-size="6.5">Synthesis</text>
-  <text x="500" y="325" fill="#6B70A0" font-size="8">→</text>
-  <rect x="505" y="312" width="52" height="20" rx="4" fill="#151829" stroke="#F59E0B" stroke-width=".6"/>
-  <text x="531" y="325" text-anchor="middle" fill="#F59E0B" font-size="5.5">Implementation</text>
-  <text x="560" y="325" fill="#6B70A0" font-size="8">→</text>
-  <rect x="565" y="312" width="47" height="20" rx="4" fill="#151829" stroke="#10B981" stroke-width=".6"/>
-  <text x="588" y="325" text-anchor="middle" fill="#10B981" font-size="5.5">Verification</text>
-
-  <!-- Scenario -->
-  <rect x="380" y="345" width="240" height="40" rx="6" fill="rgba(16,185,129,0.06)" stroke="#10B981" stroke-width=".5" stroke-dasharray="4 3"/>
-  <text x="500" y="361" text-anchor="middle" fill="#10B981" font-size="8" font-weight="600">适用场景</text>
-  <text x="500" y="377" text-anchor="middle" fill="#6B70A0" font-size="7.5">复杂研究型任务 · 需要阶段性交付 · 多Worker协同</text>
-
-  <!-- Mode char -->
-  <rect x="380" y="395" width="240" height="36" rx="6" fill="#0F1221" stroke="#252840" stroke-width=".8"/>
-  <text x="400" y="411" fill="#10B981" font-size="7.5" font-weight="600">并行度</text><text x="455" y="411" fill="#e8e8f0" font-size="7.5">阶段内多Worker并行</text>
-  <text x="400" y="424" fill="#10B981" font-size="7.5" font-weight="600">同步</text><text x="455" y="424" fill="#e8e8f0" font-size="7.5">阶段间Barrier同步屏障</text>
-
-  <!-- ===== RIGHT: SubAgent Mode ===== -->
-  <rect x="690" y="100" width="280" height="340" rx="10" fill="url(#coord-grad-sub)" stroke="#F59E0B" stroke-width="1.5"/>
-  <text x="830" y="124" text-anchor="middle" fill="#F59E0B" font-size="13" font-weight="700">SubAgent 模式</text>
-  <text x="830" y="140" text-anchor="middle" fill="#6B70A0" font-size="8">独立子代理 · 受约束 Grant 继承</text>
-
-  <!-- Key classes -->
-  <rect x="710" y="155" width="240" height="28" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
-  <text x="830" y="173" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">SubAgentExecutor</text>
-  <rect x="710" y="190" width="240" height="28" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
-  <text x="830" y="208" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">AgentConcurrencyController · Slot</text>
-  <rect x="710" y="225" width="240" height="28" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
-  <text x="830" y="243" text-anchor="middle" fill="#9FA4C4" font-size="9">WorktreeManager · Git隔离</text>
-  <rect x="710" y="260" width="240" height="28" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
-  <text x="830" y="278" text-anchor="middle" fill="#9FA4C4" font-size="9">DIRECT_ONLY / ROOT_AND_DESCENDANTS</text>
-
-  <!-- Grant inheritance -->
-  <text x="830" y="305" text-anchor="middle" fill="#F59E0B" font-size="8" font-weight="600">父子授权继承机制</text>
-  <rect x="715" y="312" width="56" height="22" rx="4" fill="#151829" stroke="#F59E0B" stroke-width=".6"/>
-  <text x="743" y="326" text-anchor="middle" fill="#e8e8f0" font-size="7">SubAgent</text>
-  <text x="778" y="326" fill="#EF4444" font-size="9">→</text>
-  <rect x="790" y="312" width="56" height="22" rx="4" fill="#151829" stroke="#EF4444" stroke-width=".6"/>
-  <text x="818" y="326" text-anchor="middle" fill="#EF4444" font-size="7">Subject</text>
-  <text x="852" y="326" fill="#F59E0B" font-size="9">→</text>
-  <rect x="863" y="312" width="56" height="22" rx="4" fill="#151829" stroke="#F59E0B" stroke-width=".6"/>
-  <text x="891" y="326" text-anchor="middle" fill="#F59E0B" font-size="7">Grant</text>
-
-  <!-- Scenario -->
-  <rect x="710" y="345" width="240" height="40" rx="6" fill="rgba(245,158,11,0.06)" stroke="#F59E0B" stroke-width=".5" stroke-dasharray="4 3"/>
-  <text x="830" y="361" text-anchor="middle" fill="#F59E0B" font-size="8" font-weight="600">适用场景</text>
-  <text x="830" y="377" text-anchor="middle" fill="#6B70A0" font-size="7.5">简单委派任务 · 隔离执行 · Fork复用KV缓存</text>
-
-  <!-- Mode char -->
-  <rect x="710" y="395" width="240" height="36" rx="6" fill="#0F1221" stroke="#252840" stroke-width=".8"/>
-  <text x="730" y="411" fill="#F59E0B" font-size="7.5" font-weight="600">并行度</text><text x="785" y="411" fill="#e8e8f0" font-size="7.5">独立Agent Loop(串行)</text>
-  <text x="730" y="424" fill="#F59E0B" font-size="7.5" font-weight="600">匹配</text><text x="785" y="424" fill="#e8e8f0" font-size="7.5">root identity + descriptor constraints</text>
-
-  <!-- ===== BOTTOM: Decision Matrix ===== -->
-  <rect x="30" y="450" width="940" height="40" rx="8" fill="#0F1221" stroke="#7B61FF" stroke-width="1"/>
-  <text x="50" y="470" fill="#7B61FF" font-size="9" font-weight="700">模式选择决策</text>
-  <text x="170" y="470" fill="#3B82F6" font-size="8">Team: 需要固定角色分工且Worker间需通信</text>
-  <text x="440" y="470" fill="#10B981" font-size="8">Swarm: 复杂任务需四阶段分解且多Worker并行</text>
-  <text x="730" y="470" fill="#F59E0B" font-size="8">SubAgent: 简单独立子任务委派</text>
-</svg></div>
+    <div style="padding:16px 20px 8px;font-size:.85rem;font-weight:700;color:var(--java);letter-spacing:.02em">▸ 执行架构 — Agent 委派与后台 Task</div>
+    <div id="diagram-reference-40" class="reference-scroll" tabindex="0" role="region" aria-label="架构图 40：Agent 与 Task 执行架构，可横向滚动"><svg id="audit-diagram-40" viewBox="0 0 1000 750" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;font-family:'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', monospace">
+      <defs>
+        <marker id="agentTaskArrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#6B70A0"/></marker>
+        <linearGradient id="agentTaskAgentFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#06B6D4" stop-opacity=".12"/><stop offset="100%" stop-color="#06B6D4" stop-opacity=".03"/></linearGradient>
+        <linearGradient id="agentTaskTaskFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#A855F7" stop-opacity=".12"/><stop offset="100%" stop-color="#A855F7" stop-opacity=".03"/></linearGradient>
+      <pattern id="agentTaskGrid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#252840" stroke-width=".5" opacity=".35"/></pattern></defs>
+      <rect width="1000" height="750" fill="#0B0D17"/><rect width="1000" height="750" fill="url(#agentTaskGrid)"/>
+      <rect x="220" y="20" width="560" height="80" rx="12" fill="#151829" stroke="#F59E0B" stroke-width="1.5"/>
+      <text x="500" y="49" text-anchor="middle" fill="#F59E0B" font-size="14" font-weight="700">父 Agent · QueryEngine</text>
+      <text x="500" y="76" text-anchor="middle" fill="#9FA4C4" font-size="12">按任务边界委派 · 保留父 Session / Run 关联</text>
+      <path d="M 350 100 V 120 H 255 V 140" fill="none" stroke="#6B70A0" stroke-width="1.5" marker-end="url(#agentTaskArrow)"/>
+      <path d="M 650 100 V 120 H 745 V 140" fill="none" stroke="#6B70A0" stroke-width="1.5" marker-end="url(#agentTaskArrow)"/>
+      <rect x="30" y="140" width="450" height="375" rx="12" fill="url(#agentTaskAgentFill)" stroke="#06B6D4"/>
+      <rect x="520" y="140" width="450" height="375" rx="12" fill="url(#agentTaskTaskFill)" stroke="#A855F7"/>
+      <rect x="60" y="165" width="390" height="65" rx="8" fill="#151829" stroke="#06B6D4"/>
+      <text x="255" y="192" text-anchor="middle" fill="#06B6D4" font-size="14" font-weight="700">AgentTool</text>
+      <text x="255" y="216" text-anchor="middle" fill="#9FA4C4" font-size="12">角色 · model · run_in_background · isolation</text>
+      <line x1="255" y1="230" x2="255" y2="260" stroke="#6B70A0" stroke-width="1.5" marker-end="url(#agentTaskArrow)"/>
+      <rect x="60" y="260" width="390" height="90" rx="8" fill="#151829" stroke="#06B6D4"/>
+      <text x="255" y="288" text-anchor="middle" fill="#E8EAF6" font-size="14" font-weight="700">SubAgentExecutor</text>
+      <text x="255" y="313" text-anchor="middle" fill="#9FA4C4" font-size="12">executeSync / executeAsync</text>
+      <text x="255" y="337" text-anchor="middle" fill="#9FA4C4" font-size="12">独立子会话 · 并发准入 · none / worktree</text>
+      <line x1="255" y1="350" x2="255" y2="380" stroke="#6B70A0" stroke-width="1.5" marker-end="url(#agentTaskArrow)"/>
+      <rect x="60" y="380" width="390" height="90" rx="8" fill="#151829" stroke="#06B6D4"/>
+      <text x="255" y="408" text-anchor="middle" fill="#E8EAF6" font-size="14" font-weight="700">子 QueryEngine</text>
+      <text x="255" y="434" text-anchor="middle" fill="#9FA4C4" font-size="12">模型推理 + 工具循环</text>
+      <text x="255" y="458" text-anchor="middle" fill="#9FA4C4" font-size="12">工具调用经过 ToolExecutionPipeline</text>
+      <text x="255" y="496" text-anchor="middle" fill="#06B6D4" font-size="12">结果 → 直接返回 / 后台 Tracker</text>
+      <rect x="550" y="165" width="390" height="65" rx="8" fill="#151829" stroke="#A855F7"/>
+      <text x="745" y="192" text-anchor="middle" fill="#A855F7" font-size="14" font-weight="700">TaskCreateTool</text>
+      <text x="745" y="216" text-anchor="middle" fill="#9FA4C4" font-size="12">description · prompt · taskType</text>
+      <line x1="745" y1="230" x2="745" y2="260" stroke="#6B70A0" stroke-width="1.5" marker-end="url(#agentTaskArrow)"/>
+      <rect x="550" y="260" width="390" height="90" rx="8" fill="#151829" stroke="#A855F7"/>
+      <text x="745" y="288" text-anchor="middle" fill="#E8EAF6" font-size="14" font-weight="700">TaskCoordinator</text>
+      <text x="745" y="313" text-anchor="middle" fill="#9FA4C4" font-size="12">父会话所有权 · 全局 10 槽位 · 满额拒绝</text>
+      <text x="745" y="337" text-anchor="middle" fill="#9FA4C4" font-size="12">内存任务记录 · 30 分钟 watchdog · 取消信号</text>
+      <path d="M 745 350 V 364 H 640 V 380" fill="none" stroke="#6B70A0" stroke-width="1.5" marker-end="url(#agentTaskArrow)"/>
+      <path d="M 745 364 H 850 V 380" fill="none" stroke="#6B70A0" stroke-width="1.5" marker-end="url(#agentTaskArrow)"/>
+      <rect x="540" y="380" width="200" height="90" rx="8" fill="#151829" stroke="#A855F7"/>
+      <text x="640" y="406" text-anchor="middle" fill="#E8EAF6" font-size="14" font-weight="700">general-purpose</text>
+      <text x="640" y="432" text-anchor="middle" fill="#9FA4C4" font-size="12">SubAgentExecutor</text>
+      <text x="640" y="456" text-anchor="middle" fill="#9FA4C4" font-size="11.5">executeTaskSync → 子 Run</text>
+      <rect x="750" y="380" width="200" height="90" rx="8" fill="#151829" stroke="#A855F7"/>
+      <text x="850" y="406" text-anchor="middle" fill="#E8EAF6" font-size="14" font-weight="700">shell</text>
+      <text x="850" y="432" text-anchor="middle" fill="#9FA4C4" font-size="12">TaskShellExecutor</text>
+      <text x="850" y="456" text-anchor="middle" fill="#9FA4C4" font-size="11.5">受管理的 Bash 执行</text>
+      <text x="745" y="496" text-anchor="middle" fill="#A855F7" font-size="12">结果 → TaskCoordinator 保存</text>
+      <line x1="255" y1="515" x2="255" y2="550" stroke="#6B70A0" stroke-width="1.5" marker-end="url(#agentTaskArrow)"/>
+      <line x1="745" y1="515" x2="745" y2="550" stroke="#6B70A0" stroke-width="1.5" marker-end="url(#agentTaskArrow)"/>
+      <rect x="30" y="550" width="940" height="190" rx="10" fill="#151829" stroke="#F59E0B"/>
+      <text x="500" y="570" text-anchor="middle" fill="#F59E0B" font-size="14" font-weight="700">Agent 入口的五类角色 · 运行时与授权</text>
+      <text x="124" y="590" text-anchor="middle" fill="#06B6D4" font-size="12" font-weight="600">explore</text>
+      <text x="124" y="607" text-anchor="middle" fill="#9FA4C4" font-size="11.5">搜索与定位</text>
+      <text x="124" y="623" text-anchor="middle" fill="#9FA4C4" font-size="10">禁 Edit/Write/NotebookEdit</text>
+      <text x="310" y="590" text-anchor="middle" fill="#06B6D4" font-size="12" font-weight="600">verification</text>
+      <text x="310" y="607" text-anchor="middle" fill="#9FA4C4" font-size="11.5">运行检查与证据</text>
+      <text x="310" y="623" text-anchor="middle" fill="#9FA4C4" font-size="10">禁 Edit/Write/NotebookEdit</text>
+      <text x="500" y="590" text-anchor="middle" fill="#06B6D4" font-size="12" font-weight="600">plan</text>
+      <text x="500" y="607" text-anchor="middle" fill="#9FA4C4" font-size="11.5">分析与规划</text>
+      <text x="500" y="623" text-anchor="middle" fill="#9FA4C4" font-size="10">禁 Edit/Write/NotebookEdit</text>
+      <text x="690" y="590" text-anchor="middle" fill="#06B6D4" font-size="12" font-weight="600">general-purpose</text>
+      <text x="690" y="607" text-anchor="middle" fill="#9FA4C4" font-size="11.5">综合实现</text>
+      <text x="690" y="623" text-anchor="middle" fill="#9FA4C4" font-size="10">当前启用工具</text>
+      <text x="690" y="635" text-anchor="middle" fill="#9FA4C4" font-size="10">受公共禁用项约束</text>
+      <text x="876" y="590" text-anchor="middle" fill="#06B6D4" font-size="12" font-weight="600">guide</text>
+      <text x="876" y="607" text-anchor="middle" fill="#9FA4C4" font-size="11.5">文件与网页指导</text>
+      <text x="876" y="623" text-anchor="middle" fill="#9FA4C4" font-size="10">Glob / Grep / Read</text>
+      <text x="876" y="635" text-anchor="middle" fill="#9FA4C4" font-size="10">WebFetch / WebSearch</text>
+      <text x="500" y="653" text-anchor="middle" fill="#9FA4C4" font-size="11.5">verification 提示要求 PASS / FAIL / PARTIAL 及命令、输出证据；这是证据规范，不是自动硬验收。</text>
+      <line x1="50" y1="665" x2="950" y2="665" stroke="#252840"/>
+      <text x="195" y="685" text-anchor="middle" fill="#E8EAF6" font-size="11.5">RunExecutionRegistry</text>
+      <text x="500" y="685" text-anchor="middle" fill="#E8EAF6" font-size="11.5">AuthorizationService</text>
+      <text x="805" y="685" text-anchor="middle" fill="#E8EAF6" font-size="11.5">ManagedProcessRunner</text>
+      <text x="195" y="703" text-anchor="middle" fill="#9FA4C4" font-size="11">Run 登记与执行句柄</text>
+      <text x="500" y="703" text-anchor="middle" fill="#9FA4C4" font-size="11">根身份与受约束 Grant</text>
+      <text x="805" y="703" text-anchor="middle" fill="#9FA4C4" font-size="11">受管进程 · 超时 / 取消 / 退出确认</text>
+      <text x="500" y="726" text-anchor="middle" fill="#9FA4C4" font-size="10">工具过滤非只读沙箱，仍需授权；子 Agent 禁嵌套 Agent / TaskCreate / VerifyPlanExecution，父 Agent 负责汇总。</text>
+    </svg></div>
   </div>
 
-    <!-- 多Agent协调深度流 -->
-    <div style="margin:24px 0;padding:20px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--card-radius)">
-      <div style="padding:0 0 12px;font-size:.85rem;font-weight:700;color:#A855F7;letter-spacing:.02em">▸ 多Agent协调深度执行流 · coordinator/ 19文件 Team/Swarm/SubAgent 三模式</div>
-<div id="diagram-reference-42" class="reference-scroll" tabindex="0" role="region" aria-label="架构图 42，可横向滚动"><svg id="audit-diagram-42" width="100%" viewBox="0 0 1000 700" xmlns="http://www.w3.org/2000/svg" style="display:block;font-family:'JetBrains Mono',monospace">
-  <defs>
-    <linearGradient id="df-grad-team" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F59E0B" stop-opacity=".15"/><stop offset="100%" stop-color="#F59E0B" stop-opacity=".03"/></linearGradient>
-    <linearGradient id="df-grad-swarm" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#A855F7" stop-opacity=".15"/><stop offset="100%" stop-color="#A855F7" stop-opacity=".03"/></linearGradient>
-    <linearGradient id="df-grad-sub" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#06B6D4" stop-opacity=".15"/><stop offset="100%" stop-color="#06B6D4" stop-opacity=".03"/></linearGradient>
-    <marker id="df-ar-t" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#F59E0B"/></marker>
-    <marker id="df-ar-s" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#A855F7"/></marker>
-    <marker id="df-ar-c" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#06B6D4"/></marker>
-    <marker id="df-ar-g" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#10B981"/></marker>
-    <marker id="df-ar-r" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#EF4444"/></marker>
-    <pattern id="df-grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#252840" stroke-width=".5" opacity=".3"/></pattern>
-    <style>
-      .df-flow{stroke-dasharray:6 10;animation:pulse-flow 1.8s linear infinite}
-      .df-node{font-size:8px;fill:#E8EAF6}
-      .df-label{font-size:7px;fill:#9FA4C4}
-      .df-code{font-size:6.5px;fill:#6B70A0}
-    </style>
-  </defs>
-  <rect width="1000" height="700" fill="#0B0D17"/><rect width="1000" height="700" fill="url(#df-grid)"/>
+  <h3 id="svg-coord" style="font-size:1rem;font-weight:700;margin:28px 0 12px;color:#7B61FF;letter-spacing:.02em;scroll-margin-top:24px">Agent 执行与交付</h3>
+  <div class="card" style="margin-top:0;padding:0;overflow:hidden;border:1px solid var(--border2)">
+    <div style="padding:16px 20px 8px;font-size:.85rem;font-weight:700;color:#7B61FF;letter-spacing:.02em">▸ 同步 / 后台结果与可叠加的 Worktree 隔离</div>
+    <div id="diagram-reference-41" class="reference-scroll" tabindex="0" role="region" aria-label="架构图 41：Agent 执行与结果交付，可横向滚动"><svg id="coord-svg" width="100%" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" style="display:block;font-family:'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', monospace">
+      <defs>
+<marker id="agentDeliveryArrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#06B6D4"/></marker>
+<marker id="agentWorktreeArrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#10B981"/></marker>
+<linearGradient id="agentDeliverySyncFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#06B6D4" stop-opacity=".12"/><stop offset="100%" stop-color="#06B6D4" stop-opacity=".03"/></linearGradient>
+<linearGradient id="agentDeliveryAsyncFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3B82F6" stop-opacity=".12"/><stop offset="100%" stop-color="#3B82F6" stop-opacity=".03"/></linearGradient>
+<linearGradient id="agentDeliveryTreeFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#10B981" stop-opacity=".12"/><stop offset="100%" stop-color="#10B981" stop-opacity=".03"/></linearGradient>
+<pattern id="agentDeliveryGrid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#252840" stroke-width=".5" opacity=".35"/></pattern></defs><rect width="1000" height="500" fill="#0B0D17"/><rect width="1000" height="500" fill="url(#agentDeliveryGrid)"/>
+      <rect x="20" y="12" width="960" height="56" rx="7" fill="#0F1221" stroke="#353860" stroke-width="1"/>
+      <text x="40" y="34" text-anchor="start" fill="#F59E0B" font-size="12" font-weight="600">模型：显式 model → 父查询模型 → premium</text>
+      <text x="960" y="34" text-anchor="end" fill="#F59E0B" font-size="12" font-weight="600">Agent 准入：全局 30 / 会话 10 · 深度 ≤3</text>
+      <text x="500" y="55" text-anchor="middle" fill="#9FA4C4" font-size="11.5">执行等待默认 / 封顶配置 30min · 超时退出等待 30s · 默认 99 轮 · 后台每批等待 31min</text>
+      <rect x="20" y="86" width="300" height="324" rx="10" fill="url(#agentDeliverySyncFill)" stroke="#06B6D4" stroke-width="1"/>
+      <rect x="350" y="86" width="300" height="324" rx="10" fill="url(#agentDeliveryAsyncFill)" stroke="#3B82F6" stroke-width="1"/>
+      <rect x="680" y="86" width="300" height="324" rx="10" fill="url(#agentDeliveryTreeFill)" stroke="#10B981" stroke-width="1"/>
+      <text x="170" y="108" text-anchor="middle" fill="#06B6D4" font-size="14" font-weight="700">同步 / 多个独立调用并行</text>
+      <text x="500" y="108" text-anchor="middle" fill="#3B82F6" font-size="14" font-weight="700">后台结果 · 当前父 Run 汇总</text>
+      <text x="830" y="108" text-anchor="middle" fill="#10B981" font-size="14" font-weight="700">可叠加的 Worktree 交付</text>
+      <text x="170" y="129" text-anchor="middle" fill="#9FA4C4" font-size="11.5">executeSync()</text>
+      <text x="500" y="129" text-anchor="middle" fill="#9FA4C4" font-size="11.5">run_in_background=true</text>
+      <text x="830" y="129" text-anchor="middle" fill="#9FA4C4" font-size="11.5">适用于同步与后台两条执行路径</text>
+      <rect x="35" y="146" width="270" height="52" rx="7" fill="#151829" stroke="#06B6D4" stroke-width="1"/>
+      <rect x="35" y="220" width="270" height="52" rx="7" fill="#151829" stroke="#06B6D4" stroke-width="1"/>
+      <rect x="35" y="294" width="270" height="62" rx="7" fill="#151829" stroke="#06B6D4" stroke-width="1"/>
+      <path d="M 170 198 V 220" fill="none" stroke="#06B6D4" stroke-width="1.2" marker-end="url(#agentDeliveryArrow)"/>
+      <path d="M 170 272 V 294" fill="none" stroke="#06B6D4" stroke-width="1.2" marker-end="url(#agentDeliveryArrow)"/>
+      <rect x="365" y="146" width="270" height="52" rx="7" fill="#151829" stroke="#3B82F6" stroke-width="1"/>
+      <rect x="365" y="220" width="270" height="52" rx="7" fill="#151829" stroke="#3B82F6" stroke-width="1"/>
+      <rect x="365" y="294" width="270" height="62" rx="7" fill="#151829" stroke="#3B82F6" stroke-width="1"/>
+      <path d="M 500 198 V 220" fill="none" stroke="#06B6D4" stroke-width="1.2" marker-end="url(#agentDeliveryArrow)"/>
+      <path d="M 500 272 V 294" fill="none" stroke="#06B6D4" stroke-width="1.2" marker-end="url(#agentDeliveryArrow)"/>
+      <text x="170" y="167" text-anchor="middle" fill="#E8EAF6" font-size="13" font-weight="600">子 QueryEngine 执行</text>
+      <text x="170" y="188" text-anchor="middle" fill="#9FA4C4" font-size="11.5">独立上下文 · 模型与工具循环</text>
+      <text x="170" y="241" text-anchor="middle" fill="#E8EAF6" font-size="13" font-weight="600">AgentResult 直接返回</text>
+      <text x="170" y="262" text-anchor="middle" fill="#9FA4C4" font-size="11.5">结果文本 + 执行状态</text>
+      <text x="170" y="317" text-anchor="middle" fill="#E8EAF6" font-size="13" font-weight="600">父 Agent 汇总并继续</text>
+      <text x="170" y="342" text-anchor="middle" fill="#9FA4C4" font-size="11.5">多个独立调用可并行</text>
+      <text x="170" y="380" text-anchor="middle" fill="#06B6D4" font-size="11.5">none：沿用父工作目录</text>
+      <text x="170" y="400" text-anchor="middle" fill="#9FA4C4" font-size="11">并行写入需划清文件边界</text>
+      <text x="500" y="167" text-anchor="middle" fill="#E8EAF6" font-size="12.5" font-weight="600">executeAsync()</text>
+      <text x="500" y="188" text-anchor="middle" fill="#9FA4C4" font-size="11.5">先返回 Agent ID + 输出文件路径</text>
+      <text x="500" y="241" text-anchor="middle" fill="#E8EAF6" font-size="12.5" font-weight="600">BackgroundAgentTracker</text>
+      <text x="500" y="262" text-anchor="middle" fill="#9FA4C4" font-size="11.5">父 Session / Run · 输出文件与终态</text>
+      <text x="500" y="317" text-anchor="middle" fill="#E8EAF6" font-size="12.5" font-weight="600">父 QueryEngine 等当前 Run</text>
+      <text x="500" y="342" text-anchor="middle" fill="#9FA4C4" font-size="11.5">每文件前 4,000 字符作为数据回填</text>
+      <text x="500" y="380" text-anchor="middle" fill="#3B82F6" font-size="10.5">BACKGROUND_AGENT_WAIT 默认开启</text>
+      <text x="500" y="400" text-anchor="middle" fill="#9FA4C4" font-size="11">仅当前父 Run；更多内容按路径读取</text>
+      <rect x="695" y="146" width="270" height="42" rx="7" fill="#151829" stroke="#10B981" stroke-width="1"/>
+      <text x="830" y="164" text-anchor="middle" fill="#E8EAF6" font-size="12.5" font-weight="600">已提交 HEAD → 独立工作树</text>
+      <text x="830" y="181" text-anchor="middle" fill="#9FA4C4" font-size="11">不复制父目录未提交内容</text>
+      <path d="M 830 188 V 204" fill="none" stroke="#10B981" stroke-width="1.2" marker-end="url(#agentWorktreeArrow)"/>
+      <rect x="695" y="204" width="270" height="42" rx="7" fill="#151829" stroke="#10B981" stroke-width="1"/>
+      <text x="830" y="222" text-anchor="middle" fill="#E8EAF6" font-size="12.5" font-weight="600">子 Agent 在隔离目录执行</text>
+      <text x="830" y="239" text-anchor="middle" fill="#9FA4C4" font-size="11">独立子 Run 与资源归属</text>
+      <path d="M 830 246 V 262" fill="none" stroke="#10B981" stroke-width="1.2" marker-end="url(#agentWorktreeArrow)"/>
+      <rect x="695" y="262" width="270" height="52" rx="7" fill="#151829" stroke="#10B981" stroke-width="1"/>
+      <text x="830" y="281" text-anchor="middle" fill="#E8EAF6" font-size="12.5" font-weight="600">成功 + 退出确认 + Git 核验</text>
+      <text x="830" y="303" text-anchor="middle" fill="#9FA4C4" font-size="11">含后台服务释放与目标安全检查</text>
+      <path d="M 830 314 V 326 H 758 V 340" fill="none" stroke="#10B981" stroke-width="1.2" marker-end="url(#agentWorktreeArrow)"/>
+      <path d="M 830 326 H 902 V 340" fill="none" stroke="#10B981" stroke-width="1.2" marker-end="url(#agentWorktreeArrow)"/>
+      <rect x="695" y="340" width="126" height="54" rx="7" fill="#151829" stroke="#10B981" stroke-width="1"/>
+      <rect x="839" y="340" width="126" height="54" rx="7" fill="#151829" stroke="#F59E0B" stroke-width="1"/>
+      <text x="758" y="362" text-anchor="middle" fill="#10B981" font-size="12.5" font-weight="600">合回父仓库</text>
+      <text x="758" y="383" text-anchor="middle" fill="#9FA4C4" font-size="11">安全清理</text>
+      <text x="902" y="362" text-anchor="middle" fill="#F59E0B" font-size="12.5" font-weight="600">保留路径</text>
+      <text x="902" y="383" text-anchor="middle" fill="#9FA4C4" font-size="11">异常 / 冲突</text>
+      <rect x="20" y="430" width="960" height="52" rx="7" fill="#0F1221" stroke="#252840" stroke-width="1"/>
+      <text x="500" y="450" text-anchor="middle" fill="#9FA4C4" font-size="11.5">结果数据不授予新权限；普通 Agent 的 timeout / interrupted 不等同于底层执行全部退出。</text>
+      <text x="500" y="472" text-anchor="middle" fill="#9FA4C4" font-size="11.5">Worktree 可叠加两条执行路径，准备与交付耗时另计；Task 无此隔离选项，也不进入后台 Agent 自动汇总。</text>
+      </svg></div>
+  </div>
 
-  <!-- ===== COLUMN 1: Team Mode (x:20-320) ===== -->
-  <rect x="20" y="10" width="300" height="620" rx="10" fill="url(#df-grad-team)" stroke="#F59E0B" stroke-width="1.2"/>
-  <text x="170" y="34" text-anchor="middle" fill="#F59E0B" font-size="12" font-weight="700">Team 模式 · 固定角色分配</text>
-  <text x="170" y="48" text-anchor="middle" fill="#6B70A0" font-size="7">TeamManager SharedTaskList ResultAggregator</text>
-
-  <!-- Team flow steps -->
-  <rect x="35" y="60" width="270" height="24" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
-  <text x="170" y="76" text-anchor="middle" class="df-node" font-weight="600">CoordinatorService.matchSessionMode() → mode="team"</text>
-
-  <line x1="170" y1="84" x2="170" y2="96" stroke="#F59E0B" stroke-width="1" class="df-flow" marker-end="url(#df-ar-t)"/>
-
-  <rect x="35" y="98" width="270" height="24" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
-  <text x="170" y="114" text-anchor="middle" class="df-node">TeamManager.dispatchTasks(teamName, tasks, parentContext)</text>
-
-  <line x1="170" y1="122" x2="170" y2="134" stroke="#F59E0B" stroke-width="1" class="df-flow" marker-end="url(#df-ar-t)"/>
-
-  <rect x="35" y="136" width="270" height="30" rx="6" fill="#151829" stroke="#353860" stroke-width=".8"/>
-  <text x="170" y="150" text-anchor="middle" class="df-node">SharedTaskList.addTask()</text>
-  <text x="170" y="161" text-anchor="middle" class="df-code">FIFO · ConcurrentLinkedQueue · AtomicLong序列号</text>
-
-  <line x1="170" y1="166" x2="170" y2="178" stroke="#F59E0B" stroke-width="1" class="df-flow" marker-end="url(#df-ar-t)"/>
-
-  <rect x="35" y="180" width="270" height="30" rx="6" fill="#151829" stroke="#353860" stroke-width=".8"/>
-  <text x="170" y="194" text-anchor="middle" class="df-node">Worker-N: SharedTaskList.claimTask(teamName, workerId)</text>
-  <text x="170" y="205" text-anchor="middle" class="df-code">FIFO认领 · Iterator遍历 · 原子状态转换</text>
-
-  <line x1="170" y1="210" x2="170" y2="222" stroke="#F59E0B" stroke-width="1" class="df-flow" marker-end="url(#df-ar-t)"/>
-
-  <rect x="35" y="224" width="270" height="24" rx="6" fill="#151829" stroke="#10B981" stroke-width=".8"/>
-  <text x="170" y="240" text-anchor="middle" fill="#10B981" font-size="8">各Worker独立 QueryEngine.execute()</text>
-
-  <line x1="170" y1="248" x2="170" y2="260" stroke="#10B981" stroke-width="1" class="df-flow" marker-end="url(#df-ar-g)"/>
-
-  <rect x="35" y="262" width="270" height="36" rx="6" fill="#151829" stroke="#353860" stroke-width=".8"/>
-  <text x="170" y="276" text-anchor="middle" class="df-node">TeamMailbox.writeToMailbox(recipientId, senderId, content)</text>
-  <text x="170" y="289" text-anchor="middle" class="df-code">broadcast() · ConcurrentLinkedQueue</text>
-
-  <line x1="170" y1="298" x2="170" y2="310" stroke="#F59E0B" stroke-width="1" class="df-flow" marker-end="url(#df-ar-t)"/>
-
-  <rect x="35" y="312" width="270" height="30" rx="6" fill="#151829" stroke="#F59E0B" stroke-width="1"/>
-  <text x="170" y="326" text-anchor="middle" fill="#F59E0B" font-size="8" font-weight="600">ResultAggregator.aggregateResults()</text>
-  <text x="170" y="337" text-anchor="middle" class="df-code">并行等待 → 按序汇聚</text>
-
-  <!-- Team communication detail -->
-  <rect x="35" y="355" width="270" height="80" rx="6" fill="#0F1221" stroke="#252840" stroke-width=".8"/>
-  <text x="170" y="370" text-anchor="middle" fill="#F59E0B" font-size="7.5" font-weight="600">通信机制: TeamMailbox</text>
-  <text x="45" y="385" class="df-label">• writeToMailbox(recipientId, senderId, content)</text>
-  <text x="45" y="397" class="df-label">• broadcast(senderId, content) → 全Worker推送</text>
-  <text x="45" y="409" class="df-label">• readMailbox(agentId) → List&lt;MailMessage&gt;</text>
-  <text x="45" y="421" class="df-label">• clearMailbox(agentId) → 生命周期清理</text>
-
-  <!-- Team InProcessBackend -->
-  <rect x="35" y="445" width="270" height="60" rx="6" fill="#0F1221" stroke="#252840" stroke-width=".8"/>
-  <text x="170" y="460" text-anchor="middle" fill="#F59E0B" font-size="7.5" font-weight="600">InProcessBackend · Virtual Thread</text>
-  <text x="45" y="475" class="df-label">• executeParallel(requests, ctx, maxConcurrency)</text>
-  <text x="45" y="487" class="df-label">• Worker数上限: 1-20 (TeamManager校验)</text>
-  <text x="45" y="499" class="df-label">• VirtualThread per Worker · CompletableFuture并行</text>
-
-  <!-- Team result flow -->
-  <rect x="35" y="515" width="270" height="48" rx="6" fill="rgba(245,158,11,0.08)" stroke="#F59E0B" stroke-width=".6" stroke-dasharray="4 3"/>
-  <text x="170" y="531" text-anchor="middle" fill="#F59E0B" font-size="7.5" font-weight="600">结果汇聚路径</text>
-  <text x="45" y="545" class="df-label">Worker完成 → AgentResult → List&lt;AgentResult&gt;</text>
-  <text x="45" y="557" class="df-label">InProcessBackend.executeParallel() → 阻塞等待全部完成</text>
-
-  <!-- ===== COLUMN 2: Swarm Mode (x:340-660) ===== -->
-  <rect x="340" y="10" width="320" height="620" rx="10" fill="url(#df-grad-swarm)" stroke="#A855F7" stroke-width="1.2"/>
-  <text x="500" y="34" text-anchor="middle" fill="#A855F7" font-size="12" font-weight="700">Swarm 模式 · 动态协商</text>
-  <text x="500" y="48" text-anchor="middle" fill="#6B70A0" font-size="7">SwarmService SwarmWorkerRunner SwarmState</text>
-
-  <!-- Swarm flow steps -->
-  <rect x="355" y="60" width="290" height="24" rx="6" fill="#151829" stroke="#A855F7" stroke-width=".8"/>
-  <text x="500" y="76" text-anchor="middle" class="df-node" font-weight="600">POST /api/swarm → SwarmService.createSwarm(config, sessionId)</text>
-
-  <line x1="500" y1="84" x2="500" y2="94" stroke="#A855F7" stroke-width="1" class="df-flow" marker-end="url(#df-ar-s)"/>
-
-  <rect x="355" y="96" width="290" height="30" rx="6" fill="#151829" stroke="#353860" stroke-width=".8"/>
-  <text x="500" y="110" text-anchor="middle" class="df-node">swarmId = "swarm-" + UUID.randomUUID()[0:8]</text>
-  <text x="500" y="121" text-anchor="middle" class="df-code">SwarmState初始化 · Caffeine Cache TTL=4h max=50</text>
-
-  <line x1="500" y1="126" x2="500" y2="136" stroke="#A855F7" stroke-width="1" class="df-flow" marker-end="url(#df-ar-s)"/>
-
-  <rect x="355" y="138" width="290" height="24" rx="6" fill="#151829" stroke="#A855F7" stroke-width=".8"/>
-  <text x="500" y="154" text-anchor="middle" class="df-node">POST /api/swarm/{id}/workers → addWorker()</text>
-
-  <line x1="500" y1="162" x2="500" y2="172" stroke="#A855F7" stroke-width="1" class="df-flow" marker-end="url(#df-ar-s)"/>
-
-  <rect x="355" y="174" width="290" height="30" rx="6" fill="#151829" stroke="#353860" stroke-width=".8"/>
-  <text x="500" y="188" text-anchor="middle" class="df-node">workerId = swarmId + "-worker-" + workers.size()</text>
-  <text x="500" y="199" text-anchor="middle" class="df-code">SwarmWorkerRunner.startWorker() · VirtualThread</text>
-
-  <line x1="500" y1="204" x2="500" y2="214" stroke="#A855F7" stroke-width="1" class="df-flow" marker-end="url(#df-ar-s)"/>
-
-  <rect x="355" y="216" width="290" height="30" rx="6" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
-  <text x="500" y="230" text-anchor="middle" fill="#EF4444" font-size="8">AuthorizationService · DurableInteractionService</text>
-  <text x="500" y="241" text-anchor="middle" class="df-code">父 Grant 未命中时创建持久权限交互</text>
-
-  <line x1="500" y1="246" x2="500" y2="256" stroke="#10B981" stroke-width="1" class="df-flow" marker-end="url(#df-ar-g)"/>
-
-  <rect x="355" y="258" width="290" height="24" rx="6" fill="#151829" stroke="#10B981" stroke-width=".8"/>
-  <text x="500" y="274" text-anchor="middle" fill="#10B981" font-size="8">QueryEngine.execute() → onWorkerComplete()</text>
-
-  <line x1="500" y1="282" x2="500" y2="292" stroke="#A855F7" stroke-width="1" class="df-flow" marker-end="url(#df-ar-s)"/>
-
-  <!-- Four phase workflow -->
-  <rect x="355" y="294" width="290" height="42" rx="6" fill="#0F1221" stroke="#A855F7" stroke-width="1"/>
-  <text x="500" y="308" text-anchor="middle" fill="#A855F7" font-size="7.5" font-weight="600">CoordinatorWorkflowEngine 四阶段</text>
-  <rect x="365" y="314" width="60" height="16" rx="3" fill="#151829" stroke="#3B82F6" stroke-width=".6"/>
-  <text x="395" y="325" text-anchor="middle" fill="#3B82F6" font-size="6">Research</text>
-  <text x="428" y="325" fill="#6B70A0" font-size="7">→</text>
-  <rect x="433" y="314" width="60" height="16" rx="3" fill="#151829" stroke="#A855F7" stroke-width=".6"/>
-  <text x="463" y="325" text-anchor="middle" fill="#A855F7" font-size="6">Synthesis</text>
-  <text x="496" y="325" fill="#6B70A0" font-size="7">→</text>
-  <rect x="501" y="314" width="65" height="16" rx="3" fill="#151829" stroke="#F59E0B" stroke-width=".6"/>
-  <text x="533" y="325" text-anchor="middle" fill="#F59E0B" font-size="6">Implementation</text>
-  <text x="569" y="325" fill="#6B70A0" font-size="7">→</text>
-  <rect x="574" y="314" width="60" height="16" rx="3" fill="#151829" stroke="#10B981" stroke-width=".6"/>
-  <text x="604" y="325" text-anchor="middle" fill="#10B981" font-size="6">Verification</text>
-
-  <!-- Swarm EventBus -->
-  <rect x="355" y="346" width="290" height="70" rx="6" fill="#0F1221" stroke="#252840" stroke-width=".8"/>
-  <text x="500" y="361" text-anchor="middle" fill="#10B981" font-size="7.5" font-weight="600">CoordinatorEventBus · STOMP推送</text>
-  <text x="365" y="376" class="df-label">• publishPhaseTransition(swarmId, phase)</text>
-  <text x="365" y="388" class="df-label">• STOMP: /user/queue/coordinator/{sessionId}</text>
-  <text x="365" y="400" class="df-label">• eventType: phase_transition / mailbox_write</text>
-  <text x="365" y="412" class="df-label">• eventType: mailbox_broadcast / worker_complete</text>
-
-  <!-- Swarm shutdown -->
-  <rect x="355" y="426" width="290" height="80" rx="6" fill="#0F1221" stroke="#EF4444" stroke-width=".8"/>
-  <text x="500" y="441" text-anchor="middle" fill="#EF4444" font-size="7.5" font-weight="600">SwarmService.shutdownSwarm(swarmId)</text>
-  <text x="365" y="456" class="df-label">1. RUNNING → SHUTTING_DOWN → forcePhase()</text>
-  <text x="365" y="468" class="df-label">2. 广播 shutdown_request → 30s异步等待</text>
-  <text x="365" y="480" class="df-label">3. cleanupSwarm() → TERMINATED</text>
-  <text x="365" y="492" class="df-label">4. TeamMailbox.clearMailbox()</text>
-  <text x="365" y="504" class="df-label">5. RUN Grant 仅匹配同一 rootRun，并受 TTL/显式撤销约束</text>
-
-  <!-- Swarm state machine -->
-  <rect x="355" y="515" width="290" height="48" rx="6" fill="rgba(168,85,247,0.08)" stroke="#A855F7" stroke-width=".6" stroke-dasharray="4 3"/>
-  <text x="500" y="531" text-anchor="middle" fill="#A855F7" font-size="7.5" font-weight="600">SwarmPhase 状态机 · SwarmState</text>
-  <text x="365" y="545" class="df-label">INITIALIZING → RUNNING → IDLE → SHUTTING_DOWN → TERMINATED</text>
-  <text x="365" y="557" class="df-label">WorkerStatus: RUNNING → IDLE / TERMINATED</text>
-
-  <!-- ===== COLUMN 3: SubAgent Mode (x:680-980) ===== -->
-  <rect x="680" y="10" width="300" height="620" rx="10" fill="url(#df-grad-sub)" stroke="#06B6D4" stroke-width="1.2"/>
-  <text x="830" y="34" text-anchor="middle" fill="#06B6D4" font-size="12" font-weight="700">SubAgent 模式 · 父子委托</text>
-  <text x="830" y="48" text-anchor="middle" fill="#6B70A0" font-size="7">SubAgentExecutor AgentConcurrencyController · BackgroundAgentTracker</text>
-
-  <!-- SubAgent flow steps -->
-  <rect x="695" y="60" width="270" height="24" rx="6" fill="#151829" stroke="#06B6D4" stroke-width=".8"/>
-  <text x="830" y="76" text-anchor="middle" class="df-node" font-weight="600">AgentTool.call(input, context)</text>
-
-  <line x1="830" y1="84" x2="830" y2="94" stroke="#06B6D4" stroke-width="1" class="df-flow" marker-end="url(#df-ar-c)"/>
-
-  <rect x="695" y="96" width="270" height="30" rx="6" fill="#151829" stroke="#353860" stroke-width=".8"/>
-  <text x="830" y="110" text-anchor="middle" class="df-node">input: {prompt, subagent_type, isolation, model}</text>
-  <text x="830" y="121" text-anchor="middle" class="df-code">agentId = "agent-" + UUID[0:8] · run_in_background</text>
-
-  <line x1="830" y1="126" x2="830" y2="136" stroke="#06B6D4" stroke-width="1" class="df-flow" marker-end="url(#df-ar-c)"/>
-
-  <rect x="695" y="138" width="270" height="24" rx="6" fill="#151829" stroke="#06B6D4" stroke-width=".8"/>
-  <text x="830" y="154" text-anchor="middle" class="df-node">SubAgentExecutor.executeSync(request, parentContext)</text>
-
-  <line x1="830" y1="162" x2="830" y2="172" stroke="#06B6D4" stroke-width="1" class="df-flow" marker-end="url(#df-ar-c)"/>
-
-  <!-- Concurrency control -->
-  <rect x="695" y="174" width="270" height="36" rx="6" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
-  <text x="830" y="188" text-anchor="middle" fill="#EF4444" font-size="8">AgentConcurrencyController · 并发控制</text>
-  <text x="830" y="201" text-anchor="middle" class="df-code">全局≤30 · 会话≤10 · 嵌套深度≤3 · Semaphore</text>
-
-  <line x1="830" y1="210" x2="830" y2="220" stroke="#06B6D4" stroke-width="1" class="df-flow" marker-end="url(#df-ar-c)"/>
-
-  <!-- Agent types -->
-  <rect x="695" y="222" width="270" height="42" rx="6" fill="#151829" stroke="#353860" stroke-width=".8"/>
-  <text x="830" y="236" text-anchor="middle" class="df-node">resolveAgentDefinition(agentType)</text>
-  <text x="830" y="248" text-anchor="middle" class="df-code">5种预置: explore / verification / plan</text>
-  <text x="830" y="259" text-anchor="middle" class="df-code">general-purpose / guide · 禁用递归: Agent/Team/Task</text>
-
-  <line x1="830" y1="264" x2="830" y2="274" stroke="#06B6D4" stroke-width="1" class="df-flow" marker-end="url(#df-ar-c)"/>
-
-  <!-- Isolation modes -->
-  <rect x="695" y="276" width="270" height="60" rx="6" fill="#0F1221" stroke="#06B6D4" stroke-width="1"/>
-  <text x="830" y="291" text-anchor="middle" fill="#06B6D4" font-size="7.5" font-weight="600">IsolationMode 隔离模式</text>
-  <text x="705" y="305" class="df-label">├─ NONE: workDir = parentContext.workDir</text>
-  <text x="705" y="317" class="df-label">├─ WORKTREE: WorktreeManager.createWorktree()</text>
-  <text x="705" y="329" class="df-label">└─ FORK: SessionManager.forkSession() 复用KV缓存</text>
-
-  <line x1="830" y1="336" x2="830" y2="346" stroke="#10B981" stroke-width="1" class="df-flow" marker-end="url(#df-ar-g)"/>
-
-  <!-- Execution -->
-  <rect x="695" y="348" width="270" height="30" rx="6" fill="#151829" stroke="#10B981" stroke-width=".8"/>
-  <text x="830" y="362" text-anchor="middle" fill="#10B981" font-size="8">QueryEngine.execute() · 独立Agent Loop</text>
-  <text x="830" y="373" text-anchor="middle" class="df-code">5min超时(PER_AGENT_TIMEOUT) · 100K字符结果上限</text>
-
-  <line x1="830" y1="378" x2="830" y2="388" stroke="#06B6D4" stroke-width="1" class="df-flow" marker-end="url(#df-ar-c)"/>
-
-  <!-- Background mode -->
-  <rect x="695" y="390" width="270" height="70" rx="6" fill="#0F1221" stroke="#252840" stroke-width=".8"/>
-  <text x="830" y="405" text-anchor="middle" fill="#06B6D4" font-size="7.5" font-weight="600">后台模式 (run_in_background=true)</text>
-  <text x="705" y="420" class="df-label">• BackgroundAgentTracker.track(agentId)</text>
-  <text x="705" y="432" class="df-label">• WebSocket事件: agent_started / agent_completed</text>
-  <text x="705" y="444" class="df-label">• /user/queue/{sessionId} · agent_failed</text>
-  <text x="705" y="456" class="df-label">• VirtualThread异步 · CompletableFuture</text>
-
-  <!-- SubAgent permission -->
-  <rect x="695" y="470" width="270" height="50" rx="6" fill="#0F1221" stroke="#EF4444" stroke-width=".6"/>
-  <text x="830" y="485" text-anchor="middle" fill="#EF4444" font-size="7.5" font-weight="600">授权继承 · AuthorizationSubjectResolver</text>
-  <text x="705" y="500" class="df-label">• SESSION/WORKSPACE: root及后代按相同约束复用</text>
-  <text x="705" y="512" class="df-label">• RUN DIRECT_ONLY: 不被兄弟或后代误用</text>
-
-  <!-- SubAgent result -->
-  <rect x="695" y="530" width="270" height="36" rx="6" fill="rgba(6,182,212,0.08)" stroke="#06B6D4" stroke-width=".6" stroke-dasharray="4 3"/>
-  <text x="830" y="546" text-anchor="middle" fill="#06B6D4" font-size="7.5" font-weight="600">结果收集</text>
-  <text x="705" y="560" class="df-label">AgentResult(status, result, originalPrompt, metadata)</text>
-
-  <!-- ===== BOTTOM: Communication Mechanism Comparison ===== -->
-  <rect x="20" y="642" width="960" height="48" rx="8" fill="#0F1221" stroke="#353860" stroke-width="1"/>
-  <text x="500" y="658" text-anchor="middle" fill="#E8EAF6" font-size="9" font-weight="700">通信机制对比</text>
-  <rect x="35" y="665" width="290" height="18" rx="4" fill="#151829" stroke="#F59E0B" stroke-width=".6"/>
-  <text x="180" y="677" text-anchor="middle" fill="#F59E0B" font-size="7">TeamMailbox · ConcurrentLinkedQueue · 点对点+广播</text>
-  <rect x="345" y="665" width="310" height="18" rx="4" fill="#151829" stroke="#A855F7" stroke-width=".6"/>
-  <text x="500" y="677" text-anchor="middle" fill="#A855F7" font-size="7">CoordinatorEventBus · STOMP WebSocket · 阶段转换事件</text>
-  <rect x="675" y="665" width="290" height="18" rx="4" fill="#151829" stroke="#06B6D4" stroke-width=".6"/>
-  <text x="820" y="677" text-anchor="middle" fill="#06B6D4" font-size="7">BackgroundAgentTracker · WebSocket · agent生命周期事件</text>
-</svg></div>
-    </div>
-
+  <div style="margin:24px 0;padding:20px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--card-radius)">
+    <div style="padding:0 0 12px;font-size:.85rem;font-weight:700;color:#A855F7;letter-spacing:.02em">▸ Task 生命周期 — 准入、执行与实际退出</div>
+    <div id="diagram-reference-42" class="reference-scroll" tabindex="0" role="region" aria-label="架构图 42：Task 准入、执行、取消和终态，可横向滚动"><svg id="audit-diagram-42" viewBox="0 0 1000 700" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;font-family:'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', monospace">
+      <defs><marker id="taskLifecycleArrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#A855F7"/></marker><marker id="taskCancelArrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#F59E0B"/></marker><marker id="taskResultArrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#06B6D4"/></marker><pattern id="taskLifecycleGrid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#252840" stroke-width=".5" opacity=".35"/></pattern></defs>
+      <rect width="1000" height="700" fill="#0B0D17"/><rect width="1000" height="700" fill="url(#taskLifecycleGrid)"/>
+      <rect x="40" y="22" width="540" height="66" rx="10" fill="#151829" stroke="#A855F7" stroke-width="1.5"/>
+      <text x="310" y="47.52" text-anchor="middle" fill="#A855F7" font-size="14" font-weight="700">TaskCreate → TaskCoordinator</text>
+      <text x="310" y="70.4" text-anchor="middle" fill="#9FA4C4" font-size="12">按父会话登记任务；创建回执不是执行结果</text>
+      <path d="M 580 55.44 H 650" fill="none" stroke="#A855F7" stroke-width="1.5" marker-end="url(#taskLifecycleArrow)"/>
+      <rect x="650" y="22" width="310" height="66" rx="10" fill="#151829" stroke="#EF4444"/>
+      <text x="805" y="47.52" text-anchor="middle" fill="#EF4444" font-size="14" font-weight="700">全局 10 个槽位已满 → 拒绝</text>
+      <text x="805" y="70.4" text-anchor="middle" fill="#9FA4C4" font-size="12">tryAcquire · 没有等待队列</text>
+      <path d="M 310 88 V 105.6 H 155 V 123.2" fill="none" stroke="#A855F7" stroke-width="1.5" marker-end="url(#taskLifecycleArrow)"/>
+      <rect x="40" y="123.2" width="230" height="57.2" rx="8" fill="#151829" stroke="#A855F7"/>
+      <text x="155" y="146.08" text-anchor="middle" fill="#E8EAF6" font-size="14" font-weight="700">PENDING</text>
+      <text x="155" y="168.08" text-anchor="middle" fill="#9FA4C4" font-size="12">待启动；取消可阻止执行体</text>
+      <line x1="270" y1="152.24" x2="350" y2="152.24" stroke="#A855F7" stroke-width="1.5" marker-end="url(#taskLifecycleArrow)"/>
+      <rect x="350" y="123.2" width="230" height="57.2" rx="8" fill="#151829" stroke="#A855F7"/>
+      <text x="465" y="146.08" text-anchor="middle" fill="#E8EAF6" font-size="14" font-weight="700">RUNNING</text>
+      <text x="465" y="168.08" text-anchor="middle" fill="#9FA4C4" font-size="12">执行中；取消后等待实际退出</text>
+      <rect x="650" y="123.2" width="310" height="96.8" rx="10" fill="#151829" stroke="#06B6D4"/>
+      <text x="805" y="147.84" text-anchor="middle" fill="#06B6D4" font-size="14" font-weight="700">TaskGet / TaskList</text>
+      <text x="805" y="167.2" text-anchor="middle" fill="#9FA4C4" font-size="12">父会话内查询状态与输出</text>
+      <text x="805" y="186.56" text-anchor="middle" fill="#9FA4C4" font-size="11.5">terminationConfirmed 显示退出确认</text>
+      <text x="805" y="205.92" text-anchor="middle" fill="#9FA4C4" font-size="12">TaskUpdate 只更新 output</text>
+      <path d="M 465 180.4 V 220 H 310 V 242" fill="none" stroke="#A855F7" stroke-width="1.5" marker-end="url(#taskLifecycleArrow)"/>
+      <rect x="40" y="242" width="540" height="88" rx="10" fill="#151829" stroke="#A855F7"/>
+      <text x="310" y="268.4" text-anchor="middle" fill="#E8EAF6" font-size="14" font-weight="700">受管理的实际执行</text>
+      <text x="310" y="293.04" text-anchor="middle" fill="#9FA4C4" font-size="12">Agent → executeTaskSync · shell → TaskShellExecutor</text>
+      <text x="310" y="315.92" text-anchor="middle" fill="#9FA4C4" font-size="12">独立执行身份 · 授权继承 · 按归属追踪资源</text>
+      <rect x="650" y="242" width="310" height="88" rx="10" fill="#151829" stroke="#F59E0B"/>
+      <text x="805" y="268.4" text-anchor="middle" fill="#F59E0B" font-size="14" font-weight="700">TaskStop / 30 分钟 watchdog</text>
+      <text x="805" y="293.04" text-anchor="middle" fill="#9FA4C4" font-size="12">记录 cancellationRequested</text>
+      <text x="805" y="315.92" text-anchor="middle" fill="#9FA4C4" font-size="12">发取消信号，尚不代表已经退出</text>
+      <path d="M 650 286 H 580" fill="none" stroke="#F59E0B" stroke-width="1.5" marker-end="url(#taskCancelArrow)"/>
+      <line x1="310" y1="330" x2="310" y2="374" stroke="#A855F7" stroke-width="1.5" marker-end="url(#taskLifecycleArrow)"/>
+      <rect x="40" y="374" width="540" height="88" rx="10" fill="#151829" stroke="#A855F7"/>
+      <text x="310" y="400.4" text-anchor="middle" fill="#E8EAF6" font-size="14" font-weight="700">执行体与受管理的收尾完成</text>
+      <text x="310" y="425.04" text-anchor="middle" fill="#9FA4C4" font-size="12">运行中取消须等待实际退出；此前仍占用任务槽位</text>
+      <text x="310" y="447.92" text-anchor="middle" fill="#9FA4C4" font-size="12">执行退出，取消时完成清理，再记录终态并释放槽位</text>
+      <path d="M 580 418 H 650" fill="none" stroke="#06B6D4" stroke-width="1.2" marker-end="url(#taskResultArrow)"/>
+      <text x="615" y="408" text-anchor="middle" fill="#06B6D4" font-size="11">执行结果</text>
+      <rect x="650" y="374" width="310" height="88" rx="10" fill="#151829" stroke="#06B6D4"/>
+      <text x="805" y="400.4" text-anchor="middle" fill="#06B6D4" font-size="14" font-weight="700">TaskCoordinator 保存结果</text>
+      <text x="805" y="425.04" text-anchor="middle" fill="#9FA4C4" font-size="12">output / error · 执行终态</text>
+      <text x="805" y="447.92" text-anchor="middle" fill="#9FA4C4" font-size="12">TaskState · 按父会话持有</text>
+      <path d="M 960 418 H 980 V 172 H 960" fill="none" stroke="#06B6D4" stroke-width="1.2" marker-end="url(#taskResultArrow)"/>
+      <path d="M 310 462 V 488.4 H 195 V 519.2" fill="none" stroke="#A855F7" stroke-width="1.5" marker-end="url(#taskLifecycleArrow)"/>
+      <path d="M 310 488.4 H 500 V 519.2" fill="none" stroke="#A855F7" stroke-width="1.5" marker-end="url(#taskLifecycleArrow)"/>
+      <path d="M 500 488.4 H 805 V 519.2" fill="none" stroke="#A855F7" stroke-width="1.5" marker-end="url(#taskLifecycleArrow)"/>
+      <rect x="40" y="519.2" width="310" height="61.6" rx="10" fill="#151829" stroke="#10B981"/>
+      <text x="195" y="543.84" text-anchor="middle" fill="#10B981" font-size="14" font-weight="700">COMPLETED</text>
+      <text x="195" y="566.72" text-anchor="middle" fill="#9FA4C4" font-size="12">执行报告成功；仍需验收证据</text>
+      <rect x="365" y="519.2" width="270" height="61.6" rx="10" fill="#151829" stroke="#EF4444"/>
+      <text x="500" y="543.84" text-anchor="middle" fill="#EF4444" font-size="14" font-weight="700">FAILED</text>
+      <text x="500" y="566.72" text-anchor="middle" fill="#9FA4C4" font-size="12">执行失败 / watchdog 超时</text>
+      <rect x="650" y="519.2" width="310" height="61.6" rx="10" fill="#151829" stroke="#F59E0B"/>
+      <text x="805" y="543.84" text-anchor="middle" fill="#F59E0B" font-size="14" font-weight="700">CANCELLED</text>
+      <text x="805" y="566.72" text-anchor="middle" fill="#9FA4C4" font-size="12">取消 / 中断，退出已确认</text>
+          <rect x="40" y="600" width="920" height="84" rx="7" fill="#0F1221" stroke="#252840"/>
+      <text x="500" y="619" text-anchor="middle" fill="#9FA4C4" font-size="11.5">TaskCreate 启动执行；待办与进度清单用 TodoWrite。TaskGet / TaskList 按父会话读取。</text>
+      <text x="500" y="639" text-anchor="middle" fill="#9FA4C4" font-size="11.5">TaskUpdate 只改 output；TaskStop 请求取消，实际退出与取消清理完成后才记录终态。</text>
+      <text x="500" y="659" text-anchor="middle" fill="#9FA4C4" font-size="11.5">agent / shell；local_workflow、monitor_mcp、dream 当前均为单次 Agent 执行的兼容入口。</text>
+      <text x="500" y="678" text-anchor="middle" fill="#6B70A0" font-size="11">Task 无 worktree / 自动父模型汇总；30min 触发取消，收尾可更久。记录保存在进程内存。</text>
+    </svg></div>
+  </div>
 </div>
 
 <!-- ============ SECTION 12: REACT FRONTEND ============ -->
@@ -6962,19 +6592,14 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <!-- ===== 系统集成 Store (紫色区) ===== -->
       <rect x="490" y="20" width="440" height="185" rx="10" fill="url(#gStoreSys)" stroke="#A855F7" stroke-width="1"/>
       <text x="510" y="44" fill="#A855F7" font-size="12" font-weight="700" style="font-family:'JetBrains Mono',monospace">系统集成 Store</text>
-      <rect x="510" y="56" width="120" height="28" rx="6" fill="#151829" stroke="#A855F7" stroke-width=".8"/>
-      <text x="570" y="74" text-anchor="middle" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">configStore</text>
-      <text x="570" y="54" text-anchor="middle" fill="#F59E0B" font-size="7" style="font-family:'JetBrains Mono',monospace">8.2KB</text>
-      <rect x="640" y="56" width="110" height="28" rx="6" fill="#151829" stroke="#A855F7" stroke-width=".8"/>
-      <text x="695" y="74" text-anchor="middle" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">mcpStore</text>
-      <text x="695" y="54" text-anchor="middle" fill="#F59E0B" font-size="7" style="font-family:'JetBrains Mono',monospace">8.1KB</text>
-      <rect x="760" y="56" width="120" height="28" rx="6" fill="#151829" stroke="#A855F7" stroke-width=".8"/>
-      <text x="820" y="74" text-anchor="middle" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">bridgeStore</text>
-      <rect x="510" y="94" width="140" height="28" rx="6" fill="#151829" stroke="#A855F7" stroke-width=".8"/>
-      <text x="580" y="112" text-anchor="middle" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">coordinatorStore</text>
-      <rect x="660" y="94" width="120" height="28" rx="6" fill="#151829" stroke="#A855F7" stroke-width=".8"/>
-      <text x="720" y="112" text-anchor="middle" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">swarmStore</text>
-      <text x="720" y="92" text-anchor="middle" fill="#F59E0B" font-size="7" style="font-family:'JetBrains Mono',monospace">7.4KB</text>
+      <rect x="510" y="56" width="180" height="28" rx="6" fill="#151829" stroke="#A855F7" stroke-width=".8"/>
+      <text x="600" y="74" text-anchor="middle" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">configStore</text>
+      <rect x="710" y="56" width="180" height="28" rx="6" fill="#151829" stroke="#A855F7" stroke-width=".8"/>
+      <text x="800" y="74" text-anchor="middle" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">mcpStore</text>
+      <rect x="510" y="94" width="180" height="28" rx="6" fill="#151829" stroke="#A855F7" stroke-width=".8"/>
+      <text x="600" y="112" text-anchor="middle" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">bridgeStore</text>
+      <rect x="710" y="94" width="180" height="28" rx="6" fill="#151829" stroke="#A855F7" stroke-width=".8"/>
+      <text x="800" y="112" text-anchor="middle" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">coordinatorStore</text>
       <!-- configStore is core dependency -->
       <text x="510" y="148" fill="#a0a0b8" font-size="8" style="font-family:'JetBrains Mono',monospace">configStore ← 其他所有Store依赖</text>
 
@@ -7018,10 +6643,10 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
 
       <!-- ===== DEPENDENCY ARROWS ===== -->
       <!-- configStore → all zones (核心依赖) -->
-      <line x1="570" y1="84" x2="430" y2="56" stroke="#A855F7" stroke-width="1.2" opacity=".4" stroke-dasharray="4" marker-end="url(#maDep)"/>
-      <line x1="570" y1="84" x2="250" y2="225" stroke="#A855F7" stroke-width="1.2" opacity=".3" stroke-dasharray="4"/>
-      <line x1="570" y1="84" x2="710" y2="225" stroke="#A855F7" stroke-width="1.2" opacity=".3" stroke-dasharray="4"/>
-      <line x1="570" y1="84" x2="250" y2="385" stroke="#A855F7" stroke-width="1" opacity=".2" stroke-dasharray="4"/>
+      <line x1="600" y1="84" x2="430" y2="56" stroke="#A855F7" stroke-width="1.2" opacity=".4" stroke-dasharray="4" marker-end="url(#maDep)"/>
+      <line x1="600" y1="84" x2="250" y2="225" stroke="#A855F7" stroke-width="1.2" opacity=".3" stroke-dasharray="4"/>
+      <line x1="600" y1="84" x2="710" y2="225" stroke="#A855F7" stroke-width="1.2" opacity=".3" stroke-dasharray="4"/>
+      <line x1="600" y1="84" x2="250" y2="385" stroke="#A855F7" stroke-width="1" opacity=".2" stroke-dasharray="4"/>
 
       <!-- broadcast红色虚线连接各区域 -->
       <line x1="710" y1="385" x2="250" y2="205" stroke="#EF4444" stroke-width="1" opacity=".3" stroke-dasharray="3"/>
@@ -7032,7 +6657,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <!-- ===== LEGEND ===== -->
       <rect x="30" y="490" width="900" height="36" rx="8" fill="#0F1221" stroke="#252840" stroke-width="1"/>
       <circle cx="55" cy="508" r="5" fill="#3B82F6"/><text x="65" y="512" fill="#3B82F6" font-size="9" style="font-family:'JetBrains Mono',monospace">业务×7</text>
-      <circle cx="145" cy="508" r="5" fill="#A855F7"/><text x="155" y="512" fill="#A855F7" font-size="9" style="font-family:'JetBrains Mono',monospace">系统×5</text>
+      <circle cx="145" cy="508" r="5" fill="#A855F7"/><text x="155" y="512" fill="#A855F7" font-size="9" style="font-family:'JetBrains Mono',monospace">系统×4</text>
       <circle cx="235" cy="508" r="5" fill="#10B981"/><text x="245" y="512" fill="#10B981" font-size="9" style="font-family:'JetBrains Mono',monospace">UI×4</text>
       <circle cx="310" cy="508" r="5" fill="#F59E0B"/><text x="320" y="512" fill="#F59E0B" font-size="9" style="font-family:'JetBrains Mono',monospace">分析×4</text>
       <circle cx="395" cy="508" r="5" fill="#6B70A0"/><text x="405" y="512" fill="#6B70A0" font-size="9" style="font-family:'JetBrains Mono',monospace">元数据×2</text>
@@ -7106,35 +6731,24 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <text x="765" y="112" text-anchor="middle" fill="#6B70A0" font-size="6">1.6KB</text>
 
       <!-- ===== Business Store 区域 (金色 - 左下) ===== -->
-      <rect x="20" y="370" width="300" height="210" rx="10" fill="url(#zst-grad-biz)" stroke="#F59E0B" stroke-width="1" opacity=".9"/>
+      <rect x="20" y="370" width="300" height="166" rx="10" fill="url(#zst-grad-biz)" stroke="#F59E0B" stroke-width="1" opacity=".9"/>
       <text x="40" y="392" fill="#F59E0B" font-size="10" font-weight="700">Business Store</text>
       <rect x="40" y="402" width="110" height="24" rx="5" fill="#151829" stroke="#F59E0B" stroke-width=".7"/>
       <text x="95" y="418" text-anchor="middle" fill="#e8e8f0" font-size="8">taskStore</text>
-      <text x="95" y="398" text-anchor="middle" fill="#6B70A0" font-size="6">2.5KB</text>
-      <rect x="160" y="402" width="110" height="24" rx="5" fill="#151829" stroke="#F59E0B" stroke-width=".7"/>
-      <text x="215" y="418" text-anchor="middle" fill="#e8e8f0" font-size="8">planStore</text>
-      <text x="215" y="398" text-anchor="middle" fill="#6B70A0" font-size="6">3.4KB</text>
+      <rect x="180" y="402" width="110" height="24" rx="5" fill="#151829" stroke="#F59E0B" stroke-width=".7"/>
+      <text x="235" y="418" text-anchor="middle" fill="#e8e8f0" font-size="8">planStore</text>
       <rect x="40" y="434" width="130" height="24" rx="5" fill="#151829" stroke="#F59E0B" stroke-width=".7"/>
       <text x="105" y="450" text-anchor="middle" fill="#e8e8f0" font-size="8">coordinatorStore</text>
-      <text x="105" y="430" text-anchor="middle" fill="#6B70A0" font-size="6">8.5KB</text>
       <rect x="180" y="434" width="110" height="24" rx="5" fill="#151829" stroke="#F59E0B" stroke-width=".7"/>
-      <text x="235" y="450" text-anchor="middle" fill="#e8e8f0" font-size="8">swarmStore</text>
-      <text x="235" y="430" text-anchor="middle" fill="#6B70A0" font-size="6">10.1KB</text>
-      <rect x="40" y="466" width="120" height="24" rx="5" fill="#151829" stroke="#F59E0B" stroke-width=".7"/>
-      <text x="100" y="482" text-anchor="middle" fill="#e8e8f0" font-size="8">insightStore</text>
-      <text x="100" y="462" text-anchor="middle" fill="#6B70A0" font-size="6">7.1KB</text>
-      <rect x="170" y="466" width="120" height="24" rx="5" fill="#151829" stroke="#F59E0B" stroke-width=".7"/>
-      <text x="230" y="482" text-anchor="middle" fill="#e8e8f0" font-size="8">anomalyStore</text>
-      <text x="230" y="462" text-anchor="middle" fill="#6B70A0" font-size="6">3.9KB</text>
-      <rect x="40" y="498" width="100" height="24" rx="5" fill="#151829" stroke="#F59E0B" stroke-width=".7"/>
-      <text x="90" y="514" text-anchor="middle" fill="#e8e8f0" font-size="8">mcpStore</text>
-      <text x="90" y="494" text-anchor="middle" fill="#6B70A0" font-size="6">8.1KB</text>
-      <rect x="150" y="498" width="140" height="24" rx="5" fill="#151829" stroke="#F59E0B" stroke-width=".7"/>
-      <text x="220" y="514" text-anchor="middle" fill="#e8e8f0" font-size="8">mcpCapabilityStore</text>
-      <text x="220" y="494" text-anchor="middle" fill="#6B70A0" font-size="6">5.5KB</text>
-      <rect x="40" y="540" width="100" height="24" rx="5" fill="#151829" stroke="#F59E0B" stroke-width=".7"/>
-      <text x="90" y="556" text-anchor="middle" fill="#e8e8f0" font-size="8">bridgeStore</text>
-      <text x="90" y="536" text-anchor="middle" fill="#6B70A0" font-size="6">2.2KB</text>
+      <text x="235" y="450" text-anchor="middle" fill="#e8e8f0" font-size="8">insightStore</text>
+      <rect x="40" y="466" width="130" height="24" rx="5" fill="#151829" stroke="#F59E0B" stroke-width=".7"/>
+      <text x="105" y="482" text-anchor="middle" fill="#e8e8f0" font-size="8">anomalyStore</text>
+      <rect x="180" y="466" width="110" height="24" rx="5" fill="#151829" stroke="#F59E0B" stroke-width=".7"/>
+      <text x="235" y="482" text-anchor="middle" fill="#e8e8f0" font-size="8">mcpStore</text>
+      <rect x="40" y="498" width="140" height="24" rx="5" fill="#151829" stroke="#F59E0B" stroke-width=".7"/>
+      <text x="110" y="514" text-anchor="middle" fill="#e8e8f0" font-size="8">mcpCapabilityStore</text>
+      <rect x="190" y="498" width="100" height="24" rx="5" fill="#151829" stroke="#F59E0B" stroke-width=".7"/>
+      <text x="240" y="514" text-anchor="middle" fill="#e8e8f0" font-size="8">bridgeStore</text>
 
       <!-- ===== System Store 区域 (紫色 - 右下) ===== -->
       <rect x="680" y="370" width="300" height="210" rx="10" fill="url(#zst-grad-sys)" stroke="#7B61FF" stroke-width="1" opacity=".9"/>
@@ -7199,7 +6813,6 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <text x="360" y="198" fill="#9FA4C4" font-size="7">handlePermissionRequest → permissionStore + sessionStore</text>
       <text x="360" y="210" fill="#9FA4C4" font-size="7">handleMessageComplete → messageStore + sessionStore</text>
       <text x="360" y="222" fill="#9FA4C4" font-size="7">handleSessionRestore → 5个Store全量同步 (L497-557)</text>
-      <text x="360" y="234" fill="#9FA4C4" font-size="7">worker_progress → swarmStore + anomalyStore (L302-330)</text>
 
       <!-- ===== 核心Store标记 (被多个消息类型引用) ===== -->
       <!-- messageStore 被引用最多: 15种消息 -->
@@ -7227,19 +6840,16 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
     </svg></div>
   </div>
 
-  <!-- SVG: 15个可视化组件架构矩阵 -->
+  <!-- SVG: 可视化组件架构矩阵 -->
   <div id="svg-viz" class="card" style="margin-top:16px;padding:0;overflow:hidden;border:1px solid var(--border2);scroll-margin-top:24px">
-    <h3 style="padding:16px 20px 8px;font-size:.85rem;font-weight:700;color:var(--ts);letter-spacing:.02em;margin:0">▸ 可视化组件矩阵 — 代码分析 · API契约 · Agent执行</h3>
+    <h3 style="padding:16px 20px 8px;font-size:.85rem;font-weight:700;color:var(--ts);letter-spacing:.02em;margin:0">▸ 可视化组件矩阵 — 代码分析 · API契约 · 图表组件</h3>
     <div id="diagram-reference-46" class="reference-scroll" tabindex="0" role="region" aria-label="架构图 46，可横向滚动"><svg id="viz-matrix" width="100%" viewBox="0 0 900 450" xmlns="http://www.w3.org/2000/svg" style="display:block;font-family:'JetBrains Mono',monospace">
       <defs>
         <linearGradient id="viz-g-code" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#3B82F6" stop-opacity=".15"/><stop offset="100%" stop-color="#3B82F6" stop-opacity=".03"/></linearGradient>
         <linearGradient id="viz-g-api" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#10B981" stop-opacity=".15"/><stop offset="100%" stop-color="#10B981" stop-opacity=".03"/></linearGradient>
-        <linearGradient id="viz-g-agent" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7B61FF" stop-opacity=".15"/><stop offset="100%" stop-color="#7B61FF" stop-opacity=".03"/></linearGradient>
         <linearGradient id="viz-g-insight" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F59E0B" stop-opacity=".15"/><stop offset="100%" stop-color="#F59E0B" stop-opacity=".03"/></linearGradient>
         <linearGradient id="viz-g-shared" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6B70A0" stop-opacity=".15"/><stop offset="100%" stop-color="#6B70A0" stop-opacity=".03"/></linearGradient>
         <linearGradient id="viz-g-entry" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#00D4FF" stop-opacity=".18"/><stop offset="100%" stop-color="#00D4FF" stop-opacity=".03"/></linearGradient>
-        <marker id="viz-ma" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#00D4FF"/></marker>
-        <marker id="viz-ma-store" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#F59E0B"/></marker>
         <marker id="viz-ma-py" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#10B981"/></marker>
         <pattern id="viz-grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#252840" stroke-width=".5" opacity=".35"/></pattern>
         <style>.viz-flow{animation:pulse-glow 2.5s ease-in-out infinite}</style>
@@ -7247,7 +6857,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <rect width="900" height="450" fill="#0B0D17"/><rect width="900" height="450" fill="url(#viz-grid)"/>
 
       <!-- ===== TITLE ===== -->
-      <text x="450" y="16" text-anchor="middle" fill="#e8e8f0" font-size="11" font-weight="700">Visualization · Code / API / Agent / Charts</text>
+      <text x="450" y="16" text-anchor="middle" fill="#e8e8f0" font-size="11" font-weight="700">Visualization · Code / API / Insights / Charts</text>
       <text x="450" y="27" text-anchor="middle" fill="#6B70A0" font-size="7.5">frontend/src/components/visualization/{backend,shared}/ + message/VisualizationMessage.tsx</text>
 
       <!-- ===== ROW 1: 代码分析 (Blue) ===== -->
@@ -7283,25 +6893,16 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <rect x="527" y="97" width="55" height="12" rx="3" fill="rgba(16,185,129,.12)"/><text x="554" y="106" text-anchor="middle" fill="#10B981" font-size="6">Pure React</text>
       <text x="475" y="120" fill="#6B70A0" font-size="6">Store: apiContractStore · messageStore</text>
 
-      <!-- ===== ROW 2: Agent执行 (Purple) ===== -->
-      <rect x="15" y="130" width="218" height="66" rx="8" fill="url(#viz-g-agent)" stroke="#7B61FF" stroke-width="1"/>
-      <text x="30" y="144" fill="#7B61FF" font-size="9" font-weight="700">Agent执行</text>
-      <text x="94" y="144" fill="#6B70A0" font-size="7">2个</text>
-      <rect x="30" y="150" width="190" height="17" rx="4" fill="#151829" stroke="#7B61FF" stroke-width=".6"/>
-      <text x="36" y="162" fill="#e8e8f0" font-size="7.5">AgentDAGChart</text>
-      <rect x="30" y="171" width="190" height="17" rx="4" fill="#151829" stroke="#7B61FF" stroke-width=".6"/>
-      <text x="36" y="183" fill="#e8e8f0" font-size="7.5">AgentDAGNode</text>
-      <rect x="140" y="131" width="62" height="11" rx="3" fill="rgba(123,97,255,.12)"/><text x="171" y="139" text-anchor="middle" fill="#7B61FF" font-size="5.5">@xyflow×2</text>
-
       <!-- ===== ROW 2: 代码洞察 (Orange) ===== -->
-      <rect x="243" y="130" width="207" height="66" rx="8" fill="url(#viz-g-insight)" stroke="#F59E0B" stroke-width="1"/>
-      <text x="258" y="144" fill="#F59E0B" font-size="9" font-weight="700">代码洞察</text>
-      <text x="322" y="144" fill="#6B70A0" font-size="7">2个</text>
-      <rect x="258" y="150" width="180" height="17" rx="4" fill="#151829" stroke="#F59E0B" stroke-width=".6"/>
-      <text x="264" y="162" fill="#e8e8f0" font-size="7.5">GitTimeline</text>
-      <rect x="258" y="171" width="180" height="17" rx="4" fill="#151829" stroke="#F59E0B" stroke-width=".6"/>
-      <text x="264" y="183" fill="#e8e8f0" font-size="7.5">BlameView</text>
-      <rect x="385" y="131" width="55" height="11" rx="3" fill="rgba(245,158,11,.12)"/><text x="412" y="139" text-anchor="middle" fill="#F59E0B" font-size="5.5">Pure React</text>
+      <rect x="15" y="130" width="435" height="66" rx="8" fill="url(#viz-g-insight)" stroke="#F59E0B" stroke-width="1"/>
+      <text x="30" y="144" fill="#F59E0B" font-size="9" font-weight="700">代码洞察</text>
+      <text x="94" y="144" fill="#6B70A0" font-size="7">2个</text>
+      <rect x="30" y="150" width="198" height="17" rx="4" fill="#151829" stroke="#F59E0B" stroke-width=".6"/>
+      <text x="36" y="162" fill="#e8e8f0" font-size="7.5">GitTimeline</text>
+      <rect x="236" y="150" width="198" height="17" rx="4" fill="#151829" stroke="#F59E0B" stroke-width=".6"/>
+      <text x="242" y="162" fill="#e8e8f0" font-size="7.5">BlameView</text>
+      <rect x="30" y="174" width="55" height="12" rx="3" fill="rgba(245,158,11,.12)"/><text x="57" y="183" text-anchor="middle" fill="#F59E0B" font-size="6">Pure React</text>
+      <text x="100" y="183" fill="#6B70A0" font-size="6">Store: codeInsightStore</text>
 
       <!-- ===== ROW 2: 共享基础设施 (Gray) ===== -->
       <rect x="460" y="130" width="425" height="66" rx="8" fill="url(#viz-g-shared)" stroke="#6B70A0" stroke-width="1"/>
@@ -7319,17 +6920,11 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
 
       <!-- ===== ENTRY POINT BAR (Cyan) ===== -->
       <rect x="15" y="208" width="870" height="28" rx="8" fill="url(#viz-g-entry)" stroke="#00D4FF" stroke-width="1.5"/>
-      <text x="450" y="222" text-anchor="middle" fill="#00D4FF" font-size="9" font-weight="700">VisualizationMessage.tsx · 入口路由 — 按 viewType 分发到上述 14 个可视化组件</text>
-      <text x="450" y="232" text-anchor="middle" fill="#9FA4C4" font-size="7">Store: appUiStore + changeImpactStore + codePathStore + complexityStore + apiContractStore (5个Store直连)</text>
-
-      <!-- ===== DATA FLOW ARROWS: Entry → Categories ===== -->
-      <line x1="230" y1="208" x2="230" y2="126" stroke="#00D4FF" stroke-width="1" opacity=".35" stroke-dasharray="3" class="viz-flow"/>
-      <line x1="670" y1="208" x2="670" y2="126" stroke="#00D4FF" stroke-width="1" opacity=".35" stroke-dasharray="3" class="viz-flow"/>
-      <line x1="125" y1="208" x2="125" y2="196" stroke="#00D4FF" stroke-width="1" opacity=".35" stroke-dasharray="3" class="viz-flow"/>
-      <line x1="350" y1="208" x2="350" y2="196" stroke="#00D4FF" stroke-width="1" opacity=".35" stroke-dasharray="3" class="viz-flow"/>
+      <text x="450" y="222" text-anchor="middle" fill="#00D4FF" font-size="9" font-weight="700">VisualizationMessage.tsx · 3 类直渲染 + 4 类 Hint 跳转 · text / json 兼容</text>
+      <text x="450" y="232" text-anchor="middle" fill="#9FA4C4" font-size="7">直渲染：GitTimeline / SchemaViewer / MermaidBlock；Hint：影响 / 路径 / 复杂度 / API序列 → 对应侧栏</text>
 
       <!-- ===== ZUSTAND STORE LAYER ===== -->
-      <rect x="15" y="248" width="520" height="78" rx="8" fill="#0F1221" stroke="#252840" stroke-width="1"/>
+      <rect x="15" y="248" width="520" height="65" rx="8" fill="#0F1221" stroke="#252840" stroke-width="1"/>
       <text x="30" y="263" fill="#F59E0B" font-size="9" font-weight="700">Zustand Store 数据绑定</text>
       <text x="196" y="263" fill="#6B70A0" font-size="7">业务 Store · 选择器订阅</text>
       <!-- Row 1 stores -->
@@ -7344,19 +6939,14 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <rect x="424" y="270" width="100" height="15" rx="3" fill="#151829" stroke="#10B981" stroke-width=".5"/>
       <text x="474" y="280" text-anchor="middle" fill="#e8e8f0" font-size="6.5">apiContractStore</text>
       <!-- Row 2 stores -->
-      <rect x="30" y="290" width="88" height="15" rx="3" fill="#151829" stroke="#10B981" stroke-width=".5"/>
-      <text x="74" y="300" text-anchor="middle" fill="#e8e8f0" font-size="6.5">messageStore</text>
-      <rect x="123" y="290" width="110" height="15" rx="3" fill="#151829" stroke="#7B61FF" stroke-width=".5"/>
-      <text x="178" y="300" text-anchor="middle" fill="#e8e8f0" font-size="6.5">coordinatorStore</text>
-      <rect x="238" y="290" width="82" height="15" rx="3" fill="#151829" stroke="#7B61FF" stroke-width=".5"/>
-      <text x="279" y="300" text-anchor="middle" fill="#e8e8f0" font-size="6.5">swarmStore</text>
-      <rect x="325" y="290" width="100" height="15" rx="3" fill="#151829" stroke="#F59E0B" stroke-width=".5"/>
-      <text x="375" y="300" text-anchor="middle" fill="#e8e8f0" font-size="6.5">codeInsightStore</text>
-      <rect x="430" y="290" width="75" height="15" rx="3" fill="#151829" stroke="#6B70A0" stroke-width=".5"/>
-      <text x="467" y="300" text-anchor="middle" fill="#e8e8f0" font-size="6.5">configStore</text>
-      <!-- appUiStore (entry cyan) -->
-      <rect x="30" y="310" width="75" height="15" rx="3" fill="#151829" stroke="#00D4FF" stroke-width=".5"/>
-      <text x="67" y="320" text-anchor="middle" fill="#e8e8f0" font-size="6.5">appUiStore</text>
+      <rect x="30" y="290" width="100" height="15" rx="3" fill="#151829" stroke="#10B981" stroke-width=".5"/>
+      <text x="80" y="300" text-anchor="middle" fill="#e8e8f0" font-size="6.5">messageStore</text>
+      <rect x="135" y="290" width="130" height="15" rx="3" fill="#151829" stroke="#F59E0B" stroke-width=".5"/>
+      <text x="200" y="300" text-anchor="middle" fill="#e8e8f0" font-size="6.5">codeInsightStore</text>
+      <rect x="270" y="290" width="110" height="15" rx="3" fill="#151829" stroke="#6B70A0" stroke-width=".5"/>
+      <text x="325" y="300" text-anchor="middle" fill="#e8e8f0" font-size="6.5">configStore</text>
+      <rect x="385" y="290" width="130" height="15" rx="3" fill="#151829" stroke="#00D4FF" stroke-width=".5"/>
+      <text x="450" y="300" text-anchor="middle" fill="#e8e8f0" font-size="6.5">appUiStore</text>
 
       <!-- ===== PYTHON API LAYER ===== -->
       <rect x="550" y="248" width="335" height="78" rx="8" fill="#0F1221" stroke="#10B981" stroke-width="1"/>
@@ -7376,8 +6966,6 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <circle cx="743" cy="287" r="2.5" fill="#F59E0B"/>
 
       <!-- ===== CONNECTING ARROWS ===== -->
-      <!-- Entry → Store layer -->
-      <line x1="270" y1="236" x2="270" y2="248" stroke="#F59E0B" stroke-width="1.2" opacity=".5" marker-end="url(#viz-ma-store)" class="viz-flow"/>
       <!-- Store → API layer -->
       <line x1="535" y1="290" x2="550" y2="290" stroke="#10B981" stroke-width="1.2" opacity=".5" marker-end="url(#viz-ma-py)" class="viz-flow"/>
 
@@ -7385,28 +6973,27 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <rect x="15" y="340" width="870" height="32" rx="6" fill="#0F1221" stroke="#252840" stroke-width="1"/>
       <circle cx="35" cy="352" r="4" fill="#3B82F6"/><text x="44" y="355" fill="#3B82F6" font-size="7">代码分析×4</text>
       <circle cx="115" cy="352" r="4" fill="#10B981"/><text x="124" y="355" fill="#10B981" font-size="7">API契约×3</text>
-      <circle cx="190" cy="352" r="4" fill="#7B61FF"/><text x="199" y="355" fill="#7B61FF" font-size="7">Agent×2</text>
-      <circle cx="258" cy="352" r="4" fill="#F59E0B"/><text x="267" y="355" fill="#F59E0B" font-size="7">洞察×2</text>
-      <circle cx="318" cy="352" r="4" fill="#6B70A0"/><text x="327" y="355" fill="#6B70A0" font-size="7">共享×3</text>
-      <circle cx="385" cy="352" r="4" fill="#00D4FF"/><text x="394" y="355" fill="#00D4FF" font-size="7">入口×1</text>
+      <circle cx="190" cy="352" r="4" fill="#F59E0B"/><text x="199" y="355" fill="#F59E0B" font-size="7">洞察×2</text>
+      <circle cx="258" cy="352" r="4" fill="#6B70A0"/><text x="267" y="355" fill="#6B70A0" font-size="7">共享×3</text>
+      <circle cx="338" cy="352" r="4" fill="#00D4FF"/><text x="347" y="355" fill="#00D4FF" font-size="7">入口×1</text>
       <!-- library badges -->
       <rect x="455" y="345" width="62" height="14" rx="3" fill="rgba(59,130,246,.08)" stroke="#3B82F6" stroke-width=".5"/>
-      <text x="486" y="355" text-anchor="middle" fill="#3B82F6" font-size="6.5">@xyflow ×4</text>
+      <text x="486" y="355" text-anchor="middle" fill="#3B82F6" font-size="6.5">@xyflow</text>
       <rect x="523" y="345" width="55" height="14" rx="3" fill="rgba(16,185,129,.08)" stroke="#10B981" stroke-width=".5"/>
       <text x="550" y="355" text-anchor="middle" fill="#10B981" font-size="6.5">Recharts</text>
       <rect x="584" y="345" width="55" height="14" rx="3" fill="rgba(123,97,255,.08)" stroke="#7B61FF" stroke-width=".5"/>
-      <text x="611" y="355" text-anchor="middle" fill="#7B61FF" font-size="6.5">Mermaid ×3</text>
+      <text x="611" y="355" text-anchor="middle" fill="#7B61FF" font-size="6.5">Mermaid</text>
       <rect x="645" y="345" width="50" height="14" rx="3" fill="rgba(245,158,11,.08)" stroke="#F59E0B" stroke-width=".5"/>
       <text x="670" y="355" text-anchor="middle" fill="#F59E0B" font-size="6.5">Monaco</text>
-      <text x="710" y="355" fill="#6B70A0" font-size="7">Pure React ×6</text>
+      <text x="710" y="355" fill="#6B70A0" font-size="7">Pure React</text>
 
       <!-- second legend row -->
-      <text x="35" y="367" fill="#6B70A0" font-size="6.5">Store颜色=所属分类 · 圆点颜色=API对应分类 · 虚线动画=数据流方向</text>
+      <text x="35" y="367" fill="#6B70A0" font-size="6.5">Store颜色=所属分类 · 圆点颜色=API对应分类 · 箭头=业务数据请求</text>
       <text x="560" y="367" fill="#9FA4C4" font-size="6.5">源码路径: frontend/src/components/visualization/</text>
 
       <!-- ===== DATA FLOW LABELS ===== -->
       <rect x="15" y="380" width="870" height="62" rx="8" fill="#0F1221" stroke="#252840" stroke-width=".8"/>
-      <text x="450" y="395" text-anchor="middle" fill="#e8e8f0" font-size="9" font-weight="600">数据流闭环: 组件 → Zustand Store → fetch() → Java 代理 → Python 分析服务</text>
+      <text x="450" y="395" text-anchor="middle" fill="#e8e8f0" font-size="9" font-weight="600">业务数据路径示例：组件 → Zustand Store → fetch() → 后端 API</text>
       <text x="30" y="410" fill="#3B82F6" font-size="7">▸ CodeComplexityTreemap → complexityStore → /api/code-quality/complexity</text>
       <text x="30" y="422" fill="#3B82F6" font-size="7">▸ CodePathTracer → codePathStore → /api/code-path/endpoints | /trace</text>
       <text x="30" y="434" fill="#3B82F6" font-size="7">▸ ChangeImpactGraph → changeImpactStore → /api/analysis/change-impact</text>
