@@ -27,6 +27,7 @@
 - `tools/office-regression/`：新增 XLSX/DOCX/PPTX/HTML 四类离线回归基建——固定 Playwright / LibreOffice / CJK 字体 / poppler 与基础镜像 digest，容器内 `--network none` 运行、证据输出到仓库外；四组均含正例与命中指定检测原因的受控反例（不允许以任意失败充当检出）。另新增后端 `BashTool → ManagedProcessRunner` 执行确定性生成/结构检查脚本的回归测试。Office 三格式当前无产品级生成入口，脚本属测试资产，本回归不外推为模型办公能力或生产保证；研究来源组不在本批，未接入 CI 门禁（按手动入口运行）。
 
 ### Changed
+- 修正内置 `verification` 子代理的证据要求与 PASS／FAIL／PARTIAL 判定边界（模型输入行为变化）：测试结果作为其断言覆盖范围内的证据；区分已证实的验收失败与检查未完成，保留必要动态反证要求，限定静态结论及验收范围，设计意图不豁免已证实失败；数值退出码仅在工具或命令明确提供时记录，缺失本身不决定结论。同步补充普通及 fork 路径的提示送达契约测试。
 - **Breaking:** `TaskUpdate` 仅接受输出更新，显式拒绝 `status`，任务执行状态统一由 `TaskCoordinator` 管理；调用方应移除 `status` 字段，使用 `TaskStop` 请求取消、`TaskGet`／`TaskList` 查询结果，计划清单改用 `TodoWrite`。`TaskCreate` 仅接受 `agent`、`shell`、`local_workflow`、`monitor_mcp`、`dream`；未实现或未知类型明确拒绝，不再返回假成功。后三种兼容类型均执行一次通用子代理调用，不提供周期监控或特殊优先级。
 - `EnterPlanMode`／`ExitPlanMode` 保留兼容入口，但明确返回 `PLAN_MODE_UNAVAILABLE`：本工具尚未接入权限切换、审批或计划文件展示。系统已有的 `PLAN` 权限模式保留；`/plan` 回执改为说明显示／隐藏前端计划面板，权限不会因此改变。`Brief` 仅展示基础执行上下文，`AskUserQuestion` 说明与 `multiSelect` 实际行为一致；相关工具提示及中英文 README 同步。
 - GitHub CI 在前端生产构建前执行 `npm run test:run`，并为前后端验证 job 设置超时上限。

@@ -116,6 +116,23 @@ class SubAgentToolPoolTest {
                     .doesNotContain("search_codebase", "search_symbol")
                     .contains("**Glob**", "**Grep**", "**Read**");
         }
+        if ("verification".equals(type)) {
+            // Check the delivered contract in both execution paths, not model adherence to it.
+            assertThat(config.systemPrompt()).contains(
+                    "测试结果是其断言覆盖范围内的证据",
+                    "至少执行一项针对主要风险",
+                    "重要动态检查未完成时，不得给出功能 PASS",
+                    "不得为跳过必要动态检查而自行缩小验收范围",
+                    "有意行为仍须符合任务验收要求，不能据此豁免已证实的验收失败",
+                    "已确认失败与未完成项并存时，整体仍为 FAIL",
+                    "数值退出码仅在工具或命令明确提供时记录",
+                    "缺少数值退出码本身不决定检查结论",
+                    "VERDICT: PASS\n", "VERDICT: FAIL\n", "VERDICT: PARTIAL\n");
+            assertThat(config.systemPrompt()).doesNotContain(
+                    "测试套件结果是上下文，不是证据", "构建失败就自动 FAIL",
+                    "测试失败就自动 FAIL", "阅读不是验证", "PARTIAL 仅用于环境限制",
+                    "Exit code: 0（curl 正常完成");
+        }
         verifyNoInteractions(providers);
 
         // The typed definitions must describe the same canonical capability sets as the execution path.
