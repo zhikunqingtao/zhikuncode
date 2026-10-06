@@ -428,7 +428,7 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
                         <select
                             aria-label="外观主题"
                             value={normalizeThemeMode(themeMode)}
-                            onChange={event => setTheme({ mode: event.target.value as 'light' | 'dark' | 'glass' | 'spaceship' | 'ink-havoc' | 'ink-havoc-night' })}
+                            onChange={event => setTheme({ mode: event.target.value as 'light' | 'dark' | 'glass' | 'spaceship' | 'ink-havoc' | 'ink-havoc-night' | 'jelly' })}
                             className="panel-control min-h-11 min-w-0 flex-1 rounded-[10px] border border-hairline bg-surfacev2 px-3 text-sm text-t1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent2-ring"
                         >
                             <option value="light">浅色</option>
@@ -437,6 +437,7 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
                             <option value="spaceship">星舰</option>
                             <option value="ink-havoc">花果晨</option>
                             <option value="ink-havoc-night">灵霄夜</option>
+                            <option value="jelly">果冻</option>
                         </select>
                     </label>
                 </div>

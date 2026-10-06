@@ -32,7 +32,7 @@ import { ACCENT_PRESETS, applyAccent, DEFAULT_ACCENT_HEX } from '@/theme/accents
 
 /* ===== 主题与强调色（值取自指南 §3.4 终值表，与 ThemePicker 共用 @/theme/accents 同一写入机制） ===== */
 
-type ThemeName = 'light' | 'dark' | 'glass' | 'spaceship' | 'ink-havoc' | 'ink-havoc-night';
+type ThemeName = 'light' | 'dark' | 'glass' | 'spaceship' | 'ink-havoc' | 'ink-havoc-night' | 'jelly';
 const THEMES: { name: ThemeName; label: string }[] = [
     { name: 'light', label: 'Light' },
     { name: 'dark', label: 'Dark' },
@@ -40,17 +40,21 @@ const THEMES: { name: ThemeName; label: string }[] = [
     { name: 'spaceship', label: '星舰 HUD' },
     { name: 'ink-havoc', label: '花果晨' },
     { name: 'ink-havoc-night', label: '灵霄夜' },
+    { name: 'jelly', label: '果冻塔' },
 ];
 
 function applyTheme(theme: ThemeName) {
     const root = document.documentElement;
-    // 对称清理：ink 双主题附带 fx-ink-rich / motion-* 门控 class，切走时一并移除
-    root.classList.remove('light', 'dark', 'glass', 'spaceship', 'ink-havoc', 'ink-havoc-night',
-        'fx-ink-rich', 'motion-full', 'motion-reduced', 'motion-off');
+    // 对称清理：ink 双主题附带 fx-ink-rich / jelly 附带 fx-jelly-rich / motion-* 门控，切走时一并移除
+    root.classList.remove('light', 'dark', 'glass', 'spaceship', 'ink-havoc', 'ink-havoc-night', 'jelly',
+        'fx-ink-rich', 'fx-jelly-rich', 'motion-full', 'motion-reduced', 'motion-off');
     root.classList.add(theme);
-    // ink 双主题默认带浓郁档 + 完整动效，便于画廊预览全量装饰
+    // ink 双主题 / 果冻默认带浓郁档 + 完整动效，便于画廊预览全量装饰（果冻 = 果冻塔 + 装饰层 + Q 弹）
     if (theme === 'ink-havoc' || theme === 'ink-havoc-night') {
         root.classList.add('fx-ink-rich', 'motion-full');
+    }
+    if (theme === 'jelly') {
+        root.classList.add('fx-jelly-rich', 'motion-full');
     }
 }
 

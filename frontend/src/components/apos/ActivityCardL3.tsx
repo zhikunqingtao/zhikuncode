@@ -90,7 +90,7 @@ function FileDiffPreview({ file }: { file: FileChange }) {
   const displayLines = truncated ? lines.slice(0, maxLines) : lines;
 
   return (
-    <div className="bg-[var(--code-bg)] rounded border border-[var(--v2-border-hairline)] mt-1 overflow-hidden">
+    <div className="panel-diff bg-[var(--code-bg)] rounded border border-[var(--v2-border-hairline)] mt-1 overflow-hidden">
       <div className="max-h-[280px] overflow-y-auto overflow-x-auto">
         <pre className="panel-code text-[13px] font-mono leading-[1.6] p-2 m-0">
           {displayLines.map((line, i) => {
@@ -99,7 +99,7 @@ function FileDiffPreview({ file }: { file: FileChange }) {
             else if (line.startsWith('- ')) lineClass = 'text-err bg-errsoft';
             return (
               <div key={i} className={`flex ${lineClass}`}>
-                <span className="text-[var(--v2-text-2)] w-8 text-right mr-2 select-none flex-shrink-0 opacity-50">
+                <span className="panel-diff-line-number text-[var(--v2-text-2)] w-8 text-right mr-2 select-none flex-shrink-0 opacity-50">
                   {i + 1}
                 </span>
                 <span className="whitespace-pre">{line}</span>

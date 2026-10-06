@@ -199,7 +199,7 @@ function FileDetailPanel({ file, onViewActivity }: { file: FileChange; onViewAct
       </div>
       {/* Diff 内容展示 */}
       {displayLines ? (
-        <div className="bg-[var(--code-bg)] rounded border border-[var(--v2-border-hairline)] overflow-hidden">
+        <div className="panel-diff bg-[var(--code-bg)] rounded border border-[var(--v2-border-hairline)] overflow-hidden">
           <div className="max-h-[160px] overflow-y-auto overflow-x-auto">
             <pre className="text-[13px] font-mono leading-[1.5] p-1.5 m-0">
               {displayLines.map((line, i) => {

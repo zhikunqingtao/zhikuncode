@@ -1,9 +1,10 @@
 /** 外观设置：主题立即生效，由 ConfigStore 持久化。 */
-import { Moon, Sun, Sparkles, Check, Rocket, Flower2, Landmark } from 'lucide-react';
+import { Moon, Sun, Sparkles, Check, Rocket, Flower2, Landmark, Candy } from 'lucide-react';
 import { useConfigStore } from '@/store/configStore';
 import { Button, Dialog, cn } from '@/components/ui';
 import { SpaceshipFxControls } from '@/components/theme/SpaceshipFxControls';
 import { InkHavocFxControls } from '@/components/theme/InkHavocFxControls';
+import { JellyFxControls } from '@/components/theme/JellyFxControls';
 import { ACCENT_PRESETS, normalizeAccentHex } from '@/theme/accents';
 import type { ThemeConfig } from '@/types';
 
@@ -14,6 +15,7 @@ const THEMES: { mode: ThemeConfig['mode']; label: string; icon: typeof Sun }[] =
     { mode: 'spaceship', label: '星舰', icon: Rocket },
     { mode: 'ink-havoc', label: '花果晨', icon: Flower2 },
     { mode: 'ink-havoc-night', label: '灵霄夜', icon: Landmark },
+    { mode: 'jelly', label: '果冻', icon: Candy },
 ];
 
 export function SettingsPanel({ onClose }: { onClose: () => void }) {
@@ -21,13 +23,17 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
     const spaceshipMode = theme.mode === 'spaceship';
     // 大闹天宫重彩双模式：accent 写死主题色（朱砂/鎏金），强调色预设区禁用并说明
     const inkHavocMode = theme.mode === 'ink-havoc' || theme.mode === 'ink-havoc-night';
+    // 果冻主题：accent 写死法式主题色（酒渍樱桃），强调色预设区同禁用并说明
+    const jellyMode = theme.mode === 'jelly';
+    const fixedAccentMode = inkHavocMode || jellyMode;
 
     return (
         <Dialog open title="外观设置" onClose={onClose} className="max-w-lg border border-hairline max-h-[85vh] flex flex-col">
-            {/* 审查#3修复：主题 6 格两行致弹窗增高，小视口（1024×500/600）下按钮溢出且滚动锁定——
-                弹窗限高 85vh，内容区独立滚动，「完成」按钮固定底部常驻可见 */}
+            {/* 审查#3修复：主题 6→7 格致弹窗增高，小视口（1024×500/600）下按钮溢出且滚动锁定——
+                弹窗限高 85vh，内容区独立滚动，「完成」按钮固定底部常驻可见；
+                sm 起 4 列（7 项 = 4+3）避免 3 列末行孤项，移动端保持 3 列 */}
             <div className="p-5 overflow-y-auto min-h-0 flex-1">
-                <div className="grid grid-cols-3 gap-3" role="group" aria-label="主题">
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3" role="group" aria-label="主题">
                     {THEMES.map(({ mode, label, icon: Icon }) => (
                         <button
                             key={mode}
@@ -51,15 +57,20 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
                 {spaceshipMode && <SpaceshipFxControls className="mt-5 border-t border-hairline pt-5" />}
                 {/* 天宫特效：仅 ink-havoc 双主题可见（其他主题隐藏） */}
                 {inkHavocMode && <InkHavocFxControls className="mt-5 border-t border-hairline pt-5" />}
+                {/* 果冻特效：仅 jelly 主题可见（第二阶段 Q 弹/装饰控件位在此组件内扩展） */}
+                {jellyMode && <JellyFxControls className="mt-5 border-t border-hairline pt-5" />}
                 <div className="mt-5">
                     <div className="text-sm font-medium text-t2 mb-3">强调色</div>
-                    {/* ink 双模式 accent 写死主题色（applyAccent 提前返回）：禁用预设并说明 */}
+                    {/* ink 双模式 / jelly accent 写死主题色（applyAccent 提前返回）：禁用预设并说明 */}
                     {inkHavocMode && (
                         <div className="mb-3 text-[13px] text-t3">本主题使用专属重彩配色</div>
                     )}
+                    {jellyMode && (
+                        <div className="mb-3 text-[13px] text-t3">本主题使用专属法式配色</div>
+                    )}
                     <div className="flex gap-2 flex-wrap" role="group" aria-label="强调色">
                         {ACCENT_PRESETS.map(({ hex, label }) => {
-                            const selected = !inkHavocMode && normalizeAccentHex(theme.accentColor) === hex;
+                            const selected = !fixedAccentMode && normalizeAccentHex(theme.accentColor) === hex;
                             return (
                                 <button
                                     key={hex}
@@ -67,12 +78,12 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
                                     aria-pressed={selected}
                                     aria-label={`强调色 ${label}`}
                                     title={label}
-                                    disabled={inkHavocMode}
+                                    disabled={fixedAccentMode}
                                     onClick={() => setTheme({ accentColor: hex })}
                                     className={cn(
                                         'w-8 h-8 rounded-full border-2 border-transparent transition-interactive duration-fast',
                                         'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring',
-                                        inkHavocMode ? 'opacity-40 cursor-not-allowed' : selected ? 'scale-110' : 'hover:scale-105',
+                                        fixedAccentMode ? 'opacity-40 cursor-not-allowed' : selected ? 'scale-110' : 'hover:scale-105',
                                     )}
                                     style={{
                                         backgroundColor: hex,

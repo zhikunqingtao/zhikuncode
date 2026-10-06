@@ -533,14 +533,23 @@ export interface InkHavocFxConfig {
     retreat: boolean;
 }
 
+/** 果冻主题专属特效开关（仅 mode='jelly' 时生效） */
+export interface JellyFxConfig {
+    /** 浓郁档：Q 弹与金箔装饰拉满（html class fx-jelly-rich）；克制档=配色+质感无弹动 */
+    cinematic: boolean;
+    /** 动效档：full 完整 / reduced 精简 / off 关闭（语义复用星舰三档） */
+    motion: 'full' | 'reduced' | 'off';
+}
+
 export interface ThemeConfig {
-    mode: 'light' | 'dark' | 'glass' | 'spaceship' | 'ink-havoc' | 'ink-havoc-night';
+    mode: 'light' | 'dark' | 'glass' | 'spaceship' | 'ink-havoc' | 'ink-havoc-night' | 'jelly';
     accentColor: string;
     fontSize?: string;
     fontFamily?: string;
     borderRadius?: string;
     spaceshipFx?: SpaceshipFxConfig;
     inkHavocFx?: InkHavocFxConfig;
+    jellyFx?: JellyFxConfig;
 }
 
 export interface OutputStyleDef {

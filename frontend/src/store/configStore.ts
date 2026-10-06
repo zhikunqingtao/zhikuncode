@@ -11,7 +11,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { broadcastMiddleware } from './broadcastMiddleware';
 import { DEFAULT_ACCENT_HEX } from '@/theme/accents';
-import type { ThemeConfig, SpaceshipFxConfig, InkHavocFxConfig, OutputStyleDef, Config } from '@/types';
+import type { ThemeConfig, SpaceshipFxConfig, InkHavocFxConfig, JellyFxConfig, OutputStyleDef, Config } from '@/types';
 
 export interface ConfigStoreState {
     // 状态
@@ -43,12 +43,13 @@ const DEFAULT_THEME: ThemeConfig = {
     borderRadius: 'md',
     spaceshipFx: defaultSpaceshipFx(),
     inkHavocFx: defaultInkHavocFx(),
+    jellyFx: defaultJellyFx(),
 };
 
 /** 旧 system 偏好按当前系统外观迁移一次；未知值回退浅色。 */
 export function normalizeThemeMode(mode: unknown): ThemeConfig['mode'] {
     if (mode === 'light' || mode === 'dark' || mode === 'glass' || mode === 'spaceship'
-        || mode === 'ink-havoc' || mode === 'ink-havoc-night') return mode;
+        || mode === 'ink-havoc' || mode === 'ink-havoc-night' || mode === 'jelly') return mode;
     if (mode === 'system' && typeof window !== 'undefined'
         && typeof window.matchMedia === 'function'
         && window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
@@ -97,6 +98,26 @@ export function normalizeInkHavocFx(value: unknown, base: InkHavocFxConfig = def
     };
 }
 
+/** 果冻主题特效默认值：系统偏好减少动态时 motion 默认 'reduced'（仍可手动切回 full） */
+export function defaultJellyFx(): JellyFxConfig {
+    const reduced = typeof window !== 'undefined'
+        && typeof window.matchMedia === 'function'
+        && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    return { cinematic: true, motion: reduced ? 'reduced' : 'full' };
+}
+
+/** jellyFx 字段级归一：非法值逐项回退 base/默认，保证三档 motion 恒为合法值 */
+export function normalizeJellyFx(value: unknown, base: JellyFxConfig = defaultJellyFx()): JellyFxConfig {
+    const update = value && typeof value === 'object' && !Array.isArray(value)
+        ? value as Partial<JellyFxConfig> : {};
+    const motion = update.motion === 'full' || update.motion === 'reduced' || update.motion === 'off'
+        ? update.motion : base.motion;
+    return {
+        cinematic: typeof update.cinematic === 'boolean' ? update.cinematic : base.cinematic,
+        motion,
+    };
+}
+
 export function normalizeTheme(value: unknown, base: ThemeConfig = DEFAULT_THEME): ThemeConfig {
     const raw = value && typeof value === 'object' && !Array.isArray(value) ? value as Partial<ThemeConfig> : {};
     // 字符串形式的 mode 先断言进联合类型，合法性由下方 normalizeThemeMode 白名单兜底
@@ -107,6 +128,7 @@ export function normalizeTheme(value: unknown, base: ThemeConfig = DEFAULT_THEME
         mode: normalizeThemeMode(update.mode ?? base.mode),
         spaceshipFx: normalizeSpaceshipFx(raw.spaceshipFx, base.spaceshipFx ?? defaultSpaceshipFx()),
         inkHavocFx: normalizeInkHavocFx(raw.inkHavocFx, base.inkHavocFx ?? defaultInkHavocFx()),
+        jellyFx: normalizeJellyFx(raw.jellyFx, base.jellyFx ?? defaultJellyFx()),
     };
 }
 

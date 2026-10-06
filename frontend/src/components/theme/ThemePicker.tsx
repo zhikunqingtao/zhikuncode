@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import { Sun, Moon, Check, Sparkles, Rocket, Flower2, Landmark } from 'lucide-react';
+import { Sun, Moon, Check, Sparkles, Rocket, Flower2, Landmark, Candy } from 'lucide-react';
 import { useConfigStore } from '@/store/configStore';
 import { ACCENT_PRESETS, normalizeAccentHex } from '@/theme/accents';
 import { cn } from '@/components/ui';
@@ -23,6 +23,7 @@ export const ThemePicker: React.FC = () => {
         { value: 'spaceship', label: '星舰', icon: Rocket },
         { value: 'ink-havoc', label: '花果晨', icon: Flower2 },
         { value: 'ink-havoc-night', label: '灵霄夜', icon: Landmark },
+        { value: 'jelly', label: '果冻', icon: Candy },
     ];
 
     const accentColors = ACCENT_PRESETS.map(({ hex, label }) => ({ value: hex, label }));

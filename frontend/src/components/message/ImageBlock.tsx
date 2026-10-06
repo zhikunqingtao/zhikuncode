@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ZoomIn, X, Copy, Check } from 'lucide-react';
 import { copyImageToClipboard } from '@/utils/messageContent';
 
@@ -105,8 +106,8 @@ const ImageBlock: React.FC<ImageBlockProps> = ({
                 </button>
             </div>
 
-            {/* Full-screen overlay */}
-            {zoomed && (
+            {/* Portal keeps transformed/filtered message ancestors from containing the fixed overlay. */}
+            {zoomed && createPortal(
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
                     onClick={toggleZoom}
@@ -141,7 +142,8 @@ const ImageBlock: React.FC<ImageBlockProps> = ({
                         className="max-w-[90vw] max-h-[90vh] rounded-[10px]"
                         onClick={(e) => e.stopPropagation()}
                     />
-                </div>
+                </div>,
+                document.body,
             )}
         </>
     );

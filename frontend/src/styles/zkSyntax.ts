@@ -73,6 +73,22 @@ const INK_LINGXIAO_PALETTE: SyntaxPalette = {
     text4: '#7684A3',    // 蓝灰（行号）
 };
 
+/**
+ * 果冻（jelly）语法色板：黑巧丝绒底 #2A1A1E 上的法式甜品色族提亮版，
+ * 逐一按 WCAG 实测校准至 ≥4.5:1（实测值随行注记；jelly.css 无用户可调色）。
+ */
+const JELLY_PALETTE: SyntaxPalette = {
+    keyword: '#E85D6E',  // 樱桃提亮（4.92:1）
+    string: '#C08245',   // 焦糖琥珀（5.15:1）
+    number: '#D4AF37',   // 金箔（7.89:1）
+    fn: '#9BBE7A',       // 开心果提亮（7.94:1）
+    comment: '#A08B85',  // 暖灰（5.16:1）
+    key: '#E590A8',      // 类型/类名 · 玫瑰提亮（7.03:1）
+    text1: '#E8D9D0',    // 奶油暖白（12.07:1）
+    text2: '#C9AFA8',    // 标点/operator · 暖灰亮（8.05:1）
+    text4: '#B9A29B',    // 行号（6.88:1）
+};
+
 function buildZkSyntaxStyle(p: SyntaxPalette): ZkSyntaxStyle {
     const base: CSSProperties = { color: p.text1, background: 'transparent', textShadow: 'none' };
     const comment: CSSProperties = { color: p.comment, fontStyle: 'italic' };
@@ -117,12 +133,16 @@ export const ZK_SYNTAX_INK_HUAGUO: ZkSyntaxStyle = buildZkSyntaxStyle(INK_HUAGUO
 /** 灵霄夜语法样式（ink-havoc-night 深主题代码块） */
 export const ZK_SYNTAX_INK_LINGXIAO: ZkSyntaxStyle = buildZkSyntaxStyle(INK_LINGXIAO_PALETTE);
 
+/** 果冻语法样式（jelly 黑巧丝绒代码块） */
+export const ZK_SYNTAX_JELLY: ZkSyntaxStyle = buildZkSyntaxStyle(JELLY_PALETTE);
+
 /**
- * resolveZkSyntaxStyle — 按主题模式取语法样式（ink 双主题直达专属色板，
+ * resolveZkSyntaxStyle — 按主题模式取语法样式（ink 双主题与 jelly 直达专属色板，
  * 其余主题经 resolveTheme 归一 light/dark；新增主题只需扩展本函数）
  */
 export function resolveZkSyntaxStyle(mode: string): ZkSyntaxStyle {
     if (mode === 'ink-havoc') return ZK_SYNTAX_INK_HUAGUO;
     if (mode === 'ink-havoc-night') return ZK_SYNTAX_INK_LINGXIAO;
+    if (mode === 'jelly') return ZK_SYNTAX_JELLY;
     return ZK_SYNTAX_STYLES[resolveTheme(mode as ThemeMode)];
 }

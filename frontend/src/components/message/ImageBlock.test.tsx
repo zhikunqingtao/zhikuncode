@@ -5,6 +5,25 @@ import ImageBlock from './ImageBlock';
 describe('ImageBlock', () => {
     afterEach(cleanup);
 
+    it.each([
+        ['pointer', 1],
+        ['keyboard activation', 0],
+    ])('opens the zoom button overlay outside the message container for a %s click', (_source, detail) => {
+        const { container } = render(
+            <div style={{ transform: 'translateY(1px)', backdropFilter: 'blur(8px)' }}>
+                <ImageBlock src="https://example.com/image.png" alt="preview" />
+            </div>,
+        );
+
+        // Keyboard activation dispatches a click with detail=0; jsdom does not synthesize it from keydown.
+        fireEvent.click(screen.getByRole('button', { name: 'Zoom image' }), { detail });
+        const enlargedImage = screen.getAllByRole('img', { name: 'preview' })[1];
+
+        expect(enlargedImage.parentElement?.parentElement).toBe(document.body);
+        expect(container).not.toContainElement(enlargedImage);
+        expect(screen.getByRole('button', { name: 'Close zoom' })).toBeInTheDocument();
+    });
+
     it('closes the enlarged image when the close button is clicked', () => {
         render(<ImageBlock src="https://example.com/image.png" alt="preview" />);
 
@@ -13,6 +32,51 @@ describe('ImageBlock', () => {
 
         fireEvent.click(closeButton);
 
+        expect(screen.queryByRole('button', { name: 'Close zoom' })).not.toBeInTheDocument();
+    });
+
+    it('keeps the portal open for image clicks and closes it for backdrop clicks', () => {
+        const onMessageClick = vi.fn();
+        render(
+            <div onClick={onMessageClick}>
+                <ImageBlock src="https://example.com/image.png" alt="preview" />
+            </div>,
+        );
+        fireEvent.click(screen.getByRole('img', { name: 'preview' }));
+        onMessageClick.mockClear();
+        const enlargedImage = screen.getAllByRole('img', { name: 'preview' })[1];
+        const overlay = enlargedImage.parentElement!;
+
+        fireEvent.click(enlargedImage);
+
+        expect(screen.getByRole('button', { name: 'Close zoom' })).toBeInTheDocument();
+        expect(onMessageClick).not.toHaveBeenCalled();
+
+        fireEvent.click(overlay);
+
+        expect(overlay).not.toBeInTheDocument();
+        expect(screen.getAllByRole('img', { name: 'preview' })).toHaveLength(1);
+    });
+
+    it('removes the portal when its message is unmounted', () => {
+        const { unmount } = render(<ImageBlock src="https://example.com/image.png" alt="preview" />);
+        fireEvent.click(screen.getByRole('img', { name: 'preview' }));
+        const overlay = screen.getAllByRole('img', { name: 'preview' })[1].parentElement!;
+
+        unmount();
+
+        expect(overlay).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Close zoom' })).not.toBeInTheDocument();
+    });
+
+    it('removes an open portal when the inline image reports a load error', () => {
+        render(<ImageBlock src="https://example.com/image.png" alt="preview" />);
+        const inlineImage = screen.getByRole('img', { name: 'preview' });
+        fireEvent.click(inlineImage);
+
+        fireEvent.error(inlineImage);
+
+        expect(screen.getByText('Failed to load image')).toBeInTheDocument();
         expect(screen.queryByRole('button', { name: 'Close zoom' })).not.toBeInTheDocument();
     });
 

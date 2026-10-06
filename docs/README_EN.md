@@ -159,7 +159,9 @@ Eight AI coding tools reviewed the same commit. Their final reports were compare
 
 ### Appearance Themes
 
-Choose from six themes: Light (`light`), Dark (`dark`), Liquid Glass (`glass`), Spaceship (`spaceship`), **Huaguo Morning / 花果晨** (`ink-havoc`), and **Lingxiao Night / 灵霄夜** (`ink-havoc-night`). Open **Appearance settings (外观设置)** in the desktop header or **Appearance (外观)** under the mobile composer's **More actions (更多操作)**. Settings apply immediately and are saved locally.
+Choose from seven themes: Light (`light`), Dark (`dark`), Liquid Glass (`glass`), Spaceship (`spaceship`), **Huaguo Morning / 花果晨** (`ink-havoc`), **Lingxiao Night / 灵霄夜** (`ink-havoc-night`), and **Jelly / 果冻** (`jelly`). Open **Appearance settings (外观设置)** in the desktop header or **Appearance (外观)** under the mobile composer's **More actions (更多操作)**. Settings apply immediately and are saved locally.
+
+Jelly offers Rich/Calm styling and Full/Reduced/Off motion settings, respecting the system's reduced-motion preference.
 
 The two ink themes draw on the rich colors and theatrical styling of *Havoc in Heaven*, with warm silk-paper and dark night palettes respectively. Each uses a dedicated accent color, so accent presets are disabled while either is active. Their additional controls include:
 
@@ -753,11 +755,11 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 **Continuous Integration:**
 - **GitHub Actions Pipeline**: The main CI runs backend and Python tests plus frontend checks and builds. Docker image verification runs only on pushes to `main`.
 
-**Frontend Verification Snapshot (2026-10-04):**
+**Historical Frontend Verification Snapshot (2026-10-04):**
 
 - **Frontend Vitest**: 127 test files passed; 1220 tests passed / 16 skipped (1236 total), including notification replacement, stale timer callbacks, unmount/remount behavior, and syntax palette contrast.
 - **Theme Browser Regression**: 16 scenarios at desktop/mobile viewport widths of 1440 / 390 px, with 8360 color and isolation assertions passed. Coverage includes both ink themes in rich/calm modes, the four existing themes, prose, link hover, inline code, tables, 99/100-line code blocks and manual highlighting, message actions, Mermaid, images, and mixed text/image messages.
-- **Known Skips**: Two Spaceship image-overlay interactions (one per viewport) are explicitly skipped because of an existing `clip-path` issue reproduced on `HEAD`, rather than a regression from this change. Image zoom, copy, and close checks passed for both ink themes.
+- **Historical Skips**: Two Spaceship image-overlay interactions (one per viewport) were skipped because of a `clip-path` issue. The issue was fixed on 2026-10-06, and both checks now run and pass.
 - **Static and Build Validation**: TypeScript, ESLint for changed source files, the Vite production build, and `git diff --check` passed. The build still warns about some chunks exceeding 1000 kB.
 
 These are frontend-only results, not a new full-stack verification. The browser regression uses real components and complete styles in independent Chromium contexts, blocks HTTP(S) requests, and does not connect to the backend or use real session data or the host clipboard. The backend and Python results below retain their original verification date.
@@ -814,7 +816,7 @@ npx playwright install chromium
 npm run test:theme-regression
 ```
 
-Once dependencies and Chromium are installed, rerun only `npm run test:theme-regression` from `frontend/`. No backend or frontend development server is required. Failure screenshots go to the system temporary directory; the output explicitly lists the Spaceship image-overlay skips described above.
+Once dependencies and Chromium are installed, rerun only `npm run test:theme-regression` from `frontend/`. No backend or frontend development server is required. Failure screenshots go to the system temporary directory.
 
 <details>
 <summary>📋 Selected Historical Test Modules (original report: 36 modules; original numbering retained; click to expand)</summary>

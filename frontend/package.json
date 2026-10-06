@@ -23,7 +23,8 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:theme-regression": "node tests/browser/theme-regression.mjs"
+    "test:theme-regression": "node tests/browser/theme-regression.mjs",
+    "test:jelly-regression": "node tests/browser/jelly-regression.mjs"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",

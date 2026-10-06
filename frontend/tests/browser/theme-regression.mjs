@@ -126,6 +126,7 @@ try {
         for (const [mode, rich] of [
             ['ink-havoc', true], ['ink-havoc', false], ['ink-havoc-night', true], ['ink-havoc-night', false],
             ['light', false], ['dark', false], ['glass', false], ['spaceship', false],
+            ['jelly', true], ['jelly', false],
         ]) {
             const label = `${mode}-${rich ? 'rich' : 'calm'}-${width}`;
             try {
@@ -136,7 +137,7 @@ try {
                 await expect(page.locator('#diagram [role="region"] svg')).toBeVisible();
                 await expect(page.locator('#error')).toContainText('Mermaid 渲染失败');
                 await expect(page.locator('#loading')).toContainText('Mermaid 图表加载中');
-                if (mode.startsWith('ink-')) {
+                if (mode.startsWith('ink-') || mode === 'jelly') {
                     await sameCodeColors(page, '#short', '#standalone-short');
                     await sameCodeColors(page, '#long', '#standalone-long');
                     for (const selector of ['#prose .text-block > p', '#prose a', '#prose code', '#table th', '#table td',
@@ -155,7 +156,7 @@ try {
                         await page.locator(selector).first().hover();
                         await readable(page, selector, 3);
                     }
-                    if (rich) {
+                    if (rich && mode.startsWith('ink-')) {
                         for (const selector of ['#prose blockquote', '#prose h3', '#prose .message-timestamp',
                             '#mixed .message-copy-all', '#disclosure .user-message-disclosure > span', '#diagram .markdown-embed', '#loading .markdown-embed']) {
                             await readable(page, selector);
@@ -176,10 +177,10 @@ try {
                 }
                 await page.locator('#long button', { hasText: 'Enable highlighting' }).click();
                 await expect(page.locator('#long .react-syntax-highlighter-line-number')).toHaveCount(100);
-                if (mode.startsWith('ink-')) await readable(page, '#long .token, #long .react-syntax-highlighter-line-number');
+                if (mode.startsWith('ink-') || mode === 'jelly') await readable(page, '#long .token, #long .react-syntax-highlighter-line-number');
                 await page.locator('#long button[aria-label="Copy code"]').click();
                 assert.ok((await page.evaluate(() => window.copiedText)).startsWith('// A readable explanation'));
-                if (mode.startsWith('ink-')) await readable(page, '#long .lucide-check', 3);
+                if (mode.startsWith('ink-') || mode === 'jelly') await readable(page, '#long .lucide-check', 3);
                 await page.locator('#diagram button[title="复制 SVG"]').click();
                 assert.ok((await page.evaluate(() => window.copiedText)).includes('<svg'));
                 const download = page.waitForEvent('download');
@@ -187,22 +188,19 @@ try {
                 assert.equal((await download).suggestedFilename(), 'mermaid-diagram.png');
                 await page.locator('#mixed [data-testid="message-copy-all-button"]').click();
                 assert.ok((await page.evaluate(() => window.copiedText)).includes('图文消息'));
-                if (mode !== 'spaceship') {
-                    await page.locator('#mixed [aria-label="Zoom image"]').click();
-                    await expect(page.locator('[aria-label="Close zoom"]')).toBeVisible();
-                    if (mode.startsWith('ink-')) {
-                        await readable(page, '[aria-label="Close zoom"], [aria-label="Copy image"]', 3);
-                    }
-                    const previousCopies = await page.evaluate(() => window.copiedImages);
-                    await page.locator('[aria-label="Copy image"]').click();
-                    await expect.poll(() => page.evaluate(() => window.copiedImages)).toBe(previousCopies + 1);
-                    await page.locator('[aria-label="Close zoom"]').click();
-                } else {
-                    // Existing HEAD behavior: spaceship.css clips rounded message bubbles,
-                    // including ImageBlock's inline fixed overlay. Both files are unchanged
-                    // by this fix. Keep this limitation explicit instead of forcing a click.
-                    console.log(`SKIP ${label} image overlay: existing spaceship clip-path clips its controls`);
+                await page.locator('#mixed [aria-label="Zoom image"]').click();
+                await expect(page.locator('[aria-label="Close zoom"]')).toBeVisible();
+                const overlay = page.locator('[aria-label="Close zoom"]').locator('..').locator('..');
+                const box = await overlay.boundingBox();
+                assert.ok(box && box.x === 0 && box.y === 0 && box.width === width && box.height === 900,
+                    `${label}: image preview does not fill the viewport`);
+                if (mode.startsWith('ink-') || mode === 'jelly') {
+                    await readable(page, '[aria-label="Close zoom"], [aria-label="Copy image"]', 3);
                 }
+                const previousCopies = await page.evaluate(() => window.copiedImages);
+                await page.locator('[aria-label="Copy image"]').click();
+                await expect.poll(() => page.evaluate(() => window.copiedImages)).toBe(previousCopies + 1);
+                await page.locator('[aria-label="Close zoom"]').click();
                 await page.locator('#disclosure button[aria-expanded]').click();
                 await expect(page.locator('#disclosure .text-block')).toBeVisible();
                 await page.locator('#disclosure button[aria-expanded]').click();
@@ -216,7 +214,7 @@ try {
         }
         await context.close();
     }
-    console.log(`Theme regression passed: 16 scenarios, ${assertions} color/isolation assertions; no business requests.`);
+    console.log(`Theme regression passed: 20 scenarios, ${assertions} color/isolation assertions; no business requests.`);
 } finally {
     await browser.close();
 }

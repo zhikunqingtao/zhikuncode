@@ -42,7 +42,7 @@ function message(id: string, text: string) {
 
 function Fixture() {
     const mode = useConfigStore(s => s.theme.mode);
-    const rich = useConfigStore(s => s.theme.inkHavocFx?.cinematic);
+    const rich = useConfigStore(s => s.theme.mode === 'jelly' ? s.theme.jellyFx?.cinematic : s.theme.inkHavocFx?.cinematic);
     const [expanded, setExpanded] = useState(false);
     // Remount the message examples when the theme changes so long-code toggles
     // and copy feedback from a previous case cannot mask a regression.
@@ -77,11 +77,12 @@ Object.defineProperty(window, 'ClipboardItem', { configurable: true, value: clas
     constructor(public data: Record<string, Blob>) {}
 } });
 testWindow.configureTheme = (mode, cinematic) => {
-    document.documentElement.className = [mode, cinematic ? 'fx-ink-rich' : '', 'motion-off'].join(' ');
+    document.documentElement.className = [mode, cinematic ? (mode === 'jelly' ? 'fx-jelly-rich' : 'fx-ink-rich') : '', 'motion-off'].join(' ');
     applyAccent(DEFAULT_ACCENT_HEX, mode as Parameters<typeof applyAccent>[1]);
     useConfigStore.setState({ theme: {
         mode: mode as Parameters<typeof applyAccent>[1], accentColor: DEFAULT_ACCENT_HEX,
         inkHavocFx: { cinematic, motion: 'off', retreat: false },
+        jellyFx: { cinematic, motion: 'off' },
     } });
 };
 createRoot(document.getElementById('root')!).render(<Fixture />);

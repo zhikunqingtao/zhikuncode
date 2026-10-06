@@ -15,9 +15,11 @@
 
 import { ChartNoAxesCombined, FileSpreadsheet, Gamepad2, TrainFront } from 'lucide-react';
 import { BrandLogo } from '@/components/ui/BrandLogo';
-import { Button, Chip, EmptyState, Kbd } from '@/components/ui';
+import { Button, Chip, EmptyState, Kbd, cn } from '@/components/ui';
 import { InkCalligraphyTitle } from '@/components/theme/InkCalligraphyTitle';
 import { InkShadowPuppet } from '@/components/theme/InkShadowPuppet';
+import { JellyTowerHero } from '@/components/theme/JellyTowerHero';
+import { defaultJellyFx, useConfigStore } from '@/store/configStore';
 import { dispatchPromptTemplateFill } from '@/services/promptTemplateFill';
 
 interface QuickChip {
@@ -50,14 +52,25 @@ const QUICK_CHIPS: QuickChip[] = [
 ];
 
 export function EmptyHero() {
+    // 果冻主题浓郁档（jelly + fx-jelly-rich）：果冻塔上桌 + 空状态滚动/居中布局挂钩。
+    // 其余主题下：两个挂钩 class 无样式命中、JellyTowerHero 返回 null —— 原文案结构零变化
+    const theme = useConfigStore((s) => s.theme);
+    const jellyRich = theme.mode === 'jelly' && (theme.jellyFx ?? defaultJellyFx()).cinematic;
+
     return (
         // 波次3①：relative 锚定皮影层（absolute 落于标题侧后方右下，不抢文字）；
         // h-full 保持原 min-h-full 垂直居中链不变；非浓郁档 InkShadowPuppet 返回 null 零变化
-        <div className="relative h-full">
+        <div className={cn('relative h-full', jellyRich && 'jelly-empty-viewport')}>
             <InkShadowPuppet />
+            {/* 果冻塔 Hero（上桌秀）：jelly 浓郁档之外返回 null */}
+            <JellyTowerHero />
             <EmptyState
             variant="hero"
-            className="relative min-h-full max-md:py-6 [&_h1]:max-md:text-[34px] [&>p]:text-t2"
+            className={cn(
+                'relative [&_h1]:max-md:text-[34px] [&>p]:text-t2',
+                // 果冻浓郁档：塔在上方占位，容器改「auto 边距 + 可滚动」居中链；其余主题维持原 min-h-full
+                jellyRich ? 'jelly-empty-hero max-md:py-6' : 'min-h-full max-md:py-6',
+            )}
             badge={
                 <Chip variant="accent" className="h-7 px-3">
                     <BrandLogo className="h-5 w-5" />

@@ -2,15 +2,17 @@
  * ThemeProvider — 主题提供者
  * SPEC: §8.7 主题系统
  *
- * 管理主题模式切换 (light/dark/glass/spaceship/ink-havoc/ink-havoc-night) 和 CSS 变量应用
+ * 管理主题模式切换 (light/dark/glass/spaceship/ink-havoc/ink-havoc-night/jelly) 和 CSS 变量应用
  * spaceship 模式追加特效门控 class（fx-cinematic / fx-event / motion-*），
  * 样式实现见 styles/spaceship.css
  * ink-havoc 双模式追加大闹天宫重彩门控 class（fx-ink-rich / motion-*，与星舰共用 motion-*），
  * 样式实现见 styles/ink-havoc.css
+ * jelly 单模式追加果冻主题门控 class（fx-jelly-rich / motion-*，同与星舰共用 motion-*），
+ * 样式实现见 styles/jelly.css
  */
 
 import React, { useEffect, useCallback, useRef } from 'react';
-import { defaultSpaceshipFx, defaultInkHavocFx, normalizeThemeMode, useConfigStore } from '@/store/configStore';
+import { defaultSpaceshipFx, defaultInkHavocFx, defaultJellyFx, normalizeThemeMode, useConfigStore } from '@/store/configStore';
 import { applyAccent, DEFAULT_ACCENT_HEX } from '@/theme/accents';
 import { useTokenWarningClass } from '@/hooks/useTokenWarningClass';
 import type { ThemeConfig } from '@/types';
@@ -25,6 +27,9 @@ const SPACESHIP_FX_CLASSES = ['fx-cinematic', 'fx-event', 'motion-full', 'motion
 /** ink-havoc 浓郁档门控 class（motion-* 与 spaceship 共用，已含于上方清单，无需重复移除）；
     ink-retreat 闭关模式 class 同属 ink 门控，一并对称清理 */
 const INK_FX_CLASSES = ['fx-ink-rich', 'ink-retreat'] as const;
+
+/** jelly 果冻主题浓郁档门控 class（motion-* 同与 spaceship 共用，无需重复移除） */
+const JELLY_FX_CLASSES = ['fx-jelly-rich'] as const;
 
 /** 开机自检（spaceship-boot class）停留时长，与 spaceship.css 自检动画总时长对齐 */
 const SPACESHIP_BOOT_MS = 1200;
@@ -43,9 +48,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         const root = document.documentElement;
         const mode = normalizeThemeMode(theme.mode);
 
-        // 移除旧的 theme class 与 spaceship/ink-havoc 特效门控 class（对称清理，清单合并去重）
-        root.classList.remove('light', 'dark', 'glass', 'system', 'spaceship', 'ink-havoc', 'ink-havoc-night',
-            ...SPACESHIP_FX_CLASSES, ...INK_FX_CLASSES);
+        // 移除旧的 theme class 与 spaceship/ink-havoc/jelly 特效门控 class（对称清理，清单合并去重）
+        root.classList.remove('light', 'dark', 'glass', 'system', 'spaceship', 'ink-havoc', 'ink-havoc-night', 'jelly',
+            ...SPACESHIP_FX_CLASSES, ...INK_FX_CLASSES, ...JELLY_FX_CLASSES);
 
         // Force reflow to ensure CSS variables are recalculated immediately
         void root.offsetHeight;
@@ -68,6 +73,13 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             if (fx.cinematic) root.classList.add('fx-ink-rich');
             // 闭关模式（波次3②）：装饰退场专注书写；fx-retreat 与浓郁/动效档正交叠加
             if (fx.retreat) root.classList.add('ink-retreat');
+            root.classList.add(`motion-${fx.motion}`);
+        } else if (mode === 'jelly') {
+            // 果冻主题（香草奶油 · 法式镜面奢华，浅色单主题）+ 浓郁档/动效门控 class
+            // （Q 弹主引擎与装饰层为第二阶段，本阶段 fx-jelly-rich 只放行配色/质感增量）
+            root.classList.add('jelly');
+            const fx = theme.jellyFx ?? defaultJellyFx();
+            if (fx.cinematic) root.classList.add('fx-jelly-rich');
             root.classList.add(`motion-${fx.motion}`);
         } else {
             root.classList.add(mode);

@@ -10,7 +10,7 @@
  * 头行（文件名或语言 + 复制 ghost 钮）；
  * 正文系统等宽字体 13px（手机 14px）/ 行高 1.65，横向滚动。
  * 语法色由 zkSyntax 按主题提供：默认浅深色沿用 §4.2 语法表，
- * ink 双主题使用针对代码块背景校准的专属色板。
+ * ink 双主题与 jelly（黑巧丝绒）使用针对代码块背景校准的专属色板。
  */
 
 import React, { useCallback, useMemo, useState } from 'react';
@@ -49,14 +49,15 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
     // configStore 订阅保证主题切换即时重渲染
     const themeMode = useConfigStore(s => s.theme.mode);
     const syntaxStyle = resolveZkSyntaxStyle(themeMode);
-    const inkTheme = themeMode === 'ink-havoc' || themeMode === 'ink-havoc-night';
-    // 代码块始终使用自己的沉底；标题、控件和纯文本也须配合这块背景，不能继承用户气泡反色。
-    const inkColors = inkTheme ? {
+    // 深区代码块（ink 双主题 / jelly 黑巧丝绒）：块内使用本地色域，标题、控件和纯文本
+    // 一并跟随代码块自身背景（黑巧底上不能继承外层深色文字，否则不可读）
+    const deepCodeTheme = themeMode === 'ink-havoc' || themeMode === 'ink-havoc-night' || themeMode === 'jelly';
+    const inkColors = deepCodeTheme ? {
         '--code-ink-text': syntaxStyle['pre[class*="language-"]'].color,
         '--code-ink-muted': syntaxStyle.comment.color,
         color: syntaxStyle['pre[class*="language-"]'].color,
     } as React.CSSProperties : undefined;
-    const controlColors = inkTheme
+    const controlColors = deepCodeTheme
         ? 'text-[color:var(--code-ink-muted)] hover:text-[color:var(--code-ink-text)]'
         : 'text-t4 hover:text-t1';
 
@@ -89,7 +90,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
         <div className="code-block relative rounded-[10px] border border-hairline bg-sunken2 overflow-hidden" style={inkColors}>
             {/* Header：文件名或语言 + 复制 */}
             <div className="flex items-center gap-2 border-b border-hairline px-3 py-1.5">
-                <span className={`min-w-0 flex-1 truncate font-mono text-[13px] ${inkTheme ? 'text-[color:var(--code-ink-muted)]' : 'text-t3'}`}>
+                <span className={`min-w-0 flex-1 truncate font-mono text-[13px] ${deepCodeTheme ? 'text-[color:var(--code-ink-muted)]' : 'text-t3'}`}>
                     {fileName ?? resolvedLang}
                 </span>
                 <span className="flex shrink-0 items-center gap-1">
@@ -108,7 +109,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
                             aria-label="Copy code"
                             title={copied ? '已复制' : '复制'}
                         >
-                            {copied ? <Check size={14} className="text-ok" style={inkTheme ? { color: syntaxStyle.string.color } : undefined} /> : <Copy size={14} />}
+                            {copied ? <Check size={14} className="text-ok" style={deepCodeTheme ? { color: syntaxStyle.string.color } : undefined} /> : <Copy size={14} />}
                         </button>
                     )}
                 </span>
@@ -140,7 +141,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
                     </SyntaxHighlighter>
                 ) : (
                     <pre
-                        className={`px-3.5 py-3 overflow-x-auto whitespace-pre ${inkTheme ? 'text-[color:var(--code-ink-text)]' : 'text-t1'}`}
+                        className={`px-3.5 py-3 overflow-x-auto whitespace-pre ${deepCodeTheme ? 'text-[color:var(--code-ink-text)]' : 'text-t1'}`}
                         style={{ fontFamily: CODE_FONT_FAMILY, fontSize: 'var(--code-font-size)', lineHeight: 'var(--code-line-height)' }}
                     >
                         {code}

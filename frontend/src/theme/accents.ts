@@ -16,7 +16,7 @@
  * 派生（globals.css），无需写入。未知 hex 一律回退青瓷（默认色）。
  */
 
-export type EffectiveTheme = 'light' | 'dark' | 'glass' | 'spaceship' | 'ink-havoc' | 'ink-havoc-night';
+export type EffectiveTheme = 'light' | 'dark' | 'glass' | 'spaceship' | 'ink-havoc' | 'ink-havoc-night' | 'jelly';
 
 export interface AccentLightValues {
     accent: string;
@@ -138,6 +138,17 @@ export const ACCENT_PRESETS: readonly AccentPreset[] = [
  * @param effectiveTheme 有效主题（glass 拥有独立清透档，不再归一为 light）
  */
 export function applyAccent(hex: string, effectiveTheme: EffectiveTheme): void {
+    // 果冻主题（法式镜面奢华）：accent 不随用户预设，写死法式主题色（酒渍樱桃系），提前返回；
+    // --v2-accent-ink 取 strong 80% + black 的 color-mix（深酒红，浅底文字链路 ≥4.5:1）
+    if (effectiveTheme === 'jelly') {
+        const style = document.documentElement.style;
+        style.setProperty('--v2-accent', '#8E1F3C');
+        style.setProperty('--v2-accent-ink', 'color-mix(in srgb, #6E1730 80%, black)');
+        style.setProperty('--v2-accent-strong', '#6E1730');
+        style.setProperty('--v2-accent-soft', 'rgba(142,31,60,.12)');
+        style.setProperty('--v2-accent-ring', 'rgba(142,31,60,.35)');
+        return;
+    }
     // 大闹天宫重彩戏曲风：accent 不随用户预设，写死主题色（浅=朱砂系 / 深=鎏金系），提前返回
     if (effectiveTheme === 'ink-havoc' || effectiveTheme === 'ink-havoc-night') {
         const ink = effectiveTheme === 'ink-havoc'

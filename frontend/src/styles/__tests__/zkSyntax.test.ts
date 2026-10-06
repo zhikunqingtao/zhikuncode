@@ -1,5 +1,5 @@
 /**
- * zkSyntax 主题语法表测试（ink 双主题天宫色板映射 + 归一回退）
+ * zkSyntax 主题语法表测试（ink 双主题天宫色板 + jelly 黑巧丝绒色板映射、归一回退与对比度守护）
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -46,14 +46,18 @@ describe('resolveZkSyntaxStyle', () => {
 });
 
 function relativeLuminance(hex: string): number {
-    const rgb = hex.slice(1).match(/../g)!.map(value => {
-        const channel = Number.parseInt(value, 16) / 255;
+    return rgbLuminance(hex.slice(1).match(/../g)!.map(value => Number.parseInt(value, 16)));
+}
+
+function rgbLuminance(channels: number[]): number {
+    const rgb = channels.map(value => {
+        const channel = value / 255;
         return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
     });
     return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2];
 }
 
-describe('ink 语法九色在实际代码块背景上的对比度', () => {
+describe('ink/jelly 语法九色在实际代码块背景上的对比度', () => {
     const css = parse(readFileSync(join(process.cwd(), 'src/styles/ink-havoc.css'), 'utf8'));
     const tokens = ['class-name', 'string', 'number', 'keyword', 'function', 'comment',
         'pre[class*="language-"]', 'punctuation', 'linenumber'];
@@ -73,6 +77,79 @@ describe('ink 语法九色在实际代码块背景上的对比度', () => {
             const contrast = (Math.max(foregroundLuminance, backgroundLuminance) + 0.05)
                 / (Math.min(foregroundLuminance, backgroundLuminance) + 0.05);
             expect(contrast, `${mode} ${token} (${foreground} / ${background})`).toBeGreaterThanOrEqual(4.5);
+        }
+    });
+
+    it('jelly：黑巧丝绒 #2A1A1E 上正文、注释、行号等均至少 4.5:1', () => {
+        const jellyCss = parse(readFileSync(join(process.cwd(), 'src/styles/jelly.css'), 'utf8'));
+        let background = '';
+        jellyCss.walkRules('html.jelly', rule => {
+            rule.walkDecls('--v2-code-bg', declaration => { background = declaration.value; });
+        });
+        expect(background).toMatch(/^#[0-9a-f]{6}$/i);
+        expect(background.toLowerCase()).toBe('#2a1a1e');
+        const backgroundLuminance = relativeLuminance(background);
+        const style = resolveZkSyntaxStyle('jelly');
+        for (const token of tokens) {
+            const foreground = style[token].color as string;
+            expect(foreground).toMatch(/^#[0-9a-f]{6}$/i);
+            const foregroundLuminance = relativeLuminance(foreground);
+            const contrast = (Math.max(foregroundLuminance, backgroundLuminance) + 0.05)
+                / (Math.min(foregroundLuminance, backgroundLuminance) + 0.05);
+            expect(contrast, `jelly ${token} (${foreground} / ${background})`).toBeGreaterThanOrEqual(4.5);
+        }
+    });
+
+    it('jelly：旧日志和 diff 的奶油背景与深色正文保持至少 4.5:1', () => {
+        const jellyCss = parse(readFileSync(join(process.cwd(), 'src/styles/jelly.css'), 'utf8'));
+        const variables = new Map<string, string>();
+        jellyCss.walkRules('html.jelly', rule => {
+            rule.walkDecls(declaration => { variables.set(declaration.prop, declaration.value); });
+        });
+        const background = variables.get('--code-bg')!;
+        expect(background).toMatch(/^#[0-9a-f]{6}$/i);
+        const backgroundLuminance = relativeLuminance(background);
+        for (const token of ['--v2-text-1', '--v2-text-2']) {
+            const foreground = variables.get(token)!;
+            const foregroundLuminance = relativeLuminance(foreground);
+            const contrast = (Math.max(foregroundLuminance, backgroundLuminance) + 0.05)
+                / (Math.min(foregroundLuminance, backgroundLuminance) + 0.05);
+            expect(contrast, `jelly legacy code ${token}`).toBeGreaterThanOrEqual(4.5);
+        }
+    });
+
+    it('jelly：diff 的增删文字及行号在各自染色背景上保持至少 4.5:1', () => {
+        const jellyCss = parse(readFileSync(join(process.cwd(), 'src/styles/jelly.css'), 'utf8'));
+        const declarations = (selector: string) => {
+            const values = new Map<string, string>();
+            jellyCss.walkRules(selector, rule => {
+                rule.walkDecls(declaration => { values.set(declaration.prop, declaration.value); });
+            });
+            return values;
+        };
+        const variables = declarations('html.jelly');
+        const added = declarations('html.jelly .panel-diff .text-ok');
+        const lineNumber = declarations('html.jelly .panel-diff-line-number');
+        const resolveVariableColor = (value: string) => variables.get(value.match(/^var\((--[\w-]+)\)$/)![1])!;
+        const base = variables.get('--code-bg')!.slice(1).match(/../g)!.map(value => Number.parseInt(value, 16));
+        expect(lineNumber.get('opacity')).toBe('1');
+        for (const [label, tintToken, textColor] of [
+            ['context', null, variables.get('--v2-text-2')!],
+            ['added', '--v2-ok-soft', resolveVariableColor(added.get('color')!)],
+            ['removed', '--v2-err-soft', variables.get('--v2-err')!],
+        ] as const) {
+            let background = base;
+            if (tintToken) {
+                const rgba = variables.get(tintToken)!.match(/[\d.]+/g)!.map(Number);
+                background = base.map((channel, index) => rgba[index] * rgba[3] + channel * (1 - rgba[3]));
+            }
+            const backgroundLuminance = rgbLuminance(background);
+            for (const foreground of [textColor, resolveVariableColor(lineNumber.get('color')!)]) {
+                const foregroundLuminance = relativeLuminance(foreground);
+                const contrast = (Math.max(foregroundLuminance, backgroundLuminance) + 0.05)
+                    / (Math.min(foregroundLuminance, backgroundLuminance) + 0.05);
+                expect(contrast, `jelly diff ${label} (${foreground})`).toBeGreaterThanOrEqual(4.5);
+            }
         }
     });
 });

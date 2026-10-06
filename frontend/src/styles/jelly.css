@@ -1,0 +1,1128 @@
+/* ============================================================
+   果冻主题 · 法式镜面奢华（jelly 浅色单主题 / 香草奶油 · 黑巧丝绒）
+   设计参考：果冻主题皮肤 demo v4（法式甜品美学：镜面 glacage × 丝绒黑巧）
+   色板：酒渍樱桃 #8E1F3C · 焦糖琥珀 #C08245 · 开心果 #7A9B5A · 覆盆子 #C94F6D · 金箔 #D4AF37
+   门控 class（ThemeProvider 按 theme.jellyFx 写入 <html>）：
+     fx-jelly-rich —— 浓郁档（卡片半透明磨砂/镜面层次增强/金箔增亮/装饰层放行；移除即零残留回克制档）
+     motion-full | motion-reduced | motion-off —— 动效三档（语义复用星舰/凌霄夜，门控块见文件末）
+   强调色：jelly 的 accent 不随用户预设，由 applyAccent 运行时内联写死
+     （酒渍樱桃 #8E1F3C / strong #6E1730）；本文件同名变量仅为首帧 fallback。
+   色彩纪律（浅色主题对比度工程，值已实测）：
+     正文 #3A2420（≥12.6:1 AAA）· 次文字 #7A5A52（≥5.2:1）· 弱/占位 #846157（≥4.5:1）·
+     语义（v2-ok/warn/err 文字链路）压深版 ≥4.5:1；甜点本色（琥珀/开心果/玫瑰/金箔）只做
+     徽章浅底与 ≥24px 展示、不做正文；文字区禁半透明底（浓郁档卡片 rgba .78 在奶油底
+     合成后对比度仍 ≥7:1）。面积纪律：大面积保持奶油/酒红，糖果色 ≤10%（浓郁档 ≤25%）。
+   Q 弹主引擎（spring 形变/果冻滴 loader/上桌秀）第二阶段接入，
+   本文件已预留动效令牌（--jelly-ease-* / --jelly-dur-*）与 motion-* 门控。
+   ============================================================ */
+
+/* ----------------------------------------------------------------------------
+   0. 令牌块（三层覆盖：旧版 §8.6 + --color-* 扩展板 + v2 全套 ·
+      覆盖清单与 ink-havoc.css 逐键对齐，缺一不可）
+   -------------------------------------------------------------------------- */
+html.jelly {
+  /* ---------- 旧版 §8.6 变量（对齐 globals.css :root 清单） ---------- */
+  --bg-primary: #FBF5EE;
+  --bg-secondary: #F7EEE4;
+  --text-primary: #3A2420;
+  --text-secondary: #7A5A52;
+  --border: #EDE0D2;
+  /* 旧日志/diff 使用深色正文，保持奶油底；语法高亮块另走 --v2-code-bg。 */
+  --code-bg: #F3E7D9;
+  --diff-add: rgba(122,155,90,.14);
+  --diff-remove: rgba(142,31,60,.10);
+  --bg-hover: rgba(142,31,60,.06);
+  --text-muted: #B09A90;
+
+  /* ---------- 扩展色板 — Tailwind 集成 ---------- */
+  --color-surface: #FFFDFA;
+  --color-surface-elevated: #FFFDFA;
+  --color-surface-sunken: #F6ECE0;
+  --color-muted: #7A5A52;
+  --color-border: #EDE0D2;
+  --color-text: #3A2420;
+  --color-text-secondary: #7A5A52;
+  --color-text-muted: #B09A90;
+  --color-code-bg: #2A1A1E;
+  --color-code-border: #EDE0D2;
+  --color-success: #4E7A3E;
+  --color-success-bg: rgba(78,122,62,.10);
+  --color-warning: #9A6530;
+  --color-warning-bg: rgba(154,101,48,.12);
+  --color-danger: #8E1F3C;
+  --color-danger-bg: rgba(142,31,60,.10);
+  --color-scrollbar: #DFCDB9;
+  --color-scrollbar-hover: #C08245;
+  --color-skeleton: #F0E4D6;
+  --color-overlay: rgba(58,36,32,.40);
+
+  /* ---------- v2 全套（令牌取自果冻 demo v4 色板；缺失槽位就近补齐） ---------- */
+  /* 基底 → v2 槽位 */
+  --v2-bg-app: #FBF5EE;        /* 香草奶油白 · 主背景 */
+  --v2-bg-surface: #FFFDFA;    /* 淡奶油 · 卡片/Header */
+  --v2-bg-surface-2: #F7EEE4;  /* 暖奶油 · 侧栏/输入槽 */
+  --v2-bg-sunken: #F3E7D9;     /* 补齐槽位：更深一档奶油（井面/输入底） */
+  --v2-bg-hover: rgba(142,31,60,.06);  /* hover 行为=酒红极淡染 */
+  --v2-bg-active: #F7E3E8;     /* 樱桃淡 · 选中/行高亮 */
+  /* 文字（text-3/4 走 AA 文字链路 ≥4.5:1；弱展示色 --jelly-text-faint 仅装饰用） */
+  --v2-text-1: #3A2420;  /* 压深可可 · 正文（AAA） */
+  --v2-text-2: #7A5A52;  /* 摩卡 · 次文字（≥5.2:1） */
+  --v2-text-3: #7A5A52;  /* 说明/标签沿用摩卡（防 54 处 text-t4 级联过淡） */
+  --v2-text-4: #846157;  /* 占位/弱文字（对奶油全系 ≥4.5:1） */
+  /* 边框 */
+  --v2-border-hairline: #EDE0D2;  /* 奶油发丝线 */
+  --v2-border-strong: #DCC7B2;    /* 强描边取深一档奶油 */
+  --v2-overlay: rgba(58,36,32,.40); /* 补齐槽位：可可遮罩 */
+  /* 强调与语义（accent 五槽位仅为首帧 fallback，运行时由 applyAccent 内联写死同值） */
+  --v2-accent: #8E1F3C;                 /* 酒渍樱桃 · 主强调（勃艮第） */
+  --v2-accent-strong: #6E1730;          /* 压深酒红（白字 ≥8:1） */
+  --v2-accent-soft: rgba(142,31,60,.12);
+  --v2-accent-ring: rgba(142,31,60,.35);
+  --v2-ok: #4E7A3E;    --v2-ok-soft: rgba(78,122,62,.12);    --v2-ok-strong: #3F6531;
+  --v2-warn: #9A6530;  --v2-warn-soft: rgba(154,101,48,.14); --v2-warn-strong: #7F5124;
+  --v2-err: #8E1F3C;   --v2-err-soft: rgba(142,31,60,.10);   --v2-err-strong: #6E1730;
+  --focus-ring: #8E1F3C;  /* 酒红 · 聚焦（法式主题色） */
+  /* 阴影（定向光影：左上来光，投影统一右下；彩色环境影取酒红族，
+     内阴影取「底色同族深色」而非纯黑——避免果冻技法显脏） */
+  --v2-shadow-xs: 0 2px 6px -3px rgba(90,30,40,.14);
+  --v2-shadow-sm: 0 3px 10px -4px rgba(90,30,40,.16), inset 0 1px 0 rgba(255,255,255,.85);
+  --v2-shadow-md: 3px 12px 28px -12px rgba(90,30,40,.18), inset 0 1px 0 rgba(255,255,255,.85);
+  --v2-shadow-lg: 4px 18px 44px -16px rgba(58,36,32,.24), inset 0 0 0 1px rgba(255,253,250,.6);
+  --v2-shadow-inset: inset 0 2px 6px rgba(120,70,50,.12), inset 0 -1px 0 rgba(255,255,255,.8);
+  --v2-shadow-raised: inset 0 1px 0 rgba(255,255,255,.9), 0 2px 6px rgba(90,30,40,.10);
+  --v2-shadow-raised-hover: inset 0 1px 0 rgba(255,255,255,.95), 0 4px 12px rgba(90,30,40,.14);
+  --v2-shadow-pressed: inset 0 2px 5px rgba(120,70,50,.16);
+  --v2-shadow-soft: 0 10px 28px rgba(90,30,40,.12);
+  --v2-shadow-soft-sm: 0 3px 12px rgba(90,30,40,.08);
+  /* 代码块「黑巧丝绒」：深区底 + 金箔细节（语法九色见 zkSyntax JELLY_PALETTE，全部 ≥4.5:1） */
+  --v2-code-bg: #2A1A1E;
+  --jelly-deep: #2A1A1E;                  /* 黑巧丝绒 · 深区底（代码块） */
+  --jelly-code-head: rgba(251,245,238,.05); /* 代码块标题栏底 */
+  --jelly-code-line: rgba(212,175,55,.16);  /* 代码块分隔线 · 金箔淡影 */
+  --jelly-code-topline: rgba(212,175,55,.42); /* 代码块顶部金箔 1px 线 */
+  --jelly-code-keyword:   #E85D6E;  /* 关键字 · 樱桃提亮 */
+  --jelly-code-string:    #C08245;  /* 字符串 · 琥珀 */
+  --jelly-code-number:    #D4AF37;  /* 数字 · 金箔 */
+  --jelly-code-function:  #9BBE7A;  /* 函数 · 开心果提亮 */
+  --jelly-code-type:      #E590A8;  /* 类型 · 玫瑰提亮 */
+  --jelly-code-comment:   #A08B85;  /* 注释 · 暖灰 */
+  --jelly-code-variable:  #E8D9D0;  /* 变量/正文 · 奶油暖白 */
+  --jelly-code-punct:     #C9AFA8;  /* 标点/运算符 */
+  --jelly-code-linenumber:#B9A29B;  /* 行号 */
+  /* diff 块（奶油底上的柔和染色走 v2 槽位） */
+  --v2-diff-add-bg: rgba(122,155,90,.14);
+  --v2-diff-remove-bg: rgba(142,31,60,.10);
+  /* 法式甜品色谱 8 色 → --v2-chart-1..8（樱桃/琥珀/金箔/开心果/玫瑰/雾蓝/深酒红/摩卡） */
+  --v2-chart-1: #8E1F3C;
+  --v2-chart-2: #C08245;
+  --v2-chart-3: #D4AF37;
+  --v2-chart-4: #7A9B5A;
+  --v2-chart-5: #C94F6D;
+  --v2-chart-6: #4A6B7C;
+  --v2-chart-7: #6E1730;
+  --v2-chart-8: #7A5A52;
+  /* 圆角：按钮 999px / 输入 14px / 卡片 20px / 弹窗 24px / 代码块冻结（不覆盖 10px 类名值） */
+  --v2-r-xs: 8px;
+  --v2-r-sm: 10px;
+  --v2-r-md: 14px;
+  --v2-r-lg: 16px;
+  --v2-r-panel: 24px;   /* 弹窗/下拉/Sheet 最圆档（rounded-panel 全走此变量） */
+  --v2-r-pill: 999px;
+  /* 动效令牌（保持 v2 默认节奏；Q 弹引擎专用参数见下组，第二阶段接入） */
+  --v2-dur-fast: 120ms;
+  --v2-dur-base: 180ms;
+  --v2-dur-slow: 240ms;
+  --v2-dur-sheet: 240ms;
+  --v2-ease: cubic-bezier(.2,.8,.2,1);
+  --v2-ease-in-out: cubic-bezier(.4,0,.2,1);
+  --v2-spring: cubic-bezier(.34,1.56,.64,1);
+
+  /* ---------- 果冻皮肤专属 ---------- */
+  /* 衬线：标题的法式优雅（仅品牌/会话标题/弹窗标题 ≤6 处，正文/代码不动） */
+  --jelly-serif: "Songti SC", "STSong", "Noto Serif SC", "SimSun", serif;
+  /* 法式甜品色族（供本文件与后续阶段引用；本色不做正文） */
+  --jelly-cherry: #8E1F3C;
+  --jelly-cherry-lt: #C23A5E;
+  --jelly-cherry-dk: #5E1228;
+  --jelly-amber: #C08245;
+  --jelly-amber-ink: #8A5A24;   /* 琥珀文字压深版 5.4:1 */
+  --jelly-pist: #7A9B5A;
+  --jelly-pist-ink: #4F7034;    /* 开心果文字压深版 5.2:1 */
+  --jelly-rose: #C94F6D;
+  --jelly-rose-ink: #A93A56;    /* 玫瑰文字压深版 4.8:1 */
+  --jelly-gold: #D4AF37;
+  --jelly-gold-line: rgba(212,175,55,.35);
+  --jelly-gold-soft: rgba(212,175,55,.16);
+  --jelly-info: #4A6B7C;        /* 信息语义（v2 无槽位）· 雾蓝灰 */
+  /* 浅徽章底（本色兑白 L≈90%；配压深版文字全部 ≥4.6:1） */
+  --jelly-badge-cherry: #F5DCE2;
+  --jelly-badge-amber: #F3E4D0;
+  --jelly-badge-pist: #E4EBDA;
+  --jelly-badge-rose: #F6DEE4;
+  --jelly-on-accent: #FFF8F6;   /* 酒红实心底压色文字（≥5.8:1） */
+  --jelly-text-faint: #B09A90;  /* 弱展示色（仅装饰标签；正文链路用 --v2-text-4） */
+  /* 镜面 glacage 高光带（178deg 三段 stop，边缘清晰——果冻质感的灵魂） */
+  --jelly-shine: linear-gradient(178deg, rgba(255,255,255,.85) 0%, rgba(255,255,255,.28) 45%, rgba(255,255,255,0) 70%);
+  /* 丝绒微噪点（feTurbulence · 灰度 · opacity .04 ≤5% 不伤字） */
+  --jelly-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  /* 金箔碎点（feTurbulence 提点 data-uri；浓郁档伪元素复用，收在端部） */
+  --jelly-gilt-fleck: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0.83 0 0 0 0 0.69 0 0 0 0 0.22 0 0 0 26 -17'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23g)'/%3E%3C/svg%3E");
+  /* Q 弹动效令牌（第二阶段 spring 引擎接入；本阶段仅作缓动/时长档位登记） */
+  --jelly-dur-fast: 150ms;
+  --jelly-dur-base: 220ms;
+  --jelly-dur-slow: 380ms;
+  --jelly-ease-calm: cubic-bezier(.34,1.2,.64,1);     /* 克制弹（几乎看不出的回弹） */
+  --jelly-ease-spring: cubic-bezier(.34,1.56,.64,1);  /* 标准弹（业内最常用） */
+  --jelly-ease-rich: cubic-bezier(.22,1.61,.36,1);    /* 浓郁弹（大幅过冲） */
+  --jelly-ease-wobble: cubic-bezier(.68,-.55,.27,1.55); /* 果冻扭（先缩后弹） */
+}
+
+/* ---------- 选中文本（樱桃淡底 · 可可字） ---------- */
+html.jelly ::selection {
+  background: var(--jelly-badge-cherry);
+  color: #3A2420;
+}
+
+/* ============================================================
+   氛围背景：香草奶油底色渐变（克制档纯净；浓郁档由 fx 块追加奶油色晕染）
+   ============================================================ */
+html.jelly .app-workspace {
+  background-image: linear-gradient(168deg, #FBF5EE 0%, #F9F1E7 55%, #F6EDE0 100%);
+}
+
+/* ============================================================
+   组件级特化（克制档即有效）：底色/边框/质感对齐色板
+   定向光影纪律：左上来光 · 投影统一右下（+3/+12 系）
+   ============================================================ */
+
+/* ---------- Header：奶油玻璃感 + 底部渐变金箔呼吸线 ---------- */
+html.jelly .app-header {
+  border-bottom-color: #EDE0D2;
+  background: rgba(255,253,250,.86);
+  -webkit-backdrop-filter: blur(8px) saturate(1.15);
+  backdrop-filter: blur(8px) saturate(1.15);
+}
+html.jelly .app-header::after {
+  /* 底部金箔呼吸线：1px 渐变（浓郁档呼吸动画见 fx 块，动效门控收口） */
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(212,175,55,.42), transparent);
+}
+
+/* ---------- 侧栏：暖奶油底 + 渐变分隔（右侧发丝线做酒红中段渐隐） ---------- */
+html.jelly .app-sidebar {
+  border-right-color: #EDE0D2;
+  border-image: linear-gradient(180deg,
+    rgba(142,31,60,.02) 0%,
+    rgba(142,31,60,.18) 22%,
+    rgba(142,31,60,.18) 78%,
+    rgba(142,31,60,.02) 100%) 1;
+  background: linear-gradient(180deg, #F8EFE3 0%, #F5EBDB 100%);
+}
+
+/* ---------- 会话卡片：淡奶油浮卡，hover 琥珀描边 + 右下投影 ---------- */
+html.jelly .app-sidebar .session-card {
+  border-color: #EFE2D3;
+  background: rgba(255,253,250,.66);
+}
+html.jelly .app-sidebar .session-card:hover {
+  border-color: #D9A266;
+  box-shadow: 0 4px 12px -6px rgba(90,30,40,.20), inset 0 1px 0 rgba(255,255,255,.85);
+}
+
+/* ---------- 会话卡 active 增强：樱桃淡底 + 4px 圆头竖条 ---------- */
+html.jelly .session-active-pill {
+  background: color-mix(in srgb, var(--v2-accent) 12%, transparent);
+  box-shadow:
+    0 0 10px -2px color-mix(in srgb, var(--v2-accent) 26%, transparent),
+    var(--v2-shadow-raised);
+}
+html.jelly .session-active-pill::before {
+  width: 4px;
+  border-radius: 999px;  /* 圆头竖条（demo 会话选中态） */
+}
+
+/* ---------- 主按钮（新会话类）：镜面 glacage ----------
+   165deg 三段体色 + ::before 锐利高光带（178deg 三段 stop，边缘清晰）
+   + ::after 针尖高光点（3px 白点） + 五层 box-shadow：
+   顶亮边 / 内发光 / 底部深内阴影（同族深酒红，非纯黑）/ 彩色外投影（右下定向）/ 贴地影 */
+html.jelly .app-sidebar .bg-accent2-strong {
+  position: relative;
+  border-radius: 999px;  /* 胶囊是果冻的签名形 */
+  color: var(--jelly-on-accent);
+  background-color: #8E1F3C;
+  background-image: linear-gradient(165deg, #B52A50 0%, #8E1F3C 55%, #5E1228 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.55),
+    inset 0 6px 12px rgba(255,255,255,.22),
+    inset 0 -5px 10px rgba(60,10,25,.45),
+    3px 12px 28px -8px rgba(142,31,60,.50),
+    0 2px 6px rgba(90,30,40,.15);
+}
+html.jelly .app-sidebar .bg-accent2-strong::before {
+  content: "";
+  position: absolute;
+  top: 6%;
+  left: 10%;
+  right: 14%;
+  height: 34%;
+  border-radius: 999px;
+  pointer-events: none;
+  background: var(--jelly-shine);
+}
+html.jelly .app-sidebar .bg-accent2-strong::after {
+  content: "";
+  position: absolute;
+  top: 14%;
+  left: 17%;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #fff;
+  pointer-events: none;
+  box-shadow: 0 0 2px 1px rgba(255,255,255,.85);
+}
+/* hover 提亮一档（hover:bg-accent2-hover 的底色被不透明渐变盖住，这里显式提亮）；按下内凹 + 高光带按瘪 */
+html.jelly .app-sidebar .bg-accent2-strong:hover {
+  background-image: linear-gradient(165deg, #C23A5E 0%, #9E2344 55%, #6B1630 100%);
+}
+html.jelly .app-sidebar .bg-accent2-strong:active {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.30),
+    inset 0 6px 14px rgba(60,10,25,.48),
+    0 3px 10px -4px rgba(142,31,60,.40);
+}
+html.jelly .app-sidebar .bg-accent2-strong:active::before {
+  opacity: .35;
+}
+
+/* ---------- 发送按钮：同一 glacage 语言（仅桌面卡片形态；移动胶囊形态不动） ---------- */
+@media (min-width: 768px) {
+  html.jelly .chat-composer-surface button[aria-label="发送消息"],
+  html.jelly .chat-composer-surface button[aria-label="发送运行中干预"] {
+    position: relative;
+    border-radius: 999px;
+    color: var(--jelly-on-accent);
+    background-color: #8E1F3C;
+    background-image: linear-gradient(165deg, #B52A50 0%, #8E1F3C 55%, #5E1228 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.55),
+      inset 0 6px 12px rgba(255,255,255,.22),
+      inset 0 -5px 10px rgba(60,10,25,.45),
+      3px 12px 28px -8px rgba(142,31,60,.50),
+      0 2px 6px rgba(90,30,40,.15);
+  }
+  html.jelly .chat-composer-surface button[aria-label="发送消息"]::before,
+  html.jelly .chat-composer-surface button[aria-label="发送运行中干预"]::before {
+    content: "";
+    position: absolute;
+    top: 6%;
+    left: 10%;
+    right: 14%;
+    height: 34%;
+    border-radius: 999px;
+    pointer-events: none;
+    background: var(--jelly-shine);
+  }
+  html.jelly .chat-composer-surface button[aria-label="发送消息"]::after,
+  html.jelly .chat-composer-surface button[aria-label="发送运行中干预"]::after {
+    content: "";
+    position: absolute;
+    top: 14%;
+    left: 17%;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: #fff;
+    pointer-events: none;
+    box-shadow: 0 0 2px 1px rgba(255,255,255,.85);
+  }
+  html.jelly .chat-composer-surface button[aria-label="发送消息"]:hover:not(:disabled),
+  html.jelly .chat-composer-surface button[aria-label="发送运行中干预"]:hover:not(:disabled) {
+    background-image: linear-gradient(165deg, #C23A5E 0%, #9E2344 55%, #6B1630 100%);
+  }
+  html.jelly .chat-composer-surface button[aria-label="发送消息"]:active:not(:disabled),
+  html.jelly .chat-composer-surface button[aria-label="发送运行中干预"]:active:not(:disabled) {
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.30),
+      inset 0 6px 14px rgba(60,10,25,.48),
+      0 3px 10px -4px rgba(142,31,60,.40);
+  }
+}
+
+/* ---------- 卡片 / 消息卡：淡奶油 + inset 顶光 + 右下定向投影 + 顶部金箔 1px 呼吸线 ----------
+   金箔线以 background 层实现（不占伪元素、不动定位上下文，避免影响卡内浮层锚定） */
+html.jelly main .turn-card > section,
+html.jelly main .assistant-message > .rounded-panel,
+html.jelly .toast-card {
+  background-color: #FFFDFA;
+  background-image: linear-gradient(90deg, transparent, rgba(212,175,55,.45), transparent);
+  background-repeat: no-repeat;
+  background-size: calc(100% - 52px) 1px;
+  background-position: 26px 0;
+  box-shadow:
+    inset 0 1px 0 #fff,
+    3px 10px 26px -12px rgba(90,30,40,.16),
+    0 1px 3px rgba(90,30,40,.06);
+}
+
+/* ---------- 用户消息气泡：浅玫瑰丝绒平卡（克制档不透明；浓郁档转半透丝绒） ---------- */
+html.jelly .user-message > .bg-surfacev2 {
+  background-color: #F8E7EC;
+  border-color: #F0D2DA;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.85),
+    3px 8px 20px -10px rgba(169,58,86,.28);
+}
+
+/* ---------- 圆角特化：卡片 20 / 气泡 18+6 尾角 / 会话行 16（密度冻结，不随卡片放大） ---------- */
+html.jelly main .turn-card > section,
+html.jelly main .assistant-message > .rounded-panel,
+html.jelly .toast-card {
+  border-radius: 20px;
+}
+html.jelly .user-message > .bg-surfacev2 {
+  border-radius: 18px 18px 6px 18px;  /* 右下留小尾角（发言方） */
+}
+html.jelly .app-sidebar .session-card {
+  border-radius: 16px;
+}
+
+/* ---------- 代码块：黑巧丝绒底 + feTurbulence 微噪点 + 顶部金箔 1px + 内阴影 ----------
+   行高/圆角/字号不动（代码区是工作台，不参与软糖化）；语法色由 zkSyntax JELLY_PALETTE 提供 */
+html.jelly .code-block {
+  background-color: var(--jelly-deep);
+  background-image: var(--jelly-noise);
+  border-color: rgba(212,175,55,.22);
+  border-top-color: var(--jelly-code-topline);
+  box-shadow:
+    inset 0 2px 12px rgba(0,0,0,.30),
+    3px 10px 24px -10px rgba(42,26,30,.50);
+}
+/* 代码块标题栏：丝绒上的浅奶油膜 + 金箔淡分隔（覆盖 Cream 发丝线在深底上的高反差） */
+html.jelly .code-block > div:first-child {
+  background: var(--jelly-code-head);
+  border-bottom-color: var(--jelly-code-line);
+}
+
+/* 旧面板 diff：染色行需要更深的添加色；行号不能叠加 50% 透明度。 */
+html.jelly .panel-diff .text-ok {
+  color: var(--v2-ok-strong);
+}
+html.jelly .panel-diff-line-number {
+  color: var(--v2-text-1);
+  opacity: 1;
+}
+
+/* ---------- 输入区：奶油凹槽（内凹如按进果冻里）+ 樱桃光晕聚焦环 ---------- */
+html.jelly .chat-composer-surface {
+  border-radius: 20px;  /* 大输入容器；单行输入（textarea 圆角 14px）见下 */
+}
+html.jelly .app-workspace .chat-composer-surface {
+  border-color: #EAD9C6;
+  background: linear-gradient(165deg, #F9F0E3 0%, #F5EADA 100%);
+  box-shadow: inset 0 2px 6px rgba(120,70,50,.12);
+}
+html.jelly .app-workspace .chat-composer-surface:focus-within {
+  border-color: rgba(142,31,60,.35);
+  box-shadow:
+    inset 0 2px 6px rgba(120,70,50,.12),
+    0 0 0 4px rgba(142,31,60,.10);
+}
+html.jelly .chat-composer-surface textarea[aria-label="输入消息"] {
+  border-radius: 14px;
+}
+
+/* ============================================================
+   衬线标题应用点（品牌/会话标题/弹窗标题，≤6 处；正文/代码/表格不动）
+   命中真实类名：①品牌名 ②Header 会话标题（SessionTitle 按钮内 .truncate）
+   ③弹窗标题（ui/Dialog h2.text-xl） ④空状态 Hero 大标题 ⑤预留展示钩子
+   ============================================================ */
+html.jelly .app-header .font-semibold,
+html.jelly .app-header [aria-label="查看会话详情"] .truncate,
+html.jelly [role="dialog"] h2.text-xl,
+html.jelly h1[class*="text-[clamp(34px"],
+html.jelly .jelly-display {
+  font-family: var(--jelly-serif);
+}
+
+/* ============================================================
+   浓郁档增量（fx-jelly-rich）：装饰拉满；移除 class 即零残留回克制档
+   纪律：backdrop-blur 同视口 ≤4 个——只放行 Header / 输入区 / 消息卡
+   （侧栏会话卡为 50+ 密集列表，一律不模糊）；卡片半透明在奶油底上
+   合成后正文对比度仍 ≥7:1
+   ============================================================ */
+
+/* ---------- 背景奶油色晕染（草莓粉 × 琥珀暖光，极低浓度；装饰层第二阶段再加金箔漂移） ---------- */
+html.jelly.fx-jelly-rich .app-workspace {
+  background-image:
+    radial-gradient(ellipse 62% 48% at 12% 4%, rgba(201,79,109,.06), transparent 66%),
+    radial-gradient(ellipse 58% 46% at 90% 94%, rgba(192,130,69,.08), transparent 68%),
+    linear-gradient(168deg, #FBF5EE 0%, #F9F1E7 55%, #F6EDE0 100%);
+}
+
+/* ---------- Header 玻璃感增强 + 金箔碎点（收在两端，中段文字区留净） ---------- */
+html.jelly.fx-jelly-rich .app-header {
+  background: rgba(255,253,250,.80);
+  -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  backdrop-filter: blur(12px) saturate(1.2);
+  box-shadow: 3px 10px 26px -14px rgba(90,30,40,.22);
+}
+html.jelly.fx-jelly-rich .app-header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: var(--jelly-gilt-fleck);
+  background-size: 140px;
+  opacity: .45;
+  -webkit-mask:
+    linear-gradient(90deg, #000 0, transparent 150px),
+    linear-gradient(270deg, #000 0, transparent 150px);
+  -webkit-mask-composite: source-in;
+  mask:
+    linear-gradient(90deg, #000 0, transparent 150px),
+    linear-gradient(270deg, #000 0, transparent 150px);
+  mask-composite: intersect;
+}
+/* 金箔点缀增亮：底部呼吸线加深（呼吸动画仅 motion-full 播放，见门控块） */
+html.jelly.fx-jelly-rich .app-header::after {
+  background: linear-gradient(90deg, transparent, rgba(212,175,55,.62), transparent);
+}
+
+/* ---------- 镜面层次增强：高光带提亮 + 底部内阴影加深 + 彩色外投影外扩一档 ---------- */
+html.jelly.fx-jelly-rich .app-sidebar .bg-accent2-strong {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.62),
+    inset 0 6px 12px rgba(255,255,255,.26),
+    inset 0 -6px 12px rgba(60,10,25,.48),
+    4px 14px 32px -8px rgba(142,31,60,.58),
+    0 2px 7px rgba(90,30,40,.18);
+}
+html.jelly.fx-jelly-rich .app-sidebar .bg-accent2-strong::before {
+  background: linear-gradient(178deg, rgba(255,255,255,.92) 0%, rgba(255,255,255,.34) 45%, rgba(255,255,255,0) 70%);
+}
+@media (min-width: 768px) {
+  html.jelly.fx-jelly-rich .chat-composer-surface button[aria-label="发送消息"],
+  html.jelly.fx-jelly-rich .chat-composer-surface button[aria-label="发送运行中干预"] {
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.62),
+      inset 0 6px 12px rgba(255,255,255,.26),
+      inset 0 -6px 12px rgba(60,10,25,.48),
+      4px 14px 32px -8px rgba(142,31,60,.58),
+      0 2px 7px rgba(90,30,40,.18);
+  }
+}
+
+/* ---------- 卡片半透明 + 磨砂（同视口 ≤4 个：Header/输入区/消息卡） ---------- */
+html.jelly.fx-jelly-rich main .turn-card > section,
+html.jelly.fx-jelly-rich main .assistant-message > .rounded-panel,
+html.jelly.fx-jelly-rich .toast-card,
+html.jelly.fx-jelly-rich .app-workspace .chat-composer-surface {
+  background-color: rgba(255,253,250,.78);
+  -webkit-backdrop-filter: blur(10px) saturate(1.25);
+  backdrop-filter: blur(10px) saturate(1.25);
+}
+html.jelly.fx-jelly-rich .app-workspace .chat-composer-surface {
+  background-image: linear-gradient(165deg, rgba(249,240,227,.85) 0%, rgba(245,234,218,.85) 100%);
+}
+/* 用户气泡：半透玫瑰丝绒 */
+html.jelly.fx-jelly-rich .user-message > .bg-surfacev2 {
+  background-color: rgba(248,231,236,.80);
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  backdrop-filter: blur(10px) saturate(1.2);
+}
+/* 金箔呼吸线增亮 + 装饰层放行 */
+html.jelly.fx-jelly-rich main .turn-card > section,
+html.jelly.fx-jelly-rich main .assistant-message > .rounded-panel,
+html.jelly.fx-jelly-rich .toast-card {
+  background-image: linear-gradient(90deg, transparent, rgba(212,175,55,.62), transparent);
+}
+/* 装饰层容器（第二阶段 JellyFxLayer 挂载：果冻滴/气泡/金箔碎点；克制档不渲染） */
+.jelly-deco {
+  display: none;
+}
+html.jelly.fx-jelly-rich .jelly-deco {
+  display: block;
+}
+
+/* ---------- 无磨砂能力 / 减弱透明度时的降级：回到不透明奶油白 ---------- */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  html.jelly.fx-jelly-rich main .turn-card > section,
+  html.jelly.fx-jelly-rich main .assistant-message > .rounded-panel,
+  html.jelly.fx-jelly-rich .toast-card {
+    background-color: rgba(255,253,250,.95);
+  }
+  html.jelly.fx-jelly-rich .user-message > .bg-surfacev2 {
+    background-color: rgba(248,231,236,.95);
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  html.jelly.fx-jelly-rich .app-header,
+  html.jelly.fx-jelly-rich main .turn-card > section,
+  html.jelly.fx-jelly-rich main .assistant-message > .rounded-panel,
+  html.jelly.fx-jelly-rich .toast-card,
+  html.jelly.fx-jelly-rich .app-workspace .chat-composer-surface,
+  html.jelly.fx-jelly-rich .user-message > .bg-surfacev2 {
+    background-color: #FFFDFA;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* ============================================================
+   动效门控（html.motion-* 由 ThemeProvider 按 jellyFx.motion 写入，与星舰/凌霄夜共用类名）
+   分档语义（与前两者对齐）：
+   - motion-full    完整：装饰循环 + 事件特效全部启用（Q 弹引擎第二阶段接入）
+   - motion-reduced 精简：关闭装饰循环，保留事件/瞬态反馈
+   - motion-off     关闭：全部动画与过渡静止（状态信息动画豁免白名单除外）
+   另：系统 prefers-reduced-motion: reduce 时强制降级（末尾 media query）。
+   ============================================================ */
+
+/* ---------- 装饰循环（仅 motion-full 播放；reduced/off 关闭） ----------
+   当前登记的装饰动画：浓郁档 Header 金箔呼吸线；
+   第二阶段 Q 弹装饰（果冻滴 loader/漂浮金箔）在此追加登记 */
+@media (prefers-reduced-motion: no-preference) {
+  html.jelly.fx-jelly-rich.motion-full .app-header::after {
+    animation: jelly-gold-breathe 4.2s ease-in-out infinite;
+  }
+}
+html.jelly.motion-reduced .app-header::after,
+html.jelly.motion-reduced .jelly-deco {
+  animation: none;
+}
+@keyframes jelly-gold-breathe {
+  0%, 100% { opacity: .6; }
+  50%      { opacity: 1; }
+}
+
+/* motion-off：全元素动画/过渡静止（硬关闭；fx class 仅 jelly 模式存在） */
+html.jelly.motion-off *,
+html.jelly.motion-off *::before,
+html.jelly.motion-off *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* motion-off 豁免：状态信息动画恢复播放（装饰动画仍冻结；transition 冻结不豁免）。
+   白名单与星舰/凌霄夜一致：加载旋转 / 骨架屏与流式光标 / 运行中呼吸点。 */
+html.jelly.motion-off .animate-spin {
+  animation: spin 1s linear infinite !important;
+}
+html.jelly.motion-off .animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+}
+html.jelly.motion-off .animate-accent-pulse {
+  animation: accentPulse 1.6s ease-in-out infinite !important;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html.jelly.motion-off .motion-safe\:animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+  }
+}
+
+/* 系统级降级：prefers-reduced-motion 时即便 motion-full 也关闭装饰动画。 */
+@media (prefers-reduced-motion: reduce) {
+  html.jelly .app-sidebar .session-card {
+    transition: none;
+  }
+  html.jelly .app-header::after,
+  html.jelly .jelly-deco {
+    animation: none;
+  }
+}
+
+/* ============================================================
+   响应式：<768px 精简装饰层（仿星舰/凌霄夜裁剪惯例）
+   保留胶囊主按钮与代码块黑巧底；收窄 Header 金箔碎点遮罩、卡片金箔线内缩
+   ============================================================ */
+@media (max-width: 767px) {
+  /* 卡片金箔线内缩（窄屏两侧留白同步收窄） */
+  html.jelly main .turn-card > section,
+  html.jelly main .assistant-message > .rounded-panel,
+  html.jelly .toast-card {
+    background-size: calc(100% - 32px) 1px;
+    background-position: 16px 0;
+  }
+  html.jelly.fx-jelly-rich .app-header::before {
+    opacity: .3;
+  }
+}
+
+/* ============================================================
+   果冻主题 · 第二阶段（fx-jelly-rich 收口区）
+   A. 装饰层 JellyFxLayer（奶油晕染×2 + 漂浮金箔碎点×2 + 背景果冻滴×5）
+   B. 果冻塔 Hero JellyTowerHero（纯 SVG+CSS 零图片 · 法式甜品上桌秀）
+   移植自 果冻主题皮肤-demo.html v4；类名统一 jelly- 前缀避免与全局样式冲突。
+   两组件仅在 jelly + cinematic（浓郁档）时挂载，calm 档不渲染、切走零残留；
+   spring 形变由 components/theme/jellySpring.ts 驱动（只写 transform，
+   形变上限 sy∈[0.78,1.22] · sx∈[0.82,1.18]），本区块只负责静态外形与 keyframes。
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   A. 装饰层（fixed overlay，z-30，不挡交互；全部半透明软形状，压不住正文）
+   ------------------------------------------------------------ */
+.jelly-deco {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  overflow: hidden;
+}
+/* 奶油色晕染 ×2（demo .wash：草莓粉 / 琥珀暖光，极低浓度） */
+.jelly-wash {
+  position: absolute;
+  border-radius: 50%;
+}
+.jelly-wash-1 {
+  left: 22%;
+  top: 4%;
+  width: 360px;
+  height: 360px;
+  background: radial-gradient(circle at 40% 35%, rgba(201,79,109,.09), rgba(201,79,109,0) 68%);
+}
+.jelly-wash-2 {
+  right: 3%;
+  top: 46%;
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle at 45% 40%, rgba(192,130,69,.10), rgba(192,130,69,0) 68%);
+}
+/* 漂浮金箔碎点 ×2（demo .gdot：3px 金箔小圆，缓慢上下漂浮 + 靠近"啵"弹开） */
+.jelly-gdot {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  opacity: .55;
+  background: radial-gradient(circle at 35% 30%, #F0D98A, var(--jelly-gold) 62%, #A8862A);
+  box-shadow: 0 1px 3px rgba(160,120,40,.35);
+}
+.jelly-gdot-1 { left: 12%; top: 24%; }
+.jelly-gdot-2 { right: 15%; top: 18%; }
+/* 背景果冻滴 ×5（deco 扩展）：半透明果冻椭圆 + 顶部高光点，缓慢漂浮
+   低浓度（≤.32）+ 边角分布，保证叠于内容之上仍只作氛围，不伤文字可读性 */
+.jelly-blob {
+  position: absolute;
+  border-radius: 50%;
+  opacity: .22;
+  background: linear-gradient(165deg, rgba(201,79,109,.30) 0%, rgba(142,31,60,.16) 58%, rgba(142,31,60,.07) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.80),
+    inset 0 -8px 16px rgba(142,31,60,.12),
+    2px 12px 24px -10px rgba(142,31,60,.30);
+}
+.jelly-blob::after {
+  /* 顶部高光点（果冻的镜面小反光） */
+  content: "";
+  position: absolute;
+  top: 12%;
+  left: 20%;
+  width: 28%;
+  height: 30%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 42% 38%, rgba(255,255,255,.95), rgba(255,255,255,0) 72%);
+}
+.jelly-blob-1 { left: 3%;  bottom: 13%; width: 108px; height: 92px; }
+.jelly-blob-2 {
+  right: 5%; top: 11%; width: 86px; height: 74px;
+  background: linear-gradient(165deg, rgba(192,130,69,.30) 0%, rgba(154,101,48,.15) 58%, rgba(154,101,48,.06) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.80),
+    inset 0 -8px 16px rgba(154,101,48,.12),
+    2px 12px 24px -10px rgba(154,101,48,.28);
+}
+.jelly-blob-3 { left: 44%; bottom: 5%; width: 66px; height: 58px; opacity: .16; }
+.jelly-blob-4 {
+  right: 11%; bottom: 20%; width: 122px; height: 102px; opacity: .15;
+  background: linear-gradient(165deg, rgba(122,155,90,.28) 0%, rgba(79,112,52,.14) 58%, rgba(79,112,52,.05) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.80),
+    inset 0 -8px 16px rgba(79,112,52,.12),
+    2px 12px 24px -10px rgba(79,112,52,.26);
+}
+.jelly-blob-5 { left: 19%; top: 31%; width: 74px; height: 64px; opacity: .18; }
+
+/* ------------------------------------------------------------
+   B. 果冻塔 Hero（空状态上桌秀；demo §⑪ 完整移植）
+   舞台缩放：塔内部绝对坐标沿用 demo（340×412），外层 stage 统一 scale，
+   margin-bottom 负值回收缩放差额（不缩放布局不占位）→ 适配应用内空间。
+   ------------------------------------------------------------ */
+.jelly-hero {
+  position: relative;
+  padding: 10px 20px 0;
+  margin-bottom: 2px;
+  text-align: center;
+  overflow: visible;
+}
+/* 角落明暗氛围（甜品店暖光角落） */
+.jelly-hero::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 12% 88%, rgba(120,60,40,.06), transparent 55%),
+    radial-gradient(circle at 88% 10%, rgba(192,130,69,.07), transparent 55%);
+}
+/* 射灯光束（暖金圆锥，自顶部中央打下；lit 后淡入） */
+.jelly-hero-beam {
+  position: absolute;
+  left: 50%;
+  top: -58px;
+  transform: translateX(-50%);
+  width: 430px;
+  height: 300px;
+  pointer-events: none;
+  z-index: 1;
+  background: conic-gradient(from 180deg at 50% 0, transparent 41%, rgba(255,228,150,.32) 50%, transparent 59%);
+  filter: blur(22px);
+  opacity: 0;
+  transition: opacity .55s ease .35s;
+}
+.jelly-hero.lit .jelly-hero-beam { opacity: 1; }
+/* 塔周光晕 */
+.jelly-hero-glow {
+  position: absolute;
+  left: 50%;
+  top: 118px;
+  transform: translateX(-50%);
+  width: 390px;
+  height: 250px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+  background: radial-gradient(ellipse, rgba(255,214,140,.24), transparent 66%);
+  filter: blur(30px);
+  opacity: 0;
+  transition: opacity .65s ease .55s;
+}
+.jelly-hero.lit .jelly-hero-glow { opacity: 1; }
+
+/* ---- 舞台（统一缩放容器；塔内部坐标全部沿用 demo 340×412 ---- */
+.jelly-hero-stage {
+  --jelly-hero-scale: .68;
+  position: relative;
+  width: 340px;
+  height: 412px;
+  margin: 0 auto;
+  z-index: 2;
+  transform: scale(var(--jelly-hero-scale));
+  transform-origin: 50% 0;  /* 顶部锚定：下方 negative margin 回收未显示高度 */
+  margin-bottom: calc(412px * (var(--jelly-hero-scale) - 1));
+}
+/* 低窗口再收一档（保证空状态首屏能同时看到塔与欢迎语） */
+@media (max-height: 860px) {
+  .jelly-hero-stage { --jelly-hero-scale: .60; }
+}
+@media (max-height: 720px) {
+  .jelly-hero-stage { --jelly-hero-scale: .52; }
+}
+/* ---- 塔容器（spring 形变目标：transform-origin 由 jellySpring 内联 50% 100%） ---- */
+.jelly-tower {
+  position: relative;
+  width: 340px;
+  height: 412px;
+  z-index: 2;
+}
+/* 金箔垫盘 */
+.jelly-tower-plate {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+  width: 332px;
+  height: 54px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 30%, #F2E2B4, #DCBB7C 58%, #B8965A 100%);
+  box-shadow:
+    inset 0 2px 3px rgba(255,255,255,.65),
+    inset 0 -5px 9px rgba(140,100,40,.42),
+    0 8px 20px -5px rgba(120,85,35,.4);
+}
+.jelly-tower-plate::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  border: 1px solid rgba(212,175,55,.6);
+}
+/* 塔在盘上的倒影 */
+.jelly-hero-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  width: 268px;
+  height: 24px;
+  border-radius: 50%;
+  z-index: 1;
+  background: radial-gradient(ellipse, rgba(70,25,35,.32), transparent 68%);
+  filter: blur(5px);
+}
+/* 酒红镜面慕斯（底层主角） */
+.jelly-tower-mousse {
+  position: absolute;
+  left: 50%;
+  bottom: 44px;
+  transform: translateX(-50%);
+  width: 284px;
+  height: 112px;
+  z-index: 2;
+  border-radius: 132px 132px 24px 24px / 108px 108px 20px 20px;
+  background: linear-gradient(165deg, #C23A5E 0%, #8E1F3C 52%, #5E1228 100%);
+  box-shadow:
+    inset 0 2px 0 rgba(255,255,255,.3),
+    inset 0 -9px 15px rgba(50,8,22,.5),
+    0 18px 34px -10px rgba(142,31,60,.45);
+}
+.jelly-tower-mousse::before {
+  /* 锐利镜面高光带（灵魂） */
+  content: "";
+  position: absolute;
+  top: 7%;
+  left: 8%;
+  right: 12%;
+  height: 40%;
+  border-radius: 50% 50% 46% 46% / 60% 60% 40% 40%;
+  pointer-events: none;
+  background: linear-gradient(178deg, rgba(255,255,255,.82) 0%, rgba(255,255,255,.26) 48%, transparent 72%);
+}
+.jelly-tower-mousse::after {
+  content: "";
+  position: absolute;
+  top: 16%;
+  left: 15%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 3px 2px rgba(255,255,255,.7);
+}
+/* 高光 parallax 微层（JS 驱动 transform） */
+.jelly-mousse-hl {
+  position: absolute;
+  top: 7%;
+  left: 8%;
+  right: 12%;
+  height: 40%;
+  pointer-events: none;
+  z-index: 3;
+  border-radius: 50% 50% 46% 46% / 60% 60% 40% 40%;
+  background: linear-gradient(178deg, rgba(255,255,255,.55) 0%, transparent 55%);
+}
+/* 淋面滴落（顶部边缘奶油滴） */
+.jelly-mousse-drip {
+  position: absolute;
+  top: -4px;
+  left: 0;
+  right: 0;
+  height: 26px;
+  pointer-events: none;
+  z-index: 3;
+}
+.jelly-mousse-drip i {
+  position: absolute;
+  top: 0;
+  width: 14px;
+  border-radius: 0 0 10px 10px;
+  background: linear-gradient(180deg, #F6E3CF, #EBCBA8);
+  box-shadow: inset 0 -2px 3px rgba(180,120,70,.3);
+}
+.jelly-mousse-drip i:nth-child(1) { left: 15%; height: 20px; }
+.jelly-mousse-drip i:nth-child(2) { left: 33%; height: 13px; }
+.jelly-mousse-drip i:nth-child(3) { left: 52%; height: 22px; }
+.jelly-mousse-drip i:nth-child(4) { left: 71%; height: 12px; }
+.jelly-mousse-drip i:nth-child(5) { left: 85%; height: 18px; }
+
+/* ---- 三颗马卡龙（错开微斜叠放成小塔；slot 承载定位，spring 错动落在内层本体） ---- */
+.jelly-mac-slot {
+  position: absolute;
+  width: 96px;
+  height: 48px;
+  z-index: 3;
+}
+.jelly-slot-rose { left: 50%; bottom: 148px; transform: translateX(-50%) rotate(-1deg); }
+.jelly-slot-amber { left: 50%; bottom: 192px; transform: translateX(-86%) rotate(-6deg); }
+.jelly-slot-pist { left: 50%; bottom: 236px; transform: translateX(-16%) rotate(5deg); }
+.jelly-mac {
+  position: absolute;
+  inset: 0;
+  border-radius: 48px 48px 14px 14px / 40px 40px 12px 12px;
+  box-shadow:
+    inset 0 2px 0 rgba(255,255,255,.4),
+    inset 0 -4px 7px rgba(0,0,0,.18),
+    0 8px 16px -6px rgba(90,40,30,.32);
+}
+.jelly-mac::before {
+  /* 裙边（褶皱） */
+  content: "";
+  position: absolute;
+  left: 7px;
+  right: 7px;
+  bottom: 5px;
+  height: 9px;
+  border-radius: 4px;
+  background: repeating-linear-gradient(90deg, rgba(255,255,255,.4) 0 3px, transparent 3px 6px);
+  opacity: .75;
+}
+.jelly-mac::after {
+  /* 夹层奶油线 */
+  content: "";
+  position: absolute;
+  left: 9px;
+  right: 9px;
+  bottom: 13px;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255,252,245,.8);
+}
+.jelly-mac-hl {
+  position: absolute;
+  top: 9%;
+  left: 14%;
+  right: 22%;
+  height: 34%;
+  border-radius: 50%;
+  background: linear-gradient(178deg, rgba(255,255,255,.68), transparent 70%);
+  pointer-events: none;
+}
+.jelly-mac-rose {
+  background: linear-gradient(165deg, #DD7A95, #C94F6D 60%, #A03A54);
+}
+.jelly-mac-amber {
+  background: linear-gradient(165deg, #D9A05C, #C08245 60%, #9A6530);
+}
+.jelly-mac-pist {
+  background: linear-gradient(165deg, #97B973, #7A9B5A 60%, #5E7A44);
+}
+
+/* ---- 顶部大樱桃 + 露珠 ---- */
+.jelly-tower-cherry {
+  position: absolute;
+  left: 50%;
+  bottom: 262px;
+  transform: translateX(-50%);
+  z-index: 4;
+}
+.jelly-dew {
+  position: absolute;
+  left: 50%;
+  bottom: 298px;
+  margin-left: -7px;
+  width: 4px;
+  height: 4px;
+  z-index: 5;
+  border-radius: 50%;
+  background: rgba(255,255,255,.9);
+  box-shadow: 0 0 2px rgba(255,255,255,.7);
+  opacity: .8;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html.jelly.fx-jelly-rich.motion-full .jelly-dew {
+    animation: jelly-dew-slide 6s ease-in-out infinite;
+  }
+}
+@keyframes jelly-dew-slide {
+  0% { transform: translate(0, 0); opacity: 0; }
+  14% { opacity: .95; }
+  68% { transform: translate(-3px, 11px); opacity: .95; }
+  100% { transform: translate(-5px, 17px); opacity: 0; }
+}
+
+/* ---- 薄荷叶 ×2（lit 后依次舒展；transition 由 media 降级统一处理） ---- */
+.jelly-tower-leaf {
+  position: absolute;
+  z-index: 4;
+  opacity: 0;
+  transform: rotate(-24deg) scale(.6);
+  transition: transform .7s cubic-bezier(.34,1.4,.5,1) .9s, opacity .5s ease .85s;
+}
+.jelly-hero.lit .jelly-tower-leaf { opacity: 1; transform: rotate(0) scale(1); }
+.jelly-leaf-1 { left: 52px; bottom: 120px; transform-origin: 50% 100%; }
+.jelly-leaf-2 { right: 58px; bottom: 16px; transform-origin: 50% 100%; }
+.jelly-hero.lit .jelly-leaf-1 { transform: rotate(-14deg) scale(1); }
+.jelly-hero.lit .jelly-leaf-2 { transform: rotate(10deg) scale(1); }
+
+/* ---- 金箔碎点 ×6（垫盘周围错落升起） ---- */
+.jelly-tower-gd {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  z-index: 4;
+  opacity: 0;
+  background: radial-gradient(circle at 35% 30%, #F0D98A, #D4AF37 62%, #A8862A);
+  box-shadow: 0 1px 3px rgba(160,120,40,.4);
+  transform: translateY(-16px);
+  transition: transform .6s cubic-bezier(.34,1.3,.6,1), opacity .5s ease;
+}
+.jelly-hero.lit .jelly-tower-gd { opacity: .6; transform: translateY(0); }
+.jelly-gd-1 { left: 46px; bottom: 64px; transition-delay: .5s; }
+.jelly-gd-2 { left: 76px; bottom: 36px; transition-delay: .58s; }
+.jelly-gd-3 { right: 48px; bottom: 70px; transition-delay: .66s; }
+.jelly-gd-4 { right: 88px; bottom: 30px; transition-delay: .74s; }
+.jelly-gd-5 { left: 50%; bottom: 18px; margin-left: -70px; transition-delay: .82s; }
+.jelly-gd-6 { left: 50%; bottom: 18px; margin-left: 66px; transition-delay: .9s; }
+
+/* ---- Hero 欢迎语（衬线 · 法式优雅） ---- */
+.jelly-hero-cap {
+  position: relative;
+  z-index: 2;
+  margin: 8px 0 4px;
+  font-family: var(--jelly-serif);
+  font-size: 17px;
+  color: var(--text-secondary);
+  letter-spacing: .06em;
+}
+.jelly-hero-cap b {
+  color: var(--v2-accent);
+  font-weight: 600;
+}
+.jelly-hero-sub {
+  position: relative;
+  z-index: 2;
+  font-size: 12.5px;
+  color: var(--v2-text-4);
+  letter-spacing: .1em;
+}
+
+/* ---- 空状态布局挂钩（仅 jelly 浓郁档生效，见 EmptyHero 组件） ---- */
+html.jelly.fx-jelly-rich .jelly-empty-viewport {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+html.jelly.fx-jelly-rich .jelly-empty-viewport > .jelly-hero {
+  margin-top: auto;   /* auto 边距配滚动容器：内容矮则整体居中，内容高则顶对齐可滚动 */
+}
+html.jelly.fx-jelly-rich .jelly-empty-hero {
+  margin-bottom: auto;
+  padding-top: 6px;
+  padding-bottom: 26px;
+}
+
+/* ---- 降级：系统减弱动态 → 装饰层隐藏（同 demo）；塔保留静态 lit 形态 ---- */
+@media (prefers-reduced-motion: reduce) {
+  .jelly-deco { display: none !important; }
+  .jelly-hero-beam,
+  .jelly-hero-glow { opacity: 1; }
+  .jelly-tower-leaf { opacity: 1; transform: none; }
+  .jelly-tower-gd { opacity: .6; transform: none; }
+}
+/* ---- 窄屏精简：砍最外圈果冻滴与两枚金箔碎点，防止碎片感 ---- */
+@media (max-width: 767px) {
+  .jelly-blob-3,
+  .jelly-blob-5,
+  .jelly-tower-gd.jelly-gd-5,
+  .jelly-tower-gd.jelly-gd-6 {
+    display: none;
+  }
+  .jelly-hero { padding-left: 12px; padding-right: 12px; }
+}
