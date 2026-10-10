@@ -51,8 +51,9 @@ export function broadcastMiddleware<T>(
                 if (data?.type === 'STATE_UPDATE' && data.senderId !== TAB_ID) {
                     isBroadcasting = true;
                     try {
-                        // replace: true 表示替换而非合并
-                        set(data.state as T extends object ? Partial<T> : T, true as any);
+                        // 广播是 partialize 后的可持久化数据。合并更新，保留本标签的
+                        // action 函数和未参与广播的临时状态；整包替换会删除 setTheme 等动作。
+                        set(data.state as T extends object ? Partial<T> : T, false as any);
                     } finally {
                         isBroadcasting = false;
                     }

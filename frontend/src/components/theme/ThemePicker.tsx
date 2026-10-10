@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import { Sun, Moon, Check, Sparkles, Rocket, Flower2, Landmark, Candy } from 'lucide-react';
+import { Sun, Moon, Check, Sparkles, Rocket, Flower2, Landmark, Candy, Bug } from 'lucide-react';
 import { useConfigStore } from '@/store/configStore';
 import { ACCENT_PRESETS, normalizeAccentHex } from '@/theme/accents';
 import { cn } from '@/components/ui';
@@ -15,6 +15,7 @@ import type { ThemeConfig } from '@/types';
 
 export const ThemePicker: React.FC = () => {
     const { theme, setTheme } = useConfigStore();
+    const fixedAccentMode = ['ink-havoc', 'ink-havoc-night', 'jelly', 'spider'].includes(theme.mode);
 
     const modes: { value: ThemeConfig['mode']; label: string; icon: typeof Sun }[] = [
         { value: 'light', label: '浅色', icon: Sun },
@@ -24,6 +25,7 @@ export const ThemePicker: React.FC = () => {
         { value: 'ink-havoc', label: '花果晨', icon: Flower2 },
         { value: 'ink-havoc-night', label: '灵霄夜', icon: Landmark },
         { value: 'jelly', label: '果冻', icon: Candy },
+        { value: 'spider', label: '蜘蛛爬虫', icon: Bug },
     ];
 
     const accentColors = ACCENT_PRESETS.map(({ hex, label }) => ({ value: hex, label }));
@@ -39,12 +41,14 @@ export const ThemePicker: React.FC = () => {
             {/* 主题模式 */}
             <div>
                 <h4 className="text-sm font-medium text-t2 mb-3">主题模式</h4>
-                <div className="flex gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" role="group" aria-label="主题">
                     {modes.map(({ value, label, icon: Icon }) => {
                         const selected = theme.mode === value;
                         return (
                             <button
                                 key={value}
+                                type="button"
+                                aria-pressed={selected}
                                 onClick={() => setTheme({ mode: value })}
                                 className={cn(
                                     'flex-1 flex flex-col items-center gap-1 p-3 rounded-[10px] border transition-interactive duration-fast',
@@ -65,16 +69,19 @@ export const ThemePicker: React.FC = () => {
             {/* 强调色 */}
             <div>
                 <h4 className="text-sm font-medium text-t2 mb-3">强调色</h4>
-                <div className="flex gap-2 flex-wrap">
+                {fixedAccentMode && <p className="mb-3 text-[13px] text-t3">{theme.mode === 'spider' ? '本主题使用专属青色、洋红与紫色配色' : '本主题使用专属配色'}</p>}
+                <div className="flex gap-2 flex-wrap" role="group" aria-label="强调色">
                     {accentColors.map(({ value, label }) => {
-                        const selected = normalizeAccentHex(theme.accentColor) === value;
+                        const selected = !fixedAccentMode && normalizeAccentHex(theme.accentColor) === value;
                         return (
                             <button
                                 key={value}
                                 onClick={() => setTheme({ accentColor: value })}
                                 title={label}
+                                aria-label={`强调色 ${label}`}
+                                disabled={fixedAccentMode}
                                 className={cn(
-                                    'w-8 h-8 rounded-full border-2 transition-interactive duration-fast',
+                                    'w-8 h-8 rounded-full border-2 transition-interactive duration-fast disabled:opacity-40 disabled:cursor-not-allowed',
                                     selected
                                         ? 'border-transparent scale-110'
                                         : 'border-transparent hover:scale-105'

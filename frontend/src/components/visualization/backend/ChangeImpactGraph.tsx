@@ -54,7 +54,7 @@ import { useConfigStore } from '@/store/configStore';
 function useChartColors(): string[] {
   const mode = useConfigStore(s => s.theme.mode);
   const accentColor = useConfigStore(s => s.theme.accentColor);
-  return useMemo(() => getChartColors(resolveTheme(mode), accentColor), [mode, accentColor]);
+  return useMemo(() => getChartColors(resolveTheme(mode), accentColor, mode), [mode, accentColor]);
 }
 
 function getNodeTypeConfig(colors: string[]): Record<string, { color: string; icon: LucideIcon; label: string }> {

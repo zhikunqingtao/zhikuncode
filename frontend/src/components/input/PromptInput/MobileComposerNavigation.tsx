@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Sun, Moon, Sparkles, Rocket, Flower2, Landmark, Candy, Blocks, CircleHelp, ChevronRight, Brain, Check, Zap } from 'lucide-react';
+import { X, Sun, Moon, Sparkles, Rocket, Flower2, Landmark, Candy, Bug, Blocks, CircleHelp, ChevronRight, Brain, Check, Zap } from 'lucide-react';
 import { SheetShell } from '@/components/apos/MobileBottomSheet';
 import { ModelChip, PermissionModeChip, MobileChoice } from './PromptComposerChips';
 import { useTurnViewStore, type TurnDensity } from '@/store/turnViewStore';
@@ -42,10 +42,10 @@ export function MobileComposerNavigation() {
                 {panel === 'more' && <>
                     <section>
                         <h3 className="mb-2 text-[13px] font-medium text-t2">外观</h3>
-                        <div className="grid grid-cols-3 gap-2">{(['light', 'dark', 'glass', 'spaceship', 'ink-havoc', 'ink-havoc-night', 'jelly'] as const).map((mode, i) => {
-                            const Icon = [Sun, Moon, Sparkles, Rocket, Flower2, Landmark, Candy][i];
+                        <div className="grid grid-cols-2 min-[380px]:grid-cols-4 gap-2">{(['light', 'dark', 'glass', 'spaceship', 'ink-havoc', 'ink-havoc-night', 'jelly', 'spider'] as const).map((mode, i) => {
+                            const Icon = [Sun, Moon, Sparkles, Rocket, Flower2, Landmark, Candy, Bug][i];
                             const selected = theme.mode === mode;
-                            return <button key={mode} className={`flex min-h-[72px] flex-col items-center justify-center gap-2 rounded-[14px] border text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent2-ink ${selected ? 'border-accent2-ink bg-accent2-soft text-accent2-ink' : 'border-hairline bg-surface2 text-t2 hover:bg-hover2'}`} aria-pressed={selected} onClick={() => setTheme({ mode })}><Icon size={20} aria-hidden="true" /><span>{['浅色', '深色', '液态玻璃', '星舰', '花果晨', '灵霄夜', '果冻'][i]}</span></button>;
+                            return <button key={mode} className={`flex min-h-[72px] flex-col items-center justify-center gap-2 rounded-[14px] border text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent2-ink ${selected ? 'border-accent2-ink bg-accent2-soft text-accent2-ink' : 'border-hairline bg-surface2 text-t2 hover:bg-hover2'}`} aria-pressed={selected} onClick={() => setTheme({ mode })}><Icon size={20} aria-hidden="true" /><span>{['浅色', '深色', '液态玻璃', '星舰', '花果晨', '灵霄夜', '果冻', '蜘蛛爬虫'][i]}</span></button>;
                         })}</div>
                     </section>
                     {/* 星舰特效：仅 spaceship 主题可见（紧凑形态，与桌面外观设置同一控件） */}
@@ -58,8 +58,8 @@ export function MobileComposerNavigation() {
                         <h3 className="mb-2 text-[13px] font-medium text-t2">强调色</h3>
                         {/* 审查-移动端修复：ink 双模式 / jelly accent 写死主题色（同桌面 SettingsPanel 逻辑），
                             可选中却无效果还会覆盖其他主题偏好——禁用并说明 */}
-                        {(theme.mode === 'ink-havoc' || theme.mode === 'ink-havoc-night' || theme.mode === 'jelly') ? (
-                            <div className="text-[13px] text-t3">{theme.mode === 'jelly' ? '本主题使用专属法式配色' : '本主题使用专属重彩配色'}</div>
+                        {(theme.mode === 'ink-havoc' || theme.mode === 'ink-havoc-night' || theme.mode === 'jelly' || theme.mode === 'spider') ? (
+                            <div className="text-[13px] text-t3">{theme.mode === 'spider' ? '本主题使用专属青色、洋红与紫色配色' : theme.mode === 'jelly' ? '本主题使用专属法式配色' : '本主题使用专属重彩配色'}</div>
                         ) : (
                         <div className="flex flex-wrap gap-2" role="group" aria-label="强调色">
                             {ACCENT_PRESETS.map(({ hex, label }) => {

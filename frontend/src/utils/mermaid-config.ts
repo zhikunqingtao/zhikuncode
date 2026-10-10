@@ -1,5 +1,5 @@
 import mermaid from 'mermaid';
-import { TOKENS, getChartColors } from '@/styles/design-tokens';
+import { TOKENS, getChartColors, type ThemeMode } from '@/styles/design-tokens';
 
 /** 图表字族（与 §3.8 sans 栈一致） */
 const MERMAID_FONT =
@@ -68,8 +68,8 @@ const darkThemeVariablesBase = {
  * 组装 themeVariables：基底 + pie1-8 取 getChartColors(mode, accentHex)
  * （chart-1 跟随当前 accent；缺省/未知 accent 回退青瓷默认）。
  */
-function buildThemeVariables(mode: 'light' | 'dark', accentHex?: string) {
-  const colors = getChartColors(mode, accentHex);
+function buildThemeVariables(mode: 'light' | 'dark', accentHex?: string, skinMode?: ThemeMode) {
+  const colors = getChartColors(mode, accentHex, skinMode);
   const base = mode === 'dark' ? darkThemeVariablesBase : lightThemeVariablesBase;
   return {
     ...base,
@@ -85,12 +85,12 @@ function buildThemeVariables(mode: 'light' | 'dark', accentHex?: string) {
  * @param theme effectiveTheme（'light'|'dark'，由 resolveTheme 解析；Glass→light、System→落类）
  * @param accentHex 当前强调色（theme.accentColor），pie1 跟随
  */
-export function initMermaid(theme: 'light' | 'dark', accentHex?: string) {
+export function initMermaid(theme: 'light' | 'dark', accentHex?: string, skinMode?: ThemeMode) {
   mermaid.initialize({
     startOnLoad: false,
     securityLevel: 'strict',
     theme: 'base',
-    themeVariables: buildThemeVariables(theme, accentHex),
+    themeVariables: buildThemeVariables(theme, accentHex, skinMode),
     flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' },
     sequence: { useMaxWidth: true, wrap: true },
     gantt: { useMaxWidth: true },

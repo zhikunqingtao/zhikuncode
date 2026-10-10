@@ -53,7 +53,7 @@ import {
 function useChartColors(): string[] {
   const mode = useConfigStore(s => s.theme.mode);
   const accentColor = useConfigStore(s => s.theme.accentColor);
-  return useMemo(() => getChartColors(resolveTheme(mode), accentColor), [mode, accentColor]);
+  return useMemo(() => getChartColors(resolveTheme(mode), accentColor, mode), [mode, accentColor]);
 }
 
 function getLayerConfig(colors: string[]): Record<string, { color: string; icon: LucideIcon; label: string }> {

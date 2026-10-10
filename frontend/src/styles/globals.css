@@ -2,6 +2,7 @@
 @import './spaceship.css';
 @import './ink-havoc.css';
 @import './jelly.css';
+@import './spider.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

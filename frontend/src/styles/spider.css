@@ -1,0 +1,199 @@
+/* 蜘蛛爬虫：只在选中皮肤时生效。原始页面、文字和交互区域不参与三维变形。 */
+html.spider {
+  color-scheme: dark;
+  --spider-cyan: #60f7ed;
+  --spider-magenta: #f277da;
+  --spider-violet: #ad8bfa;
+  --bg-primary: #030409;
+  --bg-secondary: #090c13;
+  --text-primary: #e5edf5;
+  --text-secondary: #b0bdcf;
+  --text-muted: #8e9cb3;
+  --border: rgba(116, 166, 197, .20);
+  --code-bg: #05070c;
+  --diff-add: rgba(119, 220, 173, .12);
+  --diff-remove: rgba(245, 127, 166, .12);
+  --bg-hover: rgba(96, 247, 237, .055);
+  --color-surface: #090c13;
+  --color-surface-elevated: #101421;
+  --color-surface-sunken: #04060b;
+  --color-muted: #b0bdcf;
+  --color-border: rgba(116, 166, 197, .20);
+  --color-text: #e5edf5;
+  --color-text-secondary: #b0bdcf;
+  --color-text-muted: #8e9cb3;
+  --color-code-bg: #05070c;
+  --color-code-border: rgba(96, 247, 237, .20);
+  --color-success: #97e4c0;
+  --color-success-bg: rgba(119, 220, 173, .12);
+  --color-warning: #ebc378;
+  --color-warning-bg: rgba(235, 195, 120, .12);
+  --color-danger: #ff94b8;
+  --color-danger-bg: rgba(245, 127, 166, .12);
+  --color-scrollbar: rgba(131, 164, 192, .30);
+  --color-scrollbar-hover: rgba(96, 247, 237, .55);
+  --color-skeleton: rgba(154, 136, 218, .13);
+  --color-overlay: rgba(0, 2, 8, .76);
+  --v2-bg-app: #030409;
+  --v2-bg-surface: #090c13;
+  --v2-bg-surface-2: #0d111b;
+  --v2-bg-sunken: #05070c;
+  --v2-bg-hover: rgba(96, 247, 237, .055);
+  --v2-bg-active: rgba(96, 247, 237, .085);
+  --v2-border-hairline: rgba(116, 166, 197, .18);
+  --v2-border-strong: rgba(116, 203, 213, .34);
+  --v2-overlay: rgba(0, 2, 8, .76);
+  --v2-text-1: #e5edf5;
+  --v2-text-2: #b0bdcf;
+  --v2-text-3: #94a3b9;
+  --v2-text-4: #8e9cb3;
+  /* 与 applyAccent 一致，避免首次渲染时出现其他主题的色彩。 */
+  --v2-accent: #60f7ed;
+  --v2-accent-ink: #97fff4;
+  --v2-accent-strong: #086c72;
+  --v2-accent-soft: rgba(96, 247, 237, .11);
+  --v2-accent-ring: rgba(96, 247, 237, .40);
+  --v2-ok: #97e4c0;
+  --v2-ok-soft: rgba(119, 220, 173, .12);
+  --v2-ok-strong: #97e4c0;
+  --v2-warn: #ebc378;
+  --v2-warn-soft: rgba(235, 195, 120, .12);
+  --v2-warn-strong: #f0ce93;
+  --v2-err: #ff94b8;
+  --v2-err-soft: rgba(245, 127, 166, .12);
+  --v2-err-strong: #d94b78;
+  --v2-code-bg: #05070c;
+  --v2-diff-add-bg: rgba(119, 220, 173, .12);
+  --v2-diff-remove-bg: rgba(245, 127, 166, .12);
+  --focus-ring: #60f7ed;
+  --v2-shadow-xs: 0 1px 3px #0009;
+  --v2-shadow-sm: 0 3px 12px #0008, inset 0 1px 0 #ad8bfa08;
+  --v2-shadow-md: 0 10px 30px #0008, 0 0 24px #60f7ed05;
+  --v2-shadow-lg: 0 24px 70px #000b, 0 0 36px #ad8bfa12;
+  --v2-shadow-inset: inset 0 2px 9px #0008;
+  --v2-shadow-raised: inset 0 1px 0 #97fff415, 0 3px 14px #0008;
+  --v2-shadow-raised-hover: inset 0 1px 0 #97fff422, 0 3px 20px #60f7ed12;
+  --v2-shadow-pressed: inset 0 2px 8px #000a;
+  --v2-shadow-soft: 0 12px 35px #0007;
+  --v2-shadow-soft-sm: 0 4px 16px #0007;
+  --v2-chart-1: #60f7ed;
+  --v2-chart-2: #f277da;
+  --v2-chart-3: #ad8bfa;
+  --v2-chart-4: #84b9fa;
+  --v2-chart-5: #97e4c0;
+  --v2-chart-6: #ebc378;
+  --v2-chart-7: #d79ff5;
+  --v2-chart-8: #adc6d0;
+}
+
+html.spider ::selection { color: #fff; background: #6543a680; }
+html.spider :focus-visible { outline-color: var(--spider-cyan); }
+html.spider body { background: #030409; }
+
+/* Bright semantic fills need dark ink even though this skin has no .dark class. */
+html.spider :is(.bg-ok, .bg-okstrong, .bg-warn, .bg-warnstrong, .bg-err, .bg-errstrong).text-white {
+  color: var(--v2-bg-app);
+}
+
+html.spider .app-workspace {
+  background:
+    radial-gradient(ellipse at 0 0, #60f7ed08, transparent 34%),
+    radial-gradient(ellipse at 100% 12%, #ad8bfa0b, transparent 32%),
+    radial-gradient(ellipse at 75% 100%, #f277da07, transparent 36%),
+    #030409;
+}
+
+html.spider .app-header {
+  background: linear-gradient(90deg, #080e16, #090a12 65%, #100b19);
+  border-bottom-color: #60f7ed29;
+  box-shadow: 0 4px 25px #0008;
+}
+html.spider .app-header::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 -1px;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, #60f7ed80 20%, #ad8bfa50 65%, #f277da90 87%, transparent);
+  background-size: 200% 100%;
+  animation: spider-perimeter-flow 12s ease-in-out infinite alternate;
+}
+html.spider .app-sidebar {
+  background: linear-gradient(180deg, #070a12, #06080f 55%, #0d0813);
+  border-right-color: #ad8bfa26;
+  box-shadow: 8px 0 32px #0005;
+}
+html.spider .app-sidebar .session-card {
+  background: #0c1019a6;
+  border-color: #ad8bfa16;
+}
+html.spider .app-sidebar .session-card:hover { border-color: #60f7ed42; background: #101a23; }
+html.spider .app-sidebar .session-active-pill {
+  border-color: #60f7ed5c;
+  background: linear-gradient(110deg, #60f7ed14, #ad8bfa12);
+  box-shadow: inset 2px 0 #60f7ed, 0 0 18px #60f7ed10;
+}
+html.spider .app-sidebar .bg-accent2-strong {
+  background: linear-gradient(120deg, #095e67, #343373);
+  border-color: #60f7ed55;
+  box-shadow: inset 0 1px #97fff42e, 0 0 18px #60f7ed14;
+}
+
+html.spider .assistant-message > .rounded-panel {
+  background: linear-gradient(130deg, #0a1019, #090b13 70%);
+  border-color: #60f7ed20;
+}
+html.spider .user-message-bubble {
+  background: linear-gradient(125deg, #131126, #10121d);
+  border-color: #ad8bfa38;
+  box-shadow: inset 0 1px #ad8bfa15, 0 8px 25px #0006;
+}
+html.spider .tool-call-block,
+html.spider .tool-run-block {
+  border-color: #60f7ed28;
+  background: linear-gradient(110deg, #090f17, #0c0d19);
+  box-shadow: inset 0 1px #60f7ed08;
+}
+html.spider .code-block {
+  border-color: #ad8bfa33;
+  background: #05070c;
+  box-shadow: 0 8px 28px #0005;
+}
+html.spider .code-block > :first-child {
+  background: linear-gradient(90deg, #111024, #07171c);
+  border-bottom-color: #ad8bfa2e;
+}
+html.spider .terminal-output { border: 1px solid #60f7ed24; background: #05070c; }
+html.spider .chat-composer-surface {
+  background: linear-gradient(130deg, #0d1420, #100d1b 70%);
+  border-color: #ad8bfa45;
+  box-shadow: 0 12px 40px #0008, inset 0 1px #60f7ed1c, 0 0 24px #ad8bfa09;
+}
+html.spider .chat-composer-surface:focus-within {
+  border-color: #60f7ed78;
+  box-shadow: 0 12px 40px #0008, 0 0 0 1px #60f7ed20, 0 0 28px #60f7ed10;
+}
+html.spider .chat-composer-surface textarea { caret-color: var(--spider-cyan); }
+html.spider [role='dialog'],
+html.spider [role='menu'],
+html.spider [role='listbox'] {
+  border-color: #ad8bfa45;
+  background-color: #0b0e18;
+  box-shadow: 0 24px 70px #000b, 0 0 35px #ad8bfa14;
+}
+
+/* 一张透明 WebGL 画布；正常页面保持自己的布局、选择与滚动行为。 */
+html.spider .spider-fx-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  overflow: hidden;
+  contain: strict;
+}
+html.spider .spider-fx-layer canvas { display: block; width: 100%; height: 100%; pointer-events: none; }
+
+@keyframes spider-perimeter-flow {
+  from { background-position: 0 0; }
+  to { background-position: 100% 0; }
+}

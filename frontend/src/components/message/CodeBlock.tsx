@@ -87,7 +87,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
     }, [highlightLines]);
 
     return (
-        <div className="code-block relative rounded-[10px] border border-hairline bg-sunken2 overflow-hidden" style={inkColors}>
+        <div data-spider-exclude="code-block" className="code-block relative rounded-[10px] border border-hairline bg-sunken2 overflow-hidden" style={inkColors}>
             {/* Header：文件名或语言 + 复制 */}
             <div className="flex items-center gap-2 border-b border-hairline px-3 py-1.5">
                 <span className={`min-w-0 flex-1 truncate font-mono text-[13px] ${deepCodeTheme ? 'text-[color:var(--code-ink-muted)]' : 'text-t3'}`}>

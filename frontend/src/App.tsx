@@ -53,6 +53,7 @@ import { isMergeSource, selectMergeSourceIds, useSessionMergeStore } from '@/sto
 import { SpaceshipHudLayer } from '@/components/theme/SpaceshipHudLayer';
 import { InkHavocFxLayer } from '@/components/theme/InkHavocFxLayer';
 import { JellyFxLayer } from '@/components/theme/JellyFxLayer';
+import { SpiderFxLayer } from '@/components/theme/SpiderFxLayer';
 import { InkRetreatCeremony } from '@/components/theme/InkRetreatCeremony';
 import { ToastContainer } from '@/components/common/ToastContainer';
 
@@ -511,6 +512,8 @@ function App() {
       <InkHavocFxLayer />
       {/* 果冻主题装饰层 + Q 弹行为桥：jelly + cinematic 门控，fixed overlay（晕染/金箔碎点/果冻滴） */}
       <JellyFxLayer />
+      {/* 蜘蛛皮肤按主题懒加载三维引擎，覆盖层不接收输入事件。 */}
+      <SpiderFxLayer />
       {/* 波次3② 闭关挂匾/摘匾仪式：订阅 retreat 翻转自播自收（ink 双模式全档） */}
       <InkRetreatCeremony />
       <AppLayout>

@@ -16,7 +16,7 @@
  * 派生（globals.css），无需写入。未知 hex 一律回退青瓷（默认色）。
  */
 
-export type EffectiveTheme = 'light' | 'dark' | 'glass' | 'spaceship' | 'ink-havoc' | 'ink-havoc-night' | 'jelly';
+export type EffectiveTheme = 'light' | 'dark' | 'glass' | 'spaceship' | 'ink-havoc' | 'ink-havoc-night' | 'jelly' | 'spider';
 
 export interface AccentLightValues {
     accent: string;
@@ -44,6 +44,11 @@ export interface AccentPreset {
 }
 
 export const DEFAULT_ACCENT_HEX = '#12967F';
+/** 蜘蛛皮肤运行时色板；不写回用户的 accentColor 偏好。 */
+export const SPIDER_ACCENT = {
+    accent: '#60F7ED', ink: '#97FFF4', strong: '#086C72',
+    soft: 'rgba(96,247,237,.11)', ring: 'rgba(96,247,237,.40)',
+} as const;
 
 /** 旧版预设 hex → 新版预设 hex（持久化的 theme.accentColor 兼容映射，大写） */
 export const LEGACY_ACCENT_ALIASES: Readonly<Record<string, string>> = {
@@ -140,6 +145,15 @@ export const ACCENT_PRESETS: readonly AccentPreset[] = [
 export function applyAccent(hex: string, effectiveTheme: EffectiveTheme): void {
     // 果冻主题（法式镜面奢华）：accent 不随用户预设，写死法式主题色（酒渍樱桃系），提前返回；
     // --v2-accent-ink 取 strong 80% + black 的 color-mix（深酒红，浅底文字链路 ≥4.5:1）
+    if (effectiveTheme === 'spider') {
+        const style = document.documentElement.style;
+        style.setProperty('--v2-accent', SPIDER_ACCENT.accent);
+        style.setProperty('--v2-accent-ink', SPIDER_ACCENT.ink);
+        style.setProperty('--v2-accent-strong', SPIDER_ACCENT.strong);
+        style.setProperty('--v2-accent-soft', SPIDER_ACCENT.soft);
+        style.setProperty('--v2-accent-ring', SPIDER_ACCENT.ring);
+        return;
+    }
     if (effectiveTheme === 'jelly') {
         const style = document.documentElement.style;
         style.setProperty('--v2-accent', '#8E1F3C');

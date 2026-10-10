@@ -27,6 +27,7 @@ describe('CodeBlock ink 配色与交互回归', () => {
             </div></div>,
         );
         const block = container.querySelector<HTMLElement>('.code-block')!;
+        expect(block).toHaveAttribute('data-spider-exclude', 'code-block');
         const style = resolveZkSyntaxStyle(mode);
         expect(block.style.getPropertyValue('--code-ink-text')).toBe(style['pre[class*="language-"]'].color);
         expect(block.style.getPropertyValue('--code-ink-muted')).toBe(style.comment.color);

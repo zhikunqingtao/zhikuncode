@@ -49,7 +49,7 @@ const DEFAULT_THEME: ThemeConfig = {
 /** 旧 system 偏好按当前系统外观迁移一次；未知值回退浅色。 */
 export function normalizeThemeMode(mode: unknown): ThemeConfig['mode'] {
     if (mode === 'light' || mode === 'dark' || mode === 'glass' || mode === 'spaceship'
-        || mode === 'ink-havoc' || mode === 'ink-havoc-night' || mode === 'jelly') return mode;
+        || mode === 'ink-havoc' || mode === 'ink-havoc-night' || mode === 'jelly' || mode === 'spider') return mode;
     if (mode === 'system' && typeof window !== 'undefined'
         && typeof window.matchMedia === 'function'
         && window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';

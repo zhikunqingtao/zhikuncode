@@ -19,9 +19,9 @@ let storeSubscribed = false;
 /** 按当前 store 的 accent 注册/覆盖 zk-light / zk-dark（monaco 实例由 loader 提供，单例） */
 export function ensureZkMonacoThemes(monaco: typeof MonacoNS): void {
     monacoInstance = monaco;
-    const accentHex = useConfigStore.getState().theme.accentColor;
+    const { accentColor: accentHex, mode } = useConfigStore.getState().theme;
     monaco.editor.defineTheme('zk-light', getMonacoZkThemes('light', accentHex) as MonacoNS.editor.IStandaloneThemeData);
-    monaco.editor.defineTheme('zk-dark', getMonacoZkThemes('dark', accentHex) as MonacoNS.editor.IStandaloneThemeData);
+    monaco.editor.defineTheme('zk-dark', getMonacoZkThemes('dark', accentHex, mode) as MonacoNS.editor.IStandaloneThemeData);
     subscribeThemeChanges();
 }
 
@@ -49,7 +49,7 @@ function subscribeThemeChanges(): void {
 export function getEffectiveTheme(): 'light' | 'dark' {
     if (typeof document === 'undefined') return 'light';
     const cls = document.documentElement.classList;
-    return cls.contains('dark') || cls.contains('spaceship') || cls.contains('ink-havoc-night') ? 'dark' : 'light';
+    return cls.contains('dark') || cls.contains('spaceship') || cls.contains('ink-havoc-night') || cls.contains('spider') ? 'dark' : 'light';
 }
 
 /** 当前应使用的 Monaco zk 主题名 */

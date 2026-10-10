@@ -116,6 +116,7 @@ const ToolRunBlock: React.FC<ToolRunBlockProps> = ({ blocks, activeToolCalls }) 
             <button
                 type="button"
                 onClick={toggleL2}
+                data-tool-use-id={activeToolUseId ?? resolved[resolved.length - 1].block.toolUseId}
                 aria-expanded={l2Open}
                 className="panel-control flex w-full items-center gap-2 px-3 py-2 text-left transition-colors duration-fast hover:bg-hover2"
             >
@@ -135,17 +136,17 @@ const ToolRunBlock: React.FC<ToolRunBlockProps> = ({ blocks, activeToolCalls }) 
                             aria-label="执行中"
                             data-testid="tool-run-active-dot"
                         />
-                        <span className="min-w-0 truncate text-sm text-t1">
+                        <span data-spider-anchor="tool" data-tool-use-id={activeToolUseId ?? undefined} className="min-w-0 truncate text-sm text-t1">
                             执行中 · <span className="font-semibold">{current.tc.toolName}</span>
                             <span className="tabular-nums text-t3"> ({summary.activeIndex + 1}/{total})</span>
                         </span>
                     </>
                 ) : (
                     <>
-                        <span className="shrink-0 text-sm font-semibold text-t1">
+                        <span data-spider-anchor="tool" className="shrink-0 text-sm font-semibold text-t1">
                             {total} 次工具调用
                         </span>
-                        <span className="min-w-0 truncate text-[13px] text-t3">
+                        <span data-spider-anchor="tool" className="min-w-0 truncate text-[13px] text-t3">
                             {summary.topNames.map(([name, count]) => `${name}×${count}`).join(' · ')}
                         </span>
                     </>
@@ -180,7 +181,7 @@ const ToolRunBlock: React.FC<ToolRunBlockProps> = ({ blocks, activeToolCalls }) 
                         const target = extractPrimaryTarget(tc.input);
                         const toolExpanded = expandedIds.has(block.toolUseId);
                         return (
-                            <div key={block.toolUseId} className="border-b border-hairline last:border-b-0">
+                            <div key={block.toolUseId} data-tool-use-id={block.toolUseId} className="border-b border-hairline last:border-b-0">
                                 <button
                                     type="button"
                                     onClick={() => toggleTool(block.toolUseId)}
@@ -206,11 +207,12 @@ const ToolRunBlock: React.FC<ToolRunBlockProps> = ({ blocks, activeToolCalls }) 
                                             )}
                                         />
                                     )}
-                                    <span className="shrink-0 text-sm font-medium text-t1">
+                                    <span data-spider-anchor="tool" className="shrink-0 text-sm font-medium text-t1">
                                         {tc.toolName}
                                     </span>
                                     {target && (
                                         <span
+                                            data-spider-anchor="tool"
                                             className="min-w-0 truncate rounded bg-sunken2 px-1.5 py-0.5 font-mono text-[13px] text-t2"
                                             style={target.isPath ? { direction: 'rtl', textAlign: 'left' } : undefined}
                                             title={target.target}

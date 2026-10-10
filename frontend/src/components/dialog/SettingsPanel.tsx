@@ -1,5 +1,5 @@
 /** 外观设置：主题立即生效，由 ConfigStore 持久化。 */
-import { Moon, Sun, Sparkles, Check, Rocket, Flower2, Landmark, Candy } from 'lucide-react';
+import { Moon, Sun, Sparkles, Check, Rocket, Flower2, Landmark, Candy, Bug } from 'lucide-react';
 import { useConfigStore } from '@/store/configStore';
 import { Button, Dialog, cn } from '@/components/ui';
 import { SpaceshipFxControls } from '@/components/theme/SpaceshipFxControls';
@@ -16,6 +16,7 @@ const THEMES: { mode: ThemeConfig['mode']; label: string; icon: typeof Sun }[] =
     { mode: 'ink-havoc', label: '花果晨', icon: Flower2 },
     { mode: 'ink-havoc-night', label: '灵霄夜', icon: Landmark },
     { mode: 'jelly', label: '果冻', icon: Candy },
+    { mode: 'spider', label: '蜘蛛爬虫', icon: Bug },
 ];
 
 export function SettingsPanel({ onClose }: { onClose: () => void }) {
@@ -25,15 +26,14 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
     const inkHavocMode = theme.mode === 'ink-havoc' || theme.mode === 'ink-havoc-night';
     // 果冻主题：accent 写死法式主题色（酒渍樱桃），强调色预设区同禁用并说明
     const jellyMode = theme.mode === 'jelly';
-    const fixedAccentMode = inkHavocMode || jellyMode;
+    const spiderMode = theme.mode === 'spider';
+    const fixedAccentMode = inkHavocMode || jellyMode || spiderMode;
 
     return (
         <Dialog open title="外观设置" onClose={onClose} className="max-w-lg border border-hairline max-h-[85vh] flex flex-col">
-            {/* 审查#3修复：主题 6→7 格致弹窗增高，小视口（1024×500/600）下按钮溢出且滚动锁定——
-                弹窗限高 85vh，内容区独立滚动，「完成」按钮固定底部常驻可见；
-                sm 起 4 列（7 项 = 4+3）避免 3 列末行孤项，移动端保持 3 列 */}
+            {/* 8 个主题：桌面 4 列、窄屏 2 列；内容区可滚动，完成按钮固定可见。 */}
             <div className="p-5 overflow-y-auto min-h-0 flex-1">
-                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3" role="group" aria-label="主题">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" role="group" aria-label="主题">
                     {THEMES.map(({ mode, label, icon: Icon }) => (
                         <button
                             key={mode}
@@ -67,6 +67,9 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
                     )}
                     {jellyMode && (
                         <div className="mb-3 text-[13px] text-t3">本主题使用专属法式配色</div>
+                    )}
+                    {spiderMode && (
+                        <div className="mb-3 text-[13px] text-t3">本主题使用专属青色、洋红与紫色配色</div>
                     )}
                     <div className="flex gap-2 flex-wrap" role="group" aria-label="强调色">
                         {ACCENT_PRESETS.map(({ hex, label }) => {

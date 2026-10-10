@@ -130,6 +130,7 @@ const ToolSummaryRow: React.FC<{
         <div
             className="flex items-center gap-2 py-1.5 pl-7 pr-3"
             data-message-uuid={messageUuid}
+            data-tool-use-id={block.toolUseId}
             data-testid={`tool-summary-row-${block.toolUseId}`}
         >
             {cancelled ? (
@@ -141,9 +142,10 @@ const ToolSummaryRow: React.FC<{
             ) : (
                 <Check size={13} className="shrink-0 text-ok" aria-label="完成" />
             )}
-            <span className="shrink-0 text-sm font-medium text-t1">{tc.toolName}</span>
+            <span data-spider-anchor="tool" className="shrink-0 text-sm font-medium text-t1">{tc.toolName}</span>
             {target && (
                 <span
+                    data-spider-anchor="tool"
                     className="shrink-0 max-w-[36%] truncate rounded bg-sunken2 px-1.5 py-0.5 font-mono text-[13px] text-t2"
                     style={target.isPath ? { direction: 'rtl', textAlign: 'left' } : undefined}
                     title={target.target}

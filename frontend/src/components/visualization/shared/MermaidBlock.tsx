@@ -69,7 +69,7 @@ const MermaidBlock: React.FC<MermaidBlockProps> = ({ code }) => {
             return;
         }
 
-        const cacheKey = `${effectiveTheme === 'dark' ? 'd' : 'l'}:${accentColor ?? ''}:${code}`;
+        const cacheKey = `${theme.mode}:${accentColor ?? ''}:${code}`;
         const cached = cacheRef.current.get(cacheKey);
         if (cached) {
             setSvg(cached);
@@ -82,7 +82,7 @@ const MermaidBlock: React.FC<MermaidBlockProps> = ({ code }) => {
 
         (async () => {
             try {
-                initMermaid(effectiveTheme, accentColor);
+                initMermaid(effectiveTheme, accentColor, theme.mode);
                 const result = await renderMermaid(id, code);
                 if (!cancelled) {
                     cacheRef.current.set(cacheKey, result.svg);
@@ -101,7 +101,7 @@ const MermaidBlock: React.FC<MermaidBlockProps> = ({ code }) => {
         })();
 
         return () => { cancelled = true; };
-    }, [code, effectiveTheme, accentColor, incomplete]);
+    }, [code, effectiveTheme, accentColor, incomplete, theme.mode]);
 
     const handleCopySvg = useCallback(async () => {
         if (!svg) return;

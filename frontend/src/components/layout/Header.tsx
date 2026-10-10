@@ -11,7 +11,7 @@ import { GlassMaterial } from '@/components/theme/GlassMaterial';
  */
 
 import { useEffect } from 'react';
-import { Menu, Sun, Moon, Sparkles, Rocket, Flower2, Landmark, Candy, Keyboard, ChevronDown, Coins, Loader2, Flag } from 'lucide-react';
+import { Menu, Sun, Moon, Sparkles, Rocket, Flower2, Landmark, Candy, Bug, Keyboard, ChevronDown, Coins, Loader2, Flag } from 'lucide-react';
 import { useSessionStore } from '@/store/sessionStore';
 import { useCostStore } from '@/store/costStore';
 import { useDialogStore } from '@/store/dialogStore';
@@ -89,6 +89,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
         'ink-havoc': { label: '花果晨', icon: Flower2 },
         'ink-havoc-night': { label: '灵霄夜', icon: Landmark },
         jelly: { label: '果冻', icon: Candy },
+        spider: { label: '蜘蛛爬虫', icon: Bug },
     }[normalizeThemeMode(theme.mode)];
     const ThemeIcon = currentTheme.icon;
     const currentModelName = availableModels.find(item => item.id === model)?.displayName ?? model ?? '';

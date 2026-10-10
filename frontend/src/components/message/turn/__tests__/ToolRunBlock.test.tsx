@@ -56,6 +56,8 @@ describe('ToolRunBlock L1 摘要行', () => {
             />,
         );
         expect(screen.getByText('3 次工具调用')).toBeInTheDocument();
+        // The collapsed summary remains a resolvable target after the final tool result.
+        expect(screen.getByText('3 次工具调用').closest('[data-tool-use-id]')).toHaveAttribute('data-tool-use-id', 't3');
         expect(screen.getByText('Read×2 · Edit×1')).toBeInTheDocument();
         expect(screen.getByRole('img', { name: '全部成功' })).toBeInTheDocument();
         // L2 默认折叠

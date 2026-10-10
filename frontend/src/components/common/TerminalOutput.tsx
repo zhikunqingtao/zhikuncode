@@ -21,12 +21,12 @@ interface TerminalOutputProps {
   className?: string;
 }
 
-import { ANSI_CODE_TO_KEY, getXtermPalette, resolveTheme } from '@/styles/design-tokens';
+import { ANSI_CODE_TO_KEY, getXtermPalette, resolveTheme, type ThemeMode } from '@/styles/design-tokens';
 import { useConfigStore } from '@/store/configStore';
 
 /** 当前主题+强调色下的 ANSI 颜色表（§4.3 xterm zk 色板，accent 动态派生） */
-function ansiColors(mode: 'light' | 'dark', accentHex?: string): Record<string, string> {
-    const palette = getXtermPalette(mode, accentHex);
+function ansiColors(mode: 'light' | 'dark', accentHex?: string, skinMode?: ThemeMode): Record<string, string> {
+    const palette = getXtermPalette(mode, accentHex, skinMode);
     const map: Record<string, string> = {};
     for (const [code, key] of Object.entries(ANSI_CODE_TO_KEY)) {
         map[code] = palette[key];
@@ -37,8 +37,8 @@ function ansiColors(mode: 'light' | 'dark', accentHex?: string): Record<string, 
 /**
  * 将 ANSI 转义序列转换为 HTML span。
  */
-function ansiToHtml(text: string, mode: 'light' | 'dark', accentHex?: string): string {
-  const colors = ansiColors(mode, accentHex);
+function ansiToHtml(text: string, mode: 'light' | 'dark', accentHex?: string, skinMode?: ThemeMode): string {
+  const colors = ansiColors(mode, accentHex, skinMode);
   return text
     // 替换 ANSI 颜色代码
     .replace(/\x1b\[(\d+)m/g, (_, code) => {
@@ -74,8 +74,8 @@ export function TerminalOutput({
 
   // ANSI → HTML 随内容/主题/强调色记忆重算
   const html = useMemo(
-    () => ansiToHtml(displayContent, mode, accentColor),
-    [displayContent, mode, accentColor]
+    () => ansiToHtml(displayContent, mode, accentColor, themeMode),
+    [displayContent, mode, accentColor, themeMode]
   );
 
   // 自动滚动到底部

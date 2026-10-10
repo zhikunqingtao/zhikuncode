@@ -74,7 +74,7 @@ export function EmptyHero() {
             badge={
                 <Chip variant="accent" className="h-7 px-3">
                     <BrandLogo className="h-5 w-5" />
-                    zhikuncode
+                    <span data-spider-anchor="brand">zhikuncode</span>
                 </Chip>
             }
             title={<InkCalligraphyTitle fallback={<>今天想<b>构建</b>什么？</>} />}

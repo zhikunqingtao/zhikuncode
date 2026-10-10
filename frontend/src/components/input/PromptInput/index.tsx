@@ -61,6 +61,7 @@ const PromptInput: React.FC<PromptInputProps> = (props) => {
     return (
         <div
             className="chat-composer-surface glass-surface relative"
+            data-spider-exclude="composer"
             onDrop={a.handleDrop}
             onDragOver={e => e.preventDefault()}
         >
