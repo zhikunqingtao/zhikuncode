@@ -3,6 +3,7 @@
 @import './ink-havoc.css';
 @import './jelly.css';
 @import './spider.css';
+@import './galaxy.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

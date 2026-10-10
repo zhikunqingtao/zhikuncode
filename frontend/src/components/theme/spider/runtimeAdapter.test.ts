@@ -8,7 +8,7 @@ import { streamingStore } from '@/hooks/useStreamingText';
 import type { ContentBlock, Message, ToolCallState } from '@/types';
 import type { SpiderSignal } from './types';
 import { createSpiderRuntimeAdapter } from './runtimeAdapter';
-import * as runtimeState from './runtimeState';
+import * as runtimeState from '../runtime/state';
 
 const binding = vi.hoisted(() => ({ ready: true, listeners: new Set<() => void>() }));
 vi.mock('@/api/dispatch', () => ({

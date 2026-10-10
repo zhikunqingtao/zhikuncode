@@ -49,7 +49,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         const mode = normalizeThemeMode(theme.mode);
 
         // 移除旧的 theme class 与 spaceship/ink-havoc/jelly 特效门控 class（对称清理，清单合并去重）
-        root.classList.remove('light', 'dark', 'glass', 'system', 'spaceship', 'ink-havoc', 'ink-havoc-night', 'jelly', 'spider',
+        root.classList.remove('light', 'dark', 'glass', 'system', 'spaceship', 'ink-havoc', 'ink-havoc-night', 'jelly', 'spider', 'galaxy',
             ...SPACESHIP_FX_CLASSES, ...INK_FX_CLASSES, ...JELLY_FX_CLASSES);
 
         // Force reflow to ensure CSS variables are recalculated immediately

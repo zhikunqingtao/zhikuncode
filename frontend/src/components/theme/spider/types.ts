@@ -1,14 +1,4 @@
-export type SpiderPhase = 'reset' | 'preparing' | 'executing' | 'succeeded' | 'failed' | 'cancelled' | 'waiting' | 'streaming' | 'complete' | 'disconnected';
-
-/** Visual signals never write to the conversation or authorize tools. */
-export interface SpiderSignal {
-    phase: SpiderPhase;
-    sessionId: string | null;
-    toolUseId?: string;
-    /** Binding generations discard all old actions; local idle may retain result afterglow. */
-    resetScope?: 'binding';
-    at: number;
-}
+export type { VisualPhase as SpiderPhase, VisualSignal as SpiderSignal } from '../runtime/types';
 
 export interface SpiderTextRun {
     text: string;

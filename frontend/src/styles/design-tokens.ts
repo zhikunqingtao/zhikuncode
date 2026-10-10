@@ -16,7 +16,7 @@
  * - getXtermPalette(mode, accentHex?)：XTERM_ANSI 基底 + cursor/selection 派生
  * （accents.ts 不依赖本文件，无循环依赖风险）
  */
-import { ACCENT_PRESETS, DEFAULT_ACCENT_HEX, normalizeAccentHex, SPIDER_ACCENT } from '@/theme/accents';
+import { ACCENT_PRESETS, DEFAULT_ACCENT_HEX, normalizeAccentHex, SPIDER_ACCENT, GALAXY_ACCENT } from '@/theme/accents';
 
 export const TOKENS = {
     light: {
@@ -148,7 +148,7 @@ export const CHART_COLORS = {
     dark: ['#8A8FF0', '#5FC4B2', '#E0A94A', '#EF6B63', '#6DB4E6', '#B58CD6', '#A3C24E', '#8B99AD'],
 } as const;
 
-export type ThemeMode = 'light' | 'dark' | 'glass' | 'spaceship' | 'ink-havoc' | 'ink-havoc-night' | 'jelly' | 'spider';
+export type ThemeMode = 'light' | 'dark' | 'glass' | 'spaceship' | 'ink-havoc' | 'ink-havoc-night' | 'jelly' | 'spider' | 'galaxy';
 
 /**
  * resolveTheme — effectiveTheme 解析（§4.5 第二职责）
@@ -159,7 +159,7 @@ export type ThemeMode = 'light' | 'dark' | 'glass' | 'spaceship' | 'ink-havoc' |
  */
 export function resolveTheme(mode: ThemeMode): 'light' | 'dark' {
     if (mode === 'glass' || mode === 'ink-havoc' || mode === 'jelly') return 'light';
-    if (mode === 'spaceship' || mode === 'ink-havoc-night' || mode === 'spider') return 'dark';
+    if (mode === 'spaceship' || mode === 'ink-havoc-night' || mode === 'spider' || mode === 'galaxy') return 'dark';
     return mode;
 }
 
@@ -182,6 +182,7 @@ function accentForMode(mode: 'light' | 'dark', accentHex?: string): string {
  * 静态 CHART_COLORS 保持不变（globals.css 对拍与存量消费方不受影响）。
  */
 export function getChartColors(mode: 'light' | 'dark', accentHex?: string, skinMode?: ThemeMode): string[] {
+    if (skinMode === 'galaxy') return [GALAXY_ACCENT.accent, '#A765FF', '#FF459F', '#69C7EE', '#97E4C0', '#FFC66E', '#D4B8FF', '#B9D8FF'];
     if (skinMode === 'spider') return [SPIDER_ACCENT.accent, '#F277DA', '#AD8BFA', '#84B9FA', '#97E4C0', '#EBC378', '#D79FF5', '#ADC6D0'];
     const colors: string[] = [...CHART_COLORS[mode]];
     colors[0] = accentForMode(mode, accentHex);
@@ -280,13 +281,14 @@ export const MONACO_ZK_THEMES: Record<'zk-light' | 'zk-dark', MonacoThemeDef> = 
  */
 export function getMonacoZkThemes(mode: 'light' | 'dark', accentHex?: string, skinMode?: ThemeMode): MonacoThemeDef {
     const base = MONACO_ZK_THEMES[mode === 'light' ? 'zk-light' : 'zk-dark'];
-    const accent = skinMode === 'spider' ? SPIDER_ACCENT.accent : accentForMode(mode, accentHex);
+    const accent = skinMode === 'galaxy' ? GALAXY_ACCENT.accent : skinMode === 'spider' ? SPIDER_ACCENT.accent : accentForMode(mode, accentHex);
     return {
         base: base.base,
         inherit: base.inherit,
         rules: base.rules.map((rule) => ({ ...rule })),
         colors: {
             ...base.colors,
+            ...(skinMode === 'galaxy' ? { 'editor.background': '#060D1B', 'editorGutter.background': '#060D1B', 'editorWidget.background': '#0B1427' } : {}),
             ...(skinMode === 'spider' ? { 'editor.background': '#05070C', 'editorGutter.background': '#05070C', 'editorWidget.background': '#0B1019' } : {}),
             'editor.selectionBackground': `${accent}40`,
             'editorCursor.foreground': accent,
@@ -360,8 +362,8 @@ export const XTERM_ANSI: Record<'light' | 'dark', AnsiPalette> = {
  * 缺省/未知 accentHex 的结果与静态 XTERM_ANSI 完全等值。
  */
 export function getXtermPalette(mode: 'light' | 'dark', accentHex?: string, skinMode?: ThemeMode): AnsiPalette {
-    const accent = skinMode === 'spider' ? SPIDER_ACCENT.accent : accentForMode(mode, accentHex);
-    return { ...XTERM_ANSI[mode], ...(skinMode === 'spider' ? { background: '#05070C', cyan: SPIDER_ACCENT.accent, magenta: '#F277DA', blue: '#AD8BFA' } : {}), cursor: accent, selectionBackground: `${accent}40` };
+    const accent = skinMode === 'galaxy' ? GALAXY_ACCENT.accent : skinMode === 'spider' ? SPIDER_ACCENT.accent : accentForMode(mode, accentHex);
+    return { ...XTERM_ANSI[mode], ...(skinMode === 'galaxy' ? { background: '#060D1B', cyan: '#69C7EE', magenta: '#E984BF', blue: GALAXY_ACCENT.accent } : {}), ...(skinMode === 'spider' ? { background: '#05070C', cyan: SPIDER_ACCENT.accent, magenta: '#F277DA', blue: '#AD8BFA' } : {}), cursor: accent, selectionBackground: `${accent}40` };
 }
 
 /** ANSI 数字码 → AnsiPalette 键名（供 ANSI-to-HTML 渲染器查色） */

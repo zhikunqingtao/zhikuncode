@@ -11,7 +11,7 @@ interface GrepMatch {
     content: string;
 }
 
-function parseGrepOutput(content: string): Map<string, GrepMatch[]> {
+export function parseGrepOutput(content: string): Map<string, GrepMatch[]> {
     const grouped = new Map<string, GrepMatch[]>();
     for (const line of content.split('\n')) {
         const match = line.match(/^(.+?):(\d+):(.*)$/);

@@ -262,7 +262,7 @@ const TextBlock: React.FC<TextBlockProps> = ({ text, streaming = false }) => {
     }), []);
 
     return (
-        <div data-spider-anchor={streaming ? undefined : 'text'} className="text-block max-w-none text-[15px] max-md:text-base max-md:leading-[1.6] text-t1 leading-[1.6]">
+        <div data-galaxy-text="" data-galaxy-streaming={streaming ? "true" : undefined} data-spider-anchor={streaming ? undefined : 'text'} className="text-block max-w-none text-[15px] max-md:text-base max-md:leading-[1.6] text-t1 leading-[1.6]">
             <ReactMarkdown remarkPlugins={[remarkGfm]} components={components} urlTransform={urlTransform}>{text}</ReactMarkdown>
             {streaming && (
                 <span className="inline-block w-2 h-4 ml-0.5 bg-accent2 animate-pulse rounded-sm" />

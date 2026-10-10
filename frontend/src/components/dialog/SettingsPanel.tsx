@@ -1,5 +1,5 @@
 /** 外观设置：主题立即生效，由 ConfigStore 持久化。 */
-import { Moon, Sun, Sparkles, Check, Rocket, Flower2, Landmark, Candy, Bug } from 'lucide-react';
+import { Moon, Sun, Sparkles, Check, Rocket, Flower2, Landmark, Candy, Bug, Orbit } from 'lucide-react';
 import { useConfigStore } from '@/store/configStore';
 import { Button, Dialog, cn } from '@/components/ui';
 import { SpaceshipFxControls } from '@/components/theme/SpaceshipFxControls';
@@ -17,6 +17,7 @@ const THEMES: { mode: ThemeConfig['mode']; label: string; icon: typeof Sun }[] =
     { mode: 'ink-havoc-night', label: '灵霄夜', icon: Landmark },
     { mode: 'jelly', label: '果冻', icon: Candy },
     { mode: 'spider', label: '蜘蛛爬虫', icon: Bug },
+    { mode: 'galaxy', label: '璀璨银河', icon: Orbit },
 ];
 
 export function SettingsPanel({ onClose }: { onClose: () => void }) {
@@ -27,11 +28,11 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
     // 果冻主题：accent 写死法式主题色（酒渍樱桃），强调色预设区同禁用并说明
     const jellyMode = theme.mode === 'jelly';
     const spiderMode = theme.mode === 'spider';
-    const fixedAccentMode = inkHavocMode || jellyMode || spiderMode;
+    const fixedAccentMode = inkHavocMode || jellyMode || spiderMode || theme.mode === 'galaxy';
 
     return (
         <Dialog open title="外观设置" onClose={onClose} className="max-w-lg border border-hairline max-h-[85vh] flex flex-col">
-            {/* 8 个主题：桌面 4 列、窄屏 2 列；内容区可滚动，完成按钮固定可见。 */}
+            {/* 9 个主题：桌面 4 列、窄屏 2 列；内容区可滚动，完成按钮固定可见。 */}
             <div className="p-5 overflow-y-auto min-h-0 flex-1">
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" role="group" aria-label="主题">
                     {THEMES.map(({ mode, label, icon: Icon }) => (
@@ -68,6 +69,7 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
                     {jellyMode && (
                         <div className="mb-3 text-[13px] text-t3">本主题使用专属法式配色</div>
                     )}
+                    {theme.mode === 'galaxy' && <div className="mb-3 text-[13px] text-t3">本主题使用专属星蓝、紫罗兰与玫红配色</div>}
                     {spiderMode && (
                         <div className="mb-3 text-[13px] text-t3">本主题使用专属青色、洋红与紫色配色</div>
                     )}

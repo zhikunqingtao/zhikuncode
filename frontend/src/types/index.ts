@@ -542,7 +542,7 @@ export interface JellyFxConfig {
 }
 
 export interface ThemeConfig {
-    mode: 'light' | 'dark' | 'glass' | 'spaceship' | 'ink-havoc' | 'ink-havoc-night' | 'jelly' | 'spider';
+    mode: 'light' | 'dark' | 'glass' | 'spaceship' | 'ink-havoc' | 'ink-havoc-night' | 'jelly' | 'spider' | 'galaxy';
     accentColor: string;
     fontSize?: string;
     fontFamily?: string;

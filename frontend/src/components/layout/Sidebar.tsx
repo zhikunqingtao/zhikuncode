@@ -439,6 +439,7 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
                             <option value="ink-havoc-night">灵霄夜</option>
                             <option value="jelly">果冻</option>
                             <option value="spider">蜘蛛爬虫</option>
+                            <option value="galaxy">璀璨银河</option>
                         </select>
                     </label>
                 </div>

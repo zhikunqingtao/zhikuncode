@@ -1,0 +1,123 @@
+/* 璀璨银河：只在选中皮肤时生效。原始页面、文字和交互区域不参与三维变形。 */
+html.galaxy {
+  color-scheme: dark;
+  --galaxy-cyan: #86b9ff;
+  --galaxy-magenta: #ff459f;
+  --galaxy-violet: #a765ff;
+  --bg-primary: #02050d;
+  --bg-secondary: #091122;
+  --text-primary: #e5edf5;
+  --text-secondary: #b0bdcf;
+  --text-muted: #8e9cb3;
+  --border: rgba(139, 162, 225, .20);
+  --code-bg: #060d1b;
+  --diff-add: rgba(119, 220, 173, .12);
+  --diff-remove: rgba(245, 127, 166, .12);
+  --bg-hover: rgba(103, 135, 255, .055);
+  --color-surface: #091122;
+  --color-surface-elevated: #101a32;
+  --color-surface-sunken: #040918;
+  --color-muted: #b0bdcf;
+  --color-border: rgba(139, 162, 225, .20);
+  --color-text: #e5edf5;
+  --color-text-secondary: #b0bdcf;
+  --color-text-muted: #8e9cb3;
+  --color-code-bg: #060d1b;
+  --color-code-border: rgba(103, 135, 255, .20);
+  --color-success: #97e4c0;
+  --color-success-bg: rgba(119, 220, 173, .12);
+  --color-warning: #ebc378;
+  --color-warning-bg: rgba(235, 195, 120, .12);
+  --color-danger: #ff94b8;
+  --color-danger-bg: rgba(245, 127, 166, .12);
+  --color-scrollbar: rgba(120, 150, 207, .30);
+  --color-scrollbar-hover: rgba(103, 135, 255, .55);
+  --color-skeleton: rgba(154, 136, 218, .13);
+  --color-overlay: rgba(0, 2, 8, .76);
+  --v2-bg-app: #02050d;
+  --v2-bg-surface: #091122;
+  --v2-bg-surface-2: #0b1427;
+  --v2-bg-sunken: #060d1b;
+  --v2-bg-hover: rgba(103, 135, 255, .055);
+  --v2-bg-active: rgba(103, 135, 255, .085);
+  --v2-border-hairline: rgba(139, 162, 225, .18);
+  --v2-border-strong: rgba(116, 203, 213, .34);
+  --v2-overlay: rgba(0, 2, 8, .76);
+  --v2-text-1: #e5edf5;
+  --v2-text-2: #b0bdcf;
+  --v2-text-3: #94a3b9;
+  --v2-text-4: #8e9cb3;
+  /* 与 applyAccent 一致，避免首次渲染时出现其他主题的色彩。 */
+  --v2-accent: #86b9ff;
+  --v2-accent-ink: #bdd8ff;
+  --v2-accent-strong: #3b4fc4;
+  --v2-accent-soft: rgba(103, 135, 255, .11);
+  --v2-accent-ring: rgba(103, 135, 255, .40);
+  --v2-ok: #97e4c0;
+  --v2-ok-soft: rgba(119, 220, 173, .12);
+  --v2-ok-strong: #97e4c0;
+  --v2-warn: #ebc378;
+  --v2-warn-soft: rgba(235, 195, 120, .12);
+  --v2-warn-strong: #f0ce93;
+  --v2-err: #ff94b8;
+  --v2-err-soft: rgba(245, 127, 166, .12);
+  --v2-err-strong: #d94b78;
+  --v2-code-bg: #060d1b;
+  --v2-diff-add-bg: rgba(119, 220, 173, .12);
+  --v2-diff-remove-bg: rgba(245, 127, 166, .12);
+  --focus-ring: #86b9ff;
+  --v2-shadow-xs: 0 1px 3px #0009;
+  --v2-shadow-sm: 0 3px 12px #0008, inset 0 1px 0 #a765ff08;
+  --v2-shadow-md: 0 10px 30px #0008, 0 0 24px #86b9ff05;
+  --v2-shadow-lg: 0 24px 70px #000b, 0 0 36px #a765ff12;
+  --v2-shadow-inset: inset 0 2px 9px #0008;
+  --v2-shadow-raised: inset 0 1px 0 #bdd8ff15, 0 3px 14px #0008;
+  --v2-shadow-raised-hover: inset 0 1px 0 #bdd8ff22, 0 3px 20px #86b9ff12;
+  --v2-shadow-pressed: inset 0 2px 8px #000a;
+  --v2-shadow-soft: 0 12px 35px #0007;
+  --v2-shadow-soft-sm: 0 4px 16px #0007;
+  --v2-chart-1: #86b9ff;
+  --v2-chart-2: #ff459f;
+  --v2-chart-3: #a765ff;
+  --v2-chart-4: #84b9fa;
+  --v2-chart-5: #97e4c0;
+  --v2-chart-6: #ebc378;
+  --v2-chart-7: #d79ff5;
+  --v2-chart-8: #adc6d0;
+}
+
+html.galaxy { --v2-accent-soft:rgba(103,135,255,.13); --v2-accent-ring:rgba(144,139,255,.42); }
+html.galaxy body { background:radial-gradient(ellipse at 82% 36%,#25124a 0, #071b3d 23%, #02050d 65%); }
+html.galaxy ::selection { color:#f1f5ff; background:#6848a699; }
+html.galaxy .app-workspace { position:relative; z-index:1; background:transparent; }
+html.galaxy .galaxy-fx-layer { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; contain:strict; }
+html.galaxy .galaxy-scene, html.galaxy .galaxy-text-dust { position:absolute; inset:0; display:block; width:100%; height:100%; pointer-events:none; }
+html.galaxy .galaxy-text-dust { z-index:1; }
+html.galaxy .app-header { position:relative; background:rgba(5,9,19,.96); border-bottom-color:#889cce28; box-shadow:0 1px 0 #bbd1ff08; }
+html.galaxy .app-sidebar { background:linear-gradient(180deg,#050b16e0,#060b18d9); border-right-color:#8b9bd329; }
+html.galaxy .app-sidebar .session-card { background:#0a1424d9; border-color:#96a9e01a; }
+html.galaxy .app-sidebar .session-active-pill { background:linear-gradient(110deg,#627bd822,#aa54dd13); border-color:#919fff50; box-shadow:inset 2px 0 #9c9dff; }
+html.galaxy .chat-workspace { background:transparent; }
+html.galaxy .turn-card { background:transparent; }
+html.galaxy .assistant-message > .rounded-panel { background:#07101f8c; border-color:#8d9dd329; }
+html.galaxy .user-message-bubble { background:linear-gradient(120deg,#141d34f0,#17162bea); border-color:#a99afc45; box-shadow:inset 0 1px #d9c4ff08,0 8px 24px #02050d44; }
+html.galaxy .tool-call-block, html.galaxy .tool-run-block { background:linear-gradient(110deg,#071222f5,#10142bf0); border-color:#94b0ed38; box-shadow:inset 0 1px #c5d4ff08; }
+html.galaxy .text-block { color:#dce6f7; text-shadow:0 1px 4px #02040cb3; }
+html.galaxy .text-block a { color:#a4caff; }
+html.galaxy .code-block, html.galaxy .terminal-output { background:#060d1bfa; border-color:#8e9de03b; }
+html.galaxy .code-block > :first-child { background:#0e172b; border-bottom-color:#8e9de02b; }
+html.galaxy .chat-composer-inset { background:transparent; border-color:transparent; }
+html.galaxy .chat-composer-surface { background:linear-gradient(125deg,#0b1529fa,#0c1121fa); border-color:#a0b9f15c; box-shadow:0 12px 35px #02050d66,inset 0 1px #c8daff14; }
+html.galaxy .chat-composer-surface:focus-within { border-color:#ad9effa6; box-shadow:0 12px 35px #02050d88,0 0 0 1px #968cff25,0 0 25px #9360e512; }
+html.galaxy [role='dialog'], html.galaxy [role='menu'], html.galaxy [role='listbox'] { background-color:#0b1427; border-color:#98afe04a; box-shadow:0 24px 70px #000b; }
+html.galaxy :is(.bg-ok,.bg-okstrong,.bg-warn,.bg-warnstrong,.bg-err,.bg-errstrong).text-white { color:#060d1b; }
+
+/* One continuous sky; opaque ink remains only on controls and code surfaces. */
+html.galaxy .turn-card > section[aria-label="助手回复"] { background:linear-gradient(115deg,#061020a8,#07101b70); border-color:#8ba2d32b; box-shadow:0 12px 32px #02050d25; }
+html.galaxy .text-block { text-shadow:0 1px 3px #01030b,0 0 12px #02050d; }
+html.galaxy .turn-process-aggregate, html.galaxy .thinking-block { background:#091225c7; }
+html.galaxy .turn-card table { background:#06101b99; }
+
+/* Local task light lives above card materials, while the galaxy stays behind them. */
+html.galaxy .galaxy-foreground { position:fixed; inset:0; z-index:2; pointer-events:none; overflow:hidden; contain:strict; }
+html.galaxy .galaxy-foreground canvas { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }

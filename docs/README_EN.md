@@ -159,11 +159,13 @@ Eight AI coding tools reviewed the same commit. Their final reports were compare
 
 ### Appearance Themes
 
-Choose from eight themes: Light (`light`), Dark (`dark`), Liquid Glass (`glass`), Spaceship (`spaceship`), **Huaguo Morning / 花果晨** (`ink-havoc`), **Lingxiao Night / 灵霄夜** (`ink-havoc-night`), **Jelly / 果冻** (`jelly`), and **Spider / 蜘蛛爬虫** (`spider`). Open **Appearance settings (外观设置)** in the desktop header or **Appearance (外观)** under the mobile composer's **More actions (更多操作)**. Settings apply immediately and are saved locally.
+Choose from nine themes: Light (`light`), Dark (`dark`), Liquid Glass (`glass`), Spaceship (`spaceship`), **Huaguo Morning / 花果晨** (`ink-havoc`), **Lingxiao Night / 灵霄夜** (`ink-havoc-night`), **Jelly / 果冻** (`jelly`), **Spider / 蜘蛛爬虫** (`spider`), and **Galaxy / 璀璨银河** (`galaxy`). Open **Appearance settings (外观设置)** in the desktop header or **Appearance (外观)** under the mobile composer's **More actions (更多操作)**. Settings apply immediately and are saved locally.
 
 Spider combines a deep black background with cyan, magenta, and violet neon webs. An eight-legged spider explores and lifts copies of visible text while idle, and changes its actions in response to real task states. Selecting the theme enables the full effects, with no separate motion levels; the original text remains selectable and copyable.
 
 The theme prioritizes PCs, with fewer simultaneous text lifts on tablets and phones according to available space. Its 3D effects require WebGL 2; when unavailable, the theme colors and chat functionality remain available. 3D rendering pauses while the page is hidden. It uses more GPU resources than a regular theme, but the animation itself makes no additional model calls.
+
+Galaxy fills the page with a continuously rotating blue, violet, and rose galaxy. Real tasks drive file stars, tool light trails, and reply stardust; collapsed tool details can dock their effects on the execution summary. Selecting the theme enables the full effects, with no separate effect switch or star-map sidebar; original text and controls stay in place. Effects require WebGL 2, with static colors and chat functionality retained when unavailable. Rendering pauses while the page is hidden. It uses more GPU resources and power than a regular theme, but the animation itself makes no additional model calls and does not replay task effects for historical messages.
 
 Jelly offers Rich/Calm styling and Full/Reduced/Off motion settings, respecting the system's reduced-motion preference.
 

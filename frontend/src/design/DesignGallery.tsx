@@ -32,7 +32,7 @@ import { ACCENT_PRESETS, applyAccent, DEFAULT_ACCENT_HEX } from '@/theme/accents
 
 /* ===== 主题与强调色（值取自指南 §3.4 终值表，与 ThemePicker 共用 @/theme/accents 同一写入机制） ===== */
 
-type ThemeName = 'light' | 'dark' | 'glass' | 'spaceship' | 'ink-havoc' | 'ink-havoc-night' | 'jelly' | 'spider';
+type ThemeName = 'light' | 'dark' | 'glass' | 'spaceship' | 'ink-havoc' | 'ink-havoc-night' | 'jelly' | 'spider' | 'galaxy';
 const THEMES: { name: ThemeName; label: string }[] = [
     { name: 'light', label: 'Light' },
     { name: 'dark', label: 'Dark' },
@@ -42,12 +42,13 @@ const THEMES: { name: ThemeName; label: string }[] = [
     { name: 'ink-havoc-night', label: '灵霄夜' },
     { name: 'jelly', label: '果冻塔' },
     { name: 'spider', label: '蜘蛛爬虫' },
+    { name: 'galaxy', label: '璀璨银河' },
 ];
 
 function applyTheme(theme: ThemeName) {
     const root = document.documentElement;
     // 对称清理：ink 双主题附带 fx-ink-rich / jelly 附带 fx-jelly-rich / motion-* 门控，切走时一并移除
-    root.classList.remove('light', 'dark', 'glass', 'spaceship', 'ink-havoc', 'ink-havoc-night', 'jelly', 'spider',
+    root.classList.remove('light', 'dark', 'glass', 'spaceship', 'ink-havoc', 'ink-havoc-night', 'jelly', 'spider', 'galaxy',
         'fx-ink-rich', 'fx-jelly-rich', 'motion-full', 'motion-reduced', 'motion-off');
     root.classList.add(theme);
     // ink 双主题 / 果冻默认带浓郁档 + 完整动效，便于画廊预览全量装饰（果冻 = 果冻塔 + 装饰层 + Q 弹）
@@ -138,14 +139,14 @@ export default function DesignGallery() {
                                     key={a.hex}
                                     type="button"
                                     role="radio"
-                                    disabled={theme === 'spider'}
-                                    title={theme === 'spider' ? '蜘蛛爬虫使用专属青色、洋红与紫色配色' : a.label}
-                                    aria-checked={theme !== 'spider' && accentHex === a.hex}
+                                    disabled={['spider', 'galaxy'].includes(theme)}
+                                    title={['spider', 'galaxy'].includes(theme) ? '本皮肤使用专属配色' : a.label}
+                                    aria-checked={!['spider', 'galaxy'].includes(theme) && accentHex === a.hex}
                                     onClick={() => setAccentHex(a.hex)}
                                     className="flex h-6 w-6 items-center justify-center rounded-full transition-interactive duration-fast focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring"
                                     style={{ backgroundColor: a.hex }}
                                 >
-                                    {theme !== 'spider' && accentHex === a.hex && (
+                                    {!['spider', 'galaxy'].includes(theme) && accentHex === a.hex && (
                                         <Check className="h-3.5 w-3.5 text-white" aria-hidden="true" />
                                     )}
                                 </button>

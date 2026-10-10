@@ -53,7 +53,7 @@ const AssistantMessage: React.FC<AssistantMessageProps> = ({
     activeToolCalls,
 }) => {
     return (
-        <div className={embedded ? "assistant-message group min-w-0" : "assistant-message group flex gap-3 px-4 py-3"}>
+        <div data-galaxy-message-id={message.uuid} className={embedded ? "assistant-message group min-w-0" : "assistant-message group flex gap-3 px-4 py-3"}>
             {!embedded && <BrandLogo className="h-8 w-8" />}
 
             {/* Card 容器（§7.2：surface + hairline + rounded-panel + shadow-e2，px-18/py-20） */}

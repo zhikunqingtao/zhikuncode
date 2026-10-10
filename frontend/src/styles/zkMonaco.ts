@@ -49,7 +49,7 @@ function subscribeThemeChanges(): void {
 export function getEffectiveTheme(): 'light' | 'dark' {
     if (typeof document === 'undefined') return 'light';
     const cls = document.documentElement.classList;
-    return cls.contains('dark') || cls.contains('spaceship') || cls.contains('ink-havoc-night') || cls.contains('spider') ? 'dark' : 'light';
+    return cls.contains('dark') || cls.contains('spaceship') || cls.contains('ink-havoc-night') || cls.contains('spider') || cls.contains('galaxy') ? 'dark' : 'light';
 }
 
 /** 当前应使用的 Monaco zk 主题名 */
