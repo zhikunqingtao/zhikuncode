@@ -111,19 +111,22 @@ public class StreamingToolExecutor {
         private final String toolUseId;
         private final Tool tool;
         private final ToolInput input;
-        private final ToolUseContext context;
         private volatile boolean executionExited;
         private final Map<String, String> diagnosticContext;
         private volatile ToolState state;
         private volatile ToolResult result;
         private volatile ToolUseContext updatedContext;  // contextModifier 产生的更新上下文
         private volatile Thread executionThread;
+        private boolean concurrencySafe;
+        // Unknown risk fails closed if preparation itself fails before pipeline admission.
+        private boolean highRisk = true;
+        private boolean cascaded;
+        private Throwable preparationFailure;
 
         public TrackedTool(String toolUseId, Tool tool, ToolInput input, ToolUseContext context) {
             this.toolUseId = toolUseId;
             this.tool = tool;
             this.input = input;
-            this.context = context;
             this.diagnosticContext = MdcScope.capture();
             this.state = ToolState.QUEUED;
         }
@@ -283,8 +286,9 @@ public class StreamingToolExecutor {
     }
 
     public ToolCancelSummary cancelRunDetailed(String runId) {
-        java.util.Set<ExecutionSession> sessions = sessionsByRun.remove(runId);
-        if (sessions == null) return new ToolCancelSummary(0, 0, 0);
+        java.util.Set<ExecutionSession> registered = sessionsByRun.get(runId);
+        if (registered == null) return new ToolCancelSummary(0, 0, 0);
+        List<ExecutionSession> sessions = List.copyOf(registered);
         sessions.forEach(session -> session.discard(false));
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
         int confirmed = 0;
@@ -307,12 +311,16 @@ public class StreamingToolExecutor {
         private final List<TrackedTool> tracked = new CopyOnWriteArrayList<>();
         private final AtomicInteger active = new AtomicInteger(0);
         private volatile boolean sessionDiscarded = false;
-        // ★ 新增：会话级当前上下文，支持 CAS 更新（contextModifier 传播）
+        // Queue ownership and result transitions share a lock; never wait or run tools under it.
+        private final Object stateLock = new Object();
+        // Context modifiers are committed under stateLock before result publication.
         private final AtomicReference<ToolUseContext> currentContext;
         private final String ownerRunId;
-        private volatile RunExecutionRegistry.WorkLease workLease;
-        private final java.util.concurrent.atomic.AtomicBoolean sessionRegistered = new java.util.concurrent.atomic.AtomicBoolean();
-        private final java.util.concurrent.atomic.AtomicBoolean workLeaseClosed = new java.util.concurrent.atomic.AtomicBoolean();
+        // Lock order: registrationLock -> stateLock. Registry calls never hold stateLock.
+        private final Object registrationLock = new Object();
+        private RunExecutionRegistry.WorkLease workLease;
+        private boolean sessionRegistered;
+        private volatile int pendingSubmissions;
 
         // ★ 条件变量，替代固定 50ms 轮询
         private final Object completionLock = new Object();
@@ -328,163 +336,268 @@ public class StreamingToolExecutor {
 
         /** 添加工具到执行队列 */
         public void addTool(Tool tool, ToolInput input, String toolUseId, ToolUseContext context) {
-            ensureRegistered();
-            // ★ 修改：使用会话级 currentContext 而非调用方传入的原始 context
-            ToolUseContext effectiveContext = currentContext.get();
-            TrackedTool tt = new TrackedTool(toolUseId, tool, input, effectiveContext);
-            tracked.add(tt);
-            queue.add(tt);
-            log.debug("addTool: toolUseId={}, toolName={}, queueSize={}, trackedSize={}",
-                    toolUseId, tool.getName(), queue.size(), tracked.size());
-
-            // ★ 使用工具声明的预期执行时间（替代硬编码）
-            if (tool != null) {
-                registerExpectedDuration(tool.getMaxExecutionTimeMs());
+            TrackedTool tt = new TrackedTool(toolUseId, tool, input, currentContext.get());
+            synchronized (registrationLock) {
+                pendingSubmissions++;
+                try {
+                    if (!sessionDiscarded) ensureRegistered();
+                } catch (RuntimeException | Error registrationFailure) {
+                    pendingSubmissions--;
+                    deregister();
+                    throw registrationFailure;
+                }
             }
-
+            try {
+                if (!sessionDiscarded) prepareTool(tt);
+                synchronized (stateLock) {
+                    tracked.add(tt);
+                    if (sessionDiscarded) {
+                        completeOnce(tt, ToolResult.cancelled("TOOL_DISCARDED",
+                                "Tool execution discarded", ToolResult.EffectState.NOT_STARTED), null);
+                        tt.executionExited = true;
+                    } else {
+                        queue.add(tt);
+                    }
+                }
+            } finally {
+                synchronized (registrationLock) {
+                    pendingSubmissions--;
+                    deregister();
+                }
+            }
+            notifyCompletion();
             processQueue();
+        }
+
+        private void prepareTool(TrackedTool tt) {
+            // Classification is covered by the submission lease but holds no session lock.
+            try {
+                try {
+                    tt.concurrencySafe = tt.tool.isConcurrencySafe(tt.input);
+                } catch (RuntimeException classificationFailure) {
+                    // Invalid input still reaches pipeline validation, but never runs concurrently.
+                    tt.concurrencySafe = false;
+                }
+                try {
+                    tt.highRisk = tt.tool.isHighRisk();
+                } catch (RuntimeException riskFailure) {
+                    tt.preparationFailure = riskFailure;
+                }
+                observeSafely(() -> registerExpectedDuration(tt.tool.getMaxExecutionTimeMs()));
+            } catch (Error preparationError) {
+                // Settle the admitted call in the worker's finally, then propagate the Error there.
+                tt.preparationFailure = preparationError;
+            }
         }
 
         /** 仅为确实包含可执行工具任务的会话注册 Run 工作租约。 */
         private void ensureRegistered() {
-            if (ownerRunId == null || sessionRegistered.get()) return;
-            synchronized (sessionRegistered) {
-                if (sessionRegistered.get()) return;
-                RunExecutionRegistry.WorkLease acquired = runExecutions == null ? null
-                        : runExecutions.acquireWork(ownerRunId, "tool-session",
-                                java.util.UUID.randomUUID().toString());
-                workLease = acquired;
-                sessionsByRun.computeIfAbsent(ownerRunId, ignored -> ConcurrentHashMap.newKeySet())
-                        .add(this);
-                sessionRegistered.set(true);
-                if (acquired != null) acquired.onCancel(() -> discard(false));
-            }
+            if (ownerRunId == null || sessionRegistered) return;
+            RunExecutionRegistry.WorkLease acquired = runExecutions == null ? null
+                    : runExecutions.acquireWork(ownerRunId, "tool-session",
+                            java.util.UUID.randomUUID().toString());
+            workLease = acquired;
+            sessionsByRun.compute(ownerRunId, (ignored, sessions) -> {
+                if (sessions == null) sessions = ConcurrentHashMap.newKeySet();
+                sessions.add(this);
+                return sessions;
+            });
+            sessionRegistered = true;
+            if (acquired != null) acquired.onCancel(() -> discard(false));
         }
 
         private boolean canExecute(TrackedTool tt) {
             if (active.get() == 0) return true;
-            boolean isSafe = tt.tool.isConcurrencySafe(tt.input);
-            if (!isSafe) return false;
+            if (!tt.concurrencySafe) return false;
             return tracked.stream()
-                    .filter(t -> t.state == ToolState.EXECUTING)
-                    .allMatch(t -> t.tool.isConcurrencySafe(t.input));
+                    .filter(t -> !t.executionExited && t.state != ToolState.QUEUED)
+                    .allMatch(t -> t.concurrencySafe);
         }
 
         private void processQueue() {
-            while (!queue.isEmpty()) {
-                TrackedTool next = queue.peek();
-                boolean canExec = canExecute(next);
-                log.debug("processQueue: tool={}, canExecute={}, active={}, queueSize={}",
-                        next.tool.getName(), canExec, active.get(), queue.size());
-                if (!canExec) break;
-
-                queue.poll();
-                active.incrementAndGet();
-                next.state = ToolState.EXECUTING;
-                log.debug("processQueue: launching virtual thread for tool={}, toolUseId={}",
-                        next.tool.getName(), next.toolUseId);
-
-                Thread.ofVirtual().name("zhiku-tool-" + next.tool.getName()).start(() -> {
-                    try (MdcScope ignoredMdc = MdcScope.open(next.diagnosticContext);
-                         MdcScope ignoredTool = MdcScope.open(
-                                 java.util.Collections.singletonMap("toolUseId", next.toolUseId))) {
-                    next.executionThread = Thread.currentThread();
-                    log.debug("virtual thread started: tool={}, threadName={}",
-                            next.tool.getName(), Thread.currentThread().getName());
-                    activeVirtualThreads.incrementAndGet();
-                    Timer.Sample sample = Timer.start(meterRegistry);
+            for (;;) {
+                final TrackedTool next;
+                synchronized (stateLock) {
+                    TrackedTool head = queue.peek();
+                    if (head == null) return;
+                    if (head.state != ToolState.QUEUED) {
+                        queue.poll();
+                        continue;
+                    }
+                    if (!canExecute(head)) return;
+                    next = queue.poll();
+                    next.state = ToolState.EXECUTING;
+                    active.incrementAndGet();
+                }
+                try {
+                    observeSafely(() -> log.debug(
+                            "processQueue: launching virtual thread for tool={}, toolUseId={}",
+                            next.tool.getName(), next.toolUseId));
+                    Thread.ofVirtual().name("zhiku-tool-" + next.tool.getName()).start(() -> runTool(next));
+                } catch (RuntimeException | Error startFailure) {
+                    if (startFailure instanceof Error) {
+                        synchronized (stateLock) {
+                            // Thread admission itself failed: do not attempt more worker starts.
+                            discardQueuedTools();
+                        }
+                    }
                     try {
-                        if (sessionDiscarded) {
-                            next.result = ToolResult.cancelled("TOOL_DISCARDED",
-                                    "Tool execution discarded", ToolResult.EffectState.NOT_STARTED);
-                        } else {
-                            ToolExecutionResult execResult = pipeline.execute(next.tool, next.input,
-                                    next.context.withToolUseId(next.toolUseId),
-                                    next.context.permissionNotifier());
-                            next.result = execResult.result();
-                            next.updatedContext = execResult.updatedContext();
-                        }
-                        next.state = ToolState.COMPLETED;
-                        notifyCompletion(); // 通知消费者有工具完成
-
-                        // ★ 选择性错误级联：仅高危工具的错误触发 sibling abort
-                        checkAndCascadeError(next);
-
-                        // ★ 新增：applyContextModifier 传播（在 state 更新之后）
-                        if (next.updatedContext != null && !next.tool.isConcurrencySafe(next.input)) {
-                            applyContextModifier(next.updatedContext);
-                        } else if (next.updatedContext != null && next.tool.isConcurrencySafe(next.input)) {
-                            log.warn("Tool '{}' is concurrencySafe but returned contextModifier — ignored",
-                                    next.tool.getName());
-                        }
-
-                        toolExecutionTotal.increment();
-                    } catch (Exception e) {
-                        next.result = ToolResult.internalError("TOOL_EXECUTION_EXCEPTION",
-                                "<tool_use_error>Execution error: " + e.getMessage() + "</tool_use_error>",
-                                ToolResult.EffectState.UNKNOWN);
-                        next.state = ToolState.COMPLETED;
-                        notifyCompletion(); // 通知消费者有工具完成
-
-                        // ★ 选择性错误级联：异常路径同样适用
-                        checkAndCascadeError(next);
-
-                        toolExecutionTotal.increment();
-                        toolExecutionErrors.increment();
+                        publishResult(next, ToolResult.internalError("TOOL_EXECUTION_START_FAILED",
+                                "Tool execution could not start: " + startFailure.getMessage(),
+                                ToolResult.EffectState.NOT_STARTED), null, true);
                     } finally {
+                        synchronized (stateLock) {
+                            active.decrementAndGet();
+                            next.executionExited = true;
+                        }
+                        notifyCompletion();
+                        deregister();
+                    }
+                    if (startFailure instanceof Error error) throw error;
+                    observeSafely(() -> log.warn("Tool worker could not start: toolUseId={}",
+                            next.toolUseId, startFailure));
+                }
+            }
+        }
+
+        private void runTool(TrackedTool next) {
+            activeVirtualThreads.incrementAndGet();
+            Timer.Sample sample = null;
+            boolean pipelineStarted = false;
+            try (MdcScope ignoredMdc = MdcScope.open(next.diagnosticContext);
+                 MdcScope ignoredTool = MdcScope.open(
+                         java.util.Collections.singletonMap("toolUseId", next.toolUseId))) {
+                synchronized (stateLock) {
+                    next.executionThread = Thread.currentThread();
+                }
+                observeSafely(() -> log.debug("virtual thread started: tool={}, threadName={}",
+                        next.tool.getName(), Thread.currentThread().getName()));
+                try {
+                    sample = Timer.start(meterRegistry);
+                } catch (RuntimeException ignoredMetric) {
+                    // Observability must not decide whether the tool can execute.
+                }
+                if (sessionDiscarded || Thread.currentThread().isInterrupted()) {
+                    publishDiscarded(next);
+                    return;
+                }
+                // Unknown risk is rejected before execution, without making a failed classifier safe.
+                if (next.preparationFailure instanceof Error error) throw error;
+                if (next.preparationFailure instanceof RuntimeException failure) throw failure;
+                ToolUseContext executionContext = currentContext.get().withToolUseId(next.toolUseId);
+                // Preparation and logging may block: never reuse an earlier cancellation snapshot.
+                if (sessionDiscarded || Thread.currentThread().isInterrupted()) {
+                    publishDiscarded(next);
+                    return;
+                }
+                pipelineStarted = true;
+                ToolExecutionResult execution = pipeline.execute(next.tool, next.input,
+                        executionContext, executionContext.permissionNotifier());
+                publishResult(next, java.util.Objects.requireNonNull(execution.result()),
+                        execution.updatedContext(), false);
+            } catch (Exception failure) {
+                publishResult(next, ToolResult.internalError("TOOL_EXECUTION_EXCEPTION",
+                        "<tool_use_error>Execution error: " + failure.getMessage() + "</tool_use_error>",
+                        pipelineStarted ? ToolResult.EffectState.UNKNOWN : ToolResult.EffectState.NOT_STARTED),
+                        null, true);
+            } finally {
+                try {
+                    // Error still propagates, but no exited worker may leave an EXECUTING record.
+                    if (next.state == ToolState.EXECUTING) {
+                        publishResult(next, ToolResult.internalError("TOOL_EXECUTION_TERMINATED_WITHOUT_RESULT",
+                                "Tool execution terminated without a result; execution outcome unknown. "
+                                        + "Side effects may have occurred; verify before retrying.",
+                                pipelineStarted ? ToolResult.EffectState.UNKNOWN : ToolResult.EffectState.NOT_STARTED),
+                                null, true);
+                    }
+                } finally {
+                    try {
+                        if (sample != null) {
+                            sample.stop(Timer.builder("zhiku.tool.execution_time")
+                                    .tag("tool", next.tool.getName())
+                                    .description("Tool execution time").register(meterRegistry));
+                        }
+                    } catch (RuntimeException ignoredMetric) {
+                        // A timing failure cannot prevent worker/lease cleanup.
+                    } finally {
+                        activeVirtualThreads.decrementAndGet();
+                        synchronized (stateLock) {
+                            active.decrementAndGet();
+                            next.executionThread = null;
+                            next.executionExited = true;
+                        }
+                        notifyCompletion();
                         try {
-                            // Error bypasses catch(Exception). Publish a terminal result before
-                            // allowing it to propagate; an exited worker must not remain EXECUTING.
-                            if (next.state == ToolState.EXECUTING) {
-                                if (next.result == null) {
-                                    next.result = ToolResult.internalError("TOOL_EXECUTION_TERMINATED_WITHOUT_RESULT",
-                                            "Tool execution terminated without a result; execution outcome unknown. "
-                                                    + "Side effects may have occurred; verify before retrying.",
-                                            ToolResult.EffectState.UNKNOWN);
-                                }
-                                next.state = ToolState.COMPLETED;
-                                notifyCompletion();
-                                checkAndCascadeError(next);
-                            }
+                            processQueue();
                         } finally {
-                            try {
-                                sample.stop(Timer.builder("zhiku.tool.execution_time")
-                                        .tag("tool", next.tool != null ? next.tool.getName() : "unknown")
-                                        .description("Tool execution time")
-                                        .register(meterRegistry));
-                            } catch (RuntimeException metricFailure) {
-                                log.warn("Tool timing metric failed: toolUseId={}", next.toolUseId, metricFailure);
-                            } finally {
-                                activeVirtualThreads.decrementAndGet();
-                                active.decrementAndGet();
-                                next.executionThread = null;
-                                notifyCompletion();
-                                try {
-                                    processQueue();
-                                } finally {
-                                    try {
-                                        if (active.get() == 0 && queue.isEmpty()) deregister();
-                                    } finally {
-                                        next.executionExited = true;
-                                        notifyCompletion();
-                                    }
-                                }
-                            }
+                            deregister();
                         }
                     }
-                    }
-                });
+                }
+            }
+        }
+
+        private void publishDiscarded(TrackedTool next) {
+            publishResult(next, ToolResult.cancelled("TOOL_DISCARDED", "Tool execution discarded",
+                    ToolResult.EffectState.NOT_STARTED), null, false);
+        }
+
+        private void publishResult(TrackedTool tool, ToolResult result, ToolUseContext updatedContext,
+                                   boolean executionError) {
+            if (!completeOnce(tool, result, updatedContext)) return;
+            notifyCompletion();
+            observeSafely(toolExecutionTotal::increment);
+            if (executionError) observeSafely(toolExecutionErrors::increment);
+            if (tool.cascaded) {
+                observeSafely(cascadeAbortCounter::increment);
+                observeSafely(() -> log.warn(
+                        "[TOOL-CASCADE] High-risk tool failed; queued siblings will be discarded. "
+                                + "toolUseId={}, failureType={}, failureCode={}",
+                        tool.toolUseId, result.failureType(), result.failureCode()));
+            }
+            if (updatedContext != null && tool.concurrencySafe) {
+                observeSafely(() -> log.warn(
+                        "Concurrency-safe tool returned an ignored contextModifier: toolUseId={}", tool.toolUseId));
+            }
+        }
+
+        /** Context and cancellation become visible before the immutable result is published. */
+        private boolean completeOnce(TrackedTool tool, ToolResult result, ToolUseContext updatedContext) {
+            synchronized (stateLock) {
+                if (tool.state == ToolState.COMPLETED || tool.state == ToolState.YIELDED) return false;
+                if (updatedContext != null && !tool.concurrencySafe) currentContext.set(updatedContext);
+                if (tool.tool != null && tool.highRisk && result.isError()
+                        && result.failureType() != ToolResult.ToolFailureType.PERMISSION
+                        && result.failureType() != ToolResult.ToolFailureType.VALIDATION
+                        && !sessionDiscarded) {
+                    sessionDiscarded = true;
+                    tool.cascaded = true;
+                }
+                tool.result = result;
+                tool.updatedContext = updatedContext;
+                tool.state = ToolState.COMPLETED;
+                return true;
+            }
+        }
+
+        private void observeSafely(Runnable observation) {
+            try {
+                observation.run();
+            } catch (RuntimeException ignoredObservation) {
+                // Logging and metrics are optional; do not retry or republish a business result.
             }
         }
 
         /** 按原始顺序 yield 已完成的结果 */
         public List<TrackedTool> yieldCompleted() {
             List<TrackedTool> yielded = new ArrayList<>();
-            for (TrackedTool t : tracked) {
-                if (t.state == ToolState.YIELDED) continue;
-                if (t.state != ToolState.COMPLETED) break;
-                t.state = ToolState.YIELDED;
-                yielded.add(t);
+            synchronized (stateLock) {
+                for (TrackedTool t : tracked) {
+                    if (t.state == ToolState.YIELDED) continue;
+                    if (t.state != ToolState.COMPLETED) break;
+                    t.state = ToolState.YIELDED;
+                    yielded.add(t);
+                }
             }
             return yielded;
         }
@@ -525,35 +638,47 @@ public class StreamingToolExecutor {
         }
 
         private void discard(boolean cancelOwnedProcesses) {
-            this.sessionDiscarded = true;
-            ToolUseContext context = currentContext.get();
-            if (cancelOwnedProcesses && processRunner != null && context != null && context.currentRunId() != null) {
-                processRunner.cancelRun(context.currentRunId());
+            final List<Thread> threads;
+            synchronized (stateLock) {
+                discardQueuedTools();
+                threads = tracked.stream().filter(t -> t.state == ToolState.EXECUTING)
+                        .map(t -> t.executionThread).filter(java.util.Objects::nonNull).toList();
             }
+            ToolUseContext context = currentContext.get();
+            try {
+                if (cancelOwnedProcesses && processRunner != null && context != null && context.currentRunId() != null) {
+                    processRunner.cancelRun(context.currentRunId());
+                }
+            } finally {
+                threads.forEach(Thread::interrupt);
+                notifyCompletion();
+                deregister();
+            }
+        }
+
+        /** Caller holds stateLock; running tools retain their ownership until they exit. */
+        private void discardQueuedTools() {
+            sessionDiscarded = true;
             queue.clear();
-            tracked.stream().filter(t -> t.state == ToolState.EXECUTING)
-                    .map(t -> t.executionThread).filter(java.util.Objects::nonNull)
-                    .forEach(Thread::interrupt);
-            tracked.stream().filter(t -> t.state == ToolState.QUEUED).forEach(t -> {
-                t.result = ToolResult.cancelled("TOOL_NOT_STARTED", "Cancelled before execution",
-                        ToolResult.EffectState.NOT_STARTED);
-                t.state = ToolState.COMPLETED;
-                t.executionExited = true;
-            });
-            notifyCompletion();
-            deregister();
+            for (TrackedTool tool : tracked) {
+                if (tool.state == ToolState.QUEUED) {
+                    completeOnce(tool, ToolResult.cancelled("TOOL_NOT_STARTED", "Cancelled before execution",
+                            ToolResult.EffectState.NOT_STARTED), null);
+                    tool.executionExited = true;
+                }
+            }
         }
 
         private boolean awaitStopped(long deadlineNanos) {
             synchronized (completionLock) {
-                while (active.get() > 0) {
+                while (active.get() > 0 || pendingSubmissions != 0) {
                     long remaining = deadlineNanos - System.nanoTime();
                     if (remaining <= 0) return false;
                     try {
                         TimeUnit.NANOSECONDS.timedWait(completionLock, remaining);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
-                        return active.get() == 0;
+                        return active.get() == 0 && pendingSubmissions == 0;
                     }
                 }
                 return true;
@@ -566,16 +691,21 @@ public class StreamingToolExecutor {
         }
 
         private void deregister() {
-            if (ownerRunId != null && sessionRegistered.get()) {
+            synchronized (registrationLock) {
+                if (!sessionRegistered || pendingSubmissions != 0) return;
+                synchronized (stateLock) {
+                    if (active.get() != 0 || !queue.isEmpty()) return;
+                }
+                // addTool reserves admission under registrationLock, so this generation is idle.
                 sessionsByRun.computeIfPresent(ownerRunId, (ignored, sessions) -> {
                     sessions.remove(this);
                     return sessions.isEmpty() ? null : sessions;
                 });
-            }
-            RunExecutionRegistry.WorkLease lease = workLease;
-            if (active.get() == 0 && queue.isEmpty()
-                    && lease != null && workLeaseClosed.compareAndSet(false, true)) {
-                lease.close();
+                RunExecutionRegistry.WorkLease retired = workLease;
+                workLease = null;
+                sessionRegistered = false;
+                // Registry calls must remain outside stateLock, including synchronous cancellation.
+                if (retired != null) retired.close();
             }
         }
 
@@ -584,37 +714,19 @@ public class StreamingToolExecutor {
                  */
         public void addErrorResult(String toolUseId, String errorContent) {
             TrackedTool tt = new TrackedTool(toolUseId, null, null, null);
-            tt.result = ToolResult.internalError("TOOL_SIBLING_ABORTED", errorContent,
-                    ToolResult.EffectState.NOT_STARTED);
-            tt.state = ToolState.COMPLETED;
-            tracked.add(tt);
+            synchronized (stateLock) {
+                completeOnce(tt, ToolResult.internalError("TOOL_SIBLING_ABORTED", errorContent,
+                        ToolResult.EffectState.NOT_STARTED), null);
+                tt.executionExited = true;
+                tracked.add(tt);
+            }
+            notifyCompletion();
         }
 
         /** 是否有未完成的工具 */
         public boolean hasUnfinishedTools() {
             return tracked.stream().anyMatch(t ->
                     t.state == ToolState.QUEUED || t.state == ToolState.EXECUTING);
-        }
-
-        /**
-         * 通过 CAS 循环安全地更新会话级上下文。
-         * 若多个非并发安全工具顺序完成，CAS 保证每次更新基于最新状态。
-         *
-         * 超时保护：最多重试 100 次 CAS，防止异常场景下无限循环。
-         */
-        private void applyContextModifier(ToolUseContext newContext) {
-            int maxRetries = 100;  // CAS 超时保护
-            int attempt = 0;
-            ToolUseContext prev;
-            do {
-                if (++attempt > maxRetries) {
-                    log.warn("CAS loop exceeded {} retries for contextModifier, using last known context", maxRetries);
-                    currentContext.set(newContext);  // 强制设置，避免卡死
-                    return;
-                }
-                prev = currentContext.get();
-            } while (!currentContext.compareAndSet(prev, newContext));
-            log.debug("Context updated via contextModifier (CAS attempts: {})", attempt);
         }
 
         /**
@@ -640,74 +752,6 @@ public class StreamingToolExecutor {
             synchronized (completionLock) {
                 completionLock.notifyAll();
             }
-        }
-
-        /**
-         * 选择性错误级联检查 — 仅高危工具（bash/call_agent）的错误才触发 sibling abort。
-         * <p>
-         * 设计原则：
-         * <ul>
-         *   <li>读取类工具（grep/read/glob/list_dir）的错误属常态，不级联</li>
-         *   <li>其他工具的错误默认不级联，避免误伤</li>
-         *   <li>仅 bash 与 call_agent 等会产生外部副作用/调度子任务的高危工具，错误后
-         *       discard sibling tools，防止后续工具基于失败前提继续执行</li>
-         * </ul>
-         */
-        private void checkAndCascadeError(TrackedTool next) {
-            ToolResult result = next.result;
-            if (result == null || !result.isError() || next.tool == null) return;
-
-            String toolName = next.tool.getName();
-            boolean isHighRisk = next.tool.isHighRisk();
-            int queuedCount = (int) tracked.stream().filter(t -> t.state == ToolState.QUEUED).count();
-            int executingCount = active.get();
-            String failureCode = result.failureCode();
-            var failureType = result.failureType();
-
-            log.debug("[TOOL-CASCADE] Evaluating cascade: tool={}, toolUseId={}, isHighRisk={}, " +
-                            "failureType={}, failureCode={}, sessionDiscarded={}, queuedSiblings={}, executingSiblings={}",
-                    toolName, next.toolUseId, isHighRisk, failureType, failureCode,
-                    sessionDiscarded, queuedCount, executingCount);
-
-            // ★ FailureType 枚举判断：非系统级失败不触发级联丢弃
-            if (failureType != null) {
-                switch (failureType) {
-                    case PERMISSION:
-                    case VALIDATION:
-                        // 权限类/验证类是单工具级别的问题，不应级联丢弃兄弟工具
-                        log.info("[TOOL-CASCADE] Skipping cascade discard for non-systemic failure: type={}, toolUseId={}",
-                                failureType, next.toolUseId);
-                        return;
-                    default:
-                        // PROCESS, NETWORK, INTERNAL, PROVIDER 等可能表示系统级问题，保留级联判断
-                        log.debug("[TOOL-CASCADE] Systemic failure type detected: type={}, tool={}, proceeding with cascade evaluation",
-                                failureType, toolName);
-                        break;
-                }
-            }
-
-            boolean shouldCascade = isHighRisk;
-            if (!shouldCascade) {
-                log.debug("[TOOL-CASCADE] No cascade: tool='{}' is not high-risk, skipping. toolUseId={}",
-                        toolName, next.toolUseId);
-                return;
-            }
-            if (sessionDiscarded) {
-                log.debug("[TOOL-CASCADE] No cascade: session already discarded. tool='{}', toolUseId={}",
-                        toolName, next.toolUseId);
-                return;
-            }
-
-            String content = result.content();
-            String snippet = content != null
-                    ? content.substring(0, Math.min(200, content.length()))
-                    : "null";
-            int affectedCount = queuedCount + executingCount;
-            log.warn("[TOOL-CASCADE] High-risk tool '{}' (id={}) errored, discarding {} sibling tools. " +
-                            "failureType={}, failureCode={}, error: {}",
-                    toolName, next.toolUseId, affectedCount, failureType, failureCode, snippet);
-            sessionDiscarded = true;
-            cascadeAbortCounter.increment();
         }
 
         /** 注册工具预期执行时间 */

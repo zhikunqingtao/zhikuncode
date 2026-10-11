@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,7 +56,7 @@ class QueryEngineErrorRecoveryTest {
     private QueryLoopState state;
     private int calls;
 
-    private final Tool tool = new Tool() {
+    private Tool tool = new Tool() {
         @Override public String getName() { return "mcp__recovery__probe"; }
         @Override public String getDescription() { return "Returns a scripted result without external effects"; }
         @Override public Map<String, Object> getInputSchema() { return Map.of("type", "object"); }
@@ -209,6 +211,80 @@ class QueryEngineErrorRecoveryTest {
         assertThat(recoveryHints()).hasSize(1);
         verify(handler, times(6)).onToolResult(anyString(), any());
         verify(handler, never()).onTurnEnd(anyInt(), eq("request_user_input"));
+    }
+
+    @Test
+    void highRiskFailurePersistsOneResultPerCallAndContinuesWithReplayableHistory() {
+        ToolResult failure = ToolResult.failed(ToolResult.ToolFailureType.PROCESS,
+                "BASH_NON_RETRYABLE", "Synthetic process failure", ToolResult.Retryability.NEVER,
+                ToolResult.EffectState.UNKNOWN, 1, Map.of());
+        CountDownLatch allToolsSubmitted = new CountDownLatch(1);
+        List<String> executedIds = Collections.synchronizedList(new ArrayList<>());
+        tool = new Tool() {
+            @Override public String getName() { return "Bash"; }
+            @Override public String getDescription() { return "Simulates a high-risk failure without running a process"; }
+            @Override public Map<String, Object> getInputSchema() { return Map.of("type", "object"); }
+            @Override public boolean isHighRisk() { return true; }
+            @Override public boolean isConcurrencySafe(ToolInput input) { return false; }
+            @Override public ToolResult call(ToolInput input, ToolUseContext context) {
+                executedIds.add(context.toolUseId());
+                if (!"call-0-0".equals(context.toolUseId())) {
+                    return ToolResult.success("A sibling unexpectedly executed");
+                }
+                try {
+                    if (!allToolsSubmitted.await(5, TimeUnit.SECONDS)) {
+                        throw new AssertionError("The query loop did not submit the complete tool batch");
+                    }
+                } catch (InterruptedException interrupted) {
+                    Thread.currentThread().interrupt();
+                    throw new AssertionError("The first tool was interrupted before its scripted failure", interrupted);
+                }
+                return failure;
+            }
+        };
+        // These callbacks follow submitValidatedTools, so the first failure sees all five queued siblings.
+        doAnswer(inv -> {
+            allToolsSubmitted.countDown();
+            return null;
+        }).when(handler).onToolUseComplete(eq("call-0-5"), any());
+        List<Message> persisted = new ArrayList<>(state.getMessages());
+        state.setPersistenceSink(persisted::add);
+        script(new Reply(Collections.nCopies(6, failure), null, "tool_use"), done());
+
+        QueryEngine.QueryResult result;
+        try {
+            result = execute(4);
+        } finally {
+            allToolsSubmitted.countDown();
+        }
+
+        assertThat(result.isSuccess()).isTrue();
+        assertThat(calls).isEqualTo(2);
+        assertThat(executedIds).containsExactly("call-0-0");
+        List<Message.UserMessage> resultMessages = persisted.stream()
+                .filter(Message.UserMessage.class::isInstance).map(Message.UserMessage.class::cast)
+                .filter(message -> message.content().stream().anyMatch(ContentBlock.ToolResultBlock.class::isInstance))
+                .toList();
+        assertThat(resultMessages).hasSize(6);
+        assertThat(resultMessages).extracting(Message.UserMessage::uuid).doesNotHaveDuplicates();
+        List<ContentBlock.ToolResultBlock> results = resultMessages.stream()
+                .flatMap(message -> message.content().stream()).filter(ContentBlock.ToolResultBlock.class::isInstance)
+                .map(ContentBlock.ToolResultBlock.class::cast).toList();
+        assertThat(results).extracting(ContentBlock.ToolResultBlock::toolUseId)
+                .containsExactly("call-0-0", "call-0-1", "call-0-2", "call-0-3", "call-0-4", "call-0-5");
+        assertThat(results).allMatch(ContentBlock.ToolResultBlock::isError);
+        assertThat(results.getFirst().content()).isEqualTo(failure.content());
+        ArgumentCaptor<LoopContext> contexts = ArgumentCaptor.forClass(LoopContext.class);
+        verify(strategy, times(2)).evaluate(contexts.capture());
+        assertThat(contexts.getAllValues()).extracting(LoopContext::consecutiveErrors).containsExactly(6, 6);
+        assertThat(recoveryHints()).hasSize(1);
+        verify(handler, times(6)).onToolResult(anyString(), any());
+        verify(handler).onTurnEnd(1, "switch_strategy");
+        verify(handler).onTurnEnd(2, "end_turn");
+        verify(handler, never()).onError(any());
+        List<Message> replay = CompactionHistory.forRequest(List.copyOf(persisted));
+        assertThat(CompactionHistory.forRequest(replay)).isEqualTo(replay);
+        assertThat(CompactionHistory.analyze(replay).canonical()).isEqualTo(replay);
     }
 
     @Test

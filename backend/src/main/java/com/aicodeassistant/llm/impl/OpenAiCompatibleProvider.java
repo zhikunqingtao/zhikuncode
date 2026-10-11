@@ -308,6 +308,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                         return;
                     }
                     if (routerReasoning != null) routerReasoning.complete(objectMapper, callback);
+                    logObservedTailMarker(callId, response, "done", diagnostics);
                     callback.onComplete();
                     return;
                 }
@@ -331,6 +332,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                 return;
             }
             // A normal compatible endpoint may end at EOF after a valid finish_reason.
+            logObservedTailMarker(callId, response, "eof", diagnostics);
             callback.onComplete();
 
         } catch (IOException e) {
@@ -368,7 +370,25 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         }
     }
 
-    /** Retains only two bounded frames; logs their structure, never their content. */
+    private void logObservedTailMarker(String callId, Response response, String end,
+                                    StreamDiagnostics diagnostics) {
+        try {
+            if (!log.isWarnEnabled() || !diagnostics.hasObservedTailMarker()) return;
+            String upstreamId = response.header("x-request-id");
+            if (upstreamId == null) upstreamId = response.header("x-trace-id");
+            if (upstreamId != null) {
+                upstreamId = upstreamId.substring(0, Math.min(upstreamId.length(), 128));
+                upstreamId = upstreamId.replaceAll("[^A-Za-z0-9._-]", "_");
+            }
+            log.warn("OpenAI stream tail marker observed: callId={}, textChars={}, "
+                            + "rawFinishReason={}, end={}, upstreamRequestId={}",
+                    callId, diagnostics.textChars, diagnostics.rawFinishReason, end, upstreamId);
+        } catch (RuntimeException diagnosticFailure) {
+            // This observation must never alter output or stream completion.
+        }
+    }
+
+    /** Retains bounded frame/tail state; logs metadata, never message content. */
     private static final class StreamDiagnostics {
         private static final int MAX_FRAME_CHARS = 16_384;
         private String lastFrame;
@@ -377,6 +397,76 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         private boolean lastIgnoredFrameTruncated;
         private int ignoredDataFrames;
         private String firstIssue;
+        private static final int OUTPUT_TAIL_CHARS = 64;
+        private boolean inspectOutput;
+        private StringBuilder outputTail;
+        private StringBuilder pendingWhitespace;
+        private long textChars;
+        private String rawFinishReason = "none";
+
+        StreamDiagnostics() {
+            try {
+                inspectOutput = log.isWarnEnabled();
+                if (inspectOutput) {
+                    outputTail = new StringBuilder(OUTPUT_TAIL_CHARS);
+                    pendingWhitespace = new StringBuilder(OUTPUT_TAIL_CHARS);
+                }
+            } catch (RuntimeException diagnosticFailure) {
+                inspectOutput = false;
+            }
+        }
+
+        void observeFinishReason(String finishReason) {
+            try {
+                if (!inspectOutput || finishReason == null || finishReason.isBlank()) return;
+                rawFinishReason = switch (finishReason) {
+                    case "stop", "end_turn", "tool_calls", "length", "content_filter", "function_call" -> finishReason;
+                    default -> "other";
+                };
+            } catch (RuntimeException diagnosticFailure) {
+                inspectOutput = false;
+            }
+        }
+
+        /** Inspect only a bounded suffix, apart from skipping trailing whitespace. */
+        void observeText(String text) {
+            try {
+                if (!inspectOutput) return;
+                textChars += text.length();
+                int end = text.length();
+                while (end > 0 && isOutputWhitespace(text.charAt(end - 1))) end--;
+                if (end > 0) {
+                    appendOutputTail(outputTail, pendingWhitespace, 0, pendingWhitespace.length());
+                    pendingWhitespace.setLength(0);
+                    appendOutputTail(outputTail, text, 0, end);
+                }
+                // Preserve trailing blanks until more text arrives, so internal blanks are never removed.
+                appendOutputTail(pendingWhitespace, text, end, text.length());
+            } catch (RuntimeException diagnosticFailure) {
+                inspectOutput = false;
+            }
+        }
+
+        boolean hasObservedTailMarker() {
+            return inspectOutput && ("stop".equals(rawFinishReason) || "end_turn".equals(rawFinishReason))
+                    && outputTail.toString().endsWith("...(content truncated)");
+        }
+
+        private static boolean isOutputWhitespace(char c) {
+            return c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\f' || c == 0x0b;
+        }
+
+        private static void appendOutputTail(StringBuilder target, CharSequence text, int start, int end) {
+            int size = end - start;
+            if (size >= OUTPUT_TAIL_CHARS) {
+                target.setLength(0);
+                target.append(text, end - OUTPUT_TAIL_CHARS, end);
+            } else {
+                int excess = target.length() + size - OUTPUT_TAIL_CHARS;
+                if (excess > 0) target.delete(0, excess);
+                target.append(text, start, end);
+            }
+        }
 
         void recordIssue(String issue) {
             if (firstIssue == null) firstIssue = issue;
@@ -1282,6 +1372,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             String rawFinishReason = choice.has("finish_reason") && !choice.get("finish_reason").isNull()
                     ? choice.get("finish_reason").asText() : null;
             String finishReason = normalizeFinishReason(rawFinishReason);
+            if (diagnostics != null) diagnostics.observeFinishReason(rawFinishReason);
 
             if (delta != null) {
                 // DeepSeek reasoning_content 思考增量
@@ -1296,6 +1387,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                 if (delta.has("content") && !delta.get("content").isNull()) {
                     String text = delta.get("content").asText();
                     if (!text.isEmpty()) {
+                        if (diagnostics != null) diagnostics.observeText(text);
                         callback.onEvent(new LlmStreamEvent.TextDelta(text));
                     }
                 }

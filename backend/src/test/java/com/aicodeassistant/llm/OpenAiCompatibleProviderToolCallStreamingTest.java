@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.LoggerContext;
@@ -138,6 +139,160 @@ class OpenAiCompatibleProviderToolCallStreamingTest {
         Capture capture = runRaw("data: " + finishChunk() + "\n\n");
         assertTrue(capture.completed);
         assertNull(capture.error);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void completedStreamDiagnosesCrossDeltaMarkerWithoutChangingOutput(boolean withDone) {
+        String first = "private reply\n...(content ";
+        String second = "truncated)";
+        String thinking = "private reasoning";
+        String trailingWhitespace = "\n" + " ".repeat(256);
+        String upstreamId = "upstream/\t injected " + "x".repeat(140);
+        String body = "data: " + textChunk(first, thinking, null) + "\n\n"
+                + "data: " + textChunk(second, null, "stop") + "\n\n"
+                + "data: " + textChunk(trailingWhitespace, null, null) + "\n\n"
+                + "data: " + usageChunk() + "\n\n"
+                + (withDone ? "data: [DONE]\n\n" : "");
+        var appender = new CapturingAppender();
+        appender.start();
+        LoggerConfig appLoggers = appLoggerConfig();
+        appLoggers.addAppender(appender, null, null);
+        try {
+            server.enqueue(new MockResponse().setResponseCode(200)
+                    .setHeader("Content-Type", "text/event-stream")
+                    .setHeader("x-request-id", upstreamId).setBody(body));
+            Capture capture = new Capture();
+            provider.streamChat("qwen3.8-max",
+                    List.of(Map.of("role", "user", "content", "test")),
+                    "system", List.of(), 1024, new ThinkingConfig.Disabled(),
+                    new LlmCallContext("output-diagnostic-test", new TestCancellationSignal()), capture);
+
+            assertTrue(capture.completed);
+            assertNull(capture.error);
+            assertEquals(6, capture.events.size());
+            assertEquals(thinking, assertInstanceOf(
+                    LlmStreamEvent.ThinkingDelta.class, capture.events.get(0)).thinking());
+            assertEquals(first, assertInstanceOf(
+                    LlmStreamEvent.TextDelta.class, capture.events.get(1)).text());
+            assertEquals(second, assertInstanceOf(
+                    LlmStreamEvent.TextDelta.class, capture.events.get(2)).text());
+            assertEquals("end_turn", assertInstanceOf(
+                    LlmStreamEvent.MessageDelta.class, capture.events.get(3)).stopReason());
+            assertEquals(trailingWhitespace, assertInstanceOf(
+                    LlmStreamEvent.TextDelta.class, capture.events.get(4)).text());
+            assertNull(assertInstanceOf(
+                    LlmStreamEvent.MessageDelta.class, capture.events.get(5)).stopReason());
+
+            List<LogEvent> diagnostics = appender.outputDiagnostics();
+            assertEquals(1, diagnostics.size());
+            assertEquals(Level.WARN, diagnostics.getFirst().getLevel());
+            String diagnostic = diagnostics.getFirst().getMessage().getFormattedMessage();
+            assertTrue(diagnostic.contains("callId=output-diagnostic-test"));
+            assertTrue(diagnostic.contains("end=" + (withDone ? "done" : "eof")));
+            assertTrue(diagnostic.contains("rawFinishReason=stop"));
+            assertTrue(diagnostic.contains("textChars="
+                    + (first.length() + second.length() + trailingWhitespace.length())));
+            String safeUpstreamId = upstreamId.substring(0, 128).replaceAll("[^A-Za-z0-9._-]", "_");
+            assertTrue(diagnostic.endsWith("upstreamRequestId=" + safeUpstreamId));
+            assertFalse(diagnostic.contains(first));
+            assertFalse(diagnostic.contains(second));
+            assertFalse(diagnostic.contains(thinking));
+            assertFalse(diagnostic.contains("Bearer key"));
+            assertFalse(diagnostic.contains(upstreamId));
+            assertFalse(diagnostic.contains("\n"));
+            assertFalse(diagnostic.contains("\t"));
+        } finally {
+            appLoggers.removeAppender(appender.getName());
+            appender.stop();
+        }
+        assertNoResidualProviderLoggerConfig();
+    }
+
+    @Test
+    void ordinaryOutputAndOtherEndingsHaveNoNewDiagnostic() {
+        var appender = new CapturingAppender();
+        appender.start();
+        LoggerConfig appLoggers = appLoggerConfig();
+        appLoggers.addAppender(appender, null, null);
+        try {
+            for (String[] chunks : List.of(
+                    new String[]{textChunk("ordinary reply", null, "stop")},
+                    new String[]{textChunk("...(con", null, null), textChunk("\n", null, null),
+                            textChunk("tent truncated)", null, "stop")},
+                    new String[]{textChunk("...(content truncated)", null, null),
+                            textChunk(" ", null, null), textChunk("continued", null, "stop")},
+                    new String[]{textChunk("[content truncated by system]", null, "stop")},
+                    new String[]{textChunk("...(content truncated)", null, "tool_calls")},
+                    new String[]{textChunk("...(content truncated)", null, "length")},
+                    new String[]{textChunk("...(content truncated)", null, "private-finish\nforged-log")})) {
+                Capture capture = run(chunks);
+                assertTrue(capture.completed);
+                assertNull(capture.error);
+            }
+            assertTrue(appender.outputDiagnostics().isEmpty());
+        } finally {
+            appLoggers.removeAppender(appender.getName());
+            appender.stop();
+        }
+        assertNoResidualProviderLoggerConfig();
+    }
+
+    @Test
+    void disabledTailDiagnosticLeavesOutputUnchanged() {
+        var appender = new CapturingAppender();
+        appender.start();
+        LoggerConfig appLoggers = appLoggerConfig();
+        LoggerContext context = (LoggerContext) LogManager.getContext(false);
+        Level originalLevel = appLoggers.getLevel();
+        appLoggers.addAppender(appender, null, null);
+        try {
+            appLoggers.setLevel(Level.ERROR);
+            context.updateLoggers();
+            String text = "reply\n...(content truncated)";
+            Capture capture = run(textChunk(text, null, "stop"));
+            assertTrue(capture.completed);
+            assertNull(capture.error);
+            assertEquals(text, assertInstanceOf(LlmStreamEvent.TextDelta.class, capture.events.getFirst()).text());
+            assertEquals("end_turn", assertInstanceOf(
+                    LlmStreamEvent.MessageDelta.class, capture.events.get(1)).stopReason());
+            assertTrue(appender.outputDiagnostics().isEmpty());
+        } finally {
+            appLoggers.setLevel(originalLevel);
+            context.updateLoggers();
+            appLoggers.removeAppender(appender.getName());
+            appender.stop();
+        }
+        assertNoResidualProviderLoggerConfig();
+    }
+
+    @Test
+    void outputDiagnosticAppenderFailureDoesNotChangeCompletion() {
+        var diagnosticAttempted = new AtomicBoolean();
+        var failingAppender = new AbstractAppender("failing-output-diagnostic-test", null, null, false, null) {
+            @Override public void append(LogEvent event) {
+                if (event.getMessage().getFormattedMessage().startsWith("OpenAI stream tail marker observed:")) {
+                    diagnosticAttempted.set(true);
+                    throw new IllegalStateException("diagnostic write failed");
+                }
+            }
+        };
+        failingAppender.start();
+        LoggerConfig appLoggers = appLoggerConfig();
+        appLoggers.addAppender(failingAppender, null, null);
+        try {
+            String text = "reply\n...(content truncated)";
+            Capture capture = run(textChunk(text, null, "stop"));
+            assertTrue(diagnosticAttempted.get());
+            assertTrue(capture.completed);
+            assertNull(capture.error);
+            assertEquals(text, assertInstanceOf(LlmStreamEvent.TextDelta.class, capture.events.getFirst()).text());
+            assertEquals(2, capture.events.size());
+        } finally {
+            appLoggers.removeAppender(failingAppender.getName());
+            failingAppender.stop();
+        }
+        assertNoResidualProviderLoggerConfig();
     }
 
     @Test
@@ -417,11 +572,18 @@ class OpenAiCompatibleProviderToolCallStreamingTest {
 
     private static final class CapturingAppender extends AbstractAppender {
         final List<String> messages = new ArrayList<>();
+        final List<LogEvent> events = new ArrayList<>();
 
         CapturingAppender() { super("stream-diagnostic-test", null, null, true, null); }
 
         @Override public void append(LogEvent event) {
             messages.add(event.getMessage().getFormattedMessage());
+            events.add(event.toImmutable());
+        }
+
+        List<LogEvent> outputDiagnostics() {
+            return events.stream().filter(event -> event.getMessage().getFormattedMessage()
+                    .startsWith("OpenAI stream tail marker observed:")).toList();
         }
     }
 
@@ -526,6 +688,17 @@ class OpenAiCompatibleProviderToolCallStreamingTest {
         ObjectNode function = toolCall.putObject("function");
         if (name != null) function.put("name", name);
         function.put("arguments", arguments);
+        return root.toString();
+    }
+
+    private String textChunk(String text, String thinking, String finishReason) {
+        ObjectNode root = mapper.createObjectNode();
+        ObjectNode choice = root.putArray("choices").addObject();
+        ObjectNode delta = choice.putObject("delta");
+        if (text != null) delta.put("content", text);
+        if (thinking != null) delta.put("reasoning_content", thinking);
+        if (finishReason == null) choice.putNull("finish_reason");
+        else choice.put("finish_reason", finishReason);
         return root.toString();
     }
 
