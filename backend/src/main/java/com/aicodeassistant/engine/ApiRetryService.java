@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.function.Supplier;
 
 /**
@@ -160,9 +161,9 @@ public class ApiRetryService {
                         ? MAX_CONNECT_FAILURE_ATTEMPTS : DEFAULT_MAX_RETRIES;
                 if (attempt >= maxAttempts) {
                     circuitBreaker.recordFailure();
-                    log.error("LLM retry exhausted: attempts={}, connectFailure={}, querySource={}, model={}, status={}, errorType={}",
+                    log.error("LLM retry exhausted: attempts={}, connectFailure={}, querySource={}, model={}, status={}, errorType={}, exceptionChain={}",
                             maxAttempts, connectFailure, querySource, currentModel,
-                            e.getStatusCode(), e.getErrorType());
+                            e.getStatusCode(), e.getErrorType(), exceptionTypeChain(e));
                     throw e;
                 }
 
@@ -170,9 +171,9 @@ public class ApiRetryService {
                 long delay = connectFailure
                         ? CONNECT_RETRY_DELAY_MS
                         : calculateDelayWithModelAwareness(attempt, e, currentModel);
-                log.warn("LLM retry scheduled: attempt={}, maxRetries={}, delayMs={}, querySource={}, model={}, status={}, errorType={}, retryAfterMs={}",
+                log.warn("LLM retry scheduled: attempt={}, maxRetries={}, delayMs={}, querySource={}, model={}, status={}, errorType={}, retryAfterMs={}, exceptionChain={}",
                         attempt, maxAttempts, delay, querySource, currentModel,
-                        e.getStatusCode(), e.getErrorType(), e.getRetryAfterMs());
+                        e.getStatusCode(), e.getErrorType(), e.getRetryAfterMs(), exceptionTypeChain(e));
 
                 try {
                     java.util.concurrent.CountDownLatch cancelled = new java.util.concurrent.CountDownLatch(1);
@@ -188,6 +189,24 @@ public class ApiRetryService {
                 }
             }
         }
+    }
+
+    /** Diagnostic only: retain cause types without logging messages, request data or stack traces. */
+    private static String exceptionTypeChain(Throwable error) {
+        StringJoiner types = new StringJoiner(" -> ");
+        try {
+            Throwable current = error;
+            // Bound traversal even for cyclic or unusually deep cause chains.
+            for (int depth = 0; current != null && depth < 16; depth++) {
+                types.add(current.getClass().getName());
+                current = current.getCause();
+            }
+            if (current != null) types.add("[truncated]");
+        } catch (RuntimeException ignored) {
+            // Diagnostics must not replace the original failure or change retry behavior.
+            types.add("[unavailable]");
+        }
+        return types.toString();
     }
 
     /** Diagnostic-only count for the most recent logical call on the current thread. */
