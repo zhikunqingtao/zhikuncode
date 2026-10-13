@@ -146,7 +146,7 @@ Eight AI coding tools reviewed the same commit. Their final reports were compare
 | 🌍 | **Meoo App Publishing (Optional)** | Use `/publish-meoo` to publish a verified static website or full-stack app as a new site with a shareable URL. Disabled by default; outside full-access (AUTO_APPROVE) mode, each publication requires separate approval |
 | 🎙️ | **Voice Interaction (ASR / TTS)** | Microphone speech-to-text input (qwen3-asr-flash) and one-click text-to-speech for AI replies (qwen3-tts-flash); powered by Alibaba Cloud DashScope — just configure the API Key; buttons auto-hide when unconfigured |
 | ⚡ | **Intelligent Context Management** | Six-layer compression cascade (Snip / MicroCompact / ContextCollapse / AutoCompact / CollapseDrain / ReactiveCompact) + incremental collapse (auto-compress every 10 turns) + two-stage context compaction for 413 (CollapseDrain aggressive compression → ReactiveCompact) + Precise Token Counting (tiktoken multi-model support) + Self-Correction Loop (SelfCorrectionLoop, auto-diagnose compile/test failures, max 3 retries) + three-level token alerts + image context governance (large image externalization → on-demand injection → budget guard three-layer protection) for seamless ultra-long conversations. The core engines are ContextCascade and QueryEngine |
-| 📷 | **Multimodal Image Chat** | Upload images for AI analysis; **Intelligent Vision Routing** — when the selected model lacks image input support, the system auto-routes to a vision-capable model and reverts afterward. DeepSeek V4.1 Flash (`deepseek-flash`) supports native vision and is the DeepSeek-family image fallback. **Image Budget Guard** externalizes large images (>50KB), injects them on demand, and applies a two-phase token budget guard (≤1.5MB per image, ≤2MB total, and at most 8 images injected per API call). ZenMux image models include Fable 5.1, GPT-5.6 Sol, GPT-6 Astra, Gemini 3.8 Flash, and Grok 4.6 (limits vary by model) |
+| 📷 | **Multimodal Image Chat** | Upload images for AI analysis; **Intelligent Vision Routing** — when the selected model lacks image input support, the system auto-routes to a vision-capable model and reverts afterward. DeepSeek V4.1 Flash (`deepseek-flash`) supports native vision and is the DeepSeek-family image fallback. **Image Budget Guard** externalizes large images (>50KB), injects them on demand, and applies a two-phase token budget guard (≤1.5MB per image, ≤2MB total, and at most 8 images injected per API call). ZenMux image models include Fable 5.1, Opus 5.5, Sonnet 5.5, Haiku 5.5, GPT-5.6 Sol, GPT-6 Astra, Gemini 3.8 Flash, and Grok 4.6 (limits vary by model) |
 | 🖼️ | **Browser Semantic Snapshot** | `/snap` command captures full web page state (DOM structure + interactive elements), extracts structured JSON for Agent parsing and replay verification |
 | 📊 | **Real-Time Activity Tracking & Approval** | Activity Panel records full AI tool execution lifecycle, L1/L2/L3 three-layer display, Signal smart tagging (auto_approve/review_recommended/needs_review), one-click batch approval, SQLite backend persistence, session restoration support |
 | 🧪 | **Runtime Verification Framework** | VerifierFactory tri-modal dispatch (browser/http_api/auto) + 8 HTTP action handlers + JSONPath assertions + evidence chain SQLite storage + Feature Flag dual-gating + frontend real-time progress panel |
@@ -374,7 +374,7 @@ LLM_PROVIDER_ZHIPU_API_KEY=your-zhipu-api-key-here
 # MiniMax
 LLM_PROVIDER_MINIMAX_API_KEY=your-minimax-api-key-here
 
-# ZenMux default catalog: Fable 5.1 / GPT-5.6 Sol / GPT-6 Astra / Gemini 3.8 Flash / Grok 4.6
+# ZenMux default catalog: Fable 5.1 / Opus 5.5 / Sonnet 5.5 / Haiku 5.5 / GPT-5.6 Sol / GPT-6 Astra / Gemini 3.8 Flash / Grok 4.6
 # Supports comma-separated multi-key: subscription key (sk-ss-v1- prefix) first,
 # pay-as-you-go key (sk-ai-v1- prefix) as fallback; auto cooldown 15 min and switch on
 # 402 quote_exceeded / 404 model_not_available.
@@ -397,7 +397,7 @@ If no multi-Provider keys are configured, the system automatically falls back to
 | **Moonshot (Kimi)** | `https://api.moonshot.cn/v1` | kimi-k3 | Direct connection; kimi-k3 features 1M context window and native vision |
 | **Zhipu (GLM)** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.3, glm-5.3-flash | China direct access |
 | **MiniMax** | `https://api.minimax.chat/v1` | MiniMax-M3 | 1M context window |
-| **ZenMux (Multi-Model Gateway)** | `https://zenmux.ai/api/v1` | anthropic/claude-fable-5.1 / openai/gpt-5.6-sol / openai/gpt-6-astra / google/gemini-3.8-flash / x-ai/grok-4.6 | Responses reasoning/tool continuation for OpenAI, Google, and xAI models · Image support |
+| **ZenMux (Multi-Model Gateway)** | `https://zenmux.ai/api/v1` | anthropic/claude-fable-5.1 / anthropic/claude-opus-5.5 / anthropic/claude-sonnet-5.5 / anthropic/claude-haiku-5.5 / openai/gpt-5.6-sol / openai/gpt-6-astra / google/gemini-3.8-flash / x-ai/grok-4.6 | Responses reasoning/tool continuation for OpenAI, Google, and xAI models · Image support |
 | **OpenAI** | `https://api.openai.com/v1` | gpt-5.6-sol / gpt-5.4-mini | Requires international network access |
 | **Local Ollama** | `http://localhost:11434/v1` | All Ollama models (ollama/*) | Fully offline |
 

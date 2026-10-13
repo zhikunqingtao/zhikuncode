@@ -90,6 +90,9 @@ function ModelPicker() {
     { id: 'glm-5.3-flash', name: 'GLM-5.3-Flash', description: '智谱多模态编程模型' },
     { id: 'MiniMax-M3', name: 'MiniMax M3', description: '百万上下文' },
     { id: 'anthropic/claude-fable-5.1', name: 'claude-fable-5.1', description: '1M上下文 · Mythos级' },
+    { id: 'anthropic/claude-opus-5.5', name: 'claude-opus-5.5', description: '1M上下文 · 旗舰' },
+    { id: 'anthropic/claude-sonnet-5.5', name: 'claude-sonnet-5.5', description: '1M上下文 · 均衡' },
+    { id: 'anthropic/claude-haiku-5.5', name: 'claude-haiku-5.5', description: '1M上下文 · 快速' },
     { id: 'openai/gpt-5.6-sol', name: 'OpenAI GPT-5.6 Sol', description: 'OpenAI 旗舰模型' },
   ];
 

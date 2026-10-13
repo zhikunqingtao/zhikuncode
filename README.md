@@ -152,7 +152,7 @@ ZhikunCode 使用 Kimi K3 在 2026-08-09 凌晨一次性完成了一个纯静态
 | 🌍 | **秒悟应用发布（可选）** | 通过 `/publish-meoo` 将已验证的静态网站或全栈应用发布为独立新站点，获取可分享的网站链接；默认关闭，完全访问模式外每次发布需单独确认 |
 | 🎙️ | **语音交互（ASR / TTS）** | 对话输入支持麦克风语音识别（qwen3-asr-flash），AI 回复支持一键朗读（qwen3-tts-flash）；接入阿里云百炼 DashScope，配置 API Key 即用，未配置时自动隐藏 |
 | ⚡ | **智能上下文管理** | 六层压缩级联（Snip / MicroCompact / ContextCollapse / AutoCompact / CollapseDrain / ReactiveCompact）+ 增量折叠（每10轮自动压缩）+ 413 两级上下文压缩（CollapseDrain 激进压缩 → ReactiveCompact 反应式压缩）+ 精确 Token 计数（tiktoken 多模型支持）+ 自纠错循环（SelfCorrectionLoop，编译/测试失败自动诊断修复，最多3次）+ Token三级告警 + 图片上下文治理（大图外置化 → 按需注入 → 预算守卫三层防护），无缝应对超长对话。核心引擎为 ContextCascade 与 QueryEngine |
-| 📷 | **多模态图片对话** | 支持图片上传输入，模型自动识别图片内容并分析；**智能视觉模型路由**——当前模型不支持图片时，自动切换至同厂商视觉模型处理，处理完成后无缝切回原模型；DeepSeek V4.1 Flash（`deepseek-flash`）原生支持视觉，并作为 DeepSeek 系列图片理解兜底。**图片预算守卫**——大图片（>50KB）自动外置化为轻量 JSON 引用，API 调用前按需注入，两阶段 Token 预算守卫确保多图对话不累积超限（单张≤1.5MB，总量≤2MB，单次最多注入 8 张）。ZenMux 图片模型包括 Fable 5.1、GPT-5.6 Sol、GPT-6 Astra、Gemini 3.8 Flash 与 Grok 4.6（各模型数量上限见模型目录） |
+| 📷 | **多模态图片对话** | 支持图片上传输入，模型自动识别图片内容并分析；**智能视觉模型路由**——当前模型不支持图片时，自动切换至同厂商视觉模型处理，处理完成后无缝切回原模型；DeepSeek V4.1 Flash（`deepseek-flash`）原生支持视觉，并作为 DeepSeek 系列图片理解兜底。**图片预算守卫**——大图片（>50KB）自动外置化为轻量 JSON 引用，API 调用前按需注入，两阶段 Token 预算守卫确保多图对话不累积超限（单张≤1.5MB，总量≤2MB，单次最多注入 8 张）。ZenMux 图片模型包括 Fable 5.1、Opus 5.5、Sonnet 5.5、Haiku 5.5、GPT-5.6 Sol、GPT-6 Astra、Gemini 3.8 Flash 与 Grok 4.6（各模型数量上限见模型目录） |
 | 🖼️ | **浏览器语义快照** | `/snap` 命令智能捕获网页完整状态（DOM 结构 + 交互元素），支持富交互页面语义提取，生成结构化 JSON 供 Agent 解析和回放验证 |
 | 💬 | **轮次与任务过程视图** | 显示方式三档：精简档默认折叠问题、过程与回复，可分别展开；标准、完整过程档保留完整问题与回复，按档展示过程，运行中同样生效。移动端常驻输入卡片提供附件、语音和显示方式切换，首页模板可直接填入草稿。 |
 | 📊 | **实时活动追踪与审批** | Activity Panel 实时记录 AI 工具执行全流程，L1/L2/L3 三层展示体系，Signal 智能标记（auto_approve/review_recommended/needs_review），一键批量审批决策，SQLite 后端持久化，支持会话恢复 |
@@ -381,7 +381,7 @@ LLM_PROVIDER_ZHIPU_API_KEY=your-zhipu-api-key-here
 # MiniMax
 LLM_PROVIDER_MINIMAX_API_KEY=your-minimax-api-key-here
 
-# ZenMux（默认目录：Fable 5.1 / GPT-5.6 Sol / GPT-6 Astra / Gemini 3.8 Flash / Grok 4.6）
+# ZenMux（默认目录：Fable 5.1 / Opus 5.5 / Sonnet 5.5 / Haiku 5.5 / GPT-5.6 Sol / GPT-6 Astra / Gemini 3.8 Flash / Grok 4.6）
 # 支持逗号分隔多 Key：订阅 Key（sk-ss-v1- 前缀）放前优先、按量 Key（sk-ai-v1- 前缀）兜底；
 # 402 quote_exceeded / 404 model_not_available 时自动冷却 15 分钟切换到下一把 Key。
 LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
@@ -403,7 +403,7 @@ LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 | **Moonshot（Kimi）** | `https://api.moonshot.cn/v1` | kimi-k3 | 国内直连；kimi-k3 支持 1M 上下文和原生视觉 |
 | **Zhipu（智谱 GLM）** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.3, glm-5.3-flash | 国内直连 |
 | **MiniMax** | `https://api.minimax.chat/v1` | MiniMax-M3 | 百万上下文 |
-| **ZenMux（多模型中转）** | `https://zenmux.ai/api/v1` | anthropic/claude-fable-5.1 / openai/gpt-5.6-sol / openai/gpt-6-astra / google/gemini-3.8-flash / x-ai/grok-4.6 | OpenAI/Google/xAI 模型使用 Responses 推理与工具续轮；支持图片 |
+| **ZenMux（多模型中转）** | `https://zenmux.ai/api/v1` | anthropic/claude-fable-5.1 / anthropic/claude-opus-5.5 / anthropic/claude-sonnet-5.5 / anthropic/claude-haiku-5.5 / openai/gpt-5.6-sol / openai/gpt-6-astra / google/gemini-3.8-flash / x-ai/grok-4.6 | OpenAI/Google/xAI 模型使用 Responses 推理与工具续轮；支持图片 |
 | **OpenAI** | `https://api.openai.com/v1` | gpt-5.6-sol / gpt-5.4-mini | 需要外网访问 |
 | **本地 Ollama** | `http://localhost:11434/v1` | 支持所有 Ollama 模型（ollama/*） | 完全离线 |
 

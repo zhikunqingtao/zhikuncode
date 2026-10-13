@@ -20,6 +20,18 @@ class ZenMuxModelCatalogTest {
                 false, 5, .010, .050);
         assertThat(registry.getCapabilities("anthropic/claude-fable-5.1").supportsCache())
                 .isTrue();
+        assertCaps(registry, "anthropic/claude-opus-5.5", 64_000, 1_000_000,
+                false, 5, .004, .020);
+        assertCaps(registry, "anthropic/claude-sonnet-5.5", 64_000, 1_000_000,
+                false, 5, .002, .010);
+        assertCaps(registry, "anthropic/claude-haiku-5.5", 64_000, 1_000_000,
+                false, 5, .0001, .0005);
+        assertThat(registry.getCapabilities("anthropic/claude-opus-5.5").supportsCache())
+                .isTrue();
+        assertThat(registry.getCapabilities("anthropic/claude-sonnet-5.5").supportsCache())
+                .isTrue();
+        assertThat(registry.getCapabilities("anthropic/claude-haiku-5.5").supportsCache())
+                .isTrue();
         assertCaps(registry, "openai/gpt-6-astra", 128_000, 1_050_000,
                 true, 4, .010, .050);
         assertCaps(registry, "google/gemini-3.8-flash", 65_536, 1_048_576,

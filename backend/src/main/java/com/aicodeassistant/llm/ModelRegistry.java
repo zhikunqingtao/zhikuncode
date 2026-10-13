@@ -28,7 +28,11 @@ public class ModelRegistry {
         entry("claude-sonnet-4-6", caps("claude-sonnet-4-6", "Claude Sonnet 4.6",  16384, 200000, true, true, true, 10, true, 0.003, 0.015)),
         entry("claude-haiku-4-5", caps("claude-haiku-4-5", "Claude Haiku 4.5", 8192, 200000, true, false, true, 10, true, 0.0008, 0.004)),
          // Anthropic via ZenMux (anthropic/ 前缀 = zenmux 中转，1M ctx · 128K 最大输出，我们保守设 64K)
+        // 价格为网关 per-M 定价换算 per-1k（2026-10-12 核对）：Fable $10/$50、Opus 5.5 $4/$20、Sonnet 5.5 $2/$10、Haiku 5.5 $0.1/$0.5
         entry("anthropic/claude-fable-5.1", cacheCaps("anthropic/claude-fable-5.1", "Claude Fable 5.1（ZenMux）", 64000, 1000000, true, false, true, 5, true, 0.010, 0.050)),
+        entry("anthropic/claude-opus-5.5",   cacheCaps("anthropic/claude-opus-5.5",   "Claude Opus 5.5（ZenMux）",   64000, 1000000, true, false, true, 5, true, 0.004, 0.020)),
+        entry("anthropic/claude-sonnet-5.5", cacheCaps("anthropic/claude-sonnet-5.5", "Claude Sonnet 5.5（ZenMux）", 64000, 1000000, true, false, true, 5, true, 0.002, 0.010)),
+        entry("anthropic/claude-haiku-5.5",  cacheCaps("anthropic/claude-haiku-5.5",  "Claude Haiku 5.5（ZenMux）",  64000, 1000000, true, false, true, 5, true, 0.0001, 0.0005)),
         // OpenAI via ZenMux (openai/ 前缀 = zenmux 中转)
         entry("openai/gpt-5.6-sol",   caps("openai/gpt-5.6-sol",   "OpenAI GPT-5.6 Sol",   128000, 1050000, true,  true, true, 4, true, 0.030, 0.180)),
         entry("openai/gpt-6-astra",   caps("openai/gpt-6-astra",   "GPT-6 Astra（ZenMux）",   128000, 1050000, true,  true, true, 4, true, 0.010, 0.050)),
