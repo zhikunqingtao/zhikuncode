@@ -15,13 +15,20 @@ import org.slf4j.LoggerFactory;
 import java.io.EOFException;
 import java.io.IOException;
 import java.time.Duration;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.HexFormat;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -232,13 +239,41 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             return;
         }
 
+        StreamTransportAttempt attempt = new StreamTransportAttempt(callContext.requestId());
+        callback = attempt.callback(callback);
+        boolean claude = isZenMuxClaude(model);
+        StreamProgressCallback claudeCallback = claude ? new StreamProgressCallback(callback) : null;
+        if (claude) callback = claudeCallback;
         ObjectNode requestBody = buildOpenAiRequest(model, messages, systemPrompt, tools, maxTokens, thinkingConfig);
-        if(payloadGuard!=null)payloadGuard.validate("openai",model,requestBody,maxTokens);
+        if(payloadGuard!=null && !claude)payloadGuard.validate("openai",model,requestBody,maxTokens);
         log.debug("Starting model stream: model={}, messages={}", model, messages.size());
 
         // P1-12: 使用 Key 轮换管理器获取 API Key
-        String effectiveApiKey = keyRotationManager.getKeyCount() > 0
-                ? keyRotationManager.getNextKey() : apiKey;
+        String effectiveApiKey = keyRotationManager.getKeyCount() > 0 ? keyRotationManager.getNextKey() : apiKey;
+
+        ChatReasoningContinuation claudeReasoning = claude
+                ? ChatReasoningContinuation.prepare(objectMapper, requestBody, messages, model,
+                        baseUrl + "/chat/completions", effectiveApiKey) : null;
+        if (claude && payloadGuard != null) {
+            try {
+                payloadGuard.validate("openai", model, requestBody, maxTokens);
+            } catch (LlmApiException failure) {
+                boolean hasReasoning = false;
+                for (JsonNode message : requestBody.path("messages")) {
+                    if (!message.path("reasoning_details").isEmpty()) hasReasoning = true;
+                }
+                if (!"CONTEXT_BUDGET_EXCEEDED".equals(failure.getErrorType()) || !hasReasoning
+                        || !ChatReasoningContinuation.RESET_MODELS.contains(model)) throw failure;
+                // Optional private continuation must not force compaction of public history.
+                // Reset only if the same public request fits; both checks precede the sole HTTP call.
+                ObjectNode resetRequest = requestBody.deepCopy();
+                ChatReasoningContinuation reset = ChatReasoningContinuation.prepareReset(objectMapper,
+                        resetRequest, messages, model, baseUrl + "/chat/completions", effectiveApiKey);
+                payloadGuard.validate("openai", model, resetRequest, maxTokens);
+                requestBody = resetRequest;
+                claudeReasoning = reset;
+            }
+        }
 
         Request request = new Request.Builder()
                 .url(baseUrl + "/chat/completions")
@@ -249,7 +284,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
 
         String callId = callContext.requestId();
         log.debug("Sending model HTTP request: callId={}", callId);
-        Call call = httpClient.newCall(request);
+        Call call = attempt.newCall(httpClient, request);
         // 工具调用累积器 — OpenAI 的工具调用通过多个 delta 增量拼接
         Map<Integer, ToolCallAccumulator> toolCallAccumulators = new HashMap<>();
         java.util.concurrent.atomic.AtomicBoolean sawFinishReason =
@@ -260,6 +295,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         try (AutoCloseable ignored = LlmCallRegistration.register(activeCalls, callId, call,
                      callContext.cancellation(), Call::cancel);
              Response response = call.execute()) {
+            attempt.response(response);
             log.debug("Model HTTP response: code={}, callId={}", response.code(), callId);
             if (!response.isSuccessful()) {
                 handleErrorResponse(response, callback);
@@ -276,15 +312,21 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             // 逐行解析 SSE 流
             ResponseBody body = response.body();
             if (body == null) {
-                callback.onError(new LlmApiException("Empty response body", true));
+                callback.onError(attempt.interrupted("Empty response body", null));
                 return;
             }
 
-            BufferedSource source = body.source();
+            BufferedSource source = attempt.source(body);
             while (!source.exhausted()) {
                 String line;
                 try {
-                    line = source.readUtf8LineStrict();
+                    if (claude) {
+                        String data = readClaudeSseData(source);
+                        if (data == null) break;
+                        line = "data: " + data;
+                    } else {
+                        line = source.readUtf8LineStrict();
+                    }
                 } catch (EOFException truncated) {
                     // readUtf8LineStrict throws EOFException for an unterminated final line.
                     // Diagnose a missing-finish stream only if no finish was seen and the caller did not
@@ -295,6 +337,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                     throw truncated;
                 }
                 diagnostics.observe(line);
+                if (line.startsWith("data:")) attempt.frame();
 
                 if (line.isEmpty()) continue;
 
@@ -303,11 +346,13 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                         if (!call.isCanceled()) {
                             logIncompleteStream(callId, response, "done", diagnostics);
                         }
-                        callback.onError(new LlmApiException(
-                                "OPENAI_COMPATIBLE_INCOMPLETE_STREAM: missing finish_reason", false));
+                        callback.onError(attempt.interrupted(
+                                "OPENAI_COMPATIBLE_INCOMPLETE_STREAM: missing finish_reason", null));
                         return;
                     }
                     if (routerReasoning != null) routerReasoning.complete(objectMapper, callback);
+                    if (claude && call.isCanceled()) throw new LlmApiException("LLM_CALL_CANCELLED", false);
+                    if (claudeReasoning != null) claudeReasoning.complete(callback);
                     logObservedTailMarker(callId, response, "done", diagnostics);
                     callback.onComplete();
                     return;
@@ -316,23 +361,46 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                 if (line.startsWith("data: ")) {
                     String json = line.substring(6);
                     if (routerReasoning != null) routerReasoning.accept(objectMapper.readTree(json), callback);
-                    processChunk(json, toolCallAccumulators, callback, sawFinishReason, diagnostics);
+                    if (claudeReasoning != null) {
+                        if (json.isBlank()) continue;
+                        JsonNode chunk;
+                        try {
+                            chunk = objectMapper.readTree(json);
+                        } catch (com.fasterxml.jackson.core.JsonProcessingException invalidJson) {
+                            throw attempt.interrupted("Invalid ZenMux Claude SSE JSON", invalidJson);
+                        }
+                        if (chunk == null || !chunk.isObject()) {
+                            throw attempt.interrupted("Invalid ZenMux Claude SSE object", null);
+                        }
+                        throwClaudeStreamError(chunk, response);
+                        claudeReasoning.accept(chunk, callback);
+                        // The dedicated collector displays reasoning once, including gateways
+                        // that return both reasoning_details and reasoning_content.
+                        JsonNode delta = chunk.path("choices").path(0).path("delta");
+                        if (delta instanceof ObjectNode object) object.remove("reasoning_content");
+                        json = chunk.toString();
+                    }
+                    processChunk(json, toolCallAccumulators, callback, sawFinishReason, diagnostics, model);
+                    if (attempt.terminal()) return;
+                    if (claude && call.isCanceled()) throw new LlmApiException("LLM_CALL_CANCELLED", false);
                 }
             }
             if (routerReasoning != null) {
-                callback.onError(new LlmApiException("OpenRouter stream ended before [DONE]", true));
+                callback.onError(attempt.interrupted("OpenRouter stream ended before [DONE]", null));
                 return;
             }
             if (!sawFinishReason.get()) {
                 if (!call.isCanceled()) {
                     logIncompleteStream(callId, response, "eof", diagnostics);
                 }
-                callback.onError(new LlmApiException(
-                        "OPENAI_COMPATIBLE_INCOMPLETE_STREAM: missing finish_reason", false));
+                callback.onError(attempt.interrupted(
+                        "OPENAI_COMPATIBLE_INCOMPLETE_STREAM: missing finish_reason", null));
                 return;
             }
             // A normal compatible endpoint may end at EOF after a valid finish_reason.
             logObservedTailMarker(callId, response, "eof", diagnostics);
+            if (claude && call.isCanceled()) throw new LlmApiException("LLM_CALL_CANCELLED", false);
+            if (claudeReasoning != null) claudeReasoning.complete(callback);
             callback.onComplete();
 
         } catch (IOException e) {
@@ -340,11 +408,78 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                 callback.onError(new LlmApiException(
                         "LLM_CALL_CANCELLED", e, false));
             } else {
-                // 保留 cause 链，使 ConnectException 能被重试层/ProviderErrorClassifier 识别
-                callback.onError(new LlmApiException("OpenAI stream error: " + e.getMessage(), e, true));
+                callback.onError(attempt.transportFailure(e));
             }
         } catch (Exception e) {
-            callback.onError(e instanceof LlmApiException ? e : new LlmApiException(e.getMessage(), e, false));
+            callback.onError(e instanceof LlmApiException ? e : new LlmApiException("Failed to process model stream", e, false));
+        } finally {
+            attempt.logFinished();
+        }
+    }
+
+    /** SSE dispatches at a blank line; a truncated, unterminated event is never accepted. */
+    private static String readClaudeSseData(BufferedSource source) throws IOException {
+        StringBuilder data = new StringBuilder();
+        boolean hasData = false;
+        while (!source.exhausted()) {
+            String line = source.readUtf8LineStrict();
+            if (line.isEmpty()) {
+                if (hasData) return data.toString();
+                continue;
+            }
+            if (!line.startsWith("data:")) continue;
+            String value = line.substring(5);
+            if (value.startsWith(" ")) value = value.substring(1);
+            if (hasData) data.append('\n');
+            data.append(value);
+            hasData = true;
+        }
+        if (hasData) throw new EOFException("Incomplete Claude SSE event");
+        return null;
+    }
+
+    private void throwClaudeStreamError(JsonNode chunk, Response response) {
+        if (!chunk.hasNonNull("error")) return;
+        JsonNode error = chunk.get("error");
+        String type = error.path("type").asText(error.path("code").asText(""));
+        int status = error.path("code").asInt(error.path("status").asInt(0));
+        if (status == 0) status = switch (type) {
+            case "rate_limit_error", "rate_limit_exceeded" -> 429;
+            case "overloaded_error" -> 529;
+            case "api_error", "server_error" -> 500;
+            case "invalid_request_error" -> 400;
+            case "authentication_error" -> 401;
+            case "permission_error" -> 403;
+            default -> 0;
+        };
+        applyStreamingErrorKeyCooldown(response, status, type);
+        throw new LlmApiException("ZenMux Claude stream error: " + error.path("message").asText("Unknown error"),
+                status == 429 || status >= 500, status, type, 0);
+    }
+
+    /** A failed stream cannot also complete or trigger transparent replay after progress. */
+    private static final class StreamProgressCallback implements StreamChatCallback {
+        private final StreamChatCallback delegate;
+        private boolean progress;
+        private boolean terminal;
+        StreamProgressCallback(StreamChatCallback delegate) { this.delegate = delegate; }
+        @Override public void onEvent(LlmStreamEvent event) {
+            if (terminal) return;
+            if (event instanceof LlmStreamEvent.TextDelta || event instanceof LlmStreamEvent.ThinkingDelta
+                    || event instanceof LlmStreamEvent.ToolUseStart || event instanceof LlmStreamEvent.ToolInputDelta
+                    || event instanceof LlmStreamEvent.ProviderProgress) progress = true;
+            delegate.onEvent(event);
+        }
+        @Override public void onComplete() {
+            if (terminal) return;
+            terminal = true;
+            delegate.onComplete();
+        }
+        @Override public void onError(Throwable error) {
+            if (terminal) return;
+            terminal = true;
+            if (progress && error instanceof LlmApiException apiError) error = apiError.withRetryable(false);
+            delegate.onError(error);
         }
     }
 
@@ -533,6 +668,8 @@ public class OpenAiCompatibleProvider implements LlmProvider {
 
         String effectiveApiKey = keyRotationManager.getKeyCount() > 0
                 ? keyRotationManager.getNextKey() : apiKey;
+        StreamTransportAttempt attempt = new StreamTransportAttempt(callContext.requestId());
+        callback = attempt.callback(callback);
         Request request = new Request.Builder()
                 .url(baseUrl + "/responses")
                 .header("Authorization", "Bearer " + effectiveApiKey)
@@ -540,46 +677,49 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                 .post(RequestBody.create(requestBody.toString(), JSON_MEDIA))
                 .build();
         String callId = callContext.requestId();
-        Call call = httpClient.newCall(request);
+        Call call = attempt.newCall(httpClient, request);
         ResponsesStreamState streamState = new ResponsesStreamState();
 
         try (AutoCloseable ignored = LlmCallRegistration.register(activeCalls, callId, call,
                      callContext.cancellation(), Call::cancel);
              Response response = call.execute()) {
+            attempt.response(response);
             if (!response.isSuccessful()) {
                 handleErrorResponse(response, callback);
                 return;
             }
             ResponseBody body = response.body();
             if (body == null) {
-                callback.onError(new LlmApiException("Empty Responses body", true));
+                callback.onError(attempt.interrupted("Empty Responses body", null));
                 return;
             }
-            BufferedSource source = body.source();
+            BufferedSource source = attempt.source(body);
             while (!source.exhausted()) {
                 String line = source.readUtf8LineStrict();
                 if (line.isBlank() || line.startsWith(":")) continue;
                 if (!line.startsWith("data:")) continue;
+                attempt.frame();
                 String json = line.substring(5).trim();
                 if (json.isEmpty() || "[DONE]".equals(json)) continue;
                 JsonNode event = objectMapper.readTree(json);
+                if (event == null || !event.isObject()) {
+                    throw attempt.interrupted("Invalid Responses SSE object", null);
+                }
                 processResponsesEvent(event, streamState, callback);
                 if (streamState.terminal) return;
             }
-            callback.onError(new LlmApiException(
-                    "ZENMUX_RESPONSES_INCOMPLETE_STREAM", false, 0,
-                    "incomplete_stream", 0));
+            callback.onError(attempt.interrupted("ZENMUX_RESPONSES_INCOMPLETE_STREAM", null));
         } catch (IOException e) {
             if (call.isCanceled()) {
                 callback.onError(new LlmApiException("LLM_CALL_CANCELLED", e, false));
             } else {
-                // 保留 cause 链，使 ConnectException 能被重试层/ProviderErrorClassifier 识别
-                callback.onError(new LlmApiException(
-                        "ZenMux Responses stream error: " + e.getMessage(), e, true));
+                callback.onError(attempt.transportFailure(e));
             }
         } catch (Exception e) {
             callback.onError(e instanceof LlmApiException
-                    ? e : new LlmApiException(e.getMessage(), e, false));
+                    ? e : new LlmApiException("Failed to process model response", e, false));
+        } finally {
+            attempt.logFinished();
         }
     }
 
@@ -601,6 +741,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             ThinkingConfig thinkingConfig) {
 
         ObjectNode root = buildBaseRequest(model, messages, systemPrompt, tools, maxTokens);
+        if (isZenMuxClaude(model)) addZenMuxClaudeCacheBreakpoints(root);
         root.put("stream", true);
         ObjectNode streamOptions = root.putObject("stream_options");
         streamOptions.put("include_usage", true);
@@ -1183,6 +1324,52 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         return root;
     }
 
+    private boolean isZenMuxClaude(String model) {
+        return "zenmux".equalsIgnoreCase(providerName)
+                && model != null && model.startsWith("anthropic/claude-");
+    }
+
+    /** Only mutates the outgoing JSON. All nonblank text stays in the same block form
+     * across turns, so moving a cache boundary does not change the historical prefix.
+     * Rolling history boundaries sit on real user text turns: marker positions on
+     * tool/assistant turns are not reused by the gateway and would waste the slots. */
+    private static void addZenMuxClaudeCacheBreakpoints(ObjectNode request) {
+        JsonNode tools = request.path("tools");
+        for (JsonNode tool : tools) {
+            if (tool instanceof ObjectNode object) object.remove("cache_control");
+        }
+        if (!tools.isEmpty() && tools.get(tools.size() - 1) instanceof ObjectNode lastTool) {
+            lastTool.putObject("cache_control").put("type", "ephemeral");
+        }
+        List<ObjectNode> userBoundaries = new java.util.ArrayList<>();
+        ObjectNode system = null;
+        for (JsonNode node : request.path("messages")) {
+            if (!(node instanceof ObjectNode message)) continue;
+            JsonNode content = message.path("content");
+            if (content.isTextual() && !content.asText().isBlank()) {
+                ObjectNode text = message.putArray("content").addObject();
+                text.put("type", "text").put("text", content.asText());
+                content = message.get("content");
+            }
+            ObjectNode boundary = null;
+            if (content.isArray()) {
+                for (JsonNode part : content) {
+                    if (part instanceof ObjectNode text && "text".equals(text.path("type").asText())
+                            && !text.path("text").asText().isBlank()) boundary = text;
+                }
+            }
+            if (boundary == null) continue; // Keep empty tool results and image-only turns intact.
+            String role = message.path("role").asText();
+            if ("system".equals(role)) system = boundary;
+            else if ("user".equals(role)) userBoundaries.add(boundary);
+        }
+        if (system != null) system.putObject("cache_control").put("type", "ephemeral");
+        // One tools boundary + one system boundary + two rolling user boundaries <= 4.
+        for (int i = Math.max(0, userBoundaries.size() - 2); i < userBoundaries.size(); i++) {
+            userBoundaries.get(i).putObject("cache_control").put("type", "ephemeral");
+        }
+    }
+
     /** Converts either an Anthropic-style base64 or URL source to OpenAI image_url. */
     private static void appendImageUrlPart(ArrayNode contentArray, Map<?, ?> source) {
         Object remoteUrl = source.get("url");
@@ -1344,23 +1531,31 @@ public class OpenAiCompatibleProvider implements LlmProvider {
     private void processChunk(String json, Map<Integer, ToolCallAccumulator> accumulators,
                               StreamChatCallback callback,
                               java.util.concurrent.atomic.AtomicBoolean sawFinishReason) {
-        processChunk(json, accumulators, callback, sawFinishReason, null);
+        try {
+            processChunk(json, accumulators, callback, sawFinishReason, null, null);
+        } catch (com.fasterxml.jackson.core.JsonProcessingException invalidJson) {
+            callback.onError(new LlmApiException("Failed to parse OpenAI chunk", invalidJson, false));
+        }
     }
 
     private void processChunk(String json,
                               Map<Integer, ToolCallAccumulator> accumulators,
                               StreamChatCallback callback,
                               java.util.concurrent.atomic.AtomicBoolean sawFinishReason,
-                              StreamDiagnostics diagnostics) {
+                              StreamDiagnostics diagnostics,
+                              String model) throws com.fasterxml.jackson.core.JsonProcessingException {
         try {
             JsonNode chunk = objectMapper.readTree(json);
+            if (chunk == null || !chunk.isObject()) {
+                throw new com.fasterxml.jackson.core.JsonParseException(null, "Invalid OpenAI SSE object");
+            }
             JsonNode choices = chunk.get("choices");
 
             if (choices == null || choices.isEmpty()) {
                 if (diagnostics != null && chunk.has("error")) diagnostics.recordIssue("provider_error_frame");
                 // usage-only chunk
                 if (chunk.has("usage")) {
-                    Usage usage = parseUsage(chunk.get("usage"));
+                    Usage usage = parseUsage(chunk.get("usage"), model);
                     // 只补 usage，不覆盖前一个非空 finish_reason。
                     callback.onEvent(new LlmStreamEvent.MessageDelta(usage, null));
                 }
@@ -1462,16 +1657,19 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                         entry.getValue().stopEmitted = true;
                     }
                 }
-                Usage usage = parseUsage(chunk.get("usage"));
+                Usage usage = parseUsage(chunk.get("usage"), model);
                 callback.onEvent(new LlmStreamEvent.MessageDelta(usage, finishReason));
             }
 
         } catch (LlmApiException e) {
             throw e;
+        } catch (com.fasterxml.jackson.core.JsonProcessingException invalidJson) {
+            if (diagnostics != null) diagnostics.recordIssue("chunk_processing_" + invalidJson.getClass().getSimpleName());
+            throw invalidJson;
         } catch (Exception e) {
             if (diagnostics != null) diagnostics.recordIssue("chunk_processing_" + e.getClass().getSimpleName());
             callback.onError(new LlmApiException(
-                    "Failed to parse OpenAI chunk: " + e.getMessage(), false));
+                    "Failed to parse OpenAI chunk", e, false));
         }
     }
 
@@ -1506,6 +1704,12 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             errorMsg = "HTTP " + code;
         }
 
+        applyStreamingErrorKeyCooldown(response, code, errorType);
+        callback.onError(new LlmApiException(errorMsg, retryable, code));
+    }
+
+    /** HTTP errors and Claude SSE error frames share the existing key-failover policy. */
+    private void applyStreamingErrorKeyCooldown(Response response, int code, String errorType) {
         // P1-12: 429 限流时标记 Key 冷却 — 从 Authorization header 提取实际使用的 Key
         // （getNextKey() 已前移轮换索引，getCurrentKey() 会指向未使用的下一把 Key）。
         // Retry-After 解析失败/缺失时传 null，markRateLimited 内部回退默认冷却（60s）。
@@ -1522,8 +1726,6 @@ public class OpenAiCompatibleProvider implements LlmProvider {
 
         // ZenMux 订阅 Key 专属错误（402/404）→ 冷却实际使用的 Key，后续请求切换
         applySubscriptionKeyCooldown(response, code, errorType);
-
-        callback.onError(new LlmApiException(errorMsg, retryable, code));
     }
 
     /**
@@ -1570,17 +1772,454 @@ public class OpenAiCompatibleProvider implements LlmProvider {
     // 内部辅助
     // ═══════════════════════════════════════════
 
-    private Usage parseUsage(JsonNode usageNode) {
+    private Usage parseUsage(JsonNode usageNode, String model) {
         if (usageNode == null || !usageNode.isObject()
                 || (!usageNode.hasNonNull("prompt_tokens") && !usageNode.hasNonNull("completion_tokens"))) {
             return null;
         }
+        int prompt = usageNode.path("prompt_tokens").asInt(0);
+        int completion = usageNode.path("completion_tokens").asInt(0);
+        if (isZenMuxClaude(model)) {
+            // Anthropic 语义：prompt_tokens 只含未缓存输入，缓存读写是并列明细；
+            // inputTokens 上报完整输入，缓存读写作为其中明细，避免总量漏计。
+            JsonNode details = usageNode.path("prompt_tokens_details");
+            int cached = details.path("cached_tokens").asInt(0);
+            int created = details.path("cacheCreationInputTokens").asInt(
+                    details.path("cache_creation_input_tokens").asInt(0));
+            long fullInput = (long) prompt + cached + created;
+            return new Usage((int) Math.min(Integer.MAX_VALUE, fullInput), completion, cached, created);
+        }
         return new Usage(
-                usageNode.path("prompt_tokens").asInt(0),
-                usageNode.path("completion_tokens").asInt(0),
+                prompt,
+                completion,
                 0, // cache_read — OpenAI 标准 API 无此字段
                 0  // cache_write
         );
+    }
+
+    /** ZenMux Chat Completions reasoning continuation. Never stores a public-message snapshot. */
+    static final class ChatReasoningContinuation {
+        private static final String TYPE = "zenmux_claude_reasoning";
+        private static final Set<String> DELTA_FIELDS = Set.of("text", "signature", "summary", "data");
+        // Only these configured models have a documented preserved-thinking reset contract.
+        private static final Set<String> RESET_MODELS = Set.of(
+                "anthropic/claude-fable-5.1", "anthropic/claude-opus-5.5",
+                "anthropic/claude-sonnet-5.5", "anthropic/claude-haiku-5.5");
+        private final ObjectMapper mapper;
+        private final String prefix;
+        private final String parent;
+        private final boolean hasHistory;
+        private final Map<Integer, Detail> details = new TreeMap<>();
+        private final Map<Integer, Tool> tools = new HashMap<>();
+        private final List<Tool> startedTools = new ArrayList<>();
+        private final List<String> textParts = new ArrayList<>();
+        private final StringBuilder text = new StringBuilder();
+        private String finishReason;
+        private boolean completed;
+
+        private ChatReasoningContinuation(ObjectMapper mapper, String prefix, String parent, boolean hasHistory) {
+            this.mapper = mapper;
+            this.prefix = prefix;
+            this.parent = parent;
+            this.hasHistory = hasHistory;
+        }
+
+        /** Called after ordinary wire construction and cache markers, using the selected HTTP key. */
+        static ChatReasoningContinuation prepare(ObjectMapper mapper, ObjectNode request,
+                                                 List<Map<String, Object>> sourceMessages, String model,
+                                                 String endpoint, String credential) {
+            List<JsonNode> sources = new ArrayList<>();
+            for (Map<String, Object> source : sourceMessages) {
+                if ("assistant".equals(source.get("role"))) sources.add(mapper.valueToTree(source));
+            }
+            long assistantCount = 0;
+            for (JsonNode message : request.path("messages")) {
+                if ("assistant".equals(message.path("role").asText())) assistantCount++;
+            }
+            boolean hasHistory = sources.stream().anyMatch(source -> hasStoredReasoning(source, false));
+            Set<String> lineage = sources.size() == assistantCount ? lineage(sources) : Set.of();
+            boolean reset = hasHistory && lineage.isEmpty();
+            boolean discardsPayload = sources.stream().anyMatch(source -> {
+                JsonNode state = state(source, null);
+                return hasStoredReasoning(source, true) && (lineage.isEmpty()
+                        || state != null && lineage.contains(state.path("replay").path("id").asText()));
+            });
+            Prefix hash = basePrefix(request, model, endpoint, credential);
+            String parent = "";
+            int assistantIndex = 0;
+            for (JsonNode message : request.path("messages")) {
+                if (!(message instanceof ObjectNode wire)) continue;
+                if ("assistant".equals(wire.path("role").asText())) {
+                    JsonNode source = assistantIndex < sources.size() ? sources.get(assistantIndex) : null;
+                    assistantIndex++;
+                    JsonNode stored = state(source, null);
+                    JsonNode state = state(source, model);
+                    // Display-only thinking is not a signed continuation.
+                    wire.remove(List.of("reasoning", "reasoning_content", "reasoning_details"));
+                    if (stored != null && lineage.contains(stored.path("replay").path("id").asText())) {
+                        if (binding(state)
+                                && hash.value().equals(state.path("replay").path("prefix").asText())
+                                && parent.equals(state.path("replay").path("parent").asText())
+                                && publicHash(mapper, wire).equals(state.path("replay").path("public").asText())) {
+                            ArrayNode saved = (ArrayNode) state.path("reasoning_details");
+                            if (!saved.isEmpty()) wire.set("reasoning_details", saved.deepCopy());
+                            parent = state.path("replay").path("id").asText();
+                        } else {
+                            reset = true;
+                        }
+                    }
+                }
+                hash.add(canonical(prefixMessage(mapper, wire)).toString());
+            }
+            if (reset) {
+                // A changed image/history can invalidate a later tool turn while earlier blocks
+                // still match. Never send that partial chain: reset every reasoning block together.
+                // Recompute the next binding from the exact reset request, including public tool
+                // calls/results, so a successful response starts a new lineage that can be replayed.
+                hash = resetPrefix(mapper, request, model, endpoint, credential);
+                parent = "";
+                if (discardsPayload && !RESET_MODELS.contains(model)) {
+                    throw invalid("reasoning reset is not supported for model " + model);
+                }
+            }
+            return new ChatReasoningContinuation(mapper, hash.value(), parent, hasHistory);
+        }
+
+        /** A final budget fallback: discard only optional reasoning, then validate the full wire again. */
+        static ChatReasoningContinuation prepareReset(ObjectMapper mapper, ObjectNode request,
+                                                      List<Map<String, Object>> sourceMessages, String model,
+                                                      String endpoint, String credential) {
+            if (!RESET_MODELS.contains(model)) {
+                throw invalid("reasoning reset is not supported for model " + model);
+            }
+            boolean hasHistory = sourceMessages.stream()
+                    .filter(source -> "assistant".equals(source.get("role")))
+                    .anyMatch(source -> hasStoredReasoning(mapper.valueToTree(source), false));
+            for (JsonNode message : request.path("messages")) {
+                if ("assistant".equals(message.path("role").asText())
+                        && (message.path("reasoning_details").isArray() && !message.path("reasoning_details").isEmpty()
+                        || !message.path("reasoning").asText("").isEmpty()
+                        || !message.path("reasoning_content").asText("").isEmpty())) {
+                    hasHistory = true;
+                }
+            }
+            Prefix hash = resetPrefix(mapper, request, model, endpoint, credential);
+            return new ChatReasoningContinuation(mapper, hash.value(), "", hasHistory);
+        }
+
+        private static Prefix resetPrefix(ObjectMapper mapper, ObjectNode request, String model,
+                                           String endpoint, String credential) {
+            Prefix hash = basePrefix(request, model, endpoint, credential);
+            for (JsonNode message : request.path("messages")) {
+                if (!(message instanceof ObjectNode wire)) continue;
+                if ("assistant".equals(wire.path("role").asText())) {
+                    wire.remove(List.of("reasoning", "reasoning_content", "reasoning_details"));
+                }
+                hash.add(canonical(prefixMessage(mapper, wire)).toString());
+            }
+            return hash;
+        }
+
+        private static Prefix basePrefix(ObjectNode request, String model, String endpoint, String credential) {
+            Prefix hash = new Prefix();
+            hash.add("zenmux-claude-chat-replay-v1");
+            hash.add(model);
+            hash.add(endpoint);
+            hash.add(credential == null ? "" : credential);
+            for (JsonNode tool : request.path("tools")) hash.add(canonical(withoutMarker(tool)).toString());
+            return hash;
+        }
+
+        /** Receives each complete JSON chunk once. Other text/tool events remain the provider's job. */
+        void accept(JsonNode chunk, StreamChatCallback callback) {
+            if (completed) throw invalid("chunk after completion");
+            JsonNode choice = chunk.path("choices").path(0);
+            JsonNode delta = choice.path("delta");
+            StringBuilder visible = new StringBuilder();
+            JsonNode fragments = delta.path("reasoning_details");
+            if (!fragments.isMissingNode() && !fragments.isNull() && !fragments.isArray()) {
+                throw invalid("reasoning_details must be an array");
+            }
+            for (JsonNode fragment : fragments) {
+                if (!fragment.isObject()) throw invalid("reasoning detail must be an object");
+                int index = detailIndex(fragment);
+                Detail detail = details.computeIfAbsent(index, ignored -> new Detail(mapper));
+                detail.append(fragment);
+                if ("reasoning.text".equals(detail.fields.path("type").asText())) visible.append(fragment.path("text").asText(""));
+                if ("reasoning.summary".equals(detail.fields.path("type").asText())) visible.append(fragment.path("summary").asText(""));
+            }
+            if (!fragments.isEmpty()) callback.onEvent(new LlmStreamEvent.ProviderProgress());
+            String thinking = delta.hasNonNull("reasoning") ? delta.path("reasoning").asText()
+                    : delta.hasNonNull("reasoning_content") ? delta.path("reasoning_content").asText() : visible.toString();
+            if (!thinking.isEmpty()) callback.onEvent(new LlmStreamEvent.ThinkingDelta(thinking));
+            if (delta.hasNonNull("content")) text.append(delta.path("content").asText());
+            for (JsonNode fragment : delta.path("tool_calls")) {
+                int index = fragment.path("index").asInt(-1);
+                if (index < 0) throw invalid("tool index is missing");
+                Tool tool = tools.computeIfAbsent(index, ignored -> new Tool());
+                tool.id = identity(tool.id, fragment.get("id"));
+                tool.name = identity(tool.name, fragment.path("function").get("name"));
+                if (!tool.started && !tool.id.isEmpty() && !tool.name.isEmpty()) {
+                    flushText();
+                    tool.started = true;
+                    startedTools.add(tool);
+                }
+                if (fragment.path("function").hasNonNull("arguments")) {
+                    tool.arguments.append(fragment.path("function").path("arguments").asText());
+                }
+            }
+            if (choice.hasNonNull("finish_reason") && !choice.path("finish_reason").asText().isBlank()) {
+                finishReason = choice.path("finish_reason").asText();
+                flushText();
+            } else if ((chunk.path("choices").isMissingNode() || chunk.path("choices").isEmpty()) && chunk.has("usage")) {
+                // StreamCollector flushes visible text for every MessageDelta, including usage-only chunks.
+                flushText();
+            }
+        }
+
+        /** Call only after the provider has accepted a normal terminal marker/EOF, never on failure. */
+        void complete(StreamChatCallback callback) {
+            if (completed) throw invalid("duplicate completion");
+            if (finishReason == null) throw invalid("missing finish_reason");
+            completed = true;
+            if (details.isEmpty() && !hasHistory) return;
+            // A tool call cut off by the output limit must surface its real stop reason
+            // (the collector reports the same code) instead of an internal state error.
+            if (!tools.isEmpty() && ("length".equals(finishReason) || "max_tokens".equals(finishReason))) {
+                throw new LlmApiException("TRUNCATED_TOOL_CALLS: " + finishReason, false, 0,
+                        "TRUNCATED_TOOL_CALLS", 0);
+            }
+            flushText();
+            ObjectNode publicMessage = mapper.createObjectNode().put("content", String.join("\n", textParts));
+            if (!tools.isEmpty()) {
+                ArrayNode calls = publicMessage.putArray("tool_calls");
+                if (startedTools.size() != tools.size()) throw invalid("incomplete tool identity");
+                for (Tool tool : startedTools) {
+                    if (!tool.started) throw invalid("incomplete tool identity");
+                    ObjectNode call = calls.addObject().put("id", tool.id).put("type", "function");
+                    call.putObject("function").put("name", tool.name).put("arguments", tool.arguments.toString());
+                }
+            }
+            ObjectNode state = mapper.createObjectNode().put("type", TYPE);
+            ArrayNode saved = state.putArray("reasoning_details");
+            for (Detail detail : details.values()) saved.add(detail.finish());
+            state.putObject("replay").put("version", 1).put("id", UUID.randomUUID().toString())
+                    .put("parent", parent).put("prefix", prefix).put("public", publicHash(mapper, publicMessage));
+            // An empty details array is a small lineage barrier: dropped signatures cannot
+            // revive after a successful response that happened to contain no reasoning.
+            callback.onEvent(new LlmStreamEvent.ProviderResponseState(List.of(state)));
+        }
+
+        private void flushText() {
+            if (!text.isEmpty()) {
+                textParts.add(text.toString());
+                text.setLength(0);
+            }
+        }
+
+        private static int detailIndex(JsonNode fragment) {
+            JsonNode index = fragment.get("index");
+            if (index == null || index.isNull()) return 0; // Single-block gateways omit index.
+            try {
+                int value = Integer.parseInt(index.asText());
+                if (value >= 0) return value;
+            } catch (NumberFormatException ignored) { }
+            throw invalid("invalid reasoning index");
+        }
+
+        private static String identity(String current, JsonNode incoming) {
+            if (incoming == null || incoming.isNull() || incoming.asText().isEmpty()) return current;
+            if (!current.isEmpty() && !current.equals(incoming.asText())) throw invalid("conflicting tool identity");
+            return incoming.asText();
+        }
+
+        private static final class Tool {
+            String id = "";
+            String name = "";
+            boolean started;
+            final StringBuilder arguments = new StringBuilder();
+        }
+
+        private static final class Detail {
+            final ObjectNode fields;
+            final Map<String, StringBuilder> deltas = new LinkedHashMap<>();
+            Detail(ObjectMapper mapper) { fields = mapper.createObjectNode(); }
+            void append(JsonNode fragment) {
+                fragment.fields().forEachRemaining(entry -> {
+                    String name = entry.getKey();
+                    JsonNode value = entry.getValue();
+                    if (DELTA_FIELDS.contains(name)) {
+                        if (!value.isTextual()) throw invalid("non-text reasoning delta: " + name);
+                        deltas.computeIfAbsent(name, ignored -> new StringBuilder()).append(value.asText());
+                    } else if (!fields.has(name)) {
+                        fields.set(name, value.deepCopy());
+                    } else if (!fields.get(name).equals(value)) {
+                        // Unknown fields are opaque: guessing replacement/concatenation can corrupt signatures.
+                        throw invalid("conflicting reasoning metadata: " + name);
+                    }
+                });
+            }
+            ObjectNode finish() {
+                deltas.forEach((field, value) -> fields.put(field, value.toString()));
+                if (!fields.path("type").isTextual() || fields.path("type").asText().isBlank()) {
+                    throw invalid("missing reasoning type");
+                }
+                if ("reasoning.text".equals(fields.path("type").asText())
+                        && fields.path("signature").asText().isBlank()) throw invalid("missing reasoning signature");
+                return fields;
+            }
+        }
+
+        private static JsonNode state(JsonNode source, String model) {
+            if (source == null) return null;
+            JsonNode found = null;
+            for (JsonNode block : source.path("content")) {
+                if (!"provider_response_state".equals(block.path("type").asText())
+                        || (model != null && (!"zenmux".equalsIgnoreCase(block.path("provider").asText())
+                        || !model.equals(block.path("model").asText())))) continue;
+                for (JsonNode item : block.path("output")) {
+                    if (TYPE.equals(item.path("type").asText())) {
+                        if (found != null) return null;
+                        found = item;
+                    }
+                }
+            }
+            return found;
+        }
+
+        private static boolean binding(JsonNode state) {
+            if (state == null || !state.path("reasoning_details").isArray()) return false;
+            JsonNode replay = state.path("replay");
+            return replay.path("version").asInt() == 1 && replay.path("id").isTextual()
+                    && !replay.path("id").asText().isEmpty() && replay.path("parent").isTextual()
+                    && replay.path("prefix").asText().matches("[0-9a-f]{64}")
+                    && replay.path("public").asText().matches("[0-9a-f]{64}");
+        }
+
+        private static boolean hasStoredReasoning(JsonNode source, boolean requirePayload) {
+            for (JsonNode block : source.path("content")) {
+                if (!"provider_response_state".equals(block.path("type").asText())) continue;
+                for (JsonNode item : block.path("output")) {
+                    if (!TYPE.equals(item.path("type").asText())) continue;
+                    JsonNode details = item.path("reasoning_details");
+                    if (!requirePayload || !details.isMissingNode() && !details.isNull()
+                            && (!details.isArray() || !details.isEmpty())) return true;
+                }
+            }
+            return false;
+        }
+
+        private static Set<String> lineage(List<JsonNode> sources) {
+            Map<String, JsonNode> byId = new HashMap<>();
+            Set<String> duplicates = new HashSet<>();
+            JsonNode latest = null;
+            for (JsonNode source : sources) {
+                latest = state(source, null);
+                if (binding(latest)) {
+                    String id = latest.path("replay").path("id").asText();
+                    if (byId.put(id, latest) != null) duplicates.add(id);
+                }
+            }
+            Set<String> result = new HashSet<>();
+            while (latest != null) {
+                if (!binding(latest)) return Set.of();
+                String id = latest.path("replay").path("id").asText();
+                if (duplicates.contains(id) || !result.add(id)) return Set.of();
+                String parent = latest.path("replay").path("parent").asText();
+                if (parent.isEmpty()) return result;
+                latest = byId.get(parent);
+                if (latest == null) return Set.of();
+            }
+            return result;
+        }
+
+        private static String publicHash(ObjectMapper mapper, JsonNode message) {
+            ObjectNode visible = mapper.createObjectNode().put("content", publicText(message.path("content")));
+            ArrayNode calls = visible.putArray("tool_calls");
+            for (JsonNode call : message.path("tool_calls")) {
+                ObjectNode copy = calls.addObject().put("id", call.path("id").asText())
+                        .put("name", call.path("function").path("name").asText());
+                copy.set("input", arguments(mapper, call.path("function").path("arguments").asText()));
+            }
+            Prefix digest = new Prefix();
+            digest.add(canonical(visible).toString());
+            return digest.value();
+        }
+
+        private static String publicText(JsonNode content) {
+            if (content.isTextual()) return content.asText();
+            StringBuilder text = new StringBuilder();
+            for (JsonNode part : content) if ("text".equals(part.path("type").asText())) text.append(part.path("text").asText());
+            return text.toString();
+        }
+
+        private static JsonNode prefixMessage(ObjectMapper mapper, JsonNode message) {
+            ObjectNode copy = (ObjectNode) withoutMarker(message);
+            JsonNode content = copy.path("content");
+            if (content.isArray()) {
+                ArrayNode clean = mapper.createArrayNode();
+                for (JsonNode part : content) clean.add(withoutMarker(part));
+                copy.set("content", clean);
+            } else if (content.isTextual() && !content.asText().isBlank()) {
+                copy.putArray("content").addObject().put("type", "text").put("text", content.asText());
+            }
+            for (JsonNode call : copy.path("tool_calls")) {
+                if (call.path("function") instanceof ObjectNode function && function.has("arguments")) {
+                    function.set("arguments", arguments(mapper, function.path("arguments").asText()));
+                }
+            }
+            return copy;
+        }
+
+        private static JsonNode arguments(ObjectMapper mapper, String json) {
+            try {
+                JsonNode input = mapper.readTree(json.isBlank() ? "{}" : json);
+                if (input != null && input.isObject()) return input;
+            } catch (Exception ignored) { }
+            // Keep the collector's accurate validation reason instead of masking it as
+            // an internal reasoning-state error; the caller still refuses to execute or resend.
+            throw new LlmApiException("INVALID_TOOL_INPUT_JSON", false, 0, "INVALID_TOOL_INPUT_JSON", 0);
+        }
+
+        private static JsonNode withoutMarker(JsonNode node) {
+            JsonNode copy = node.deepCopy();
+            if (copy instanceof ObjectNode object) object.remove("cache_control");
+            return copy;
+        }
+
+        private static JsonNode canonical(JsonNode value) {
+            if (value.isObject()) {
+                ObjectNode sorted = ((ObjectNode) value).objectNode();
+                Map<String, JsonNode> fields = new TreeMap<>();
+                value.fields().forEachRemaining(entry -> fields.put(entry.getKey(), entry.getValue()));
+                fields.forEach((key, child) -> sorted.set(key, canonical(child)));
+                return sorted;
+            }
+            if (value.isArray()) {
+                ArrayNode result = ((ArrayNode) value).arrayNode();
+                value.forEach(child -> result.add(canonical(child)));
+                return result;
+            }
+            return value;
+        }
+
+        private static final class Prefix {
+            final MessageDigest digest;
+            byte[] current = new byte[0];
+            Prefix() {
+                try { digest = MessageDigest.getInstance("SHA-256"); }
+                catch (NoSuchAlgorithmException impossible) { throw new IllegalStateException(impossible); }
+            }
+            void add(String value) {
+                digest.update(current);
+                current = digest.digest(value.getBytes(StandardCharsets.UTF_8));
+            }
+            String value() { return HexFormat.of().formatHex(current); }
+        }
+
+        private static LlmApiException invalid(String detail) {
+            return new LlmApiException("INVALID_ZENMUX_CLAUDE_REASONING: " + detail, false);
+        }
     }
 
     /** 工具调用增量累积器 */

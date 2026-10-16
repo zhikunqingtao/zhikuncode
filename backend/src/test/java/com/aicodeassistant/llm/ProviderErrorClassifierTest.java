@@ -14,6 +14,42 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ProviderErrorClassifierTest {
 
     @Test
+    void interruptedResponseIsUnknownAndCannotBeReopenedByHttpOrConnectClassification() {
+        for (int status : new int[]{0, 200, 429, 529}) {
+            var interrupted = new LlmApiException("RAW_PRIVATE_MESSAGE overloaded",
+                    new ConnectException("PRIVATE_CONNECTION_DETAIL"), true,
+                    status, LlmApiException.RESPONSE_INTERRUPTED, 0);
+            assertTrue(interrupted.isResponseInterrupted());
+            assertTrue(interrupted.isRetrySuppressed());
+            assertFalse(interrupted.isRetryable());
+            assertFalse(interrupted.withRetryable(true).isRetryable());
+            var classified = ProviderErrorClassifier.classify(new RuntimeException("outer", interrupted));
+            assertNotNull(classified);
+            assertEquals(ProviderErrorClassifier.MODEL_RESPONSE_INTERRUPTED, classified.errorCode());
+            assertEquals(status, classified.httpStatus());
+            assertEquals("模型响应中断，上游结果未知。为避免重复请求，已停止自动重试。", classified.message());
+            assertFalse(classified.retryable());
+        }
+    }
+
+    @Test
+    void explicitSuppressionSurvivesClassification() {
+        for (int status : new int[]{429, 500, 529}) {
+            var error = new LlmApiException("overloaded", true, status, "overloaded_error", 0)
+                    .withRetryable(false);
+            assertFalse(ProviderErrorClassifier.classify(error).retryable());
+            // Ordinary errors retain the existing setter semantics; only unknown
+            // response outcomes are unconditionally suppressed by their type.
+            assertFalse(error.withRetryable(true).isRetrySuppressed());
+            assertTrue(error.withRetryable(true).isRetryable());
+        }
+        var suppressedConnect = new LlmApiException("connect", new ConnectException("refused"), true)
+                .withRetryable(false);
+        assertFalse(ProviderErrorClassifier.classify(suppressedConnect).retryable());
+        assertTrue(new LlmApiException("overloaded", true, 529).isFallbackTrigger());
+    }
+
+    @Test
     @DisplayName("402 → PROVIDER_PAYMENT_REQUIRED，携带余额不足中文提示且不可重试")
     void classifies402AsPaymentRequired() {
         var classified = ProviderErrorClassifier.classify(

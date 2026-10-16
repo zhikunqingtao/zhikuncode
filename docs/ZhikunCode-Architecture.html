@@ -980,7 +980,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <!-- Branch 3: Error Recovery -->
       <rect x="620" y="352" width="180" height="56" rx="8" fill="#151829" stroke="#EF4444" stroke-width="1"/>
       <text x="710" y="376" text-anchor="middle" fill="#EF4444" font-size="10" font-weight="600">错误恢复</text>
-      <text x="710" y="392" text-anchor="middle" fill="#6B70A0" font-size="8">max_tokens → 截断 → 重试</text>
+      <text x="710" y="392" text-anchor="middle" fill="#6B70A0" font-size="8">文本截断有限恢复；工具截断失败</text>
 
       <!-- Arrows from step 6 area to branches -->
       <line x1="585" y1="267" x2="250" y2="310" stroke="#10B981" stroke-width="1" opacity=".5" stroke-dasharray="4"/>
@@ -2225,7 +2225,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <text x="32" y="468" fill="#10B981" font-size="7">● 可重试: OVERLOADED / RATE_LIMITED / TIMEOUT</text>
       <text x="32" y="481" fill="#EF4444" font-size="7">✕ 不可重试: PROMPT_TOO_LONG / AUTH_FAILED</text>
       <text x="32" y="494" fill="#F59E0B" font-size="7">529 → triggerCooldown() → 模型降级链切换</text>
-      <text x="32" y="507" fill="#6B70A0" font-size="7">分类基于 HTTP Status + 消息关键词匹配</text>
+      <text x="32" y="507" fill="#6B70A0" font-size="7">禁止重试标记优先：不重试、不压缩恢复、不降级</text>
 
       <!-- Panel B: ApiCircuitBreaker -->
       <rect x="300" y="345" width="285" height="170" rx="8" fill="#0F1221" stroke="#F59E0B" stroke-width="1" opacity=".8"/>

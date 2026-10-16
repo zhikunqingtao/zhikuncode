@@ -18,6 +18,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.net.ConnectException;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -138,6 +139,40 @@ class ApiRetryDiagnosticsTest {
         assertTrue(message(appender.events.getFirst())
                 .endsWith("exceptionChain=" + LlmApiException.class.getName()));
         assertSafeDiagnostics();
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void interruptedAcceptedResponseNeverRetriesAndLogsUnknownUsageSafely(boolean connectCause) {
+        IOException cause = connectCause ? new ConnectException(PRIVATE_MESSAGE)
+                : new javax.net.ssl.SSLException(PRIVATE_MESSAGE);
+        // Even an erroneous retryable=true and a nested ConnectException cannot override
+        // the provider's knowledge that this request may already have generated a response.
+        LlmApiException failure = new LlmApiException(PRIVATE_MESSAGE, cause, true, 200,
+                LlmApiException.RESPONSE_INTERRUPTED, 0);
+        AtomicInteger calls = new AtomicInteger();
+
+        LlmApiException thrown = assertThrows(LlmApiException.class,
+                () -> retries.executeWithRetry(() -> {
+                    calls.incrementAndGet();
+                    throw failure;
+                }, "sdk", "model"));
+
+        assertSame(failure, thrown);
+        assertTrue(thrown.isRetrySuppressed());
+        assertEquals(1, calls.get());
+        assertEquals(1, retries.lastAttemptCount());
+        assertEquals(1, appender.events.size());
+        LogEvent event = appender.events.getFirst();
+        assertEquals(Level.WARN, event.getLevel());
+        assertTrue(message(event).startsWith("LLM retry suppressed: attempt=1, status=200"));
+        assertTrue(message(event).contains("reason=response_interrupted, upstreamOutcome=unknown, usageStatus=unknown"));
+        assertTrue(message(event).endsWith("exceptionChain=" + LlmApiException.class.getName()
+                + " -> " + cause.getClass().getName()));
+        assertSafeDiagnostics();
+        verify(policy, never()).calculateDelay(anyString(), anyInt());
+        verify(circuit).recordFailure();
+        verify(circuit, never()).recordSuccess();
     }
 
     @ParameterizedTest

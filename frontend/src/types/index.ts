@@ -133,7 +133,7 @@ export interface TaskBoundaryPayload {
 }
 /** Provider 错误码 — 与后端 error 事件契约约定的 errorCode 取值 */
 export type ProviderErrorCode = 'PROVIDER_PAYMENT_REQUIRED' | 'PROVIDER_FORBIDDEN' | 'PROVIDER_RATE_LIMITED' | 'PROVIDER_ERROR' | 'PROVIDER_UNREACHABLE';
-export interface ErrorPayload { type: 'error'; code?: string; message: string; retryable?: boolean; errorCode?: ProviderErrorCode; httpStatus?: number }
+export interface ErrorPayload { type: 'error'; code?: string; message: string; retryable?: boolean; errorCode?: ProviderErrorCode | 'MODEL_RESPONSE_INTERRUPTED'; httpStatus?: number; upstreamOutcome?: 'unknown'; usageStatus?: 'unknown' }
 export interface CompactEventPayload { type: 'compact_event'; phase: string; usagePercent: number; currentTokens: number }
 export interface TokenWarningPayload { type: 'token_warning'; currentTokens: number; maxTokens: number; usagePercent: number; warningLevel: string }
 export interface InterruptAckPayload { type: 'interrupt_ack'; reason: string }

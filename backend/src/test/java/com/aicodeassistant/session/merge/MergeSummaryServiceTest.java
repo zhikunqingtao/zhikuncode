@@ -146,6 +146,20 @@ class MergeSummaryServiceTest {
         assertThat(repo.units(ledger.operationId(),"extracting")).anyMatch(u -> u.state().equals("split"));
         assertThat(repo.units(ledger.operationId(),"extracting")).allMatch(u -> Set.of("split","completed").contains(u.state()));
     }
+    @Test void suppressed413AfterProgressStopsWithoutSplittingOrReplay() throws Exception {
+        var ledger=ledger("long input ".repeat(500));
+        var failure=new LlmApiException("context length",false,413).withRetryable(false);
+        doAnswer(call -> {
+            StreamChatCallback cb=call.getArgument(7);
+            cb.onEvent(new LlmStreamEvent.TextDelta("partial"));
+            cb.onError(failure); return null;
+        }).when(provider).streamChat(anyString(),anyList(),anyString(),anyList(),anyInt(),any(),any(),any());
+        assertThatThrownBy(() -> prepare(ledger)).isSameAs(failure);
+        verify(provider,times(1)).streamChat(anyString(),anyList(),anyString(),anyList(),anyInt(),any(),any(),any());
+        assertThat(repo.units(ledger.operationId(),"extracting")).noneMatch(u -> u.state().equals("split"));
+        assertThat(f.jdbc.queryForList("SELECT outcome FROM session_merge_attempts WHERE operation_id=?",
+                String.class,ledger.operationId())).containsExactly("error");
+    }
     @Test void rejectsCorruptedCommittedUnitOnResumeWithoutRepayingItsCall() throws Exception {
         var ledger=ledger("original"); var inputs=new ArrayList<String>(); stub(inputs,SessionMergeServiceTest.answer("saved"),true);
         prepare(ledger); int count=inputs.size();

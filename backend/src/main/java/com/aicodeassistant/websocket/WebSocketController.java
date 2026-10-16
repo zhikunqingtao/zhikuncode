@@ -469,6 +469,10 @@ public class WebSocketController implements PermissionNotifier {
         fields.put("retryable", retryable);
         if (errorCode != null) fields.put("errorCode", errorCode);
         if (httpStatus != null) fields.put("httpStatus", httpStatus);
+        if (ProviderErrorClassifier.MODEL_RESPONSE_INTERRUPTED.equals(errorCode)) {
+            fields.put("upstreamOutcome", "unknown");
+            fields.put("usageStatus", "unknown");
+        }
         push(sessionId, "error", fields);
     }
 
@@ -992,8 +996,6 @@ public class WebSocketController implements PermissionNotifier {
             log.info("QueryEngine 完成: sessionId={}, stopReason={}, turns={}",
                     sessionId, result.stopReason(), result.turnCount());
         } catch (Throwable t) {
-            log.error("Query execution failed: sessionId={}, exType={}, message={}",
-                    sessionId, t.getClass().getName(), t.getMessage(), t);
             if (t instanceof Exception e) {
                 handler.onError(e);
             } else {
@@ -1208,10 +1210,14 @@ public class WebSocketController implements PermissionNotifier {
 
         @Override
         public void onError(Throwable error) {
-            log.error("WsMessageHandler error: sessionId={}", sessionId, error);
-            // Provider HTTP 错误（402/403/429/其他 4xx/5xx）分类为结构化错误码透出给前端
             ProviderErrorClassifier.ClassifiedError classified =
                     ProviderErrorClassifier.classify(error);
+            if (classified != null && ProviderErrorClassifier.MODEL_RESPONSE_INTERRUPTED.equals(classified.errorCode())) {
+                log.warn("Query response interrupted: sessionId={}, httpStatus={}, retryable=false",
+                        sessionId, classified.httpStatus());
+            } else {
+                log.error("WsMessageHandler error: sessionId={}", sessionId, error);
+            }
             if (classified != null) {
                 sendError(sessionId, "query_error", classified.message(), classified.retryable(),
                         classified.errorCode(), classified.httpStatus());

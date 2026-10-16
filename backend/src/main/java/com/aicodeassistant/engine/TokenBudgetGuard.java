@@ -559,12 +559,12 @@ public class TokenBudgetGuard {
         int total = 0;
         for (Message msg : messages) {
             if (msg instanceof Message.UserMessage user) {
-                total += estimateContentBlocksTokens(user.content(), textTokenRatio);
+                total += estimateContentBlocksTokens(user.content(), textTokenRatio, false);
                 if (MessageContentAccessor.legacyToolResult(user) != null) {
                     total += estimateStringTokens(MessageContentAccessor.legacyToolResult(user), textTokenRatio);
                 }
             } else if (msg instanceof Message.AssistantMessage assistant) {
-                total += estimateContentBlocksTokens(assistant.content(), textTokenRatio);
+                total += estimateContentBlocksTokens(assistant.content(), textTokenRatio, true);
             } else if (msg instanceof Message.SystemMessage system) {
                 if (system.content() != null) {
                     total += (int) (system.content().length() / textTokenRatio);
@@ -574,20 +574,29 @@ public class TokenBudgetGuard {
         return total;
     }
 
-    private int estimateContentBlocksTokens(List<ContentBlock> blocks, double textTokenRatio) {
+    private int estimateContentBlocksTokens(List<ContentBlock> blocks, double textTokenRatio, boolean assistant) {
         if (blocks == null) return 0;
         Optional<ContentBlock.ProviderResponseStateBlock> providerState = blocks.stream()
                 .filter(ContentBlock.ProviderResponseStateBlock.class::isInstance)
                 .map(ContentBlock.ProviderResponseStateBlock.class::cast)
+                .filter(state -> !TokenCounter.isRetiredProviderState(state)
+                        && !TokenCounter.isSupplementalProviderState(state))
                 .findFirst();
         if (providerState.isPresent()) {
             return providerState.get().outputItems().stream()
                     .mapToInt(item -> item.toString().length())
                     .sum();
         }
+        boolean hasSupplemental = assistant && blocks.stream()
+                .filter(ContentBlock.ProviderResponseStateBlock.class::isInstance)
+                .map(ContentBlock.ProviderResponseStateBlock.class::cast)
+                .anyMatch(TokenCounter::isSupplementalProviderState);
         int total = 0;
         for (ContentBlock block : blocks) {
-            if (block instanceof ContentBlock.TextBlock tb) {
+            if (block instanceof ContentBlock.ProviderResponseStateBlock supplemental
+                    && TokenCounter.isSupplementalProviderState(supplemental)) {
+                continue; // Count only reasoning selected for the actual provider request in its final guard.
+            } else if (block instanceof ContentBlock.TextBlock tb) {
                 total += tb.text() != null ? (int) (tb.text().length() / textTokenRatio) : 0;
             } else if (block instanceof ContentBlock.ImageBlock img) {
                 if (img.base64Data() != null) {
@@ -602,7 +611,7 @@ public class TokenBudgetGuard {
                 total += trb.content() != null ? estimateStringTokens(trb.content(), textTokenRatio) : 0;
             } else if (block instanceof ContentBlock.ToolUseBlock tub) {
                 total += tub.input() != null ? (int) (tub.input().toString().length() / textTokenRatio) : 0;
-            } else if (block instanceof ContentBlock.ThinkingBlock thk) {
+            } else if (block instanceof ContentBlock.ThinkingBlock thk && !hasSupplemental) {
                 total += thk.thinking() != null ? (int) (thk.thinking().length() / textTokenRatio) : 0;
             }
         }
@@ -636,16 +645,25 @@ public class TokenBudgetGuard {
                         .map(Map.class::cast)
                         .map(TokenBudgetGuard::toStringObjectMap)
                         .filter(block -> "provider_response_state".equals(block.get("type")))
+                        .filter(block -> !TokenCounter.isRetiredProviderState(block)
+                                && !TokenCounter.isSupplementalProviderState(block))
                         .findFirst();
                 if (providerState.isPresent()) {
                     Object output = providerState.get().get("output");
                     total += output == null ? 0 : output.toString().length();
                     continue;
                 }
+                boolean hasSupplemental = "assistant".equals(msg.get("role")) && contentList.stream()
+                        .filter(Map.class::isInstance).map(Map.class::cast)
+                        .map(TokenBudgetGuard::toStringObjectMap)
+                        .anyMatch(TokenCounter::isSupplementalProviderState);
                 for (Object item : contentList) {
                     if (item instanceof Map<?, ?> block) {
                         Map<String, Object> blockMap = toStringObjectMap(block);
+                        if (TokenCounter.isRetiredProviderState(blockMap)
+                                || TokenCounter.isSupplementalProviderState(blockMap)) continue;
                         String type = (String) blockMap.get("type");
+                        if (hasSupplemental && "thinking".equals(type)) continue;
                         if ("text".equals(type)) {
                             String text = (String) blockMap.get("text");
                             if (text != null) {

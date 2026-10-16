@@ -378,7 +378,9 @@ class OpenAiCompatibleProviderToolCallStreamingTest {
                     + "\n\ndata: {\"choices\":[{\"delta\":{\"content\":\"truncated-secret\"}");
             assertFalse(capture.completed);
             LlmApiException error = assertInstanceOf(LlmApiException.class, capture.error);
-            assertTrue(error.isRetryable());
+            assertFalse(error.isRetryable());
+            assertTrue(error.isRetrySuppressed());
+            assertEquals("response_interrupted", error.getErrorType());
             assertTrue(error.getMessage().startsWith("OpenAI stream error:"));
             var diagnostic = appender.messages.stream()
                     .filter(message -> message.startsWith("OpenAI stream missing finish_reason:"))
@@ -401,8 +403,7 @@ class OpenAiCompatibleProviderToolCallStreamingTest {
         LoggerConfig appLoggers = appLoggerConfig();
         appLoggers.addAppender(appender, null, null);
         try {
-            // Existing compatibility limitation, not a requirement to reject this forever:
-            // this diagnostic-only change deliberately preserves the terminal error policy.
+            // A truncated tail is still reported, but must not replay an accepted generation.
             Capture capture = runRaw("data: {\"choices\":[{\"delta\":{},\"finish_reason\":\"stop\"}]}"
                     + "\n\ndata: [DONE]");
 
@@ -412,9 +413,13 @@ class OpenAiCompatibleProviderToolCallStreamingTest {
                     .count());
             assertFalse(capture.completed);
             LlmApiException error = assertInstanceOf(LlmApiException.class, capture.error);
-            assertTrue(error.isRetryable());
+            assertFalse(error.isRetryable());
+            assertTrue(error.isRetrySuppressed());
+            assertEquals("response_interrupted", error.getErrorType());
             assertTrue(error.getMessage().startsWith("OpenAI stream error:"));
-            assertInstanceOf(java.io.EOFException.class, error.getCause());
+            Throwable cause = error;
+            while (cause.getCause() != null) cause = cause.getCause();
+            assertInstanceOf(java.io.EOFException.class, cause);
             assertTrue(appender.messages.stream().noneMatch(message ->
                     message.startsWith("OpenAI stream missing finish_reason:")));
         } finally {

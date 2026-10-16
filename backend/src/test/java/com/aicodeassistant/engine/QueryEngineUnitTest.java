@@ -1172,7 +1172,8 @@ class QueryEngineUnitTest {
         }
 
         @Test
-        void partialToolStreamFallbackPreservesCallsCompletedResultsAndUnknownOutcomes() {
+        void partialToolStreamThrownFailureDoesNotRetryOrFallback() {
+            useRealApiRetries();
             String original = "降级前正文...[content truncated by system]";
             script((call, callback) -> {
                 if (call == 1) {
@@ -1187,22 +1188,127 @@ class QueryEngineUnitTest {
                 finish(callback, "end_turn", new LlmStreamEvent.TextDelta("fallback answer"));
             });
             QueryConfig config = new QueryConfig("mock-model", "fallback-model", "You are helpful.",
-                    List.of(bashTool), List.of(), 8192, 200000, new ThinkingConfig.Disabled(), 10, "test", null, List.of());
+                    List.of(bashTool), List.of(), 8192, 200000, new ThinkingConfig.Disabled(), 10, "sdk", null, List.of());
             var state = buildState("question");
             List<Message> persisted = new ArrayList<>();
             state.setPersistenceSink(persisted::add);
             var result = queryEngine.execute(config, state, handler);
-            assertThat(result.isSuccess()).isTrue();
-            assertThat(requests).hasSize(2);
+            assertThat(result.isSuccess()).isFalse();
+            assertThat(requests).hasSize(1);
+            assertThat(handler.errors).singleElement().isInstanceOfSatisfying(LlmApiException.class,
+                    failure -> assertThat(failure.isRetrySuppressed()).isTrue());
             verify(toolSession, never()).addTool(any(), any(), anyString(), any());
             verify(toolSession, never()).addErrorResult(anyString(), anyString());
-            assertThat(requests.get(1).toString()).doesNotContain(
-                    "completed evidence", "actual failure", "execution outcome unconfirmed");
-            assertThat(requests.get(1).toString()).contains(original);
-            assertThat(persisted.getFirst()).isInstanceOfSatisfying(Message.AssistantMessage.class,
-                    partial -> assertThat(partial.content()).containsExactly(new ContentBlock.TextBlock(original)));
+            verify(hookService, never()).executeNotification(eq("warn"), contains("Model fallback"));
+            assertThat(persisted.getFirst()).isInstanceOfSatisfying(Message.AssistantMessage.class, partial -> {
+                assertThat(partial.content()).containsExactly(new ContentBlock.TextBlock(original));
+                // Interrupted is not cancelled, and the partial must be the run's answer so
+                // REST/sub-agent consumers can still read the persisted prose.
+                assertThat(partial.stopReason()).isEqualTo("error");
+                assertThat(state.getCurrentRunAssistantIds()).contains(partial.uuid());
+            });
             assertThat(state.getMessages()).noneMatch(message -> message instanceof Message.UserMessage user
                     && user.content().stream().anyMatch(ContentBlock.ToolResultBlock.class::isInstance));
+        }
+
+        @org.junit.jupiter.params.ParameterizedTest
+        @org.junit.jupiter.params.provider.ValueSource(strings = {"prompt_too_long", "CONTEXT_BUDGET_EXCEEDED"})
+        void suppressedContextFailureCannotStartCompactionOrFallback(String errorType) {
+            script((call, callback) -> callback.onError(new LlmApiException(
+                    "prompt is too long; overloaded", true, 413, errorType, 0).withRetryable(false)));
+            QueryConfig config = new QueryConfig("mock-model", "fallback-model", "You are helpful.",
+                    List.of(bashTool), List.of(), 8192, 200000, new ThinkingConfig.Disabled(), 10, "test", null, List.of());
+            QueryLoopState state = buildState("question");
+
+            var result = queryEngine.execute(config, state, handler);
+
+            assertThat(result.isSuccess()).isFalse();
+            assertThat(requests).hasSize(1);
+            assertThat(state.hasAttemptedReactiveCompact()).isFalse();
+            verifyNoInteractions(compactService);
+            verify(runTracker, never()).recordEventBestEffort(eq(run.id()), eq("llm_recovery_attempted"), any());
+            verify(runTracker, never()).recordEventBestEffort(eq(run.id()), eq("model_fallback"), any());
+        }
+
+        @Test
+        void localPayloadGuardStillCompactsBeforeAnyRequestWasSent() {
+            script((call, callback) -> {
+                if (call == 1) throw new LlmApiException("local payload too large", false, 413,
+                        "CONTEXT_BUDGET_EXCEEDED", 0);
+                finish(callback, "end_turn", new LlmStreamEvent.TextDelta("answer after local compaction"));
+            });
+            when(compactService.reactiveCompact(anyList(), any(CompactionContext.class), eq(false)))
+                    .thenAnswer(inv -> new CompactService.CompactResult(inv.getArgument(0), 1000, 100, 1, 0.1));
+            QueryLoopState state = buildState("question");
+
+            var result = queryEngine.execute(buildConfig(), state, handler);
+
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(requests).hasSize(2);
+            assertThat(state.hasAttemptedProviderPayloadGuardRetry()).isTrue();
+            verify(compactService).reactiveCompact(anyList(), any(CompactionContext.class), eq(false));
+        }
+
+        @Test
+        void interruptedResponseRecordsUnknownOutcomeWithoutLoggingOriginalFailure() {
+            String secret = "RAW_TRANSPORT_SECRET";
+            script((call, callback) -> callback.onError(new LlmApiException(secret,
+                    new javax.net.ssl.SSLException(secret), false, 200,
+                    LlmApiException.RESPONSE_INTERRUPTED, 0)));
+            List<String> logs = new ArrayList<>();
+            var loggerConfig = ((org.apache.logging.log4j.core.LoggerContext)
+                    org.apache.logging.log4j.LogManager.getContext(false)).getConfiguration()
+                    .getLoggerConfig(QueryEngine.class.getName());
+            var appender = new org.apache.logging.log4j.core.appender.AbstractAppender(
+                    "query-interrupted-response-test", null, null, true, null) {
+                @Override public void append(org.apache.logging.log4j.core.LogEvent event) {
+                    if (QueryEngine.class.getName().equals(event.getLoggerName())) {
+                        logs.add(event.getMessage().getFormattedMessage()
+                                + (event.getThrown() == null ? "" : event.getThrown().toString()));
+                    }
+                }
+            };
+            appender.start();
+            loggerConfig.addAppender(appender, null, null);
+            // A previous turn already reported usage; this turn dies before any event arrives,
+            // so the Run must degrade to PARTIAL instead of claiming KNOWN.
+            QueryLoopState state = buildState("question");
+            state.recordRawUsage(new Usage(120, 40, 10, 5));
+            QueryEngine.QueryResult result;
+            try {
+                result = queryEngine.execute(buildConfig(), state, handler);
+            } finally {
+                loggerConfig.removeAppender(appender.getName());
+                appender.stop();
+            }
+
+            assertThat(result.isSuccess()).isFalse();
+            assertThat(result.error()).contains("MODEL_RESPONSE_INTERRUPTED").doesNotContain(secret);
+            assertThat(requests).hasSize(1);
+            assertThat(logs).anyMatch(line -> line.contains("QueryEngine model response interrupted"));
+            assertThat(String.join("\n", logs)).doesNotContain(secret);
+            ArgumentCaptor<Object> failedEvent = ArgumentCaptor.forClass(Object.class);
+            verify(runTracker).recordEventBestEffort(eq(run.id()), eq("llm_call_failed"), failedEvent.capture());
+            Map<?, ?> data = (Map<?, ?>) failedEvent.getValue();
+            assertThat(data.get("errorType")).isEqualTo(LlmApiException.RESPONSE_INTERRUPTED);
+            assertThat(data.get("upstreamOutcome")).isEqualTo("unknown");
+            assertThat(data.get("usageStatus")).isEqualTo("unknown");
+            assertThat(data.toString()).doesNotContain(secret);
+            assertThat(state.observationStatus()).isEqualTo(QueryLoopState.ObservationStatus.PARTIAL);
+            assertThat(state.getObservedUsage().inputTokens()).isEqualTo(120);
+            assertThat(state.getObservedUsage().outputTokens()).isEqualTo(40);
+        }
+
+        private void useRealApiRetries() {
+            ModelAwareRetryPolicy policy = mock(ModelAwareRetryPolicy.class);
+            lenient().when(policy.calculateDelay(anyString(), anyInt())).thenReturn(java.time.Duration.ZERO);
+            ApiCircuitBreaker circuit = mock(ApiCircuitBreaker.class);
+            when(circuit.allowRequest()).thenReturn(true);
+            ApiRetryService retries = new ApiRetryService(mock(ModelTierService.class), policy, circuit);
+            doAnswer(inv -> retries.executeWithRetry(inv.getArgument(0, Supplier.class),
+                    inv.getArgument(1), inv.getArgument(2), inv.getArgument(3)))
+                    .when(apiRetryService).executeWithRetry(any(), anyString(), anyString(), any());
+            lenient().when(apiRetryService.lastAttemptCount()).thenAnswer(inv -> retries.lastAttemptCount());
         }
 
         @org.junit.jupiter.params.ParameterizedTest

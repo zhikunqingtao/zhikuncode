@@ -132,7 +132,7 @@ export interface MessageStoreState {
     updateToolCallInput: (toolUseId: string, input: unknown) => void;
     updateToolCallProgress: (toolUseId: string, progress: string) => void;
     completeToolCall: (toolUseId: string, result: ToolResult) => void;
-    failAllRunningToolCalls: (errorMessage: string) => void;
+    failAllRunningToolCalls: (errorMessage: string, responseInterrupted?: boolean) => void;
     replaceActiveToolCalls: (calls: RecoveredToolCall[]) => void;
     restoreSessionSnapshot: (messages: Message[], calls: RecoveredToolCall[]) => void;
     reconcileCommittedRun: (replaceAfterMessageId: string | null, messages: Message[]) => boolean;
@@ -250,7 +250,7 @@ export const useMessageStore = create<MessageStoreState>()(
             if (block) block.result = result;
             if (!tc && !block) console.warn(`[MessageStore] tool_result: 未找到 toolUseId=${id}`);
         }),
-        failAllRunningToolCalls: (errorMessage) => set(d => {
+        failAllRunningToolCalls: (errorMessage, responseInterrupted = false) => set(d => {
             // 错误/run_failed 路径上 tool_result 永远不会到来：
             // 将仍在 running 的工具调用标记为 error，避免工具卡片永久转圈。
             // 已有终态（completed/error/permission_needed 等）的条目不受影响。
@@ -258,6 +258,16 @@ export const useMessageStore = create<MessageStoreState>()(
                 if (tc.status !== 'running') continue;
                 tc.status = 'error';
                 tc.error = errorMessage;
+                if (responseInterrupted) {
+                    tc.result = {
+                        content: '模型响应中断，工具执行状态未确认。',
+                        isError: true,
+                        metadata: {
+                            executionStatus: 'unknown',
+                            errorCode: 'MODEL_RESPONSE_INTERRUPTED',
+                        },
+                    };
+                }
                 tc.duration = Date.now() - tc.startTime;
             }
         }),

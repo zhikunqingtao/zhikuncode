@@ -4,7 +4,7 @@ import { usePermissionStore } from '@/store/permissionStore';
  * 契约: type="error", payload = { message: string(人类可读中文),
  *   errorCode?: "PROVIDER_PAYMENT_REQUIRED"|"PROVIDER_FORBIDDEN"|"PROVIDER_RATE_LIMITED"|"PROVIDER_ERROR",
  *   httpStatus?: number }
- * errorCode 存在 → 醒目 provider_error 横幅 + 常驻通知；缺失 → 保持既有行为。
+ * Provider 错误码 → provider_error 横幅；MODEL_RESPONSE_INTERRUPTED → 运行错误及工具状态说明。
  * 运行错误终止“生成中”状态；命令及设置失败不得终止无关的运行。
  */
 
@@ -17,6 +17,12 @@ import { useSessionStore } from '@/store/sessionStore';
 import { buildTurns } from '@/store/selectors/turnProjection';
 import { resolveTurnOutcome } from '@/components/message/turn/turnUtils';
 import type { ServerMessage } from '@/types';
+
+const interruptedResponse: ServerMessage = {
+    type: 'error', code: 'query_error', errorCode: 'MODEL_RESPONSE_INTERRUPTED',
+    message: '模型响应中断，上游结果未知。为避免重复请求，已停止自动重试。',
+    retryable: false, httpStatus: 200, upstreamOutcome: 'unknown', usageStatus: 'unknown',
+};
 
 vi.mock('@/api/stompClient', () => ({
     send: vi.fn(),
@@ -233,6 +239,53 @@ describe('error 事件契约解析', () => {
             ? assistant.content.find(b => b.type === 'tool_use' && b.toolUseId === 'err-tool-2')
             : undefined;
         expect(migrated && migrated.type === 'tool_use' ? migrated.result?.content : undefined).toBe('ok');
+    });
+
+    it('响应中断提示保留至完成事件，并可被迟到的真实工具结果覆盖', async () => {
+        for (const id of ['pending', 'submitted', 'completed']) {
+            dispatch({ type: 'tool_use_start', toolUseId: id, toolName: 'Write', input: {} });
+        }
+        // Arguments alone cannot prove whether a tool executed.
+        dispatch({ type: 'tool_use_input', toolUseId: 'submitted', toolName: 'Write', input: {} });
+        dispatch({ type: 'tool_result', toolUseId: 'completed', content: 'saved', isError: false });
+
+        dispatch(interruptedResponse);
+
+        const state = useMessageStore.getState();
+        const assistant = state.messages.find(m => m.type === 'assistant');
+        if (assistant?.type !== 'assistant') throw new Error('expected assistant');
+        const tools = assistant.content.filter(b => b.type === 'tool_use');
+        for (const id of ['pending', 'submitted']) {
+            expect(tools.find(b => b.toolUseId === id)?.result).toMatchObject({
+                content: '模型响应中断，工具执行状态未确认。', isError: true,
+                metadata: { executionStatus: 'unknown', errorCode: 'MODEL_RESPONSE_INTERRUPTED' },
+            });
+        }
+        expect(tools.find(b => b.toolUseId === 'completed')?.result).toEqual({ content: 'saved', isError: false });
+        expect(findSystemMessage()).toMatchObject({
+            subtype: 'error', errorCode: 'MODEL_RESPONSE_INTERRUPTED', content: interruptedResponse.message,
+            retryable: false, metadata: { httpStatus: 200, upstreamOutcome: 'unknown', usageStatus: 'unknown' },
+        });
+        expect(useNotificationStore.getState().notifications).toHaveLength(0);
+        expect(useSessionStore.getState().status).toBe('idle');
+        expect(state.streamingMessageId).toBeNull();
+        expect(state.activeToolCalls.size).toBe(0);
+
+        dispatch({
+            type: 'message_complete', stopReason: 'error',
+            usage: { inputTokens: 0, outputTokens: 0, cacheReadInputTokens: 0, cacheCreationInputTokens: 0 },
+            committedMessages: [], replaceAfterMessageId: null, runId: 'failed-run',
+        });
+        await new Promise<void>(resolve => queueMicrotask(resolve));
+        expect(useMessageStore.getState().messages).toEqual(state.messages);
+        expect(useMessageStore.getState().activeToolCalls.size).toBe(0);
+        expect(useSessionStore.getState().status).toBe('idle');
+
+        dispatch({ type: 'tool_result', toolUseId: 'pending', content: 'saved', isError: false });
+        const resolved = useMessageStore.getState().messages.flatMap(m => m.type === 'assistant' ? m.content : [])
+            .find(b => b.type === 'tool_use' && b.toolUseId === 'pending');
+        expect(resolved?.type === 'tool_use' ? resolved.result : undefined).toEqual({ content: 'saved', isError: false });
+        expect(useSessionStore.getState().status).toBe('idle');
     });
 
     it('两轮 run：第一轮 error 清理后，第二轮流式渲染不含旧工具卡片', () => {

@@ -955,15 +955,15 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
       <text x="8" y="28" fill="#8da4b0" font-size="8">CLOSED → OPEN → HALF_OPEN · 连续失败阈值→熔断→定时探测→恢复</text>
 
       <rect x="0" y="40" width="405" height="35" rx="2" fill="#3B1D0B" fill-opacity="0.6" stroke="#D97706" stroke-width="0.6"/>
-      <text x="8" y="54" fill="#FBBF24" font-size="9" font-weight="bold">ApiRetryService (指数退避 + Jitter)</text>
-      <text x="8" y="68" fill="#8da4b0" font-size="8">executeWithRetry() · baseDelay×2^attempt + random jitter · maxRetries=3</text>
+      <text x="8" y="54" fill="#FBBF24" font-size="9" font-weight="bold">ApiRetryService（分类重试）</text>
+      <text x="8" y="68" fill="#8da4b0" font-size="8">executeWithRetry() · 尝试次数与等待间隔按错误类型确定</text>
 
       <rect x="0" y="80" width="405" height="35" rx="2" fill="#3B1D0B" fill-opacity="0.6" stroke="#D97706" stroke-width="0.6"/>
       <text x="8" y="94" fill="#FBBF24" font-size="9" font-weight="bold">ModelTierService (冷却30min + 3次成功恢复)</text>
       <text x="8" y="108" fill="#8da4b0" font-size="8">模型标记cold → 冷却期满 → 探测请求 → 3次连续成功 → 恢复可用</text>
     </g>
 
-    <text x="15" y="150" fill="#7a95a8" font-size="8">韧性链: 重试退避→熔断隔离→模型降级 · 防止级联故障 · 自动恢复</text>
+    <text x="15" y="150" fill="#7a95a8" font-size="8">禁止重试标记优先：不自动重试、不压缩恢复、不模型降级</text>
   </g>
 
   <!-- ═══ 2R: Observability ═══ -->

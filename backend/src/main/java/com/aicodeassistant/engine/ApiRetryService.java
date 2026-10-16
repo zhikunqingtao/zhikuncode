@@ -128,6 +128,11 @@ public class ApiRetryService {
                 // A caller that has already emitted observable stream data must be
                 // able to suppress every classifier-based retry for this attempt.
                 if (e.isRetrySuppressed()) {
+                    boolean interrupted = e.isResponseInterrupted();
+                    log.warn("LLM retry suppressed: attempt={}, status={}, reason={}, upstreamOutcome={}, usageStatus={}, exceptionChain={}",
+                            attempt, e.getStatusCode(), interrupted ? "response_interrupted" : "caller_suppressed",
+                            interrupted ? "unknown" : "not_assessed", interrupted ? "unknown" : "not_assessed",
+                            exceptionTypeChain(e));
                     circuitBreaker.recordFailure();
                     throw e;
                 }

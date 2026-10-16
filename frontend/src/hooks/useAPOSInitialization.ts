@@ -12,8 +12,15 @@ import { useMessageStore } from '@/store/messageStore';
 import { useInsightStore } from '@/store/insightStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { saveActivity, updateActivityInsight } from '@/api/activityApi';
+import type { ToolResult } from '@/types';
 import type { ActivityData, FileChange, OperationType, Signal, RiskLevel, RunChecksRequest, RunChecksResponse } from '@/types/apos';
 import { NEEDS_VERIFICATION_OPS } from '@/types/apos';
+
+/** A transport interruption describes the UI state, not an executed operation. */
+function isInterruptedProjection(result?: ToolResult): boolean {
+  return result?.metadata?.errorCode === 'MODEL_RESPONSE_INTERRUPTED'
+    && result.metadata.executionStatus === 'unknown';
+}
 
 /**
  * 从工具名称推断 OperationType
@@ -493,6 +500,7 @@ export function useAPOSInitialization(): void {
         const { addActivity } = useActivityStore.getState();
 
         activeToolCalls.forEach((toolCall, toolUseId) => {
+          if (isInterruptedProjection(toolCall.result)) return;
           // 只处理已完成的工具调用，且未被处理过
           if (
             (toolCall.status === 'completed' || toolCall.status === 'error') &&
@@ -647,6 +655,7 @@ export function useAPOSInitialization(): void {
         const { activities, updateActivity } = useActivityStore.getState();
 
         activeToolCalls.forEach((toolCall, toolUseId) => {
+          if (isInterruptedProjection(toolCall.result)) return;
           const existing = activities.get(toolUseId);
 
           // 回溯条件放宽：已有 Activity + (changedFiles 为空 OR summary 为工具名原始值) + input 非空对象
@@ -717,6 +726,7 @@ export function useAPOSInitialization(): void {
         const { activities, updateActivity } = useActivityStore.getState();
 
         activeToolCalls.forEach((toolCall, toolUseId) => {
+          if (isInterruptedProjection(toolCall.result)) return;
           const existing = activities.get(toolUseId);
           if (
             existing &&

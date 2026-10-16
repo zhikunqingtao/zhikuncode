@@ -379,15 +379,21 @@ public class QueryEngine {
         } catch (Exception e) {
             boolean persistenceFailed = e instanceof com.aicodeassistant.session.MessagePersistenceException;
             boolean cancelled = !persistenceFailed && (aborted.get() || isCancellation(e));
+            com.aicodeassistant.llm.ProviderErrorClassifier.ClassifiedError classified =
+                    com.aicodeassistant.llm.ProviderErrorClassifier.classify(e);
             if (cancelled && state.getAbortReason() == null) state.setAbortReason(AbortReason.USER_INTERRUPT);
             if (cancelled) log.info("QueryEngine execution cancelled: {}", e.getMessage());
+            else if (classified != null && com.aicodeassistant.llm.ProviderErrorClassifier
+                    .MODEL_RESPONSE_INTERRUPTED.equals(classified.errorCode())) {
+                // Transport causes may contain response fragments or private endpoint details.
+                // The provider's bounded transport diagnostics retain the safe failure evidence.
+                log.error("QueryEngine model response interrupted: errorType={}", LlmApiException.RESPONSE_INTERRUPTED);
+            }
             else {
                 log.error("QueryEngine 执行异常", e);
             }
             // Provider HTTP 错误（402/403/429 等）分类后写入 QueryResult.error，
             // 保证子代理/父链路消费 result.error() 时能拿到结构化错误码
-            com.aicodeassistant.llm.ProviderErrorClassifier.ClassifiedError classified =
-                    com.aicodeassistant.llm.ProviderErrorClassifier.classify(e);
             String errorDetail = e instanceof com.aicodeassistant.session.MessagePersistenceException persistenceFailure
                     ? persistenceFailureDetail(persistenceFailure)
                     : classified != null
@@ -1075,27 +1081,28 @@ public class QueryEngine {
                                     "cancelled", 0);
                         }
                         collector.clearTerminalError(); // P0-2: 每次 retry 前重置
-                        provider.streamChat(
-                                effectiveModel,
-                                finalApiMessages,
-                                config.systemPrompt(),
-                                config.toolDefinitions(),
-                                effectiveMaxTokens,
-                                resolvedThinking,
-                                new com.aicodeassistant.llm.LlmCallContext(
-                                        llmRequestId,
-                                        callCancellation),
-                                collector
-                        );
-                        // P0-2: streamChat 正常返回后，检查 collector 是否收到了 terminal error
-                        // （provider 通过 callback.onError 报告但未同步抛出的错误）
-                        LlmApiException terminalError = collector.getTerminalError();
-                        if (terminalError != null) {
-                            if (collector.hasReceivedEvents()) {
-                                // 已接收流事件，禁止透明重试（状态已污染）
-                                throw terminalError.withRetryable(false);
+                        try {
+                            provider.streamChat(
+                                    effectiveModel,
+                                    finalApiMessages,
+                                    config.systemPrompt(),
+                                    config.toolDefinitions(),
+                                    effectiveMaxTokens,
+                                    resolvedThinking,
+                                    new com.aicodeassistant.llm.LlmCallContext(
+                                            llmRequestId,
+                                            callCancellation),
+                                    collector
+                            );
+                            // Callback and directly thrown errors share the same replay boundary.
+                            LlmApiException terminalError = collector.getTerminalError();
+                            if (terminalError != null) throw terminalError;
+                        } catch (LlmApiException failure) {
+                            if (collector.hasReceivedEvents() && !isCancellation(failure)
+                                    && !failure.isRetrySuppressed()) {
+                                throw failure.withRetryable(false);
                             }
-                            throw terminalError;
+                            throw failure;
                         }
                         return null;
                     }, config.querySource(), effectiveModel, callCancellation);
@@ -1111,21 +1118,47 @@ public class QueryEngine {
                 }
             } catch (LlmApiException e) {
                 llmAttemptCount[0] = Math.max(0, apiRetryService.lastAttemptCount());
-                recordCurrentRunEvent("llm_call_failed", () -> Map.of(
-                        "requestId", llmRequestId,
-                        "provider", diagnosticValue(provider.getProviderName()),
-                        "model", effectiveModel,
-                        "turn", turn,
-                        "attemptCount", llmAttemptCount[0],
-                        "durationMs", elapsedMillis(llmStartedNanos),
-                        "statusCode", e.getStatusCode(),
-                        "errorType", e.getErrorType() == null
-                                ? SafeLogValue.errorType(e) : e.getErrorType()));
+                // A request that was sent but produced no events before the connection dropped must
+                // still count as a missing usage observation: otherwise the Run keeps reporting
+                // KNOWN from earlier turns while this failure reports usageStatus=unknown.
+                if (e.isResponseInterrupted() && !collector.hasReceivedResponse()) {
+                    state.recordRawUsage(null);
+                }
+                recordCurrentRunEvent("llm_call_failed", () -> {
+                    Map<String, Object> failureData = new LinkedHashMap<>(Map.of(
+                            "requestId", llmRequestId,
+                            "provider", diagnosticValue(provider.getProviderName()),
+                            "model", effectiveModel,
+                            "turn", turn,
+                            "attemptCount", llmAttemptCount[0],
+                            "durationMs", elapsedMillis(llmStartedNanos),
+                            "statusCode", e.getStatusCode(),
+                            "errorType", e.getErrorType() == null
+                                    ? SafeLogValue.errorType(e) : e.getErrorType()));
+                    if (e.isResponseInterrupted()) {
+                        failureData.put("upstreamOutcome", "unknown");
+                        failureData.put("usageStatus", "unknown");
+                    }
+                    return failureData;
+                });
                 if (aborted.get() || isCancellation(e)) {
                     totalUsage = retainPartialResponse(collector, state, handler, totalUsage);
                     session.discard();
                     loopExit = LoopExit.CANCELLED;
                     break;
+                }
+                // Suppression stops every recovery/fallback path before another request is built.
+                if (e.isRetrySuppressed()) {
+                    session.discard();
+                    // The stream was interrupted, not cancelled by the user: keep the received
+                    // prose, register it as this run's answer so REST/sub-agent consumers can
+                    // read it, and record the real stop reason.
+                    Message.AssistantMessage partial = collector.partialTextSnapshot("error");
+                    if (partial.content() != null && !partial.content().isEmpty()) {
+                        state.addMessage(partial);
+                        state.recordCurrentRunAssistant(partial);
+                    }
+                    throw e;
                 }
                 // The final serialized request guard is local and must never enter
                 // HTTP retry/fallback handling. Execute one existing context
@@ -2716,12 +2749,16 @@ public class QueryEngine {
         }
 
         Message.AssistantMessage partialTextSnapshot() {
+            return partialTextSnapshot("cancelled");
+        }
+
+        Message.AssistantMessage partialTextSnapshot(String stopReason) {
             List<ContentBlock> text = new ArrayList<>(contentParts.stream()
                     .filter(ContentBlock.TextBlock.class::isInstance)
                     .map(ContentBlock.class::cast).toList());
             if (!currentText.isEmpty()) text.add(new ContentBlock.TextBlock(currentText.toString()));
             return new Message.AssistantMessage(UUID.randomUUID().toString(), Instant.now(),
-                    text, "cancelled", usage);
+                    text, stopReason, usage);
         }
 
         Message.AssistantMessage buildAssistantMessage() {

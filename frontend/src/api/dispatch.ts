@@ -944,10 +944,10 @@ function recoverAuthoritativeSession(sessionId: string | null): void {
  * 契约：error 事件 payload = { message: string(人类可读中文),
  *   errorCode?: "PROVIDER_PAYMENT_REQUIRED"|"PROVIDER_FORBIDDEN"|"PROVIDER_RATE_LIMITED"|"PROVIDER_ERROR",
  *   httpStatus?: number }
- * errorCode 存在时渲染醒目的 provider_error 错误横幅；缺失时保持既有行为（向后兼容）。
+ * Provider 错误码渲染 provider_error 横幅；模型响应中断属于运行错误。
  * 运行错误终止“生成中”状态；命令和设置错误独立显示，不终止无关查询。
  */
-function handleError(data: { code?: string; message: string; retryable?: boolean; errorCode?: string; httpStatus?: number; requestId?: string }): void {
+function handleError(data: { code?: string; message: string; retryable?: boolean; errorCode?: string; httpStatus?: number; requestId?: string; upstreamOutcome?: 'unknown'; usageStatus?: 'unknown' }): void {
     if (data.code === 'COMMAND_ERROR' || data.code === 'COMMAND_NOT_FOUND') {
         // A command failure is visible in the command-result layer, not a query terminal event.
         useMessageStore.getState().addMessage({
@@ -971,22 +971,28 @@ function handleError(data: { code?: string; message: string; retryable?: boolean
     }
     // 错误路径上 tool_result 永远不会到来：先将仍在 running 的工具调用标记为 error，
     // 避免 ToolCallBlock 在 running 状态下无限计时转圈
-    useMessageStore.getState().failAllRunningToolCalls(data.message);
+    const responseInterrupted = data.errorCode === 'MODEL_RESPONSE_INTERRUPTED';
+    useMessageStore.getState().failAllRunningToolCalls(data.message, responseInterrupted);
     // 终止流式状态：提交已累积的流式内容与工具卡片（error 条目在此迁移进消息内容并清理，
     // 防止跨 run 残留到下一轮流式渲染），停止 spinner
     useMessageStore.getState().finalizeStream({
         inputTokens: 0, outputTokens: 0, cacheReadInputTokens: 0, cacheCreationInputTokens: 0,
     });
-    const providerErrorCode = data.errorCode || undefined;
+    const providerErrorCode = !responseInterrupted ? data.errorCode || undefined : undefined;
+    const metadata = {
+        ...(data.httpStatus !== undefined ? { httpStatus: data.httpStatus } : {}),
+        ...(data.upstreamOutcome ? { upstreamOutcome: data.upstreamOutcome } : {}),
+        ...(data.usageStatus ? { usageStatus: data.usageStatus } : {}),
+    };
     useMessageStore.getState().addMessage({
         type: 'system',
         uuid: generateUUID(),
         timestamp: Date.now(),
         content: data.message,
         subtype: providerErrorCode ? 'provider_error' : 'error',
-        errorCode: providerErrorCode ?? data.code,
+        errorCode: data.errorCode ?? data.code,
         retryable: data.retryable,
-        ...(data.httpStatus !== undefined ? { metadata: { httpStatus: data.httpStatus } } : {}),
+        ...(Object.keys(metadata).length > 0 ? { metadata } : {}),
     } as Message);
     if (providerErrorCode) {
         // Provider 配额/权限类错误额外推送常驻错误横幅，确保用户可见

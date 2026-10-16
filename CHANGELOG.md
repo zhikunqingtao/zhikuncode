@@ -8,6 +8,8 @@
 ## [Unreleased]
 
 ### Added
+- ZenMux Claude（`anthropic/claude-*`，Chat Completions 通道）支持带签名的推理续传：后续请求按「前缀哈希 + 父链 + 公开消息哈希」校验后回放 `reasoning_details`，历史、图片、工具集或所选 Key 变化导致链断裂时整块重置、绝不发送半新半旧的签名链；续传状态以 `provider_response_state`（`zenmux_claude_reasoning`）随会话持久化，不写入公开消息快照。仅对 ZenMux 且模型前缀 `anthropic/claude-` 生效，其他 Provider 与模型零影响；已文档化可重置的型号限定为 fable-5.1／opus-5.5／sonnet-5.5／haiku-5.5，名单外型号在需要重置时保持显式失败（见 Known Issues）。
+- ZenMux Claude 流式请求注入提示缓存断点：最后一个工具定义、system 与最近两个真实用户文本边界各 1 个 `cache_control: ephemeral`（最多 4 个）；断点标记不参与指纹计算，文本统一块形态以保证跨轮字节稳定。未改动任何历史正文，仅改写出站 JSON。
 - Journey 截图按原始 JPEG/PNG 字节归档到内容寻址 Blob，证据条目保存哈希引用、归档状态及缺图原因；证据视图支持图片预览和 JS fallback 提示。Blob 接口新增可选 `preview=true`，仅通过格式检查的 JPEG/PNG 使用准确 MIME 与 inline，默认附件下载保持兼容。
 - 新增适配 PC、平板和手机的 Skill 管理页，支持搜索、详情及独立开关；状态由后端持久化并跨设备共享，现有和新增技能默认开启。
 - Web 新增独立快捷键帮助对话框；会话列表支持按文件夹分组。
@@ -28,6 +30,7 @@
 - ZenMux 默认目录新增 Anthropic 系列 `anthropic/claude-opus-5.5`、`anthropic/claude-sonnet-5.5` 与 `anthropic/claude-haiku-5.5`：均为 1M 上下文、图片输入、工具调用与缓存，走 Chat Completions 通道并复用既有双 Key 轮换；价格为 2026-10-12 网关核对值换算 per-1k。
 
 ### Changed
+- ZenMux Claude 的用量按 Anthropic 语义上报（仅该通道）：`prompt_tokens` 视为未缓存输入，缓存读取（`cached_tokens`）与缓存写入（`cacheCreationInputTokens`／`cache_creation_input_tokens`）并入完整输入后再上报，缓存读写作为明细透出；`TokenCounter`／`TokenBudgetGuard` 对 `zenmux_claude_reasoning`（补充态：不计入早期预算，由最终请求守卫按实际序列化请求计量）与 `zenmux_claude_message`（历史遗留态：计 0）过滤，并在存在补充态时跳过展示用 Thinking 的重复计量。其他 Provider 与模型的用量与预算口径不变。
 - 修正内置 `verification` 子代理的证据要求与 PASS／FAIL／PARTIAL 判定边界（模型输入行为变化）：测试结果作为其断言覆盖范围内的证据；区分已证实的验收失败与检查未完成，保留必要动态反证要求，限定静态结论及验收范围，设计意图不豁免已证实失败；数值退出码仅在工具或命令明确提供时记录，缺失本身不决定结论。同步补充普通及 fork 路径的提示送达契约测试。
 - **Breaking:** `TaskUpdate` 仅接受输出更新，显式拒绝 `status`，任务执行状态统一由 `TaskCoordinator` 管理；调用方应移除 `status` 字段，使用 `TaskStop` 请求取消、`TaskGet`／`TaskList` 查询结果，计划清单改用 `TodoWrite`。`TaskCreate` 仅接受 `agent`、`shell`、`local_workflow`、`monitor_mcp`、`dream`；未实现或未知类型明确拒绝，不再返回假成功。后三种兼容类型均执行一次通用子代理调用，不提供周期监控或特殊优先级。
 - `EnterPlanMode`／`ExitPlanMode` 保留兼容入口，但明确返回 `PLAN_MODE_UNAVAILABLE`：本工具尚未接入权限切换、审批或计划文件展示。系统已有的 `PLAN` 权限模式保留；`/plan` 回执改为说明显示／隐藏前端计划面板，权限不会因此改变。`Brief` 仅展示基础执行上下文，`AskUserQuestion` 说明与 `multiSelect` 实际行为一致；相关工具提示及中英文 README 同步。
@@ -68,6 +71,7 @@
 - **Breaking:** `/api/query`、`/api/query/stream`、`/api/query/conversation` 对非空 `maxBudgetUsd`（含 0 与负数）明确返回 400（`QUERY_BUDGET_USD_UNSUPPORTED`）：该字段此前被静默忽略，现改为显式拒绝，显式使用 `--max-budget` 的 CLI 调用将收到失败响应——迁移方式为省略该字段（缺失或传 null 时行为不变）。CLI 帮助文案同步更新，参数与转发逻辑保留；错误响应为显式 JSON——纯 `Accept: text/event-stream` 请求同样收到 400 JSON（同类 not-found 路径一并覆盖）。本批**不包含** token 严格预算与计量主体（另行推进）。
 
 ### Fixed
+- 修复 OpenAI 兼容流式请求发送后中断、响应不完整或流解析中断时可能被自动重发的问题：禁止底层重放，上游结果未知时停止自动重试，查询恢复／降级及会话合并遵守禁止重试标记。补充有界传输诊断；未完成工具提示“模型响应中断，工具执行状态未确认”，完整响应的校验错误保留原原因。发送前失败仅 `ConnectException` 保持可重试（复用既有连接失败小预算，最多 3 次／固定 2 秒），其余发送前失败不再自动重试；“上游结果未知”按既有共享熔断规则计入失败计数（连续 3 次触发，60 秒后允许试探，试探成功后关闭）。
 - 浏览器 click/type 明确失败但缺少错误码时，不再被外层包装成成功；保留执行方式、已有错误信息及禁止自动重试语义，正常与 JS fallback 成功路径保持。
 - Journey 记录交互方式、JS fallback 警示和截图采集原因；原生点击实际调用抛错时仍记录 Playwright，调用前参数错误不推定已执行。结果整理失败保留已经采集的截图和有效交互元数据，步骤仍失败且不重跑；取消继续传播，不新增失败后补拍。
 - 截图 Blob 使用同目录临时文件和原子移动发布，复用已有内容前及发布后检查长度与哈希；清理失败仍明确报错，已有写入错误保留为主因并附带清理错误。Blob 或数据库写入失败统一返回 `EVIDENCE_PERSIST_FAILED`，正文保留真实 verdict，禁止自动重跑 Journey；无效或超限图片保留步骤事实并记录证据缺口。
@@ -87,7 +91,7 @@
 - 修复斜杠命令虚假成功回执：删除 `/model` 对应用状态的无效写入与 `Model switched to` 成功日志（该写入不影响会话实际调用模型；有参时现明确说明不切换会话模型并引导使用输入栏模型选择器）；移除 `/fast`「已启用低延迟模型」、`/effort` 虚构「medium（默认）」、`/color` 虚构配色清单以及 `/vim`、`/output-style`、`/theme` 有参的「已设置」文案，统一回复尚未接入、未改变任何设置；`/theme` 无参此前返回前端没有渲染器的 JSX 选择器（用户只看到空白回执），现改为诚实文本并引导外观设置；`/model` 未知模型仍返回错误。
 - 修复 `/diff` 的范围误判与失败混同：`/diff unstaged` 不再因参数包含 `staged` 子串而被当作已暂存；当前范围的 Git 差异读取失败（stat 或正文为 null）现在明确报错并区分失败来源，不再与「无差异」混同（两者均空仍返回「无差异」）；stat 展示同步截断到 10000 字符并复用既有截断标记，文件数改为先按完整 stat 计算再截断（stat 为空而正文非空时不再得到 -1）。
 - 修复 `/commit` 的失败识别：Git 状态读取失败明确报错，不再与「没有可提交的变更」混同；无参预览在暂存差异读取失败时明确报出失败来源（stat／正文／两者）并放弃预览，不再返回貌似完整的面板；提交结果不可读时如实说明「提交可能未生效、也可能已成功」，要求先核对仓库状态（`git log`／`git status`）再决定是否重试（若被 pre-commit 钩子拒绝请先修复钩子），不做自动重试。
-- 补全 OpenAI 兼容链路的截断流诊断（此前只有错误上报、没有诊断上下文）：尾行缺少结尾换行且尚未收到有效 `finish_reason` 时同样记录不完整流诊断；三处缺少 `finish_reason` 的诊断均检查取消标志，避免已取消调用因缓冲尾部进入 DONE／EOF 分支而产生该 WARN；已收到有效 `finish_reason` 的截断尾行也不再误报缺少结束原因。只修日志，原有异常、错误回调与重试语义不变，Provider 终态归类及无换行尾行的兼容限制见 Known Issues；截断帧改为显式标记（`:truncated`），不再按「长度恰好等于上限」推断，恰好等于上限的完整帧仍正常解析，无先行问题时 `firstIssue` 输出 `none`；诊断只保留两帧的有界结构摘要（不含帧内容），诊断自身失败不会替换原始错误。相关回归测试不再向共享 Log4j 配置遗留 per-class LoggerConfig（此前会导致该类日志在测试进程内被静默丢弃）。
+- 补全 OpenAI 兼容链路的截断流诊断（此前只有错误上报、没有诊断上下文）：尾行缺少结尾换行且尚未收到有效 `finish_reason` 时同样记录不完整流诊断；三处缺少 `finish_reason` 的诊断均检查取消标志，避免已取消调用因缓冲尾部进入 DONE／EOF 分支而产生该 WARN；已收到有效 `finish_reason` 的截断尾行也不再误报缺少结束原因。Provider 终态归类及无换行尾行的兼容限制见 Known Issues；截断帧改为显式标记（`:truncated`），不再按「长度恰好等于上限」推断，恰好等于上限的完整帧仍正常解析，无先行问题时 `firstIssue` 输出 `none`；诊断只保留两帧的有界结构摘要（不含帧内容），诊断自身失败不会替换原始错误。相关回归测试不再向共享 Log4j 配置遗留 per-class LoggerConfig（此前会导致该类日志在测试进程内被静默丢弃）。
 - Edit 更新已有文件时展示本次实际写入的 diff，并在会话恢复后保留；增删统计使用实际差异。预览上限为 500 行／65,536 个 UTF-16 单元，超出明确标注部分展示；未提供预览时（如创建文件、旧记录或生成失败）保留原结果并给出中性提示。工具结果的全部 UI `structuredResult`（包括 Edit 预览及 external-resource 下载卡片）不进入压缩摘要输入，工具正文保留；新生成的会话合并文字投影仅排除 Edit 展示快照，其他 schema 保持原行为，完整快照仍保留在原始归档和会话记录中，已有封存包保持不变。文件写入、权限和模型结果正文不变。
 - 修复 Git 大输出填满管道导致 diff／审查读取失败的问题，改为并发读取完整输出。进程退出与输出读完共用 5 秒期限，失败时对当前进程与已知后代增加至多 2 秒的尽力清理等待；成功路径保留后台 hook。Git 已执行成功但输出迟迟不结束时仍可能返回失败，不自动重试；完整输出仍需占用内存。
 - 修正内置 Explore／Plan／Verification 的 `Edit`、`Write` 排除名单及 Guide 的 `Read` 可用名单，并统一代理提示、内置示例和工具说明中的文件与搜索工具名称；保留其他授权规则与通用代理的读写能力。
@@ -117,7 +121,8 @@
 ### Known Issues
 - Journey 截图归档限额为单张 5 MiB、每次 Journey 合计 20 MiB，按原始图片字节及每次引用累计，去重不绕过限额；跳过超限图片后仍处理后续可容纳图片。该策略不限制通用 Blob，也不解决整包 HTTP 响应的内存峰值。
 - Blob 存储不支持原子移动时明确失败；同名损坏文件不会自动覆盖。Blob 和崩溃残留临时文件暂无自动清理，需在确认无活动写者后人工检查维护；数据库保存失败不删除可能被其他证据共用的 Blob。读路径的符号链接防护不在本次改造范围内。
-- OpenAI 兼容流在有效 `finish_reason` 后收到缺少结尾换行的尾行，仍按既有 I/O 错误处理；本批只修诊断，不将任意 EOF 改判成功。取消时若响应尾部已缓冲，Provider 的终态回调仍可能按该尾部归类；主调用链另行检查取消信号，本批不声称统一了 Provider 取消终态。
+- OpenAI 兼容流在有效 `finish_reason` 后收到缺少结尾换行的尾行，未取消时按响应中断处理，标记上游结果未知并停止自动重试；不将任意 EOF 改判成功。取消时若响应尾部已缓冲，Provider 的终态回调仍可能按该尾部归类；主调用链另行检查取消信号，本批不声称统一了 Provider 取消终态。
+- ZenMux Claude 的签名推理续传只在 fable-5.1／opus-5.5／sonnet-5.5／haiku-5.5 四个已文档化型号上支持“重置”：名单外的 `anthropic/claude-*` 型号在历史被编辑、压缩或中断导致链断裂时，本轮及后续请求会以 `INVALID_ZENMUX_CLAUDE_REASONING` 显式失败（不静默丢弃签名），需改用名单内型号或新建会话；本批不改为默认降级。
 - Grep 的最终字符截断不等于读取阶段的内存上限，极大合法分页／上下文的中间聚合开销仍存在；本批未扩展为有界流式读取改造。
 - `/keybindings` 当前没有前端 UI 呈现：命令回执不会渲染出快捷键编辑器（描述中的「查看／编辑键盘绑定配置」与实际不符），用户只看到空白回执；Web 端可使用独立的快捷键帮助对话框。该命令的 UI 接线不在本批（另行推进）。
 

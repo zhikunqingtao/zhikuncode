@@ -239,6 +239,7 @@ public class MergeSummaryService {
                     boolean capacityFailure=failure.getMessage()!=null && (failure.getMessage().contains("MERGE_RESPONSE_LIMIT")
                             || failure.getMessage().contains("MERGE_LENGTH_STOP"));
                     if(failure instanceof LlmApiException api) {
+                        if (api.isRetrySuppressed()) throw api;
                         capacityFailure|=api.getHttpStatus()==413 || Objects.toString(api.getErrorType(),"").contains("context")
                                 || Objects.toString(api.getMessage(),"").toLowerCase(Locale.ROOT).contains("context length");
                         if(!capacityFailure && !api.isRetryable()) throw api;

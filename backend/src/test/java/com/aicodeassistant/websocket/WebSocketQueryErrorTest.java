@@ -20,6 +20,7 @@ import com.aicodeassistant.session.SessionManager;
 import com.aicodeassistant.tool.ToolRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -153,6 +154,24 @@ class WebSocketQueryErrorTest {
                 .containsEntry("errorCode", code)
                 .containsEntry("httpStatus", status)
                 .containsEntry("retryable", retryable);
+    }
+
+    @Test
+    void messageHandlerReportsUnknownOutcomeWithoutRawCause() {
+        var error = new IllegalStateException("PRIVATE_WRAPPER", new LlmApiException(
+                "PRIVATE_MESSAGE", new javax.net.ssl.SSLException("RAW_TLS_DETAIL"), true,
+                200, LlmApiException.RESPONSE_INTERRUPTED, 0));
+
+        Map<String, Object> payload = deliverError(Exit.MESSAGE_HANDLER, error);
+
+        assertThat(payload).containsEntry("code", "query_error")
+                .containsEntry("errorCode", "MODEL_RESPONSE_INTERRUPTED")
+                .containsEntry("httpStatus", 200)
+                .containsEntry("upstreamOutcome", "unknown")
+                .containsEntry("usageStatus", "unknown")
+                .containsEntry("retryable", false)
+                .containsEntry("message", "模型响应中断，上游结果未知。为避免重复请求，已停止自动重试。");
+        assertThat(payload.toString()).doesNotContain("PRIVATE_", "RAW_TLS_DETAIL");
     }
 
     private Map<String, Object> deliverError(Exit exit, RuntimeException error) {

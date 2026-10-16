@@ -5,12 +5,14 @@ import com.aicodeassistant.model.ContentBlock;
 import com.aicodeassistant.model.Message;
 import com.aicodeassistant.config.FeatureFlagService;
 import com.aicodeassistant.engine.tokenizer.TokenizerService;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Token 计数器 — 多层精度估算。
@@ -86,10 +88,13 @@ public class TokenCounter {
         long totalChars = 0;
         long opaqueTokens = 0;
         for (Message msg : messages) {
+            List<ContentBlock> blocks = MessageContentAccessor.viewOf(msg).blocks();
             ContentBlock.ProviderResponseStateBlock state =
-                    MessageContentAccessor.viewOf(msg).blocks().stream()
+                    blocks.stream()
                             .filter(ContentBlock.ProviderResponseStateBlock.class::isInstance)
                             .map(ContentBlock.ProviderResponseStateBlock.class::cast)
+                            .filter(stateBlock -> !isRetiredProviderState(stateBlock)
+                                    && !isSupplementalProviderState(stateBlock))
                             .findFirst().orElse(null);
             if (state != null) {
                 opaqueTokens += state.outputItems().stream()
@@ -291,7 +296,15 @@ public class TokenCounter {
      */
     private long estimateMessageChars(Message message) {
         long chars = 0;
-        for (ContentBlock block : MessageContentAccessor.viewOf(message).blocks()) {
+        List<ContentBlock> blocks = MessageContentAccessor.viewOf(message).blocks();
+        boolean supplemental = message instanceof Message.AssistantMessage && blocks.stream()
+                .filter(ContentBlock.ProviderResponseStateBlock.class::isInstance)
+                .map(ContentBlock.ProviderResponseStateBlock.class::cast)
+                .anyMatch(TokenCounter::isSupplementalProviderState);
+        for (ContentBlock block : blocks) {
+            // Display thinking is not sent with supplemental Claude state. The final
+            // provider guard budgets the reasoning that is actually selected for replay.
+            if (supplemental && block instanceof ContentBlock.ThinkingBlock) continue;
             chars += estimateBlockChars(block);
         }
         return chars;
@@ -319,10 +332,56 @@ public class TokenCounter {
             case ContentBlock.ThinkingBlock thinking ->
                     thinking.thinking() != null ? thinking.thinking().length() : 0;
             case ContentBlock.RedactedThinkingBlock redacted -> 10;
-            case ContentBlock.ProviderResponseStateBlock state -> state.outputItems().stream()
-                    .mapToLong(item -> item.toString().length())
-                    .sum();
+            case ContentBlock.ProviderResponseStateBlock state -> isRetiredProviderState(state) || isSupplementalProviderState(state)
+                    ? 0 : state.outputItems().stream().mapToLong(item -> item.toString().length()).sum();
         };
+    }
+
+    static boolean isRetiredProviderState(ContentBlock.ProviderResponseStateBlock state) {
+        return matchesProviderState(state.provider(), state.model(), state.outputItems(),
+                "zenmux_claude_message", "content");
+    }
+
+    static boolean isRetiredProviderState(Map<String, Object> block) {
+        return "provider_response_state".equals(block.get("type"))
+                && block.get("provider") instanceof String provider
+                && block.get("model") instanceof String model
+                && matchesProviderState(provider, model, block.get("output"), "zenmux_claude_message", "content");
+    }
+
+    static boolean isSupplementalProviderState(ContentBlock.ProviderResponseStateBlock state) {
+        return matchesProviderState(state.provider(), state.model(), state.outputItems(),
+                "zenmux_claude_reasoning", "reasoning_details");
+    }
+
+    static boolean isSupplementalProviderState(Map<String, Object> block) {
+        return "provider_response_state".equals(block.get("type"))
+                && block.get("provider") instanceof String provider
+                && block.get("model") instanceof String model
+                && matchesProviderState(provider, model, block.get("output"), "zenmux_claude_reasoning", "reasoning_details");
+    }
+
+    /** Only known wrappers bypass early budgets; unknown or mixed opaque state stays conservative. */
+    private static boolean matchesProviderState(String provider, String model, Object output,
+                                                String type, String arrayField) {
+        if (!"zenmux".equalsIgnoreCase(provider) || model == null
+                || !model.startsWith("anthropic/claude-")) return false;
+        if (output instanceof JsonNode node && !node.isArray()) return false;
+        if (!(output instanceof Iterable<?> items)) return false;
+        boolean found = false;
+        for (Object item : items) {
+            if (item instanceof JsonNode node) {
+                if (!type.equals(node.path("type").asText())
+                        || !node.path(arrayField).isArray()) return false;
+            } else if (item instanceof Map<?, ?> map) {
+                Object content = map.get(arrayField);
+                if (!type.equals(map.get("type"))
+                        || !(content instanceof List<?>
+                            || content instanceof JsonNode node && node.isArray())) return false;
+            } else return false;
+            found = true;
+        }
+        return found;
     }
 
     private static int saturatingTokens(double value) {

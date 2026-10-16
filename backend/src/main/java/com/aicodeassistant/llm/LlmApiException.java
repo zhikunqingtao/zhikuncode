@@ -8,6 +8,9 @@ package com.aicodeassistant.llm;
  */
 public class LlmApiException extends RuntimeException {
 
+    /** 请求可能已到达上游，但响应未完整接收；重发可能重复执行或计费。 */
+    public static final String RESPONSE_INTERRUPTED = "response_interrupted";
+
     private final boolean retryable;
     private final int httpStatus;
     private final String errorType;
@@ -77,12 +80,13 @@ public class LlmApiException extends RuntimeException {
                 httpStatus, errorType, retryAfterMs, !value);
     }
 
-    public boolean isRetryable() { return retryable; }
+    public boolean isRetryable() { return retryable && !isRetrySuppressed(); }
     public int getHttpStatus() { return httpStatus; }
     public int getStatusCode() { return httpStatus; }
     public String getErrorType() { return errorType; }
     public long getRetryAfterMs() { return retryAfterMs; }
-    public boolean isRetrySuppressed() { return retrySuppressed; }
+    public boolean isRetrySuppressed() { return retrySuppressed || isResponseInterrupted(); }
+    public boolean isResponseInterrupted() { return RESPONSE_INTERRUPTED.equals(errorType); }
 
     /**
      * 判断是否应触发模型降级。

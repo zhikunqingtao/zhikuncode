@@ -24,6 +24,7 @@ public final class ProviderErrorClassifier {
     public static final String PROVIDER_RATE_LIMITED = "PROVIDER_RATE_LIMITED";
     public static final String PROVIDER_ERROR = "PROVIDER_ERROR";
     public static final String PROVIDER_UNREACHABLE = "PROVIDER_UNREACHABLE";
+    public static final String MODEL_RESPONSE_INTERRUPTED = "MODEL_RESPONSE_INTERRUPTED";
 
     /** cause 链遍历上限，防御自引用异常链 */
     private static final int MAX_CAUSE_DEPTH = 16;
@@ -57,8 +58,12 @@ public final class ProviderErrorClassifier {
      */
     public static ClassifiedError classify(Throwable error) {
         LlmApiException llm = findLlmApiException(error);
+        if (llm != null && llm.isResponseInterrupted()) {
+            return new ClassifiedError(MODEL_RESPONSE_INTERRUPTED, llm.getHttpStatus(),
+                    "模型响应中断，上游结果未知。为避免重复请求，已停止自动重试。", false);
+        }
         if (llm == null || llm.getHttpStatus() < 400) {
-            return classifyConnectFailure(error);
+            return classifyConnectFailure(error, llm == null || !llm.isRetrySuppressed());
         }
         int status = llm.getHttpStatus();
         return switch (status) {
@@ -67,17 +72,17 @@ public final class ProviderErrorClassifier {
             case 403 -> new ClassifiedError(PROVIDER_FORBIDDEN, status,
                     "模型服务拒绝访问，请检查 API Key 权限或配额", false);
             case 429 -> new ClassifiedError(PROVIDER_RATE_LIMITED, status,
-                    "模型请求频率超限，请稍后重试或切换模型", true);
+                    "模型请求频率超限，请稍后重试或切换模型", !llm.isRetrySuppressed());
             default -> new ClassifiedError(PROVIDER_ERROR, status,
                     "模型服务返回错误（HTTP " + status + "）："
                             + (llm.getMessage() == null || llm.getMessage().isBlank()
                                     ? "Unknown error" : llm.getMessage()),
-                    status >= 500);
+                    status >= 500 && !llm.isRetrySuppressed());
         };
     }
 
     /** 无 HTTP 状态时的连接异常分类 — cause 链含 ConnectException → PROVIDER_UNREACHABLE。 */
-    private static ClassifiedError classifyConnectFailure(Throwable error) {
+    private static ClassifiedError classifyConnectFailure(Throwable error, boolean retryable) {
         ConnectException connect = findConnectException(error);
         if (connect == null) {
             return null;
@@ -86,7 +91,7 @@ public final class ProviderErrorClassifier {
         String message = address == null
                 ? "无法连接 LLM 服务，请检查本地代理或网络设置"
                 : "无法连接 LLM 服务（" + address + " 连接失败），请检查本地代理或网络设置";
-        return new ClassifiedError(PROVIDER_UNREACHABLE, 0, message, true);
+        return new ClassifiedError(PROVIDER_UNREACHABLE, 0, message, retryable);
     }
 
     /**
