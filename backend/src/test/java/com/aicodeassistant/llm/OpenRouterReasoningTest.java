@@ -13,6 +13,9 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class OpenRouterReasoningTest {
+    /** 同 Provider 的另一条路由（不在 OpenRouterModels.MODELS 中），用于验证跨路由不回放状态。 */
+    private static final String OTHER_ROUTE_MODEL = "anthropic/claude-opus-5.5";
+
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Test
@@ -20,7 +23,7 @@ class OpenRouterReasoningTest {
         try (var server = new MockWebServer()) {
             server.start();
             var provider = provider(server);
-            for (String model : List.of(OpenRouterModels.ASTRA, OpenRouterModels.FABLE)) {
+            for (String model : List.of(OpenRouterModels.FABLE)) {
                 server.enqueue(sse("""
                         data: {"choices":[{"delta":{"reasoning":"Think ","reasoning_details":[{"type":"reasoning.text","index":0,"text":"Think "}]}}]}
 
@@ -62,8 +65,8 @@ class OpenRouterReasoningTest {
                                         "output", state.outputItems()))),
                         Map.of("role", "user", "content", List.of(Map.of("type", "tool_result",
                                 "tool_use_id", "call-1", "content", "42"))));
-                for (String target : List.of(model, model.equals(OpenRouterModels.ASTRA)
-                        ? OpenRouterModels.FABLE : OpenRouterModels.ASTRA)) {
+                // 负例保留：后续请求换用不同模型时（不同路由），录制的 provider_response_state 不得回放。
+                for (String target : List.of(model, OTHER_ROUTE_MODEL)) {
                     server.enqueue(sse("data: {\"choices\":[{\"delta\":{\"content\":\"42\"},\"finish_reason\":\"stop\"}]}\n\ndata: [DONE]\n\n"));
                     provider.streamChat(target, history, null, List.of(), 4096,
                             new ThinkingConfig.Adaptive(), LlmCallContext.unscoped(), new Capture());
@@ -87,7 +90,7 @@ class OpenRouterReasoningTest {
                     "data: {\"error\":{\"code\":429,\"message\":\"rate limited\"}}\n\ndata: [DONE]\n\n")) {
                 server.enqueue(sse(response));
                 Capture capture = new Capture();
-                provider(server).streamChat(OpenRouterModels.ASTRA, List.of(), "system", List.of(),
+                provider(server).streamChat(OpenRouterModels.FABLE, List.of(), "system", List.of(),
                         4096, new ThinkingConfig.Adaptive(), LlmCallContext.unscoped(), capture);
                 assertThat(capture.completed).isFalse();
                 assertThat(capture.error).isInstanceOf(LlmApiException.class);
@@ -100,10 +103,10 @@ class OpenRouterReasoningTest {
         try (var server = new MockWebServer()) {
             server.start();
             server.enqueue(new MockResponse().setBody("{\"choices\":[{\"message\":{\"content\":\"OK\"}}]}"));
-            assertThat(provider(server).chatSync(OpenRouterModels.ASTRA, "system", "hello", 4096, null, 5000))
+            assertThat(provider(server).chatSync(OpenRouterModels.FABLE, "system", "hello", 4096, null, 5000))
                     .isEqualTo("OK");
             var body = mapper.readTree(server.takeRequest(5, TimeUnit.SECONDS).getBody().readUtf8());
-            assertThat(body.path("model").asText()).isEqualTo("openai/gpt-6-astra");
+            assertThat(body.path("model").asText()).isEqualTo("anthropic/claude-fable-5.1");
             assertThat(body.path("reasoning").path("effort").asText()).isEqualTo("max");
         }
     }
@@ -112,7 +115,7 @@ class OpenRouterReasoningTest {
         return new OpenAiCompatibleProvider("openrouter", mapper,
                 new LlmHttpProperties(new LlmHttpProperties.PoolProperties(2, 30), 10, 10, true),
                 new ApiKeyRotationManager("key"), "key", server.url("/api/v1").toString(),
-                OpenRouterModels.ASTRA, List.of(OpenRouterModels.ASTRA, OpenRouterModels.FABLE));
+                OpenRouterModels.FABLE, List.of(OpenRouterModels.FABLE));
     }
 
     private MockResponse sse(String body) {

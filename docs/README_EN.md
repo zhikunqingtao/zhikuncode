@@ -392,7 +392,7 @@ If no multi-Provider keys are configured, the system automatically falls back to
 | Provider | Base URL | Recommended Model | Notes |
 |----------|----------|-------------------|-------|
 | **Qwen / DashScope** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen3.8-max-0902 | Pay-as-you-go Provider, direct connection in China |
-| **Alibaba Cloud Bailian Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max / qwen3.8-flash / deepseek-v4-pro-0813 / deepseek-v4-flash-0731 / deepseek-v4.1-flash | Independent `sk-sp-` key; models are labeled “Bailian”. V4.1 Flash defaults `app.model.default`, fast queries and vision fallback; the frontend initial preference remains `qwen3.8-max-0902`, with configured/session selections taking precedence |
+| **Alibaba Cloud Bailian Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max / qwen3.8-flash / deepseek-v4.1-flash | Independent `sk-sp-` key; models are labeled “Bailian”. V4.1 Flash defaults `app.model.default`, fast queries and vision fallback; the frontend initial preference remains `qwen3.8-max-0902`, with configured/session selections taking precedence |
 | **DeepSeek** | `https://api.deepseek.com/v1` | deepseek-flash | Direct connection in China; DeepSeek V4.1 Flash with thinking, tool use, and native vision |
 | **Moonshot (Kimi)** | `https://api.moonshot.cn/v1` | kimi-k3 | Direct connection; kimi-k3 features 1M context window and native vision |
 | **Zhipu (GLM)** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.3, glm-5.3-flash | China direct access |
@@ -1521,7 +1521,7 @@ Environment variables are managed via the `.env` file. Copy `.env.example` and m
 | `LLM_PROVIDER_KIMI_CODE_MODELS` | — | k3,kimi-for-coding | Kimi K3 / K2.8 Preview subscription model IDs |
 | `LLM_PROVIDER_ZHIPU_API_KEY` | — | — | Zhipu GLM API Key |
 | `LLM_PROVIDER_OPENROUTER_API_KEY` | — | — | OpenRouter API Key; leave empty to skip registering this Provider |
-| `LLM_PROVIDER_OPENROUTER_MODELS` | — | stealth/union-alpha,openrouter/openai/gpt-6-astra,openrouter/anthropic/claude-fable-5.1 | Available OpenRouter models (comma-separated) |
+| `LLM_PROVIDER_OPENROUTER_MODELS` | — | openrouter/anthropic/claude-fable-5.1 | Available OpenRouter models (comma-separated) |
 | `LLM_DEFAULT_MODEL` | — | deepseek-v4.1-flash | Bailian Token Plan default; falls back to an active Provider default when unavailable |
 | `LLM_FAST_MODEL` | — | deepseek-v4.1-flash | Preferred fast-query model and classifier fallback |
 | `LLM_COMPACT_MODEL` | — | deepseek-flash | Summary model (direct DeepSeek), configured independently of the fast model |
@@ -1542,24 +1542,25 @@ Set `WEB_SEARCH_BACKEND=deepseek` and restart to enable paid search. `auto` does
 
 Only DeepSeek Search is integrated; `include_content` is off by default. Received HTTP 408, 429, and 500–599 responses may be retried, with at most 3 attempts including the first and a 45-second timeout per request. The retry delay is the greater of a parseable `Retry-After` and local backoff; an unparseable non-empty value, or a single wait above 30 seconds, stops retries instead of retrying early. Retry waits count toward the tool call's wall-clock time but do not consume the per-request timeout.
 
-**OpenRouter / Union Alpha:** Set `LLM_PROVIDER_OPENROUTER_API_KEY` in `.env`, restart the service, then select `Union Alpha（OpenRouter）` (`stealth/union-alpha`) from the model list. To make it the default model, add `LLM_DEFAULT_MODEL=stealth/union-alpha`. Both local startup and Docker Compose support these variables.
+**OpenRouter / Claude Fable 5.1:** Set `LLM_PROVIDER_OPENROUTER_API_KEY` in `.env`, restart the service, then select `Claude Fable 5.1（OpenRouter）` (`openrouter/anthropic/claude-fable-5.1`) from the model list. To make it the default model, add `LLM_DEFAULT_MODEL=openrouter/anthropic/claude-fable-5.1`. Both local startup and Docker Compose support these variables.
 
-Integration reuses the existing `llm.providers.*` → `MultiProviderConfiguration` → `OpenAiCompatibleProvider` chain with the endpoint `https://openrouter.ai/api/v1`, keeping streaming output, image input, tool calls, and key rotation. Capabilities are exposed uniformly by `ModelRegistry` via `/api/models`, with no new frontend branches. [Official model specs](https://openrouter.ai/stealth/union-alpha) (verified 2026-09-17): 262,144 context, 131,072 max output, currently in free preview; the app currently limits each request to 4 images. Union Alpha does not advertise a reasoning parameter, so configurable thinking mode is not enabled; preview pricing and availability are subject to future official announcements.
+This project deliberately reduces duplicate model choices; this does not indicate supplier retirement. The OpenRouter **provider default** changes from the free Union Alpha preview to paid Claude Fable 5.1, affecting requests that use this provider default fallback. The global defaults of `app.model.default` and `LLM_DEFAULT_MODEL` remain Bailian `deepseek-v4.1-flash`. The existing Fable pricing reference is listed below.
+
+Integration reuses the existing `llm.providers.*` → `MultiProviderConfiguration` → `OpenAiCompatibleProvider` chain with the endpoint `https://openrouter.ai/api/v1`, keeping streaming output, image input, tool calls, and key rotation. Capabilities are exposed uniformly by `ModelRegistry` via `/api/models`, with no new frontend branches.
 
 **OpenRouter forced-reasoning models and channel isolation:**
 
 | Display name | ZhikunCode model ID | Upstream model ID | Context / Max output |
 |---|---|---|---|
-| GPT-6 Astra（OpenRouter） | `openrouter/openai/gpt-6-astra` | `openai/gpt-6-astra` | 1,050,000 / 128,000 |
 | Claude Fable 5.1（OpenRouter） | `openrouter/anthropic/claude-fable-5.1` | `anthropic/claude-fable-5.1` | 1,000,000 / 128,000 |
 
-Both use the existing OpenRouter key and request `reasoning.effort=max` with `exclude=false` by default, and are not downgraded by the global thinking-off switch; OpenRouter currently marks these two models as forced-reasoning. Context uses the official full window, while the existing output reservation, compaction thresholds, and safety margins still apply. The per-run output budget is determined by the current runtime configuration; the table lists model ceilings, not the length generated every time.
+Claude Fable 5.1 uses the existing OpenRouter key and requests `reasoning.effort=max` with `exclude=false` by default, and is not downgraded by the global thinking-off switch; OpenRouter currently marks this model as forced-reasoning. Context uses the official full window, while the existing output reservation, compaction thresholds, and safety margins still apply. The per-run output budget is determined by the current runtime configuration; the table lists model ceilings, not the length generated every time.
 
-The `openrouter/` prefix of internal IDs is only used for routing, capabilities, sessions, and retry isolation, and is stripped when sending requests; existing ZenMux routes for `openai/gpt-6-astra` and `anthropic/claude-fable-5.1` stay unchanged. If these two official raw IDs appear in the OpenRouter model list, they are normalized and deduplicated at startup so registration order never decides the channel. Any other duplicate IDs are explicitly rejected as ambiguous routing. To make Astra the global default, set `LLM_DEFAULT_MODEL=openrouter/openai/gpt-6-astra`.
+The `openrouter/` prefix of internal IDs is only used for routing, capabilities, sessions, and retry isolation, and is stripped when sending requests; existing ZenMux routes for `openai/gpt-6-astra` and `anthropic/claude-fable-5.1` stay unchanged. If the official raw ID `anthropic/claude-fable-5.1` appears in the OpenRouter model list, it is normalized and deduplicated at startup so registration order never decides the channel. Any other duplicate IDs are explicitly rejected as ambiguous routing.
 
-Streaming thinking uses the existing display events; `reasoning_details` (including signed/encrypted data) are stored in order and only replayed to subsequent requests of the same Provider and model—never reused across channels or models. Pricing follows the official standard-context reference: currently $10/M input and $50/M output for both; Astra charges more for long context beyond 272K input, and the UI cost estimate does not apply tiered pricing yet—actual billing follows OpenRouter.
+Streaming thinking uses the existing display events; `reasoning_details` (including signed/encrypted data) are stored in order and only replayed to subsequent requests of the same Provider and model—never reused across channels or models. Pricing follows the official standard-context reference: currently $10/M input and $50/M output.
 
-Specs and reasoning parameters verified on 2026-09-17. References: [Astra](https://openrouter.ai/openai/gpt-6-astra), [Fable](https://openrouter.ai/anthropic/claude-fable-5.1), [Reasoning docs](https://openrouter.ai/docs/guides/best-practices/reasoning-tokens).
+Specs and reasoning parameters verified on 2026-09-17. References: [Fable](https://openrouter.ai/anthropic/claude-fable-5.1), [Reasoning docs](https://openrouter.ai/docs/guides/best-practices/reasoning-tokens).
 
 **Single-Provider Configuration (Backward Compatible):**
 
@@ -1598,7 +1599,7 @@ Specs and reasoning parameters verified on 2026-09-17. References: [Astra](https
 | `ZHIKUN_COORDINATOR_MODE` | — | 0 | Feature flag, enable coordinator mode (0=off, 1=on) |
 | `ZHIKUN_DELETE_CONFIRM_CODE` | — | Empty | Optional session-deletion confirmation code; when set, deleting a session in Web requires entering this code |
 | `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.8-max-0902 | DashScope available models (comma-separated) |
-| `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` | — | qwen3.8-max,qwen3.8-flash,deepseek-v4-pro-0813,deepseek-v4-flash-0731,deepseek-v4.1-flash,bailian/glm-5.3 | Alibaba Cloud Bailian Token Plan models; independent from standard DashScope and direct DeepSeek settings |
+| `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` | — | qwen3.8-max,qwen3.8-flash,deepseek-v4.1-flash,bailian/glm-5.3 | Alibaba Cloud Bailian Token Plan models; independent from standard DashScope and direct DeepSeek settings |
 | `LLM_PROVIDER_DEEPSEEK_MODELS` | — | deepseek-flash | DeepSeek models; defaults to V4.1 Flash (comma-separated) |
 | `LLM_PROVIDER_MOONSHOT_MODELS` | — | kimi-k3 | Moonshot available models (comma-separated) |
 | `LLM_PROVIDER_ZHIPU_MODELS` | — | glm-5.3,glm-5.3-flash | Zhipu GLM available models (comma-separated) |

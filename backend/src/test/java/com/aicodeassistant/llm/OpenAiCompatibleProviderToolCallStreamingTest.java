@@ -62,19 +62,19 @@ class OpenAiCompatibleProviderToolCallStreamingTest {
     }
 
     @Test
-    void openRouterUnionUsesChatCompletionsAndAcceptsToolDeltas() throws Exception {
+    void openRouterRawModelUsesChatCompletionsAndAcceptsToolDeltas() throws Exception {
         provider = new OpenAiCompatibleProvider(
                 "openrouter", mapper,
                 new LlmHttpProperties(new LlmHttpProperties.PoolProperties(2, 30), 10, 10, true),
                 new ApiKeyRotationManager("key"), "key", server.url("/api/v1").toString(),
-                "stealth/union-alpha", List.of("stealth/union-alpha"));
-        assertAccepted("stealth/union-alpha", null, null, true);
+                "vendor/raw-model", List.of("vendor/raw-model"));
+        assertAccepted("vendor/raw-model", null, null, true);
         var request = server.takeRequest(5, java.util.concurrent.TimeUnit.SECONDS);
         assertNotNull(request);
         assertEquals("/api/v1/chat/completions", request.getPath());
         assertEquals("Bearer key", request.getHeader("Authorization"));
         var body = mapper.readTree(request.getBody().readUtf8());
-        assertEquals("stealth/union-alpha", body.path("model").asText());
+        assertEquals("vendor/raw-model", body.path("model").asText());
         assertEquals(1024, body.path("max_tokens").asInt());
         assertTrue(body.path("stream").asBoolean());
         assertFalse(body.has("thinking"));

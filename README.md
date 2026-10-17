@@ -398,7 +398,7 @@ LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 | 服务商 | Base URL | 推荐模型 | 备注 |
 |--------|----------|----------|------|
 | **千问/DashScope** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen3.8-max-0902 | 按量计费 Provider，国内直连 |
-| **阿里云百炼 Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max / qwen3.8-flash / deepseek-v4-pro-0813 / deepseek-v4-flash-0731 / deepseek-v4.1-flash | 使用独立 `sk-sp-` Key；模型均标注“百炼”。V4.1 Flash 为服务端 `app.model.default`、快速查询及图片兜底的默认值；前端初始模型偏好仍为 `qwen3.8-max-0902`，用户配置／会话选择优先 |
+| **阿里云百炼 Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max / qwen3.8-flash / deepseek-v4.1-flash | 使用独立 `sk-sp-` Key；模型均标注“百炼”。V4.1 Flash 为服务端 `app.model.default`、快速查询及图片兜底的默认值；前端初始模型偏好仍为 `qwen3.8-max-0902`，用户配置／会话选择优先 |
 | **DeepSeek** | `https://api.deepseek.com/v1` | deepseek-flash | 国内直连；DeepSeek V4.1 Flash，支持思考、工具调用与原生视觉 |
 | **Moonshot（Kimi）** | `https://api.moonshot.cn/v1` | kimi-k3 | 国内直连；kimi-k3 支持 1M 上下文和原生视觉 |
 | **Zhipu（智谱 GLM）** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.3, glm-5.3-flash | 国内直连 |
@@ -1533,7 +1533,7 @@ ZhikunCode 提供多种可视化能力，展示 AI 编程过程中的数据和�
 | `LLM_PROVIDER_KIMI_CODE_MODELS` | — | k3,kimi-for-coding | Kimi K3 / K2.8 Preview 订阅模型列表 |
 | `LLM_PROVIDER_ZHIPU_API_KEY` | — | — | 智谱 GLM API Key |
 | `LLM_PROVIDER_OPENROUTER_API_KEY` | — | — | OpenRouter API Key；留空不注册此 Provider |
-| `LLM_PROVIDER_OPENROUTER_MODELS` | — | stealth/union-alpha,openrouter/openai/gpt-6-astra,openrouter/anthropic/claude-fable-5.1 | OpenRouter 可用模型列表（逗号分隔） |
+| `LLM_PROVIDER_OPENROUTER_MODELS` | — | openrouter/anthropic/claude-fable-5.1 | OpenRouter 可用模型列表（逗号分隔） |
 | `LLM_DEFAULT_MODEL` | — | deepseek-v4.1-flash | 默认模型（百炼 Token Plan）；不可用时回退到当前 Provider 的有效默认模型 |
 | `LLM_FAST_MODEL` | — | deepseek-v4.1-flash | 快速辅助查询与分类器回退优先使用的模型 |
 | `LLM_COMPACT_MODEL` | — | deepseek-flash | 对话压缩摘要模型（DeepSeek 官方直连），独立于快速模型选择 |
@@ -1554,24 +1554,25 @@ ZhikunCode 提供多种可视化能力，展示 AI 编程过程中的数据和�
 
 DeepSeek 仅接入 Search，`include_content` 默认关闭。收到 HTTP 408、429、500–599 时最多 3 次尝试（含首次），单次请求 45 秒超时；可解析的 `Retry-After` 与本地退避取较大值，单次等待超过 30 秒或无法解析时停止重试，不提前重发。重试产生的等待会计入整个工具调用的实际耗时，但不占用单次请求的超时。
 
-**OpenRouter / Union Alpha：** 在 `.env` 中填写 `LLM_PROVIDER_OPENROUTER_API_KEY`，重启服务后从模型列表选择 `Union Alpha（OpenRouter）`（`stealth/union-alpha`）。如需设为默认模型，增加 `LLM_DEFAULT_MODEL=stealth/union-alpha`。本地启动与 Docker Compose 均支持上述变量。
+**OpenRouter / Claude Fable 5.1：** 在 `.env` 中填写 `LLM_PROVIDER_OPENROUTER_API_KEY`，重启服务后从模型列表选择 `Claude Fable 5.1（OpenRouter）`（`openrouter/anthropic/claude-fable-5.1`）。如需设为默认模型，增加 `LLM_DEFAULT_MODEL=openrouter/anthropic/claude-fable-5.1`。本地启动与 Docker Compose 均支持上述变量。
 
-接入复用现有 `llm.providers.*` → `MultiProviderConfiguration` → `OpenAiCompatibleProvider` 链路，端点为 `https://openrouter.ai/api/v1`，沿用流式输出、图片输入、工具调用和 Key 轮换。能力由 `ModelRegistry` 统一提供给 `/api/models`，无需新增前端分支。[官方模型规格](https://openrouter.ai/stealth/union-alpha)（2026-09-17 核对）：262,144 上下文、131,072 最大输出、当前免费预览；应用暂限每次 4 张图片。官方未提供 reasoning 参数，因此不启用可配置思考模式；预览价格和可用性以后续官方信息为准。
+本次模型目录精简由项目主动进行，不表示供应商下架。OpenRouter **Provider 默认模型**从免费预览的 Union Alpha 改为收费的 Claude Fable 5.1，仅影响使用该 Provider 默认回退的请求；全局 `app.model.default` 与 `LLM_DEFAULT_MODEL` 的默认值仍为百炼 `deepseek-v4.1-flash`。Fable 价格参考见下文。
+
+接入复用现有 `llm.providers.*` → `MultiProviderConfiguration` → `OpenAiCompatibleProvider` 链路，端点为 `https://openrouter.ai/api/v1`，沿用流式输出、图片输入、工具调用和 Key 轮换。能力由 `ModelRegistry` 统一提供给 `/api/models`，无需新增前端分支。
 
 **OpenRouter 强推理模型与渠道隔离：**
 
 | 界面名称 | ZhikunCode 模型 ID | 上游模型 ID | 上下文 / 最大输出 |
 |---|---|---|---|
-| GPT-6 Astra（OpenRouter） | `openrouter/openai/gpt-6-astra` | `openai/gpt-6-astra` | 1,050,000 / 128,000 |
 | Claude Fable 5.1（OpenRouter） | `openrouter/anthropic/claude-fable-5.1` | `anthropic/claude-fable-5.1` | 1,000,000 / 128,000 |
 
-两者使用已有 OpenRouter Key，默认请求 `reasoning.effort=max`、`exclude=false`，不受通用 thinking 关闭开关降档；官方当前标记这两个模型为强制推理模型。上下文使用官方完整窗口，仍保留现有输出预留、压缩阈值和安全余量。单次输出预算由现有运行配置决定，上表是模型支持上限，并非每次都生成该长度。
+Claude Fable 5.1 使用已有 OpenRouter Key，默认请求 `reasoning.effort=max`、`exclude=false`，不受通用 thinking 关闭开关降档；官方当前标记该模型为强制推理模型。上下文使用官方完整窗口，仍保留现有输出预留、压缩阈值和安全余量。单次输出预算由现有运行配置决定，上表是模型支持上限，并非每次都生成该长度。
 
-内部 ID 的 `openrouter/` 前缀只用于路由、能力、会话与重试隔离，发送请求时去掉；现有 ZenMux 的 `openai/gpt-6-astra`、`anthropic/claude-fable-5.1` 路由保持不变。OpenRouter 的模型列表若填写这两个官方原始 ID，启动时也会自动规范化并去重，避免注册顺序决定渠道。其他重复 ID 明确拒绝歧义路由。若需将 Astra 设为全局默认，配置 `LLM_DEFAULT_MODEL=openrouter/openai/gpt-6-astra`。
+内部 ID 的 `openrouter/` 前缀只用于路由、能力、会话与重试隔离，发送请求时去掉；现有 ZenMux 的 `openai/gpt-6-astra`、`anthropic/claude-fable-5.1` 路由保持不变。OpenRouter 的模型列表若填写官方原始 ID `anthropic/claude-fable-5.1`，启动时也会自动规范化并去重，避免注册顺序决定渠道。其他重复 ID 明确拒绝歧义路由。
 
-流式 thinking 使用现有展示事件；`reasoning_details`（含签名/加密数据）按原序保存，并仅对同 Provider、同模型的后续请求回传，切换渠道或模型不复用。价格按官方普通上下文参考录入，当前两者输入 $10/M、输出 $50/M；Astra 超过 272K 输入的长上下文价格更高，界面费用估算尚未按阶梯计价，实际账单以 OpenRouter 为准。
+流式 thinking 使用现有展示事件；`reasoning_details`（含签名/加密数据）按原序保存，并仅对同 Provider、同模型的后续请求回传，切换渠道或模型不复用。价格按官方普通上下文参考录入，当前输入 $10/M、输出 $50/M。
 
-规格与推理参数核对日期：2026-09-17。参考：[Astra](https://openrouter.ai/openai/gpt-6-astra)、[Fable](https://openrouter.ai/anthropic/claude-fable-5.1)、[Reasoning 文档](https://openrouter.ai/docs/guides/best-practices/reasoning-tokens)。
+规格与推理参数核对日期：2026-09-17。参考：[Fable](https://openrouter.ai/anthropic/claude-fable-5.1)、[Reasoning 文档](https://openrouter.ai/docs/guides/best-practices/reasoning-tokens)。
 
 **单 Provider 配置（向后兼容）：**
 
@@ -1610,7 +1611,7 @@ DeepSeek 仅接入 Search，`include_content` 默认关闭。收到 HTTP 408、4
 | `ZHIKUN_COORDINATOR_MODE` | — | 0 | Feature flag，启用协调器模式（0=关闭，1=开启） |
 | `ZHIKUN_DELETE_CONFIRM_CODE` | — | 空 | 删除会话二次确认验证码；配置后 Web 删除会话须输入该验证码，未配置保持原确认流程 |
 | `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.8-max-0902 | 按量计费 DashScope 可用模型列表（逗号分隔；实际目录可动态扩展） |
-| `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` | — | qwen3.8-max,qwen3.8-flash,deepseek-v4-pro-0813,deepseek-v4-flash-0731,deepseek-v4.1-flash,bailian/glm-5.3 | 百炼 Token Plan Provider 可用模型列表；与普通 DashScope、DeepSeek 直连配置相互独立 |
+| `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` | — | qwen3.8-max,qwen3.8-flash,deepseek-v4.1-flash,bailian/glm-5.3 | 百炼 Token Plan Provider 可用模型列表；与普通 DashScope、DeepSeek 直连配置相互独立 |
 | `LLM_PROVIDER_DEEPSEEK_MODELS` | — | deepseek-flash | DeepSeek 可用模型列表；默认使用 V4.1 Flash（逗号分隔） |
 | `LLM_PROVIDER_MOONSHOT_MODELS` | — | kimi-k3 | Moonshot 可用模型列表（逗号分隔） |
 | `LLM_PROVIDER_ZHIPU_MODELS` | — | glm-5.3,glm-5.3-flash | 智谱 GLM 可用模型列表（逗号分隔） |

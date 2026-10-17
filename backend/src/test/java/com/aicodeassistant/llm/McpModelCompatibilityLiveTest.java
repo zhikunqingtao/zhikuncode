@@ -208,7 +208,7 @@ class McpModelCompatibilityLiveTest {
                 env("LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_BASE_URL",
                         "https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1"),
                 "LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS",
-                "qwen3.8-max,qwen3.8-flash,deepseek-v4-pro-0813,deepseek-v4-flash-0731,deepseek-v4.1-flash,bailian/glm-5.3");
+                "qwen3.8-max,qwen3.8-flash,deepseek-v4.1-flash,bailian/glm-5.3");
         addProvider(endpoints, "deepseek", "LLM_PROVIDER_DEEPSEEK_API_KEY",
                 env("LLM_PROVIDER_DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1"),
                 "LLM_PROVIDER_DEEPSEEK_MODELS",

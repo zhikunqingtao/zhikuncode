@@ -74,20 +74,6 @@ class AliyunConfigVerificationTest {
     }
 
     @Test
-    void testBailianDeepSeekModelCapabilities() {
-        OpenAiCompatibleProvider provider = createProvider(
-                List.of("deepseek-v4-pro-0813", "deepseek-v4-flash-0731"));
-
-        ModelCapabilities pro = provider.getModelCapabilities("deepseek-v4-pro-0813");
-        assertEquals("DeepSeek V4 Pro 0813（百炼）", pro.displayName());
-        assertTrue(pro.supportsThinking());
-
-        ModelCapabilities flash = provider.getModelCapabilities("deepseek-v4-flash-0731");
-        assertEquals("DeepSeek V4 Flash 0731（百炼）", flash.displayName());
-        assertTrue(flash.supportsThinking());
-    }
-
-    @Test
     void testDeepSeekV41FlashCapabilities() {
         OpenAiCompatibleProvider provider = createProvider(
                 List.of("deepseek-flash"));
@@ -136,14 +122,6 @@ class AliyunConfigVerificationTest {
         assertEquals(4, qwen38Flash.maxImages());
         assertTrue(qwen38Flash.supportsToolUse());
         assertTrue(qwen38Flash.supportsStreaming());
-
-        ModelCapabilities deepseekPro = modelRegistry.getCapabilities("deepseek-v4-pro-0813");
-        assertEquals("DeepSeek V4 Pro 0813（百炼）", deepseekPro.displayName());
-        assertTrue(deepseekPro.supportsThinking());
-
-        ModelCapabilities deepseekFlash = modelRegistry.getCapabilities("deepseek-v4-flash-0731");
-        assertEquals("DeepSeek V4 Flash 0731（百炼）", deepseekFlash.displayName());
-        assertTrue(deepseekFlash.supportsThinking());
 
         ModelCapabilities deepseekVision = modelRegistry.getCapabilities("deepseek-flash");
         assertEquals("DeepSeek V4.1 Flash", deepseekVision.displayName());

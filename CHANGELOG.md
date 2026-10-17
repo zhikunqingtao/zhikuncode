@@ -18,10 +18,9 @@
 - OSS 凭证支持 ECS RAM Role/IMDSv2 与本地阿里云默认凭证链双模式，覆盖本地一键启动和 Docker Compose 透传。
 - 新增可浏览、持久且可撤销的 Project 文件夹授权；Project 作为信任范围和默认相对路径根，普通操作在其内免打扰，范围外操作进入常规授权，敏感路径和高风险操作仍需逐次确认。
 - 新增百炼 Token Plan 渠道 `qwen3.8-flash`（官方规格：1M 上下文、131072 最大输出、多模态输入、支持思考模式），接入方式与 `qwen3.8-max` 一致。
-- 新增百炼 Token Plan 渠道 `deepseek-v4-pro-0813` 与 `deepseek-v4-flash-0731`，并与 `qwen3.8-max` 统一标注“百炼”。
 - 新增 `deepseek-v4-flash-vision-exp` 图片理解模型，作为 DeepSeek 系列的专属视觉兜底。
 - 同一 LLM Provider 支持逗号分隔多 API Key（ZenMux 订阅 Key `sk-ss-v1-` 优先、按量 Key `sk-ai-v1-` 兜底），402 quote_exceeded / 404 model_not_available / 429 时自动冷却切换。
-- 新增 OpenRouter Provider：`stealth/union-alpha`（Union Alpha，当前免费预览）及强推理模型 `openrouter/openai/gpt-6-astra`、`openrouter/anthropic/claude-fable-5.1`（默认 `reasoning.effort=max`）；内部 `openrouter/` 前缀用于渠道隔离，复用 OpenAI 兼容链路与 Key 轮换。
+- 新增 OpenRouter Provider：强推理模型 `openrouter/anthropic/claude-fable-5.1`（默认 `reasoning.effort=max`）；内部 `openrouter/` 前缀用于渠道隔离，复用 OpenAI 兼容链路与 Key 轮换。
 - 新增可选的删除会话二次确认验证码：配置 `ZHIKUN_DELETE_CONFIRM_CODE` 后，Web 删除会话须在确认气泡中输入该验证码（随 `X-Delete-Confirm-Code` 请求头由后端校验）；未配置时维持原确认流程，配置查询失败不缓存失败结果，下次挂载重试。
 - Run API 新增 `usageStatus`（`known/partial/unknown`）与 `verificationScope`（`artifact_manifest/unknown`）字段：用量口径限定为「本 Run 的已观测消费」，任务概览按同一 Run 联展示用量与状态，unknown 显示未报告、partial 仅统计已报告部分，不估算、不归集子 Run；产物验证字段范围限定为 `artifact_manifest`，未知状态安全标为范围未知。
 - 附件存储新增 `.metadata/<uuid>.json` 侧车文件保存原始显示名（版本、UUID、存储文件名、原名，不新增数据库表）；上传改为同文件系统临时文件 + 先发布元数据、再原子发布 payload，失败只清理本次文件。
@@ -31,6 +30,7 @@
 - ZenMux 默认目录新增 Anthropic 系列 `anthropic/claude-opus-5.5`、`anthropic/claude-sonnet-5.5` 与 `anthropic/claude-haiku-5.5`：均为 1M 上下文、图片输入、工具调用与缓存，走 Chat Completions 通道并复用既有双 Key 轮换；价格为 2026-10-12 网关核对值换算 per-1k。
 
 ### Changed
+- OpenRouter Provider 默认模型由免费预览的 `stealth/union-alpha` 改为收费的 `openrouter/anthropic/claude-fable-5.1`；仅影响该 Provider 默认回退，全局默认仍为百炼 `deepseek-v4.1-flash`。
 - ZenMux Claude 的用量按 Anthropic 语义上报（仅该通道）：`prompt_tokens` 视为未缓存输入，缓存读取（`cached_tokens`）与缓存写入（`cacheCreationInputTokens`／`cache_creation_input_tokens`）并入完整输入后再上报，缓存读写作为明细透出；`TokenCounter`／`TokenBudgetGuard` 对 `zenmux_claude_reasoning`（补充态：不计入早期预算，由最终请求守卫按实际序列化请求计量）与 `zenmux_claude_message`（历史遗留态：计 0）过滤，并在存在补充态时跳过展示用 Thinking 的重复计量。其他 Provider 与模型的用量与预算口径不变。
 - 修正内置 `verification` 子代理的证据要求与 PASS／FAIL／PARTIAL 判定边界（模型输入行为变化）：测试结果作为其断言覆盖范围内的证据；区分已证实的验收失败与检查未完成，保留必要动态反证要求，限定静态结论及验收范围，设计意图不豁免已证实失败；数值退出码仅在工具或命令明确提供时记录，缺失本身不决定结论。同步补充普通及 fork 路径的提示送达契约测试。
 - **Breaking:** `TaskUpdate` 仅接受输出更新，显式拒绝 `status`，任务执行状态统一由 `TaskCoordinator` 管理；调用方应移除 `status` 字段，使用 `TaskStop` 请求取消、`TaskGet`／`TaskList` 查询结果，计划清单改用 `TodoWrite`。`TaskCreate` 仅接受 `agent`、`shell`、`local_workflow`、`monitor_mcp`、`dream`；未实现或未知类型明确拒绝，不再返回假成功。后三种兼容类型均执行一次通用子代理调用，不提供周期监控或特殊优先级。
@@ -114,6 +114,9 @@
 - 图片注入确认改为绑定「最终实际保留的图片身份」：仅当本轮请求已发出且正常结束（未失败、未中断）且图片仍以图片形式存在于最终序列化 payload 时才确认对应源图片——BMP→PNG 转码与缩略降级按块跟踪身份；被省略、转文字、移除或请求失败的图片不确认（后续轮次仍可重试）；与必选附件字节相撞的图片不再被从待确认集合剔除（可确认、但受保护不被降级；相撞判定按注入载荷哈希求交，BMP 转码等跨格式形态同样受保护）。同一载荷对应多个源身份时按集合保留、全部确认（缩略降级合并身份），不会因哈希碰撞丢失确认。身份映射仅在内存中流转，不进入请求、持久化消息或用户历史；「请求正常结束且图片保留」不等于模型已理解图片。本批**不包含** adapter 级「接受后断流」语义与 `FinalProviderPayloadGuard` 扩展（另行推进）。
 - 修复 `EvidenceStore.readBlob` 的目录逃逸原语（预存缺陷）：入参增加 64 位十六进制白名单与规范化路径包含校验；重写此前给出错误安全结论的边缘测试（原断言只验证「目标文件不存在」，未验证路径受限）。
 - 修复证据落库失败的处理：`VerifyJourney` 在证据保存失败时返回独立结果码 `EVIDENCE_PERSIST_FAILED` 与脱敏文案，**正文保留真实 verdict**（verified / failed / unavailable）与「结果未持久化」事实及禁止自动重跑提示；不再把持久化失败记为验证 failed，也不再向模型回传底层异常文本。
+
+### Removed
+- 项目为减少重复选择，主动从默认模型目录与内置能力目录移除 OpenRouter 的 `stealth/union-alpha`、`openrouter/openai/gpt-6-astra` 及百炼的 `deepseek-v4-pro-0813`、`deepseek-v4-flash-0731`；不表示供应商下架，ZenMux 的 `openai/gpt-6-astra` 仍保留。
 
 ### Security
 - 内置文件搜索、写入、Glob、Grep、LSP 与 Snip 以单一 Session 根解析相对路径；范围外绝对路径进入常规授权，并在执行前复检路径、符号链接和 Project 状态。

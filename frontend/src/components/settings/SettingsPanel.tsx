@@ -80,8 +80,6 @@ function ModelPicker() {
     { id: 'qwen3.8-flash', name: 'Qwen 3.8 Flash（百炼）', description: '百炼订阅 · 快速多模态' },
     { id: 'deepseek-v4.1-flash', name: 'DeepSeek V4.1 Flash（百炼）', description: '默认模型 · 百炼订阅 · 多模态' },
     { id: 'deepseek-flash', name: 'DeepSeek V4.1 Flash', description: '高性能 · 快速 · 原生多模态' },
-    { id: 'deepseek-v4-pro-0813', name: 'DeepSeek V4 Pro 0813（百炼）', description: '百炼深度推理' },
-    { id: 'deepseek-v4-flash-0731', name: 'DeepSeek V4 Flash 0731（百炼）', description: '百炼快速响应' },
     { id: 'kimi-k3', name: 'Kimi K3', description: '长文本理解' },
     { id: 'k3', name: 'Kimi K3（订阅）', description: '1M 上下文 · 最强推理' },
     { id: 'kimi-for-coding', name: 'Kimi K2.8 Preview（订阅）', description: '1M 上下文 · 最强推理' },

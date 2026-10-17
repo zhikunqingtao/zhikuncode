@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @EnabledIfEnvironmentVariable(named = "OPENROUTER_LIVE_TEST", matches = "true")
 class OpenRouterReasoningLiveTest {
     @ParameterizedTest
-    @ValueSource(strings = {OpenRouterModels.ASTRA, OpenRouterModels.FABLE})
+    @ValueSource(strings = {OpenRouterModels.FABLE})
     @Timeout(180)
     void maxReasoningAndToolContinuation(String model) {
         String key = System.getenv("LLM_PROVIDER_OPENROUTER_API_KEY");
@@ -22,7 +22,7 @@ class OpenRouterReasoningLiveTest {
         var provider = new OpenAiCompatibleProvider("openrouter", new ObjectMapper(),
                 new LlmHttpProperties(new LlmHttpProperties.PoolProperties(2, 30), 10, 10, true),
                 new ApiKeyRotationManager(key), key, "https://openrouter.ai/api/v1",
-                OpenRouterModels.ASTRA, List.of(OpenRouterModels.ASTRA, OpenRouterModels.FABLE));
+                OpenRouterModels.FABLE, List.of(OpenRouterModels.FABLE));
             long started = System.nanoTime();
             var tools = List.<Map<String, Object>>of(Map.of("type", "function", "function", Map.of(
                     "name", "lookup", "description", "Read a test value.", "parameters",

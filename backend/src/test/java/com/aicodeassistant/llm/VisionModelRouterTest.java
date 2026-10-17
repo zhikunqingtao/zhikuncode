@@ -17,24 +17,28 @@ class VisionModelRouterTest {
     private final VisionModelRouter router = new VisionModelRouter(providerRegistry, modelRegistry);
 
     @Test
-    void bailianDeepSeekModelStillUsesDirectDeepSeekVisionFallback() {
+    void textOnlyTokenPlanModelFallsBackToAvailableDeepSeekVisionModel() {
         configureDeepSeekVisionAvailable();
-        when(modelRegistry.getCapabilities("deepseek-v4-pro-0813"))
-                .thenReturn(textCaps("deepseek-v4-pro-0813"));
+        when(modelRegistry.getCapabilities("bailian/glm-5.3"))
+                .thenReturn(textCaps("bailian/glm-5.3"));
+        when(modelRegistry.getCapabilities("qwen3.8-max"))
+                .thenReturn(textCaps("qwen3.8-max"));
+        when(providerRegistry.listAvailableModels())
+                .thenReturn(List.of(VisionModelRouter.DEEPSEEK_VISION_MODEL));
 
         LlmProvider tokenPlanProvider = mock(LlmProvider.class);
         when(tokenPlanProvider.getSupportedModels())
-                .thenReturn(List.of("qwen3.8-max", "deepseek-v4-pro-0813"));
-        when(providerRegistry.getProvider("deepseek-v4-pro-0813")).thenReturn(tokenPlanProvider);
+                .thenReturn(List.of("qwen3.8-max", "bailian/glm-5.3"));
+        when(providerRegistry.getProvider("bailian/glm-5.3")).thenReturn(tokenPlanProvider);
 
         assertEquals(VisionModelRouter.DEEPSEEK_VISION_MODEL,
-                router.resolveVisionModel("deepseek-v4-pro-0813"));
+                router.resolveVisionModel("bailian/glm-5.3"));
     }
 
     @Test
     void unavailableDeepSeekVisionFallsBackToSameProviderVisionModel() {
-        when(modelRegistry.getCapabilities("deepseek-v4-flash-0731"))
-                .thenReturn(textCaps("deepseek-v4-flash-0731"));
+        when(modelRegistry.getCapabilities("bailian/glm-5.3"))
+                .thenReturn(textCaps("bailian/glm-5.3"));
         when(modelRegistry.getCapabilities(VisionModelRouter.DEEPSEEK_VISION_MODEL))
                 .thenReturn(imageCaps(VisionModelRouter.DEEPSEEK_VISION_MODEL));
         when(providerRegistry.getProvider(VisionModelRouter.DEEPSEEK_VISION_MODEL))
@@ -42,11 +46,11 @@ class VisionModelRouterTest {
 
         LlmProvider tokenPlanProvider = mock(LlmProvider.class);
         when(tokenPlanProvider.getSupportedModels())
-                .thenReturn(List.of("qwen3.8-max", "deepseek-v4-flash-0731"));
-        when(providerRegistry.getProvider("deepseek-v4-flash-0731")).thenReturn(tokenPlanProvider);
+                .thenReturn(List.of("qwen3.8-max", "bailian/glm-5.3"));
+        when(providerRegistry.getProvider("bailian/glm-5.3")).thenReturn(tokenPlanProvider);
         when(modelRegistry.getCapabilities("qwen3.8-max")).thenReturn(imageCaps("qwen3.8-max"));
 
-        assertEquals("qwen3.8-max", router.resolveVisionModel("deepseek-v4-flash-0731"));
+        assertEquals("qwen3.8-max", router.resolveVisionModel("bailian/glm-5.3"));
     }
 
     @Test
@@ -60,12 +64,12 @@ class VisionModelRouterTest {
     @Test
     void configuredBailianFallbackTakesPriorityOverDirectDeepSeekAndSameProvider() {
         configureDeepSeekVisionAvailable();
-        when(modelRegistry.getCapabilities("deepseek-v4-pro-0813"))
-                .thenReturn(textCaps("deepseek-v4-pro-0813"));
+        when(modelRegistry.getCapabilities("bailian/glm-5.3"))
+                .thenReturn(textCaps("bailian/glm-5.3"));
         when(modelRegistry.getCapabilities("deepseek-v4.1-flash"))
                 .thenReturn(imageCaps("deepseek-v4.1-flash"));
         when(providerRegistry.getProvider("deepseek-v4.1-flash")).thenReturn(mock(LlmProvider.class));
-        assertEquals("deepseek-v4.1-flash", router.resolveVisionModel("deepseek-v4-pro-0813"));
+        assertEquals("deepseek-v4.1-flash", router.resolveVisionModel("bailian/glm-5.3"));
     }
 
     @Test
@@ -82,6 +86,25 @@ class VisionModelRouterTest {
         when(modelRegistry.getCapabilities("deepseek-v4.1-flash"))
                 .thenReturn(imageCaps("deepseek-v4.1-flash"));
         assertNull(router.resolveVisionModel("deepseek-v4.1-flash"));
+    }
+
+    @Test
+    void deepseekFamilyTextOnlyModelRoutesToFamilyVisionModelWithoutConfiguredFallback() {
+        // 家族分支专用覆盖：deepseek- 前缀的 synthetic 文本模型 + deepseek-flash 可用，
+        // 且 fallbackVisionModel（deepseek-v4.1-flash）未 mock 能力 → 配置兜底分支不可用
+        // （getCapabilities 返回 null → isAvailableVisionModel=false）。
+        configureDeepSeekVisionAvailable();
+        when(modelRegistry.getCapabilities("deepseek-text-synthetic"))
+                .thenReturn(textCaps("deepseek-text-synthetic"));
+        // 同一套 mock 下的非 deepseek- 前缀对照：家族分支不适用，而未 mock 的
+        // getProvider(currentModel) 返回 null、listAvailableModels() 返回空列表，
+        // 说明除家族分支外没有任何路径能返回 deepseek-flash。
+        when(modelRegistry.getCapabilities("plain-text-synthetic"))
+                .thenReturn(textCaps("plain-text-synthetic"));
+
+        assertEquals(VisionModelRouter.DEEPSEEK_VISION_MODEL,
+                router.resolveVisionModel("deepseek-text-synthetic"));
+        assertNull(router.resolveVisionModel("plain-text-synthetic"));
     }
 
     @Test

@@ -23,7 +23,7 @@ import java.util.Map;
  *       api-key: ${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY:}
  *       base-url: https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1
  *       default-model: deepseek-v4.1-flash
- *       models: qwen3.8-max,deepseek-v4.1-flash,deepseek-v4-pro-0813,deepseek-v4-flash-0731
+ *       models: qwen3.8-max,deepseek-v4.1-flash,bailian/glm-5.3
  *     deepseek:
  *       api-key: ${LLM_PROVIDER_DEEPSEEK_API_KEY:}
  *       base-url: https://api.deepseek.com/v1

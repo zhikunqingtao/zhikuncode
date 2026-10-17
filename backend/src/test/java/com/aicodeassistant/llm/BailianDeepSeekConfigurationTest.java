@@ -13,6 +13,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class BailianDeepSeekConfigurationTest {
@@ -41,6 +42,10 @@ class BailianDeepSeekConfigurationTest {
         assertEquals("https://api.deepseek.com/v1", directConfig.baseUrl());
         assertEquals("test-token-plan", bailianConfig.apiKey());
         assertEquals("test-direct", directConfig.apiKey());
+        // Token Plan 的模型清单必须精确等于 application.yml 默认值：四个下架模型不得回归。
+        assertThat(bailianConfig.models())
+                .containsExactly("qwen3.8-max", "qwen3.8-flash", "deepseek-v4.1-flash", "bailian/glm-5.3")
+                .doesNotContain("deepseek-v4-pro-0813", "deepseek-v4-flash-0731");
 
         var registry = new LlmProviderRegistry(List.of(provider("deepseek", directConfig),
                 provider("dashscope-token-plan", bailianConfig)), env);
@@ -62,7 +67,7 @@ class BailianDeepSeekConfigurationTest {
         assertEquals(4, caps.maxImages());
         assertTrue(caps.supportsImages() && caps.supportsThinking() && caps.supportsToolUse());
         assertEquals(600, models.getCapabilities("deepseek-flash").maxImages());
-        assertEquals(BAILIAN, new VisionModelRouter(registry, models).resolveVisionModel("deepseek-v4-pro-0813"));
+        assertEquals(BAILIAN, new VisionModelRouter(registry, models).resolveVisionModel("bailian/glm-5.3"));
         var response = new ModelController(registry, models).listModels(null).getBody();
         assertNotNull(response);
         assertEquals(BAILIAN, response.defaultModel());

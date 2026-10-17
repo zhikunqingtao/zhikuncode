@@ -75,8 +75,6 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             Map.entry("deepseek-flash", new ModelCapabilities("deepseek-flash", "DeepSeek V4.1 Flash", 384000, 1000000, true, true, true, 600, true, 0.0003, 0.0012)),
             // 百炼：4 张图片为应用保守上限；价格为北京忙时按量参考，非订阅实际账单。
             Map.entry("deepseek-v4.1-flash", new ModelCapabilities("deepseek-v4.1-flash", "DeepSeek V4.1 Flash（百炼）", 393216, 1000000, true, true, true, 4, true, 0.002, 0.008)),
-            Map.entry("deepseek-v4-pro-0813", new ModelCapabilities("deepseek-v4-pro-0813", "DeepSeek V4 Pro 0813（百炼）", 384000, 1000000, true, true, false, 0, true, 0.001, 0.004)),
-            Map.entry("deepseek-v4-flash-0731", new ModelCapabilities("deepseek-v4-flash-0731", "DeepSeek V4 Flash 0731（百炼）", 384000, 1000000, true, true, false, 0, true, 0.0005, 0.002)),
             // 阿里云百炼 - 通义千问模型（qwen3.8-max-0902/qwen-turbo 已迁移至 ModelRegistry.BUILTIN_MODELS）
             Map.entry("qwen-coder-plus", new ModelCapabilities("qwen-coder-plus", "通义千问 Coder Plus", 8192, 131072, true, false, false, 0, true, 0.0007, 0.002))
     );
@@ -1130,7 +1128,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             root.put("reasoning_effort", "max");
         }
         if (isOpenRouter() && OpenRouterModels.capabilities(model) != null) {
-            // Both models mandate reasoning; strongest confirmed effort as of 2026-09-17.
+            // The model mandates reasoning; strongest confirmed effort as of 2026-09-17.
             root.putObject("reasoning").put("effort", "max").put("exclude", false);
             root.putObject("provider").put("require_parameters", true);
         }

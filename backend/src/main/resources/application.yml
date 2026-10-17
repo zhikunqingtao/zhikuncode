@@ -88,7 +88,7 @@ llm:
       api-key: ${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY:}
       base-url: https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1
       default-model: deepseek-v4.1-flash
-      models: ${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS:qwen3.8-max,qwen3.8-flash,deepseek-v4-pro-0813,deepseek-v4-flash-0731,deepseek-v4.1-flash,bailian/glm-5.3}
+      models: ${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS:qwen3.8-max,qwen3.8-flash,deepseek-v4.1-flash,bailian/glm-5.3}
     deepseek:
       api-key: ${LLM_PROVIDER_DEEPSEEK_API_KEY:}
       base-url: https://api.deepseek.com/v1
@@ -119,8 +119,8 @@ llm:
     openrouter:
       api-key: ${LLM_PROVIDER_OPENROUTER_API_KEY:}
       base-url: https://openrouter.ai/api/v1
-      default-model: stealth/union-alpha
-      models: ${LLM_PROVIDER_OPENROUTER_MODELS:stealth/union-alpha,openrouter/openai/gpt-6-astra,openrouter/anthropic/claude-fable-5.1}
+      default-model: openrouter/anthropic/claude-fable-5.1
+      models: ${LLM_PROVIDER_OPENROUTER_MODELS:openrouter/anthropic/claude-fable-5.1}
     # ZenMux（Anthropic Claude / OpenAI / Gemini / Grok 系列，1M 上下文）。
     # api-key 支持逗号分隔多 key（通用能力，所有 provider 均可）：订阅 key（sk-ss-v1- 前缀）
     # 放前面优先使用，按量计费 key（sk-ai-v1- 前缀）放后面兜底；订阅配额耗尽
