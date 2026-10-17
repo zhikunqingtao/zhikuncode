@@ -238,6 +238,15 @@ mcp:
     #     Authorization: Bearer ${LLM_PROVIDER_DASHSCOPE_API_KEY:}
     #   scope: USER
 
+# 网络搜索（WebSearch 工具）后端选择
+# auto: 沿用既有优先级（MCP zhipu-websearch → disabled），不会自动启用 DeepSeek
+# deepseek: DeepSeek 官方 Search API（5 元/千次成功请求，账号级 QPS 5，仅 Search 不含 Fetch）
+# 专用 Key 为空时由工厂复用 LLM_PROVIDER_DEEPSEEK_API_KEY；选定来源拆分后固定取首个有效 Key。
+web-search:
+  backend: ${WEB_SEARCH_BACKEND:auto}
+  deepseek-api-key: ${WEB_SEARCH_DEEPSEEK_API_KEY:}
+  deepseek-base-url: ${WEB_SEARCH_DEEPSEEK_BASE_URL:https://api.deepseek.com}
+
 # 沙箱配置
 sandbox:
   enabled: false

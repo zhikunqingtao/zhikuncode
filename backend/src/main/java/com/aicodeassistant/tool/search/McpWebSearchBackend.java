@@ -149,11 +149,11 @@ public class McpWebSearchBackend implements WebSearchBackend {
                 String title = item.has("title") ? item.get("title").asText() : "";
                 String url = item.has("url") ? item.get("url").asText() : "";
                 String content = item.has("content") ? item.get("content").asText() : "";
-                String siteName = item.has("site_name") ? item.get("site_name").asText() : null;
 
                 // SearchResult(title, url, snippet, content)
-                // MCP 的 content 映射为 snippet（摘要），site_name 映射为 content（附加信息）
-                searchResults.add(new SearchResult(title, url, content, siteName));
+                // MCP 的 content 映射为 snippet（摘要）；site_name 不再塞进 content，
+                // 避免被 WebSearchTool 当作正文输出（导致每条结果多打印一行站点名）
+                searchResults.add(new SearchResult(title, url, content, ""));
             }
 
             log.debug("MCP web search returned {} results", searchResults.size());

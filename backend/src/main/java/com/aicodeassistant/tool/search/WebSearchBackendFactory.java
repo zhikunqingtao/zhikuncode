@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+
 /**
  * 搜索后端工厂 — 根据配置自动选择最优后端。
  * <p>
@@ -26,6 +28,15 @@ public class WebSearchBackendFactory {
     @Value("${web-search.searxng-url:}")
     private String searxngUrl;
 
+    @Value("${web-search.deepseek-api-key:}")
+    private String deepseekApiKey;
+
+    @Value("${LLM_PROVIDER_DEEPSEEK_API_KEY:}")
+    private String fallbackDeepseekApiKey;
+
+    @Value("${web-search.deepseek-base-url:https://api.deepseek.com}")
+    private String deepseekBaseUrl;
+
     private final McpClientManager mcpClientManager;
 
     public WebSearchBackendFactory(McpClientManager mcpClientManager) {
@@ -37,6 +48,10 @@ public class WebSearchBackendFactory {
      * 自动模式下按优先级检测: MCP → API Key → Searxng → Disabled
      */
     public WebSearchBackend createBackend() {
+        String selectedRawKeys = deepseekApiKey == null || deepseekApiKey.isBlank()
+                ? fallbackDeepseekApiKey : deepseekApiKey;
+        String effectiveDeepseekApiKey = firstApiKey(selectedRawKeys);
+
         if ("disabled".equals(backendConfig)) {
             return new DisabledSearchBackend();
         }
@@ -49,6 +64,18 @@ public class WebSearchBackendFactory {
                 return mcpBackend;
             }
             log.warn("MCP web search backend explicitly configured but not available, falling back to disabled");
+            return new DisabledSearchBackend();
+        }
+
+        // 显式指定 DeepSeek 官方 Search API
+        if ("deepseek".equals(backendConfig)) {
+            if (!effectiveDeepseekApiKey.isEmpty()) {
+                log.info("Web search backend: DeepSeek official Search API ({}) — explicitly configured",
+                        deepseekBaseUrl);
+                return new DeepSeekSearchBackend(effectiveDeepseekApiKey, deepseekBaseUrl);
+            }
+            log.warn("DeepSeek web search backend explicitly configured but the selected key configuration "
+                    + "contains no usable API key, falling back to disabled");
             return new DisabledSearchBackend();
         }
 
@@ -73,6 +100,11 @@ public class WebSearchBackendFactory {
                 log.info("Searxng URL configured but backend not yet implemented");
             }
 
+            // DeepSeek 不参与 auto 优先级，仅提示显式启用方式
+            if (!effectiveDeepseekApiKey.isEmpty()) {
+                log.info("DeepSeek search key 已配置，可通过 web-search.backend=deepseek 启用");
+            }
+
             log.info("Web search backend: disabled (no available backend detected)");
             return new DisabledSearchBackend();
         }
@@ -80,5 +112,17 @@ public class WebSearchBackendFactory {
         // 未知配置 — 返回 disabled
         log.warn("Unknown web-search.backend config: '{}', using disabled", backendConfig);
         return new DisabledSearchBackend();
+    }
+
+    /** Same first-key semantics as LLM splitting, without sharing rotation state. */
+    private static String firstApiKey(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return "";
+        }
+        return Arrays.stream(raw.split(","))
+                .map(String::trim)
+                .filter(key -> !key.isEmpty())
+                .findFirst()
+                .orElse("");
     }
 }

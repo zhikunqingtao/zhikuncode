@@ -52,6 +52,10 @@ services:
       - LLM_BASE_URL=${LLM_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
       - LLM_DEFAULT_MODEL=${LLM_DEFAULT_MODEL:-deepseek-v4.1-flash}
       - LLM_MODELS=${LLM_MODELS:-}
+      # ---- Web Search ----
+      - WEB_SEARCH_BACKEND=${WEB_SEARCH_BACKEND:-auto}
+      - WEB_SEARCH_DEEPSEEK_API_KEY=${WEB_SEARCH_DEEPSEEK_API_KEY:-}
+      - WEB_SEARCH_DEEPSEEK_BASE_URL=${WEB_SEARCH_DEEPSEEK_BASE_URL:-https://api.deepseek.com}
       # ---- External MCP servers ----
       - ZHIKUN_MCP_SERVERS=${ZHIKUN_MCP_SERVERS:-}
       # Delete-session confirmation code (empty = no code required)

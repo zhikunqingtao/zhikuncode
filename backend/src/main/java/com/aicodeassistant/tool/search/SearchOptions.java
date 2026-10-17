@@ -15,6 +15,9 @@ import java.util.List;
  * @param contentSize    MCP 摘要详细度: "medium"(400-600字,默认) | "high"(2500字)
  * @param domainFilter   MCP 域名白名单 (search_domain_filter)
  * @param recencyFilter  MCP 时间过滤: oneDay/oneWeek/oneMonth/oneYear/noLimit
+ * <p>
+ * 内容深度:
+ * @param includeContent 是否获取网页正文（DeepSeek 后端支持；默认 false 仅用 summary）
  */
 public record SearchOptions(
         List<String> allowedDomains,
@@ -23,23 +26,24 @@ public record SearchOptions(
         String locale,
         String contentSize,
         List<String> domainFilter,
-        String recencyFilter
+        String recencyFilter,
+        boolean includeContent
 ) {
     public static final int DEFAULT_MAX_RESULTS = 8;
 
     /** 向后兼容的 4 参数构造器（原有调用点无需修改） */
     public SearchOptions(List<String> allowedDomains, List<String> blockedDomains,
                          int maxResults, String locale) {
-        this(allowedDomains, blockedDomains, maxResults, locale, null, null, null);
+        this(allowedDomains, blockedDomains, maxResults, locale, null, null, null, false);
     }
 
     /** 仅指定结果数量的便捷构造 */
     public SearchOptions(int maxResults) {
-        this(null, null, maxResults, null, null, null, null);
+        this(null, null, maxResults, null, null, null, null, false);
     }
 
-    /** 默认配置：8条结果，medium 摘要，无过滤 */
+    /** 默认配置：8条结果，medium 摘要，无过滤，不含正文 */
     public static SearchOptions defaults() {
-        return new SearchOptions(null, null, DEFAULT_MAX_RESULTS, null, "medium", null, null);
+        return new SearchOptions(null, null, DEFAULT_MAX_RESULTS, null, "medium", null, null, false);
     }
 }

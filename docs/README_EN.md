@@ -1530,6 +1530,18 @@ Environment variables are managed via the `.env` file. Copy `.env.example` and m
 
 > In multi-Provider mode, configure at least one Provider's API Key. The frontend supports free switching between configured Providers.
 
+**WebSearch configuration (local startup and Docker Compose):**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `WEB_SEARCH_BACKEND` | auto | `auto`: connected MCP zhipu-websearch → disabled; `deepseek`: explicitly enable DeepSeek; `mcp` and `disabled` are also supported |
+| `WEB_SEARCH_DEEPSEEK_API_KEY` | Empty | Dedicated key; unset, empty, or whitespace-only values use `LLM_PROVIDER_DEEPSEEK_API_KEY` |
+| `WEB_SEARCH_DEEPSEEK_BASE_URL` | https://api.deepseek.com | API root without `/v1` or `/v1/tools/search`; unset or blank values use the default |
+
+Set `WEB_SEARCH_BACKEND=deepseek` and restart to enable paid search. `auto` does not enable it merely because a DeepSeek key exists, and failed calls do not switch backends. Split the selected key source on commas, trim entries, and use the first non-empty key without LLM key rotation. A non-blank dedicated value with no usable entries, such as `,,`, disables search.
+
+Only DeepSeek Search is integrated; `include_content` is off by default. Received HTTP 408, 429, and 500–599 responses may be retried, with at most 3 attempts including the first and a 45-second timeout per request. The retry delay is the greater of a parseable `Retry-After` and local backoff; an unparseable non-empty value, or a single wait above 30 seconds, stops retries instead of retrying early. Retry waits count toward the tool call's wall-clock time but do not consume the per-request timeout.
+
 **OpenRouter / Union Alpha:** Set `LLM_PROVIDER_OPENROUTER_API_KEY` in `.env`, restart the service, then select `Union Alpha（OpenRouter）` (`stealth/union-alpha`) from the model list. To make it the default model, add `LLM_DEFAULT_MODEL=stealth/union-alpha`. Both local startup and Docker Compose support these variables.
 
 Integration reuses the existing `llm.providers.*` → `MultiProviderConfiguration` → `OpenAiCompatibleProvider` chain with the endpoint `https://openrouter.ai/api/v1`, keeping streaming output, image input, tool calls, and key rotation. Capabilities are exposed uniformly by `ModelRegistry` via `/api/models`, with no new frontend branches. [Official model specs](https://openrouter.ai/stealth/union-alpha) (verified 2026-09-17): 262,144 context, 131,072 max output, currently in free preview; the app currently limits each request to 4 images. Union Alpha does not advertise a reasoning parameter, so configurable thinking mode is not enabled; preview pricing and availability are subject to future official announcements.

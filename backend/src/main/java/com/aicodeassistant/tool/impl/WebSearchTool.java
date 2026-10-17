@@ -65,6 +65,10 @@ public class WebSearchTool implements Tool {
                 
                 Usage notes:
                   - Domain filtering is supported to include or block specific websites
+                  - include_content fetches the full page text for each result instead of \
+                the summary only; it costs noticeably more tokens and is supported by the \
+                DeepSeek backend only — use it solely when you need details that a summary \
+                cannot provide
                 """;
     }
 
@@ -76,10 +80,11 @@ public class WebSearchTool implements Tool {
                         "query", Map.of("type", "string", "description", "Search query"),
                         "allowed_domains", Map.of("type", "array",
                                 "items", Map.of("type", "string"),
-                                "description", "Only include results from these domains"),
+                                "description", "Only include results from these domains (at most 5; combined with OR)"),
                         "blocked_domains", Map.of("type", "array",
                                 "items", Map.of("type", "string"),
-                                "description", "Exclude results from these domains")
+                                "description", "Exclude results from these domains"),
+                        "include_content", Map.of("type", "boolean", "description", "Fetch full page content for each result instead of summary only. Higher token cost; supported by the DeepSeek backend only.")
                 ),
                 "required", List.of("query")
         );
@@ -102,6 +107,7 @@ public class WebSearchTool implements Tool {
                 .orElse(List.of());
         List<String> blockedDomains = input.getOptionalList("blocked_domains", String.class)
                 .orElse(List.of());
+        boolean includeContent = input.getOptionalBoolean("include_content").orElse(false);
 
         // 1. 输入验证
         if (!allowedDomains.isEmpty() && !blockedDomains.isEmpty()) {
@@ -119,7 +125,8 @@ public class WebSearchTool implements Tool {
         // 3. 构建搜索选项
         SearchOptions options = new SearchOptions(
                 allowedDomains, blockedDomains,
-                DEFAULT_MAX_RESULTS, Locale.getDefault().toLanguageTag());
+                DEFAULT_MAX_RESULTS, Locale.getDefault().toLanguageTag(),
+                null, null, null, includeContent);
 
         // 4. 执行搜索
         try {
@@ -140,10 +147,15 @@ public class WebSearchTool implements Tool {
 
             for (int i = 0; i < results.size(); i++) {
                 SearchResult r = results.get(i);
-                sb.append(String.format("%d. **%s**\n", i + 1, r.title()));
+                // 真实接口偶发返回空 title，回退显示 URL 以免输出成 "1. ****"
+                String displayTitle = (r.title() == null || r.title().isBlank()) ? r.url() : r.title();
+                sb.append(String.format("%d. **%s**\n", i + 1, displayTitle));
                 sb.append(String.format("   URL: %s\n", r.url()));
                 if (r.snippet() != null && !r.snippet().isBlank()) {
                     sb.append(String.format("   %s\n", r.snippet()));
+                }
+                if (r.content() != null && !r.content().isBlank()) {
+                    sb.append(String.format("   %s\n", r.content()));
                 }
                 sb.append("\n");
             }

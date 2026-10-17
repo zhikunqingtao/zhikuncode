@@ -8,6 +8,7 @@
 ## [Unreleased]
 
 ### Added
+- 新增 DeepSeek 官方 Search API 搜索后端（`WEB_SEARCH_BACKEND=deepseek` 显式启用；`auto` 仍为 MCP zhipu-websearch → disabled），本地与 Compose 均支持三项 `WEB_SEARCH_*` 配置，Key 选择规则见 README。`include_content` 默认关闭，摘要单条限 1200 字符、正文单条限 3000 字符；DeepSeek 将 `allowed_domains` 的前 5 个非空项与 `blocked_domains` 分别映射为 `site:`/OR 与 `-site:`，工具不允许同时传入两组过滤条件；仅后端 `SearchOptions` 支持时间过滤。本次仅接入 Search，未接入 Fetch；MCP 的 `site_name` 不再放入正文输出字段。
 - ZenMux Claude（`anthropic/claude-*`，Chat Completions 通道）支持带签名的推理续传：后续请求按「前缀哈希 + 父链 + 公开消息哈希」校验后回放 `reasoning_details`，历史、图片、工具集或所选 Key 变化导致链断裂时整块重置、绝不发送半新半旧的签名链；续传状态以 `provider_response_state`（`zenmux_claude_reasoning`）随会话持久化，不写入公开消息快照。仅对 ZenMux 且模型前缀 `anthropic/claude-` 生效，其他 Provider 与模型零影响；已文档化可重置的型号限定为 fable-5.1／opus-5.5／sonnet-5.5／haiku-5.5，名单外型号在需要重置时保持显式失败（见 Known Issues）。
 - ZenMux Claude 流式请求注入提示缓存断点：最后一个工具定义、system 与最近两个真实用户文本边界各 1 个 `cache_control: ephemeral`（最多 4 个）；断点标记不参与指纹计算，文本统一块形态以保证跨轮字节稳定。未改动任何历史正文，仅改写出站 JSON。
 - Journey 截图按原始 JPEG/PNG 字节归档到内容寻址 Blob，证据条目保存哈希引用、归档状态及缺图原因；证据视图支持图片预览和 JS fallback 提示。Blob 接口新增可选 `preview=true`，仅通过格式检查的 JPEG/PNG 使用准确 MIME 与 inline，默认附件下载保持兼容。
@@ -125,6 +126,7 @@
 - ZenMux Claude 的签名推理续传只在 fable-5.1／opus-5.5／sonnet-5.5／haiku-5.5 四个已文档化型号上支持“重置”：名单外的 `anthropic/claude-*` 型号在历史被编辑、压缩或中断导致链断裂时，本轮及后续请求会以 `INVALID_ZENMUX_CLAUDE_REASONING` 显式失败（不静默丢弃签名），需改用名单内型号或新建会话；本批不改为默认降级。
 - Grep 的最终字符截断不等于读取阶段的内存上限，极大合法分页／上下文的中间聚合开销仍存在；本批未扩展为有界流式读取改造。
 - `/keybindings` 当前没有前端 UI 呈现：命令回执不会渲染出快捷键编辑器（描述中的「查看／编辑键盘绑定配置」与实际不符），用户只看到空白回执；Web 端可使用独立的快捷键帮助对话框。该命令的 UI 接线不在本批（另行推进）。
+- DeepSeek 官方 Search API 按成功请求计费（5 元／千次成功请求），本批不做本地限流或成本归集，并发调用仍可能触发账号级 QPS 5。收到 HTTP 408/429/500–599 时含首次最多 3 次尝试，单次请求 45 秒超时；遵守可解析的 `Retry-After`（单次等待上限 30 秒），非空但无法解析或超限时停止重试。400/401/402 直接失败，不自动回退 MCP；可将 `WEB_SEARCH_BACKEND` 改回 `auto` 并重启。Fetch 接口未接入。
 
 ## [1.2.0] - 2026-05-07
 

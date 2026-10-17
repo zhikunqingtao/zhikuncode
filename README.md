@@ -1542,6 +1542,18 @@ ZhikunCode 提供多种可视化能力，展示 AI 编程过程中的数据和�
 
 > 多 Provider 模式下至少配置一个 Provider 的 API Key 即可。前端支持自由切换已配置的 Provider。
 
+**WebSearch 配置（本地启动与 Docker Compose 均支持）：**
+
+| 变量 | 默认值 | 说明 |
+|------|--------|------|
+| `WEB_SEARCH_BACKEND` | auto | `auto`：已连接的 MCP zhipu-websearch → disabled；`deepseek`：显式启用 DeepSeek；也支持 `mcp`、`disabled` |
+| `WEB_SEARCH_DEEPSEEK_API_KEY` | 空 | 专用 Key；未设置、空串或仅空白时复用 `LLM_PROVIDER_DEEPSEEK_API_KEY` |
+| `WEB_SEARCH_DEEPSEEK_BASE_URL` | https://api.deepseek.com | API 根地址，不附加 `/v1` 或 `/v1/tools/search`；未设置或空白时使用默认值 |
+
+设置 `WEB_SEARCH_BACKEND=deepseek` 并重启后启用收费搜索；`auto` 不会因存在 DeepSeek Key 自动启用它，调用失败也不自动切换后端。选定的 Key 来源按逗号拆分、trim、去空后固定使用首项，不参与 LLM Key 轮换；非空白专用值若没有可用项（如 `,,`）则禁用搜索。
+
+DeepSeek 仅接入 Search，`include_content` 默认关闭。收到 HTTP 408、429、500–599 时最多 3 次尝试（含首次），单次请求 45 秒超时；可解析的 `Retry-After` 与本地退避取较大值，单次等待超过 30 秒或无法解析时停止重试，不提前重发。重试产生的等待会计入整个工具调用的实际耗时，但不占用单次请求的超时。
+
 **OpenRouter / Union Alpha：** 在 `.env` 中填写 `LLM_PROVIDER_OPENROUTER_API_KEY`，重启服务后从模型列表选择 `Union Alpha（OpenRouter）`（`stealth/union-alpha`）。如需设为默认模型，增加 `LLM_DEFAULT_MODEL=stealth/union-alpha`。本地启动与 Docker Compose 均支持上述变量。
 
 接入复用现有 `llm.providers.*` → `MultiProviderConfiguration` → `OpenAiCompatibleProvider` 链路，端点为 `https://openrouter.ai/api/v1`，沿用流式输出、图片输入、工具调用和 Key 轮换。能力由 `ModelRegistry` 统一提供给 `/api/models`，无需新增前端分支。[官方模型规格](https://openrouter.ai/stealth/union-alpha)（2026-09-17 核对）：262,144 上下文、131,072 最大输出、当前免费预览；应用暂限每次 4 张图片。官方未提供 reasoning 参数，因此不启用可配置思考模式；预览价格和可用性以后续官方信息为准。
