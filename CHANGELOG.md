@@ -8,6 +8,7 @@
 ## [Unreleased]
 
 ### Added
+- ZenMux 默认目录新增 `google/gemini-4-argon`、`meta/muse-wonder-1.0`：走 Responses 通道并沿用既定 `reasoning.effort=high` + `summary:auto`；能力目录与默认目录均为 1M 上下文、4 张图片上限、思考与工具调用，最大输出分别为 65,536 / 128,000 tokens，价格为 2026-10-17 目录核对值换算 per-1k（$2/$10、$4/$20）。`model.capabilities`、`.env.example`、中英文 README 与 MCP 兼容性测试的兜底清单同步。
 - 新增 DeepSeek 官方 Search API 搜索后端（`WEB_SEARCH_BACKEND=deepseek` 显式启用；`auto` 仍为 MCP zhipu-websearch → disabled），本地与 Compose 均支持三项 `WEB_SEARCH_*` 配置，Key 选择规则见 README。`include_content` 默认关闭，摘要单条限 1200 字符、正文单条限 3000 字符；DeepSeek 将 `allowed_domains` 的前 5 个非空项与 `blocked_domains` 分别映射为 `site:`/OR 与 `-site:`，工具不允许同时传入两组过滤条件；仅后端 `SearchOptions` 支持时间过滤。本次仅接入 Search，未接入 Fetch；MCP 的 `site_name` 不再放入正文输出字段。
 - ZenMux Claude（`anthropic/claude-*`，Chat Completions 通道）支持带签名的推理续传：后续请求按「前缀哈希 + 父链 + 公开消息哈希」校验后回放 `reasoning_details`，历史、图片、工具集或所选 Key 变化导致链断裂时整块重置、绝不发送半新半旧的签名链；续传状态以 `provider_response_state`（`zenmux_claude_reasoning`）随会话持久化，不写入公开消息快照。仅对 ZenMux 且模型前缀 `anthropic/claude-` 生效，其他 Provider 与模型零影响；已文档化可重置的型号限定为 fable-5.1／opus-5.5／sonnet-5.5／haiku-5.5，名单外型号在需要重置时保持显式失败（见 Known Issues）。
 - ZenMux Claude 流式请求注入提示缓存断点：最后一个工具定义、system 与最近两个真实用户文本边界各 1 个 `cache_control: ephemeral`（最多 4 个）；断点标记不参与指纹计算，文本统一块形态以保证跨轮字节稳定。未改动任何历史正文，仅改写出站 JSON。
@@ -30,6 +31,7 @@
 - ZenMux 默认目录新增 Anthropic 系列 `anthropic/claude-opus-5.5`、`anthropic/claude-sonnet-5.5` 与 `anthropic/claude-haiku-5.5`：均为 1M 上下文、图片输入、工具调用与缓存，走 Chat Completions 通道并复用既有双 Key 轮换；价格为 2026-10-12 网关核对值换算 per-1k。
 
 ### Changed
+- `x-ai/grok-4.6` 替换为 `x-ai/grok-4.7`：仍走 Responses 通道并以 `reasoning.effort=high` 请求推理，上下文 500K、输出预算 65,536 与图片／工具能力不变；价格由高档位改为 2026-09-21 目录基础档 $2/$6 per M 换算 per-1k（0.002／0.006），≥200K 提示按 $4/$12 计且界面估算不按阶梯。能力目录、默认目录、`.env.example`、中英文 README 与架构文档同步。
 - OpenRouter Provider 默认模型由免费预览的 `stealth/union-alpha` 改为收费的 `openrouter/anthropic/claude-fable-5.1`；仅影响该 Provider 默认回退，全局默认仍为百炼 `deepseek-v4.1-flash`。
 - ZenMux Claude 的用量按 Anthropic 语义上报（仅该通道）：`prompt_tokens` 视为未缓存输入，缓存读取（`cached_tokens`）与缓存写入（`cacheCreationInputTokens`／`cache_creation_input_tokens`）并入完整输入后再上报，缓存读写作为明细透出；`TokenCounter`／`TokenBudgetGuard` 对 `zenmux_claude_reasoning`（补充态：不计入早期预算，由最终请求守卫按实际序列化请求计量）与 `zenmux_claude_message`（历史遗留态：计 0）过滤，并在存在补充态时跳过展示用 Thinking 的重复计量。其他 Provider 与模型的用量与预算口径不变。
 - 修正内置 `verification` 子代理的证据要求与 PASS／FAIL／PARTIAL 判定边界（模型输入行为变化）：测试结果作为其断言覆盖范围内的证据；区分已证实的验收失败与检查未完成，保留必要动态反证要求，限定静态结论及验收范围，设计意图不豁免已证实失败；数值退出码仅在工具或命令明确提供时记录，缺失本身不决定结论。同步补充普通及 fork 路径的提示送达契约测试。
@@ -48,7 +50,7 @@
 - Web 设置面板精简为外观设置，顶栏主题入口改为打开选择面板；移除“跟随系统”、语言和努力程度设置入口。旧“跟随系统”偏好按升级时的系统外观迁移为浅色或深色。
 - Web 液态玻璃改用统一分层材质：连续导航、悬浮输入区、Chrome 背景边缘折射、局部高光与分段选择动效；正文使用清晰底色，支持浏览器与无障碍降级。
 - 对话按“用户指令 / 任务过程 / 回复”展示，显示方式三档（精简 / 标准 / 完整过程）：精简档三层默认折叠，标准与完整过程档保留完整问题与回复，运行中同样生效；含工具调用的流式段归入过程区。移动输入采用常驻卡片，本轮移除旧的全部展开/折叠、复制本轮与轮次大纲入口。
-- ZenMux 默认目录保留 `anthropic/claude-fable-5.1`，新增 GPT-6 Astra、Gemini 3.8 Flash 与 Grok 4.6，并清理已替换或下线的旧型号。
+- ZenMux 默认目录保留 `anthropic/claude-fable-5.1`，新增 GPT-6 Astra、Gemini 4 Argon、Grok 4.7 与 Muse Wonder 1.0，并清理已替换或下线的旧型号。
 - Web 新会话必须先选择 Project；Session、Query 和文件搜索统一由 `projectId` / `sessionId` 解析服务端工作目录。
 - 智谱主模型全量升级为 GLM-5.3，覆盖前后端默认配置与中英文文档。
 - 模型列表、默认模型、会话创建和恢复统一以当前已注册 Provider 为权威；无效或已下线模型不再显示为 `Unknown Model`，历史会话仅在当前连接中回退到可用默认模型。
@@ -116,6 +118,7 @@
 - 修复证据落库失败的处理：`VerifyJourney` 在证据保存失败时返回独立结果码 `EVIDENCE_PERSIST_FAILED` 与脱敏文案，**正文保留真实 verdict**（verified / failed / unavailable）与「结果未持久化」事实及禁止自动重跑提示；不再把持久化失败记为验证 failed，也不再向模型回传底层异常文本。
 
 ### Removed
+- 项目为减少重复选择，主动从默认模型目录与内置能力目录移除 ZenMux 的 `google/gemini-3.8-flash`；不表示供应商下架。
 - 项目为减少重复选择，主动从默认模型目录与内置能力目录移除 OpenRouter 的 `stealth/union-alpha`、`openrouter/openai/gpt-6-astra` 及百炼的 `deepseek-v4-pro-0813`、`deepseek-v4-flash-0731`；不表示供应商下架，ZenMux 的 `openai/gpt-6-astra` 仍保留。
 
 ### Security

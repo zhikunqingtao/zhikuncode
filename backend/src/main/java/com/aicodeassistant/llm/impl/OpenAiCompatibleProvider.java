@@ -52,8 +52,9 @@ public class OpenAiCompatibleProvider implements LlmProvider {
     private static final Set<String> ZENMUX_RESPONSES_MODELS = Set.of(
             "openai/gpt-5.6-sol",
             "openai/gpt-6-astra",
-            "google/gemini-3.8-flash",
-            "x-ai/grok-4.6");
+            "google/gemini-4-argon",
+            "x-ai/grok-4.7",
+            "meta/muse-wonder-1.0");
     /** ZenMux 订阅配额错误（402 quote_exceeded / 404 model_not_available）的 Key 冷却时长 */
     private static final Duration SUBSCRIPTION_QUOTA_COOLDOWN = Duration.ofMinutes(15);
 

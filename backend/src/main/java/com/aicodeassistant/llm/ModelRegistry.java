@@ -37,9 +37,14 @@ public class ModelRegistry {
         entry("openai/gpt-5.6-sol",   caps("openai/gpt-5.6-sol",   "OpenAI GPT-5.6 Sol",   128000, 1050000, true,  true, true, 4, true, 0.030, 0.180)),
         entry("openai/gpt-6-astra",   caps("openai/gpt-6-astra",   "GPT-6 Astra（ZenMux）",   128000, 1050000, true,  true, true, 4, true, 0.010, 0.050)),
         // Google via ZenMux (google/ 前缀 = zenmux 中转)
-        entry("google/gemini-3.8-flash",   caps("google/gemini-3.8-flash",   "Google Gemini 3.8 Flash",   65536, 1048576, true, true, true, 4, true, 0.0015, 0.0075)),
+        // Gemini 4 Argon：2026-10-17 核对 ZenMux 目录与 Responses 探测（1M 上下文 / 65536 输出 / 图片 + 工具 + Responses 推理）。
+        entry("google/gemini-4-argon",     caps("google/gemini-4-argon",     "Gemini 4 Argon（ZenMux）",   65536, 1048576, true, true, true, 4, true, 0.002, 0.010)),
         // xAI via ZenMux
-        entry("x-ai/grok-4.6", caps("x-ai/grok-4.6", "xAI Grok 4.6", 65536, 500000, true, true, true, 4, true, 0.004, 0.012)),
+        // Grok 4.7：2026-09-21 核对 ZenMux 目录与 Responses 探测；价格取基础档 $2/$6 per M 换算 per-1k，≥200K 提示按 $4/$12 计且界面估算不按阶梯（同 GPT-6 Astra）。
+        entry("x-ai/grok-4.7", caps("x-ai/grok-4.7", "xAI Grok 4.7（ZenMux）", 65536, 500000, true, true, true, 4, true, 0.002, 0.006)),
+        // Meta via ZenMux (meta/ 前缀 = zenmux 中转)
+        // Muse Wonder 1.0：2026-10-17 核对 ZenMux 目录与 Responses 探测（1M 上下文 / 128000 输出 / 图片 + 工具 + Responses 推理）。
+        entry("meta/muse-wonder-1.0",     caps("meta/muse-wonder-1.0",     "Muse Wonder 1.0（ZenMux）",   128000, 1048576, true, true, true, 4, true, 0.004, 0.020)),
         entry(OpenRouterModels.FABLE, OpenRouterModels.capabilities(OpenRouterModels.FABLE)),
         // 国产大模型
         // DeepSeek V4.1 Flash 官方规格：1M 上下文 / 384K 最大输出 / 原生视觉 / 思考与工具调用。
