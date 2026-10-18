@@ -11,7 +11,7 @@ async function bootWithLegacySimplePreference(page: import('@playwright/test').P
 test.describe('Developer workbench with legacy preferences', () => {
   test('uses the developer view despite a legacy simple preference', async ({ page }) => {
     await bootWithLegacySimplePreference(page);
-    await expect(page.getByRole('heading', { name: '今天想构建什么？' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '今天想创造什么？' })).toBeVisible();
     await expect(page.getByRole('tablist', { name: '工作台视图' })).toHaveCount(0);
     const input = page.locator('textarea[aria-label="输入消息"]');
     await expect(input).toHaveAttribute('placeholder', /输入消息/);
@@ -41,7 +41,7 @@ test.describe('Developer workbench with legacy preferences', () => {
 
   test('keeps the view switch hidden and preserves the draft across viewport changes', async ({ page }) => {
     await bootWithLegacySimplePreference(page);
-    await expect(page.getByRole('heading', { name: '今天想构建什么？' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '今天想创造什么？' })).toBeVisible();
     const input = page.locator('textarea[aria-label="输入消息"]');
     await input.fill('跨屏幕保留草稿');
     for (const width of [1440, 1024, 768, 640, 390, 1440]) {
@@ -64,6 +64,6 @@ test.describe('Developer workbench with legacy preferences', () => {
     await expect(page.getByRole('banner').getByRole('button', { name: '新建会话', exact: true })).toHaveCount(0);
     await expect(page.getByRole('button', { name: '新建会话', exact: true })).toBeVisible();
     // §7.1 空态 Hero（P3 起替换「开始对话」占位）
-    await expect(page.getByRole('heading', { name: '今天想构建什么？' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '今天想创造什么？' })).toBeVisible();
   });
 });

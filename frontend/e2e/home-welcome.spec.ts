@@ -34,7 +34,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
       if (request.url().includes('/api/') && request.method() !== 'GET') writes.push(request.url());
     });
     await page.goto('/');
-    const heading = page.getByRole('heading', { name: '今天想构建什么？' });
+    const heading = page.getByRole('heading', { name: '今天想创造什么？' });
     await expect(heading).toBeVisible();
     const hero = heading.locator('..');
     await expect(hero.getByText('zhikuncode', { exact: true })).toBeVisible();
@@ -63,7 +63,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
 
 test('a committed selection survives reload; clearing it returns home', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: '今天想构建什么？' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '今天想创造什么？' })).toBeVisible();
   // Exercise the existing commit/persistence path, not an invented navigation state.
   await page.evaluate(() => window.__e2eStores!.sessionStore.getState().resumeSession('chosen-session'));
   await expect(page.getByText('当前任务', { exact: true })).toBeVisible();
@@ -71,7 +71,7 @@ test('a committed selection survives reload; clearing it returns home', async ({
   await expect(page.getByText('当前任务', { exact: true })).toBeVisible();
   expect(await page.evaluate(() => window.__e2eStores!.sessionStore.getState().sessionId)).toBe('chosen-session');
   await page.evaluate(() => window.__e2eStores!.sessionStore.getState().resumeSession(''));
-  await expect(page.getByRole('heading', { name: '今天想构建什么？' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '今天想创造什么？' })).toBeVisible();
   expect(await page.evaluate(() => sessionStorage.getItem('zhikuncode.activeSessionId'))).toBeNull();
 });
 
@@ -86,7 +86,7 @@ for (const width of [390, 900]) {
     await expect(page.locator('aside')).toHaveCount(0);
     await page.screenshot({ path: testInfo.outputPath(`session-menu-${width}.png`) });
     await page.getByRole('button', { name: '返回', exact: true }).click();
-    await expect(page.getByRole('heading', { name: '今天想构建什么？' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '今天想创造什么？' })).toBeVisible();
   });
 }
 
@@ -94,7 +94,7 @@ for (const width of [390, 900, 1440]) {
   test(`logo clears the selection and returns home at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: '今天想构建什么？' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '今天想创造什么？' })).toBeVisible();
     await page.evaluate(() => window.__e2eStores!.sessionStore.getState().resumeSession('chosen-session'));
     await expect(page.getByText('当前任务', { exact: true })).toBeVisible();
     if (width < 1024) await page.getByRole('button', { name: '打开会话列表' }).click();
@@ -103,10 +103,10 @@ for (const width of [390, 900, 1440]) {
       if (request.url().includes('/api/') && request.method() !== 'GET') writes.push(request.url());
     });
     await page.getByRole('button', { name: '返回首页' }).click();
-    await expect(page.getByRole('heading', { name: '今天想构建什么？' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '今天想创造什么？' })).toBeVisible();
     expect(await page.evaluate(() => sessionStorage.getItem('zhikuncode.activeSessionId'))).toBeNull();
     await page.reload();
-    await expect(page.getByRole('heading', { name: '今天想构建什么？' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '今天想创造什么？' })).toBeVisible();
     expect(writes).toEqual([]);
   });
 }

@@ -3,7 +3,7 @@
  *
  * 结构（ui EmptyState hero 变体承载）：
  * 1. 徽章：现有品牌 Logo + zhikuncode；
- * 2. 标题：今天想<b>构建</b>什么？（clamp(34px,5.4vw,50px)/300/-0.02em，<b>=650+accent，
+ * 2. 标题：今天想<b>创造</b>什么？（clamp(34px,5.4vw,50px)/300/-0.02em，<b>=650+accent，
  *    移动端固定 34px —— 经 [&_h1]:max-md 覆盖）；
  * 3. 副文案（text-t3 档、1.7 行高，EmptyState hero 内置）；
  * 4. 快捷 chips ×4：icon accent + text-t2，surface+hairline+shadow-e1，
@@ -77,7 +77,7 @@ export function EmptyHero() {
                     <span data-spider-anchor="brand">zhikuncode</span>
                 </Chip>
             }
-            title={<InkCalligraphyTitle fallback={<>今天想<b>构建</b>什么？</>} />}
+            title={<InkCalligraphyTitle fallback={<>今天想<b>创造</b>什么？</>} />}
             description="下达指令，剩下的一切交给zhikuncode"
             actions={
                 <>

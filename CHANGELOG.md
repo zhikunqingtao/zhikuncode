@@ -31,6 +31,7 @@
 - ZenMux 默认目录新增 Anthropic 系列 `anthropic/claude-opus-5.5`、`anthropic/claude-sonnet-5.5` 与 `anthropic/claude-haiku-5.5`：均为 1M 上下文、图片输入、工具调用与缓存，走 Chat Completions 通道并复用既有双 Key 轮换；价格为 2026-10-12 网关核对值换算 per-1k。
 
 ### Changed
+- 首页空态 Hero 大标题由「今天想**构建**什么？」改为「今天想**创造**什么？」：毛笔书写标题按新文案重提取字形（第 4 字「创」、第 5 字「造」），SVG 可访问名、回退文本、单元测试与 e2e 断言同步，墨戏主题描边／填充节奏不变；新增字形文案一致性断言，防止只改回退文本而漏改书写字形。
 - `x-ai/grok-4.6` 替换为 `x-ai/grok-4.7`：仍走 Responses 通道并以 `reasoning.effort=high` 请求推理，上下文 500K、输出预算 65,536 与图片／工具能力不变；价格由高档位改为 2026-09-21 目录基础档 $2/$6 per M 换算 per-1k（0.002／0.006），≥200K 提示按 $4/$12 计且界面估算不按阶梯。能力目录、默认目录、`.env.example`、中英文 README 与架构文档同步。
 - OpenRouter Provider 默认模型由免费预览的 `stealth/union-alpha` 改为收费的 `openrouter/anthropic/claude-fable-5.1`；仅影响该 Provider 默认回退，全局默认仍为百炼 `deepseek-v4.1-flash`。
 - ZenMux Claude 的用量按 Anthropic 语义上报（仅该通道）：`prompt_tokens` 视为未缓存输入，缓存读取（`cached_tokens`）与缓存写入（`cacheCreationInputTokens`／`cache_creation_input_tokens`）并入完整输入后再上报，缓存读写作为明细透出；`TokenCounter`／`TokenBudgetGuard` 对 `zenmux_claude_reasoning`（补充态：不计入早期预算，由最终请求守卫按实际序列化请求计量）与 `zenmux_claude_message`（历史遗留态：计 0）过滤，并在存在补充态时跳过展示用 Thinking 的重复计量。其他 Provider 与模型的用量与预算口径不变。

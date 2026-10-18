@@ -526,7 +526,7 @@ function App() {
             ) : workbenchEnabled && viewMode === 'simple' ? (
               <SimpleWorkbench sessionId={sessionId} messages={messages} status={status} />
             ) : messages.length === 0 ? (
-                /* §7.1 空态 Hero（记忆点①）：今天想构建什么？ */
+                /* §7.1 空态 Hero（记忆点①）：今天想创造什么？ */
                 <EmptyHero />
               ) : (
                 <MessageList ref={messageListRef} keyboardHeight={keyboardHeight} />

@@ -132,7 +132,7 @@ describe('primitives 渲染', () => {
                     badge={<span>徽章</span>}
                     title={
                         <>
-                            今天想<b>构建</b>什么？
+                            今天想<b>创造</b>什么？
                         </>
                     }
                     description="副文案"
@@ -142,7 +142,7 @@ describe('primitives 渲染', () => {
             </>,
         );
         expect(screen.getByText('徽章')).toBeInTheDocument();
-        expect(screen.getByText('构建')).toBeInTheDocument();
+        expect(screen.getByText('创造')).toBeInTheDocument();
         expect(screen.getByText('空')).toBeInTheDocument();
     });
 

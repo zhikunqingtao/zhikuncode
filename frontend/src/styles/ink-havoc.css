@@ -1030,7 +1030,7 @@ html.ink-havoc-night .ink-calli-title {
   stroke: none;
 }
 .ink-calli-title .ink-calli-fill-path.is-accent {
-  fill: var(--v2-accent);  /* 「构建」两字同原文案 <b> 高亮 */
+  fill: var(--v2-accent);  /* 「创造」两字同原文案 <b> 高亮 */
 }
 /* 描边层：逐 contour，仅承载书写动画；成品态隐藏 */
 .ink-calli-title .ink-calli-path {

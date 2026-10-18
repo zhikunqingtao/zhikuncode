@@ -1,7 +1,7 @@
 /**
  * InkCalligraphyTitle（波次2② 毛笔书写标题）门控与渲染测试
  * 覆盖：主题/浓郁档门控（calm 档与其他主题回退文本）、SVG 字形结构
- * （8 字 / contour 数 / 「构建」高亮）、书写错峰 delay 内联变量、
+ * （8 字 / contour 数 / 「创造」高亮）、书写错峰 delay 内联变量、
  * 以及 calligraphyStrokeDelay / calligraphyFillDelay 节奏纯函数。
  */
 
@@ -15,7 +15,7 @@ import {
 import { HERO_CALLIGRAPHY } from '../hero-calligraphy';
 import { useConfigStore } from '@/store/configStore';
 
-const FALLBACK = <span data-testid="fallback-title">今天想构建什么？</span>;
+const FALLBACK = <span data-testid="fallback-title">今天想创造什么？</span>;
 
 function setTheme(mode: string, cinematic: boolean, motion: 'full' | 'reduced' | 'off' = 'full') {
     act(() => {
@@ -43,14 +43,14 @@ describe('InkCalligraphyTitle 门控与渲染', () => {
         setTheme('light', true);
         const { container } = render(<InkCalligraphyTitle fallback={FALLBACK} />);
         expect(container.querySelector('.ink-calli-title')).toBeNull();
-        expect(container.textContent).toContain('今天想构建什么？');
+        expect(container.textContent).toContain('今天想创造什么？');
     });
 
     it('ink + cinematic=false（克制档）→ 回退 fallback 文本（calm 零变化）', () => {
         setTheme('ink-havoc-night', false);
         const { container } = render(<InkCalligraphyTitle fallback={FALLBACK} />);
         expect(container.querySelector('.ink-calli-title')).toBeNull();
-        expect(container.textContent).toContain('今天想构建什么？');
+        expect(container.textContent).toContain('今天想创造什么？');
     });
 
     it('ink-havoc-night 浓郁档 → 渲染 SVG：8 字、contour 全数、可访问名', () => {
@@ -58,9 +58,11 @@ describe('InkCalligraphyTitle 门控与渲染', () => {
         const { container } = render(<InkCalligraphyTitle fallback={FALLBACK} />);
         const svg = container.querySelector('svg.ink-calli-title');
         expect(svg).not.toBeNull();
-        expect(svg!.getAttribute('aria-label')).toBe('今天想构建什么？');
+        expect(svg!.getAttribute('aria-label')).toBe('今天想创造什么？');
         // 8 字分组
         expect(svg!.querySelectorAll('g').length).toBe(HERO_CALLIGRAPHY.chars.length);
+        // 字形数据对应的文案（防换字后只改 fallback、漏改书写字形）
+        expect(HERO_CALLIGRAPHY.chars.map(c => c.ch).join('')).toBe('今天想创造什么？');
         // contour 总数与字形数据一致（pathLength=1 单位化路径长）
         const totalContours = HERO_CALLIGRAPHY.chars.reduce((n, c) => n + c.paths.length, 0);
         const paths = svg!.querySelectorAll('path.ink-calli-path');
@@ -68,7 +70,7 @@ describe('InkCalligraphyTitle 门控与渲染', () => {
         expect(paths[0].getAttribute('pathLength')).toBe('1');
     });
 
-    it('「构建」两字 contour 全部带 is-accent（对应原文案 <b> 高亮）', () => {
+    it('「创造」两字 contour 全部带 is-accent（对应原文案 <b> 高亮）', () => {
         setTheme('ink-havoc', true);
         const { container } = render(<InkCalligraphyTitle fallback={FALLBACK} />);
         const expected = HERO_CALLIGRAPHY.chars

@@ -30,7 +30,7 @@ async function seedTheme(page: any, mode: 'light' | 'dark' | 'glass') {
 
 test.describe('六记忆点截图归档', () => {
 
-    test('① 空态 Hero「今天想构建什么？」', async ({ page }) => {
+    test('① 空态 Hero「今天想创造什么？」', async ({ page }) => {
         await seedTheme(page, 'light');
         await page.goto('/');
         await expect(page.getByText('今天想')).toBeVisible({ timeout: 15000 });

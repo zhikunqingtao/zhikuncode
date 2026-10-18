@@ -1,7 +1,7 @@
 /**
  * InkCalligraphyTitle — 波次2② 毛笔书写标题（浓郁档 · 空状态 Hero）
  *
- * 「落墨成书」：空状态大标题「今天想构建什么？」以行楷字形轮廓
+ * 「落墨成书」：空状态大标题「今天想创造什么？」以行楷字形轮廓
  * （hero-calligraphy.ts，fontTools 自 brush-kaiti.ttf 提取，OFL 许可）逐 contour
  * 勾勒——stroke-dashoffset 1→0 按字序/ contour 序错峰（cubic-bezier(.45,0,.25,1)
  * 模拟起笔顿→行笔提→收笔回锋），最后一笔落定后 fill 淡入、描边淡出（200-400ms）。
@@ -54,7 +54,7 @@ export function InkCalligraphyTitle({ fallback }: { fallback: ReactNode }) {
             className="ink-calli-title"
             viewBox={HERO_CALLIGRAPHY.viewBox}
             role="img"
-            aria-label="今天想构建什么？"
+            aria-label="今天想创造什么？"
         >
             {HERO_CALLIGRAPHY.chars.map((char, charIndex) => (
                 <g
