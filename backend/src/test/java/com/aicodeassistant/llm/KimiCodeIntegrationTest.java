@@ -33,10 +33,10 @@ class KimiCodeIntegrationTest {
         var subscription = configs.providers().get("kimi-code");
         var moonshot = configs.providers().get("moonshot");
         assertThat(subscription.baseUrl()).isEqualTo("https://api.kimi.com/coding/v1");
-        assertThat(subscription.defaultModel()).isEqualTo("k3");
-        assertThat(subscription.models()).containsExactly("k3", "kimi-for-coding");
+        assertThat(subscription.defaultModel()).isEqualTo("k3.1-pro-highspeed");
+        assertThat(subscription.models()).containsExactly("k3.1-pro-highspeed", "kimi-for-coding");
         assertThat(moonshot.baseUrl()).isEqualTo("https://api.moonshot.cn/v1");
-        assertThat(moonshot.defaultModel()).isEqualTo("kimi-k3");
+        assertThat(moonshot.defaultModel()).isEqualTo("kimi-k3.1-pro-highspeed");
         assertThat(moonshot.apiKey()).isEqualTo("moonshot-key");
 
         var providers = providers(configs);
@@ -44,20 +44,20 @@ class KimiCodeIntegrationTest {
         var reversed = new ArrayList<>(providers.reversed());
         for (var order : List.of(providers, reversed)) {
             var routes = new LlmProviderRegistry(order, new MockEnvironment());
-            assertThat(routes.getProvider("kimi-k3").getProviderName()).isEqualTo("moonshot");
-            for (String id : List.of("k3", "kimi-for-coding")) {
+            assertThat(routes.getProvider("kimi-k3.1-pro-highspeed").getProviderName()).isEqualTo("moonshot");
+            for (String id : List.of("k3.1-pro-highspeed", "kimi-for-coding")) {
                 assertThat(routes.getProvider(id).getProviderName()).isEqualTo("kimi-code");
                 assertThat(routes.getProvider(id).supportsThinking(id)).isTrue();
             }
             var models = new ModelRegistry(routes);
-            assertThat(models.getCapabilities("kimi-k3").displayName()).isEqualTo("Kimi K3");
-            assertThat(models.getCapabilities("kimi-k3").costPer1kInput()).isEqualTo(0.002);
+            assertThat(models.getCapabilities("kimi-k3.1-pro-highspeed").displayName()).isEqualTo("Kimi K3.1 Pro Highspeed");
+            assertThat(models.getCapabilities("kimi-k3.1-pro-highspeed").costPer1kInput()).isEqualTo(0.004);
             var response = new ModelController(routes, models).listModels(null).getBody();
             assertThat(response).isNotNull();
-            for (String id : List.of("k3", "kimi-for-coding")) {
+            for (String id : List.of("k3.1-pro-highspeed", "kimi-for-coding")) {
                 assertThat(response.models()).filteredOn(m -> id.equals(m.id())).singleElement().satisfies(m -> {
-                    assertThat(m.displayName()).isEqualTo("k3".equals(id)
-                            ? "Kimi K3（订阅）" : "Kimi K2.8 Preview（订阅）");
+                    assertThat(m.displayName()).isEqualTo("k3.1-pro-highspeed".equals(id)
+                            ? "Kimi K3.1 Pro Highspeed（订阅）" : "Kimi K2.8 Preview（订阅）");
                     assertThat(m.contextWindow()).isEqualTo(1_048_576);
                     assertThat(m.maxOutputTokens()).isEqualTo(131_072);
                     assertThat(m.supportsThinking()).isTrue();
@@ -77,12 +77,12 @@ class KimiCodeIntegrationTest {
     @Test
     void missingSubscriptionKeyDoesNotExposeSubscriptionModels() throws Exception {
         var routes = new LlmProviderRegistry(providers(config("")), new MockEnvironment());
-        assertThat(routes.listAvailableModels()).contains("kimi-k3")
-                .doesNotContain("k3", "kimi-for-coding");
+        assertThat(routes.listAvailableModels()).contains("kimi-k3.1-pro-highspeed")
+                .doesNotContain("k3.1-pro-highspeed", "kimi-for-coding");
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"k3", "kimi-for-coding"})
+    @ValueSource(strings = {"k3.1-pro-highspeed", "kimi-for-coding"})
     void streamingAlwaysUsesMaxAndPreservesReasoningWithToolResults(String model) throws Exception {
         try (var server = new MockWebServer()) {
             server.start();
@@ -125,7 +125,7 @@ class KimiCodeIntegrationTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"k3", "kimi-for-coding"})
+    @ValueSource(strings = {"k3.1-pro-highspeed", "kimi-for-coding"})
     void synchronousRequestsAlsoUseMax(String model) throws Exception {
         try (var server = new MockWebServer()) {
             server.start();
@@ -150,7 +150,7 @@ class KimiCodeIntegrationTest {
                     "data: {\"choices\":[{\"delta\":{\"content\":\"OK\"},\"finish_reason\":\"stop\"}]}\n\n"
                             + "data: [DONE]\n\n"));
             var capture = new Capture();
-            provider(server, "moonshot", "kimi-k3").streamChat("kimi-k3",
+            provider(server, "moonshot", "kimi-k3.1-pro-highspeed").streamChat("kimi-k3.1-pro-highspeed",
                     List.of(Map.of("role", "user", "content", "Reply OK")), "", List.of(), 512,
                     new ThinkingConfig.Disabled(), LlmCallContext.unscoped(), capture);
             assertThat(capture.error).isNull();
@@ -158,7 +158,7 @@ class KimiCodeIntegrationTest {
             var request = server.takeRequest(2, TimeUnit.SECONDS);
             assertThat(request).isNotNull();
             var body = MAPPER.readTree(request.getBody().readUtf8());
-            assertThat(body.path("model").asText()).isEqualTo("kimi-k3");
+            assertThat(body.path("model").asText()).isEqualTo("kimi-k3.1-pro-highspeed");
             assertThat(body.path("max_completion_tokens").asInt()).isEqualTo(512);
             assertThat(body.has("max_tokens")).isFalse();
             assertThat(body.path("reasoning_effort").asText()).isEqualTo("max");

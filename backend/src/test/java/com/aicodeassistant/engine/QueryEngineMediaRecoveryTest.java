@@ -271,7 +271,7 @@ class QueryEngineMediaRecoveryTest {
         }
 
         @ParameterizedTest
-        @ValueSource(strings = {"kimi-k3"})
+        @ValueSource(strings = {"kimi-k3.1-pro-highspeed"})
         void realBudgetAndCapabilitiesAcceptLargePngWithoutChangingHistory(String model) throws Exception {
             OssPublishProperties ossProperties = new OssPublishProperties();
             ossProperties.setBucket("zhikunshare");
@@ -325,7 +325,7 @@ class QueryEngineMediaRecoveryTest {
 
     @Test
     void currentImageDownloadFailurePersistsAndPushesNoticeWithoutCallingProvider() {
-        when(modelRegistry.getCapabilities("kimi-k3")).thenReturn(base64OnlyCapabilities("kimi-k3"));
+        when(modelRegistry.getCapabilities("kimi-k3.1-pro-highspeed")).thenReturn(base64OnlyCapabilities("kimi-k3.1-pro-highspeed"));
         var provider = mock(LlmProvider.class);
         when(providerRegistry.getProvider(anyString())).thenReturn(provider);
         var transcoder = new UserImageTranscoder(UserImageTranscoderTest.properties()) {
@@ -338,7 +338,7 @@ class QueryEngineMediaRecoveryTest {
         var sessions = mock(com.aicodeassistant.session.SessionManager.class);
         com.aicodeassistant.session.SessionMessagePersistence.attach(state, sessions, "test-session", "test");
         var handler = new TestHandler();
-        var result = newEngine(new MessageNormalizer(), transcoder).execute(buildConfig("kimi-k3"), state, handler);
+        var result = newEngine(new MessageNormalizer(), transcoder).execute(buildConfig("kimi-k3.1-pro-highspeed"), state, handler);
         assertThat(result.isSuccess()).isFalse();
         verifyNoInteractions(compactService);
         assertThat(handler.systemMessages).hasSize(1);
@@ -385,7 +385,7 @@ class QueryEngineMediaRecoveryTest {
         var state = new QueryLoopState(messages, ToolUseContext.of(imageDirectory.toString(), "test-session"));
         var handler = new TestHandler();
         var scripted = scriptProvider((call, callback) -> finish(callback, "end_turn", new LlmStreamEvent.TextDelta("ok")));
-        var result = newEngine(new MessageNormalizer(), transcoder).execute(buildConfig("kimi-k3"), state, handler);
+        var result = newEngine(new MessageNormalizer(), transcoder).execute(buildConfig("kimi-k3.1-pro-highspeed"), state, handler);
         assertThat(result.isSuccess()).isTrue();
         var images = imageParts(scripted.requests().getFirst());
         assertThat(images).hasSize(8);
@@ -398,8 +398,8 @@ class QueryEngineMediaRecoveryTest {
         assertThat(((Message.UserMessage) messages.getLast()).content()).hasSize(1);
         var budget = org.mockito.ArgumentCaptor.forClass(Integer.class);
         verify(imageRefInjector).injectForApiCall(anyList(), anyInt(), budget.capture(), anySet(), anyMap(), anyString(), eq(8 - currentImageCount));
-        int baseBudget = 1000000 - 8192 - (int) ("You are a helpful assistant.".length() / 3.5) - 50000
-                - tokenCounter.estimateTokens(UserImageTranscoder.withoutImagesForBudget(messages), "kimi-k3");
+        int baseBudget = 1_048_576 - 8192 - (int) ("You are a helpful assistant.".length() / 3.5) - 52_428
+                - tokenCounter.estimateTokens(UserImageTranscoder.withoutImagesForBudget(messages), "kimi-k3.1-pro-highspeed");
         assertThat(budget.getValue()).isEqualTo(baseBudget - currentImageCount * InlineImageBudget.estimate(
                 java.util.Base64.getEncoder().encodeToString(transcoder.imageBytes)));
     }
@@ -417,7 +417,7 @@ class QueryEngineMediaRecoveryTest {
         var user = new Message.UserMessage("current", Instant.now(), List.of(image, image), null, null);
         var state = new QueryLoopState(List.of(user), ToolUseContext.of("/tmp", "test-session"));
         var scripted = scriptProvider((call, callback) -> finish(callback, "end_turn", new LlmStreamEvent.TextDelta("ok")));
-        var config = QueryConfig.withDefaults("kimi-k3", "test", List.of(), List.of(),
+        var config = QueryConfig.withDefaults("kimi-k3.1-pro-highspeed", "test", List.of(), List.of(),
                 16384, 256000, new ThinkingConfig.Disabled(), 1, "test");
         var handler = new TestHandler();
         var result = newEngine(new MessageNormalizer(), new UserImageTranscoder(UserImageTranscoderTest.properties()))
@@ -426,7 +426,7 @@ class QueryEngineMediaRecoveryTest {
         assertThat(handler.errors).isEmpty();
         var request = scripted.requests().getFirst();
         assertThat(imageParts(request)).hasSize(2);
-        assertThat(new FinalProviderPayloadGuard(modelRegistry).validate("moonshot", "kimi-k3",
+        assertThat(new FinalProviderPayloadGuard(modelRegistry).validate("moonshot", "kimi-k3.1-pro-highspeed",
                 Map.of("messages", request), 16384).guarded()).isTrue();
         assertThat(((Message.UserMessage) state.getMessages().getFirst()).content()).containsExactly(image, image);
     }
@@ -435,7 +435,7 @@ class QueryEngineMediaRecoveryTest {
     @ValueSource(strings = {"success", "unchanged", "skipped"})
     void imageBudgetCompactsHistoryOnceWithoutSpendingTheOnlyModelTurn(String outcome) throws Exception {
         boolean freesSpace = "success".equals(outcome);
-        when(modelRegistry.getCapabilities("kimi-k3")).thenReturn(base64OnlyCapabilities("kimi-k3"));
+        when(modelRegistry.getCapabilities("kimi-k3.1-pro-highspeed")).thenReturn(base64OnlyCapabilities("kimi-k3.1-pro-highspeed"));
         tokenCounter = new TokenCounter(modelRegistry, null, featureFlagService);
         tokenBudgetGuard = new TokenBudgetGuard();
         var history = new Message.UserMessage("old", Instant.now(),
@@ -451,7 +451,7 @@ class QueryEngineMediaRecoveryTest {
         if (!freesSpace) when(providerRegistry.getProvider(anyString())).thenReturn(mock(LlmProvider.class));
         var state = new QueryLoopState(List.of(history, current), ToolUseContext.of("/tmp", "test-session"));
         var handler = new TestHandler();
-        var config = QueryConfig.withDefaults("kimi-k3", "test", List.of(), List.of(), 8192, 200000,
+        var config = QueryConfig.withDefaults("kimi-k3.1-pro-highspeed", "test", List.of(), List.of(), 8192, 200000,
                 new ThinkingConfig.Disabled(), 1, "test");
         var result = newEngine(new MessageNormalizer(), new UserImageTranscoder(UserImageTranscoderTest.properties()))
                 .execute(config, state, handler);

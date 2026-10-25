@@ -55,12 +55,15 @@ public class ModelRegistry {
         // https://help.aliyun.com/zh/model-studio/deepseek-v4-1-flash
         // 图片保守限制为 4 张（已实测）；价格为北京忙时按量参考，非 Token Plan Credits 账单。
         entry("deepseek-v4.1-flash", caps("deepseek-v4.1-flash", "DeepSeek V4.1 Flash（百炼）", 393216, 1000000, true, true, true, 4, true, 0.002, 0.008)),
-        // Moonshot（Kimi K3 视觉模型仅接受 base64 图片输入，不支持公网 URL）
-        entry("kimi-k3",          caps("kimi-k3",          "Kimi K3",         131072, 1000000,  true, true, true, 8, true, 0.002, 0.012, ModelCapabilities.ImageInputMode.BASE64_ONLY)),
-        // Kimi Code 订阅（2026-09-20）：两款均配置最大 1M 上下文；K3 需套餐具备 1M 权限。
+        // Moonshot K3.1 Pro Highspeed：1,048,576 上下文；登记输出预算 131072，主循环统一裁剪到 65536。
+        // 官方协议：https://platform.kimi.com/docs/guide/kimi-k3-1-pro-quickstart
+        // 美元估算按海外官方 $4/$20 per MTok（2026-10-24）：https://platform.kimi.ai/docs/pricing/chat
+        // 国内账单为 ¥26/¥136 per MTok；此处不含缓存写入/命中价格，也不做实时汇率换算。
+        entry("kimi-k3.1-pro-highspeed", caps("kimi-k3.1-pro-highspeed", "Kimi K3.1 Pro Highspeed", 131072, 1048576, true, true, true, 8, true, 0.004, 0.020, ModelCapabilities.ImageInputMode.BASE64_ONLY)),
+        // Kimi Code Highspeed 订阅（2026-10-24）：需 Pro / Allegretto 及以上套餐，最高 1M 上下文。
         // https://www.kimi.com/code/docs/kimi-code/models.html
-        // 131072 为应用单次输出预算，8 张图片为应用保守上限；订阅用量不按按量单价估算。
-        entry("k3", new ModelCapabilities("k3", "Kimi K3（订阅）", 131072, 1048576,
+        // 登记输出预算 131072，主循环统一裁剪到 65536；8 张图片为保守上限，订阅不按量估价。
+        entry("k3.1-pro-highspeed", new ModelCapabilities("k3.1-pro-highspeed", "Kimi K3.1 Pro Highspeed（订阅）", 131072, 1048576,
                 true, true, true, 8, true, 0.0, 0.0, 3.5, true, ModelCapabilities.ImageInputMode.BASE64_ONLY)),
         entry("kimi-for-coding", new ModelCapabilities("kimi-for-coding", "Kimi K2.8 Preview（订阅）", 131072, 1048576,
                 true, true, true, 8, true, 0.0, 0.0, 3.5, true, ModelCapabilities.ImageInputMode.BASE64_ONLY)),

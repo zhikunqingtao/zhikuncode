@@ -43,7 +43,7 @@ class OpenAiCompatibleProviderToolCallStreamingTest {
         provider = new OpenAiCompatibleProvider(
                 "test", mapper, http, new ApiKeyRotationManager("key"),
                 "key", baseUrl, "qwen3.8-max",
-                List.of("qwen3.8-max", "kimi-k3"));
+                List.of("qwen3.8-max", "kimi-k3.1-pro-highspeed"));
     }
 
     @AfterEach
@@ -58,7 +58,7 @@ class OpenAiCompatibleProviderToolCallStreamingTest {
 
     @Test
     void preservesKimiSparseContinuation() {
-        assertAccepted("kimi-k3", null, null, false);
+        assertAccepted("kimi-k3.1-pro-highspeed", null, null, false);
     }
 
     @Test

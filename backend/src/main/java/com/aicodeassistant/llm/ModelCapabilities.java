@@ -22,7 +22,7 @@ public record ModelCapabilities(
         ImageInputMode imageInputMode
 ) {
 
-    /** 图片输入方式 — URL 直传或仅接受 base64（如 Kimi K3 不支持公网图片 URL）。 */
+    /** 图片输入方式 — URL 直传或仅接受 base64（如 Kimi K3.1 Pro Highspeed 不支持公网图片 URL）。 */
     public enum ImageInputMode { URL, BASE64_ONLY }
 
     public ModelCapabilities(String modelId, String displayName, int maxOutputTokens, int contextWindow,

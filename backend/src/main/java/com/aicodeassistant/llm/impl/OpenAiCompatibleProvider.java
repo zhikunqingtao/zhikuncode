@@ -174,7 +174,11 @@ public class OpenAiCompatibleProvider implements LlmProvider {
 
     private boolean isKimiCodeModel(String model) {
         return "kimi-code".equalsIgnoreCase(providerName)
-                && ("k3".equals(model) || "kimi-for-coding".equals(model));
+                && ("k3.1-pro-highspeed".equals(model) || "kimi-for-coding".equals(model));
+    }
+
+    private boolean isKimiMoonshotModel(String model) {
+        return "kimi-k3.1-pro-highspeed".equals(model);
     }
 
     @Override
@@ -203,7 +207,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
     public boolean supportsThinking(String model) {
         if (model == null) return false;
         if (isBailianGlm(model)) return true;
-        if (isKimiCodeModel(model)) return true;
+        if (isKimiCodeModel(model) || isKimiMoonshotModel(model)) return true;
         if (isOpenRouter() && OpenRouterModels.capabilities(model) != null) return true;
         if ("zenmux".equalsIgnoreCase(providerName)
                 && ZENMUX_RESPONSES_MODELS.contains(model)) return true;
@@ -753,9 +757,6 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             ObjectNode thinking = root.putObject("thinking");
             thinking.put("type", "enabled");
             root.put("reasoning_effort", "max");
-        } else if ("kimi-k3".equals(model)) {
-            // Kimi K3 官方推荐显式传入 reasoning_effort="max" 以获得最强推理
-            root.put("reasoning_effort", "max");
         } else if (isGlmForcedThinkingModel(model)) {
             // GLM-5.3 / GLM-5.3-Flash 官方规范：thinking.type 仅支持 enabled（思考不可关闭），
             // 推理强度由 reasoning_effort 控制（low/high/max，官方推荐 max）。
@@ -1122,8 +1123,12 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             root.put("reasoning_effort", "max");
             root.put("clear_thinking", false);
         }
+        if (isKimiMoonshotModel(model)) {
+            // K3.1 Pro Highspeed 始终开启思考；同步与流式请求均显式使用最强推理。
+            root.put("reasoning_effort", "max");
+        }
         if (isKimiCodeModel(model)) {
-            // 订阅 K3 / K2.8 Preview 统一使用最强推理；关闭思考会让 K3 改路由到 K2.8。
+            // 订阅模型统一使用最强推理；K3.1 Pro Highspeed 不接受关闭思考的请求。
             // 放在共享请求构建处，保证流式对话与 chatSync 都显式启用 max。
             root.putObject("thinking").put("type", "enabled");
             root.put("reasoning_effort", "max");

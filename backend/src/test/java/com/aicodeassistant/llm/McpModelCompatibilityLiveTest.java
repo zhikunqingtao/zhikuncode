@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  *
  * <p>Enable explicitly with {@code RUN_MCP_MODEL_COMPATIBILITY_LIVE_TESTS=true}.
  * To limit a diagnostic run, set {@code MCP_COMPAT_MODELS} to a comma-separated
- * list such as {@code kimi-k3,qwen3.8-max}. No credential value is logged.
+ * list such as {@code kimi-k3.1-pro-highspeed,qwen3.8-max}. No credential value is logged.
  */
 @EnabledIfEnvironmentVariable(
         named = "RUN_MCP_MODEL_COMPATIBILITY_LIVE_TESTS", matches = "(?i)true")
@@ -215,10 +215,10 @@ class McpModelCompatibilityLiveTest {
                 "deepseek-flash");
         addProvider(endpoints, "moonshot", "LLM_PROVIDER_MOONSHOT_API_KEY",
                 env("LLM_PROVIDER_MOONSHOT_BASE_URL", "https://api.moonshot.cn/v1"),
-                "LLM_PROVIDER_MOONSHOT_MODELS", "kimi-k3");
+                "LLM_PROVIDER_MOONSHOT_MODELS", "kimi-k3.1-pro-highspeed");
         addProvider(endpoints, "kimi-code", "LLM_PROVIDER_KIMI_CODE_API_KEY",
                 "https://api.kimi.com/coding/v1",
-                "LLM_PROVIDER_KIMI_CODE_MODELS", "k3,kimi-for-coding");
+                "LLM_PROVIDER_KIMI_CODE_MODELS", "k3.1-pro-highspeed,kimi-for-coding");
         addProvider(endpoints, "zhipu", "LLM_PROVIDER_ZHIPU_API_KEY",
                 env("LLM_PROVIDER_ZHIPU_BASE_URL", "https://open.bigmodel.cn/api/paas/v4"),
                 "LLM_PROVIDER_ZHIPU_MODELS", "glm-5.3,glm-5.3-flash");
