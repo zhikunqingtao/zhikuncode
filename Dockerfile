@@ -71,7 +71,7 @@ RUN cd backend && ./mvnw package -DskipTests -B \
     && mv target/ai-code-assistant-*.jar target/app.jar
 
 # Official GitHub MCP binary, pinned to a release tag.
-FROM ghcr.io/github/github-mcp-server:v1.11.0 AS github-mcp
+FROM ghcr.io/github/github-mcp-server:v1.13.0 AS github-mcp
 
 # Pinned Meoo CLI + Fliggy flyai CLI and glibc Node runtime (not the Alpine frontend build).
 FROM node:22.14.0-bookworm-slim AS meoo-cli
