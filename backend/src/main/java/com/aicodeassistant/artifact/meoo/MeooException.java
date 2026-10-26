@@ -1,5 +1,7 @@
 package com.aicodeassistant.artifact.meoo;
 
+import com.aicodeassistant.config.meoo.MeooPublishProperties;
+
 /** Stable, non-secret error codes; provider output is never included in exceptions. */
 public final class MeooException extends RuntimeException {
     private final String code;
@@ -23,7 +25,8 @@ public final class MeooException extends RuntimeException {
             case "MEOO_PACKAGE_LIMIT" -> "发布内容超过大小限制：秒悟平台要求全栈源码上传包不超过 100MiB，静态产物受部署配额约束；请删除或移出大文件（视频、模型、数据集、构建缓存），全栈项目可将排除规则写入 .dockerignore，重新验证后再发布。";
             case "MEOO_BUILD_FAILED" -> "请到项目设置查看远端构建结果，修复后由用户重新发起发布。";
             case "MEOO_ACCESS_UNVERIFIED" -> "部署已完成，请检查项目访问权限与就绪状态；尚不能确认匿名访问。";
-            case "MEOO_CLI_VERSION_MISMATCH", "MEOO_CLI_UNAVAILABLE" -> "请管理员预先安装官方 @aliyun-meoo/cli@0.5.4 并配置可执行路径。";
+            case "MEOO_CLI_VERSION_MISMATCH", "MEOO_CLI_UNAVAILABLE" -> "请管理员预先安装官方 @aliyun-meoo/cli@" + MeooPublishProperties.CLI_VERSION + " 并配置可执行路径。";
+            case "MEOO_CLI_VERSION_UNSUPPORTED" -> "秒悟已停止支持当前 CLI 版本，本次发布未执行；如已创建项目则保留其记录，不自动重发。请管理员同步升级应用适配和镜像中的 CLI，验证后再由用户发起发布。";
             case "MEOO_IGNORE_SELF_EXCLUDED" -> "请在 .dockerignore 最后一行添加 !/.dockerignore，保留打包规则文件后重新验证。";
             case "MEOO_IGNORE_RULE_UNSUPPORTED" -> "请简化 .dockerignore 的字符类或转义规则后重新检查；支持星号、双星号、问号及否定规则。";
             default -> "请检查发布路径、配置及项目状态；失败或远端结果不明时不会自动重发。";

@@ -11,7 +11,7 @@ import java.util.Set;
 @Component
 @ConfigurationProperties(prefix = "zhikuncode.meoo")
 public class MeooPublishProperties {
-    public static final String CLI_VERSION = "0.5.4";
+    public static final String CLI_VERSION = "0.5.6";
     /** 秒悟平台硬性限制：全栈（image）deploy 上传的源码 zip 不超过 100MiB（CLI MAX_IMAGE_SOURCE_ZIP_BYTES）。
      *  静态发布走本地产物 CDN 上传并显式跳过沙箱推送，无平台包大小限制，仅受本地 maxBytes 配额约束。 */
     public static final long PLATFORM_IMAGE_SOURCE_ZIP_BYTES = 100L * 1024 * 1024;

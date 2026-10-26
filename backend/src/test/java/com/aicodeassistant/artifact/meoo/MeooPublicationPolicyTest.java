@@ -181,17 +181,17 @@ class MeooPublicationPolicyTest {
             String script="""
                 const fs=require('fs'),path=require('path'),crypto=require('crypto');
                 const [cli,root,zipPath]=process.argv.slice(1);
-                if(require(path.join(cli,'package.json')).version!=='0.5.4') throw Error('CLI version');
+                if(require(path.join(cli,'package.json')).version!=='%s') throw Error('CLI version');
                 const {createDockerignoreMatcher}=require(path.join(cli,'dist/lib/dockerignore.js'));
                 const {createZipFromDirectory}=require(path.join(cli,'dist/lib/archive.js'));
                 const ignore=createDockerignoreMatcher(fs.readFileSync(path.join(root,'.dockerignore'),'utf8').split(/\\r?\\n/));
                 createZipFromDirectory(root,zipPath,(p,d)=>!ignore(p,d));
-                const Zip=require(path.join(cli,'node_modules/adm-zip'));
+                const Zip=require(require.resolve('adm-zip',{paths:[cli]}));
                 const entries=new Zip(zipPath).getEntries().filter(e=>!e.isDirectory).map(e=>({
                     path:e.entryName,size:e.getData().length,sha256:crypto.createHash('sha256').update(e.getData()).digest('hex')
                 }));
                 process.stdout.write(JSON.stringify(entries));
-                """;
+                """.formatted(MeooPublishProperties.CLI_VERSION);
             Path result=temp.resolve("archive-manifest.json");
             Process process=new ProcessBuilder("node","-e",script,cliRoot,stage.toString(),temp.resolve("source.zip").toString())
                 .redirectOutput(result.toFile()).redirectError(temp.resolve("archive-error.log").toFile()).start();

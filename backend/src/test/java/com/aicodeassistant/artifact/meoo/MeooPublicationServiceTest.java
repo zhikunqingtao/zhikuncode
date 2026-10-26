@@ -70,6 +70,28 @@ class MeooPublicationServiceTest {
         assertThat(result.projectUrl()).isEqualTo("https://meoo.com/chat/new-site");
         service.publish(input,context);verify(cli,times(1)).execute(argThat(args->args!=null && args.getFirst().equals("deploy")),any(),any(),any());
     }
+    @Test void deployVersionBlockFailsPreservesProjectAndDoesNotRetry() {
+        when(cli.execute(argThat(args->args!=null && args.getFirst().equals("deploy")),any(),any(),any())).thenThrow(new MeooException("MEOO_CLI_VERSION_UNSUPPORTED"));
+        var result=service.publish(input,context);
+        assertThat(result.state()).isEqualTo("failed");assertThat(result.errorCode()).isEqualTo("MEOO_CLI_VERSION_UNSUPPORTED");
+        assertThat(result.projectId()).isEqualTo("new-site");assertThat(result.projectUrl()).isEqualTo("https://meoo.com/chat/new-site");
+        assertThat(result.version()).isNull();assertThat(result.accessUrl()).isNull();
+        assertThat(service.publish(input,context)).isEqualTo(result);
+        verify(cli,times(1)).execute(argThat(args->args!=null && args.getFirst().equals("projects")),any(),any(),any());
+        verify(cli,times(1)).execute(argThat(args->args!=null && args.getFirst().equals("deploy")),any(),any(),any());
+        verifyNoInteractions(verifier);
+    }
+    @Test void createVersionBlockFailsWithoutDeployOrRetry() {
+        when(cli.execute(argThat(args->args!=null && args.getFirst().equals("projects")),any(),any(),any())).thenThrow(new MeooException("MEOO_CLI_VERSION_UNSUPPORTED"));
+        var result=service.publish(input,context);
+        assertThat(result.state()).isEqualTo("failed");assertThat(result.errorCode()).isEqualTo("MEOO_CLI_VERSION_UNSUPPORTED");
+        assertThat(result.projectId()).isNull();assertThat(result.projectUrl()).isNull();
+        assertThat(result.version()).isNull();assertThat(result.accessUrl()).isNull();
+        assertThat(service.publish(input,context)).isEqualTo(result);
+        verify(cli,times(1)).execute(argThat(args->args!=null && args.getFirst().equals("projects")),any(),any(),any());
+        verify(cli,never()).execute(argThat(args->args!=null && args.getFirst().equals("deploy")),any(),any(),any());
+        verifyNoInteractions(verifier);
+    }
     @Test void quotaAndBadUrlFailWithoutLeakingProviderOutput() throws Exception {
         when(cli.execute(argThat(args->args!=null && args.getFirst().equals("deploy")),any(),any(),any())).thenThrow(new MeooException("MEOO_QUOTA_EXCEEDED"));
         assertThat(service.publish(input,context).state()).isEqualTo("failed");
@@ -83,12 +105,12 @@ class MeooPublicationServiceTest {
     @Test void imageDeployUsesRemoteRuntimeAndRetainsBuildFailure() throws Exception {
         var image=new MeooPublicationPolicy.Snapshot(root,".","image","Demo","account",snapshot.files(),20,"hash","ev");
         when(policy.inspect(any(),any(),eq(true))).thenReturn(image);
-        // Exact shape of CLI 0.5.4 image success: no projectUrl field.
+        // The CLI client unwraps the release; projectUrl is not required in it.
         when(cli.execute(argThat(a->a!=null && a.getFirst().equals("deploy")),any(),any(),any())).thenReturn(new ObjectMapper().readTree("{\"version\":\"1\",\"accessUrl\":\"https://new-site.meoo.pub\",\"imageTag\":\"fixture:1\"}"));
         var published=service.publish(input,context);
         assertThat(published.state()).isEqualTo("public_verified");
         assertThat(published.projectUrl()).isEqualTo("https://meoo.com/chat/new-site");
-        verify(cli).execute(eq(List.of("deploy","--project","new-site","--runtime","image","--force")),any(),any(),any());
+        verify(cli).execute(eq(List.of("deploy","--project","new-site","--runtime","image","--force","--skip-push")),any(),any(),any());
         when(cli.execute(argThat(a->a!=null && a.getFirst().equals("deploy")),any(),any(),any())).thenThrow(new MeooException("MEOO_BUILD_FAILED"));
         var failed=service.publish(input,context.withToolUseId("tool-2"));
         assertThat(failed.state()).isEqualTo("failed");assertThat(failed.projectId()).isEqualTo("new-site");

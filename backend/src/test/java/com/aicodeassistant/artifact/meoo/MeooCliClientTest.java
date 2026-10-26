@@ -54,6 +54,49 @@ class MeooCliClientTest {
         }
         assertThatThrownBy(()->cli.parse("{} {}" )).hasMessage("MEOO_INVALID_RESPONSE");
     }
+    @Test void versionBlockHasActionableCodeWithoutLeakingProviderOutput() throws Exception {
+        var props=mock(MeooPublishProperties.class);
+        var credential=mock(MeooPublishProperties.Credential.class);
+        when(credential.key()).thenReturn("private-fixture-token");
+        when(props.credential()).thenReturn(credential);when(props.getExecutable()).thenReturn("meoo");when(props.getTimeoutSeconds()).thenReturn(30);
+        var runner=mock(ManagedProcessRunner.class);var cli=new MeooCliClient(props,runner,new ObjectMapper());
+        String output="""
+            {"success":false,"error":{"code":"VERSION_BLOCKED","message":"private-fixture-token","current":"0.5.4","minRequired":"0.5.6","latest":"0.5.6"}}
+            """;
+        when(runner.runIsolated(any(),any())).thenReturn(new ManagedProcessRunner.Result(1,output,"private-fixture-token",false,false,false,false,true,1,false));
+        var ctx=ToolUseContext.of(root.toString(),"s").withCurrentRunId("r").withToolUseId("t");
+        assertThatThrownBy(()->cli.execute(List.of("deploy"),root,root,ctx))
+            .isInstanceOf(MeooException.class).hasMessage("MEOO_CLI_VERSION_UNSUPPORTED").hasNoCause();
+    }
+    @Test void versionCheckStillRequiresExactPinnedVersion() throws Exception {
+        var props=mock(MeooPublishProperties.class);when(props.getExecutable()).thenReturn("meoo");
+        var runner=mock(ManagedProcessRunner.class);var cli=new MeooCliClient(props,runner,new ObjectMapper());
+        var ctx=ToolUseContext.of(root.toString(),"s").withCurrentRunId("r").withToolUseId("t");
+        when(runner.runIsolated(any(),any())).thenReturn(new ManagedProcessRunner.Result(0,MeooPublishProperties.CLI_VERSION+"\n","",false,false,false,false,true,1,false));
+        assertThatCode(()->cli.checkVersion(root,root,ctx)).doesNotThrowAnyException();
+        when(runner.runIsolated(any(),any())).thenReturn(new ManagedProcessRunner.Result(0,"0.0.0","",false,false,false,false,true,1,false));
+        assertThatThrownBy(()->cli.checkVersion(root,root,ctx)).hasMessage("MEOO_CLI_VERSION_MISMATCH");
+    }
+    @Test void deployReadsSuccessfulReleaseAndRejectsOldOrFailedResponseShapes() throws Exception {
+        var props=mock(MeooPublishProperties.class);
+        var credential=mock(MeooPublishProperties.Credential.class);when(credential.key()).thenReturn("private-fixture-token");
+        when(props.credential()).thenReturn(credential);when(props.getExecutable()).thenReturn("meoo");when(props.getTimeoutSeconds()).thenReturn(30);
+        var runner=mock(ManagedProcessRunner.class);var cli=new MeooCliClient(props,runner,new ObjectMapper());
+        var ctx=ToolUseContext.of(root.toString(),"s").withCurrentRunId("r").withToolUseId("t");
+        for(String mode:List.of("static","server")) {
+            String output="{\"success\":true,\"release\":{\"status\":\"success\",\"mode\":\""+mode+"\",\"version\":\"1\",\"accessUrl\":\"https://site.meoo.pub\"},\"sandboxSync\":{\"status\":\"skipped\"}}";
+            when(runner.runIsolated(any(),any())).thenReturn(new ManagedProcessRunner.Result(0,output,"",false,false,false,false,true,1,false));
+            var result=cli.execute(List.of("deploy"),root,root,ctx);
+            assertThat(result.path("version").asText()).isEqualTo("1");
+            assertThat(result.path("accessUrl").asText()).isEqualTo("https://site.meoo.pub");
+        }
+        for(String output:List.of(
+            "{\"success\":true,\"data\":{\"version\":1,\"accessUrl\":\"https://site.meoo.pub\"}}",
+            "{\"success\":true,\"release\":{\"status\":\"failed\",\"version\":1,\"accessUrl\":\"https://site.meoo.pub\"}}")) {
+            when(runner.runIsolated(any(),any())).thenReturn(new ManagedProcessRunner.Result(0,output,"",false,false,false,false,true,1,false));
+            assertThatThrownBy(()->cli.execute(List.of("deploy"),root,root,ctx)).hasMessage("MEOO_INVALID_RESPONSE");
+        }
+    }
     @Test void entryVerificationAllowsOnlyPlatformDecorationAndRejectsLoginOrDifferentApp() {
         byte[] original="<!doctype html><html><head><meta charset='utf-8'/><title>Demo</title></head><body><!-- note --><h1>Real app</h1><script src='./app.js'></script></body></html>".getBytes();
         byte[] decorated="<html><head><meta charset='utf-8'><title>Demo</title><link rel='icon' href='/favicon.ico?v=0'></head><body>\n<h1>Real app</h1><script src='./app.js'></script><div id='meoo-brand-watermark'>By Meoo</div><script id='meoo-baxia-web-security' src='https://g.alicdn.com/security.js'></script></body></html>".getBytes();

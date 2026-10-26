@@ -31,6 +31,12 @@ public class MeooCliClient {
                 String code=response.path("error").path("code").asText(response.path("code").asText());
                 throw new MeooException(safeCode(code));
             }
+            if (!arguments.isEmpty() && arguments.getFirst().equals("deploy")) {
+                JsonNode release=response.path("release");
+                if (!release.isObject() || !release.path("status").asText().equals("success"))
+                    throw new MeooException("MEOO_INVALID_RESPONSE");
+                return release;
+            }
             return response.path("data");
         } catch(MeooException e) { throw e; }
         catch(InterruptedException e) { Thread.currentThread().interrupt(); throw new MeooException("MEOO_REMOTE_RESULT_UNKNOWN"); }
@@ -55,6 +61,7 @@ public class MeooCliClient {
             case "DEPLOY_QUOTA_EXCEEDED", "QUOTA_EXCEEDED", "STORAGE_EXCEEDED" -> "MEOO_QUOTA_EXCEEDED";
             case "INVALID_CREDENTIAL", "NOT_LOGGED_IN", "UNAUTHORIZED" -> "MEOO_AUTH_FAILED";
             case "DEPLOY_FAILED" -> "MEOO_BUILD_FAILED";
+            case "VERSION_BLOCKED" -> "MEOO_CLI_VERSION_UNSUPPORTED";
             case "REQUEST_TIMEOUT" -> "MEOO_REMOTE_RESULT_UNKNOWN";
             default -> "MEOO_PROVIDER_FAILED";
         };

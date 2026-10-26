@@ -37,8 +37,8 @@ public class MeooPublicationService {
             if(!project.matches("[A-Za-z0-9_-]{1,128}")) throw new MeooException("MEOO_INVALID_RESPONSE");
             store.projectCreated(id,project);
             progress(context,snapshot.runtime().equals("static")?"正在发布静态网站":"正在远程构建并发布全栈应用");
-            List<String> args=new ArrayList<>(List.of("deploy","--project",project,"--runtime",snapshot.runtime(),"--force"));
-            if(snapshot.runtime().equals("static")) args.addAll(List.of("--skip-build","--skip-push"));
+            List<String> args=new ArrayList<>(List.of("deploy","--project",project,"--runtime",snapshot.runtime(),"--force","--skip-push"));
+            if(snapshot.runtime().equals("static")) args.add("--skip-build");
             var result=cli.execute(args,payload,home,context);
             version=result.path("version").asText();
             url=result.path("accessUrl").asText();
@@ -50,7 +50,7 @@ public class MeooPublicationService {
             store.finish(id,verified?"public_verified":"deployed_unverified",version,url,verified?null:"MEOO_ACCESS_UNVERIFIED");
         } catch(Exception failure) {
             String code=failure instanceof MeooException m?m.code():"MEOO_INTERNAL_ERROR";
-            boolean unknown=remoteStarted && !Set.of("MEOO_QUOTA_EXCEEDED","MEOO_AUTH_FAILED","MEOO_BUILD_FAILED").contains(code);
+            boolean unknown=remoteStarted && !Set.of("MEOO_QUOTA_EXCEEDED","MEOO_AUTH_FAILED","MEOO_BUILD_FAILED","MEOO_CLI_VERSION_UNSUPPORTED").contains(code);
             // Untrusted provider URLs are never persisted or sent to the UI.
             if(url!=null) try { MeooAccessVerifier.trustedSite(url); } catch(MeooException e) { url=null; }
             store.finish(id,unknown?"unknown":"failed",version,url,code);

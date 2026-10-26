@@ -4,7 +4,7 @@
 
 ## 部署账号
 
-后端使用官方 CLI **0.5.4** 和部署级 API Key。主机预先安装 `npm install -g @aliyun-meoo/cli@0.5.4`，通过官方 CLI 登录配置账号。不要将密钥放进聊天、代码、工具参数或项目目录。复用官方 `~/.meoo/credentials.json`（api_key、apiBaseUrl=https://meoo.com、有 userId、无 projectUrlId），文件权限只允许所有者读取，例如 `chmod 600 ~/.meoo/credentials.json`。
+后端使用官方 CLI **0.5.6** 和部署级 API Key。主机预先安装 `npm install -g @aliyun-meoo/cli@0.5.6`，通过官方 CLI 登录配置账号。不要将密钥放进聊天、代码、工具参数或项目目录。复用官方 `~/.meoo/credentials.json`（api_key、apiBaseUrl=https://meoo.com、有 userId、无 projectUrlId），文件权限只允许所有者读取，例如 `chmod 600 ~/.meoo/credentials.json`。
 
 ```dotenv
 ZHIKUN_MEOO_ENABLED=true
@@ -15,7 +15,7 @@ ZHIKUN_MEOO_TIMEOUT_SECONDS=1200
 
 `ZHIKUN_MEOO_CREDENTIALS_FILE` 省略时兼容当前服务用户的 `~/.meoo/credentials.json`。账号是整个部署实例共享的，并非每个会话独立。后端只将凭证放进 CLI 子进程的受控环境；授权卡只显示账号 ID。
 
-Docker 镜像包含 Node.js 22.14.0、CLI 0.5.4 和 zip。通过只读 secret 挂载（宿主文件保持 0600 且容器运行用户可读），例如 Compose override：
+Docker 镜像包含 Node.js 22.14.0、CLI 0.5.6 和 zip。通过只读 secret 挂载（宿主文件保持 0600 且容器运行用户可读），例如 Compose override：
 
 ```yaml
 services:
@@ -32,6 +32,8 @@ services:
 ```
 
 服务名以当前 Compose 为准。容器重建或应用重启后生效；不要把 credentials.json 复制进镜像。不会在每次发布时安装或升级 CLI。
+
+CLI 版本必须与后端 `MeooPublishProperties.CLI_VERSION` 一致；不能只在运行容器内执行 `meoo upgrade`。`meoo --version` 仅证明安装版本，不能证明该版本仍被平台支持。升级须同时验证创建项目的 `data` 和发布成功的 `release` JSON 契约；两种发布模式均跳过沙箱源码同步，保持既有上传边界。
 
 发布前验证依赖 Python 服务。镜像在构建时安装与 Python Playwright 匹配的 Chromium headless shell 和系统依赖，浏览器放在运行用户可读的 `/opt/playwright-browsers`，使用默认的无头模式。上面的 override 启用同容器 Python 服务，静态验证服务和浏览器通过容器内回环地址通信，不需要映射额外公网端口。若使用外置 Python 服务，必须另行确保它能够访问验证服务；其 localhost 不代表 Java 容器。
 
@@ -51,7 +53,7 @@ services:
 
 CLI 创建项目产生的配置与上传目录隔离。复制后的文件再次核对大小与摘要；模型不能传入旧云项目 ID。发布记录持久化在项目库的 meoo_publications，按 Run 与工具调用去重，关联 Session、快照、项目、版本和访问地址。相同调用不会创建第二个项目。
 
-全栈 `.dockerignore` 必须保留自身；若被规则排除，在末尾添加 `!/.dockerignore` 后重新验证。否则 CLI 会恢复默认排除规则，改变上传范围，因此检查阶段会拒绝发布。匹配大小写行为与 CLI 0.5.4 一致。网站地址只采用平台返回值；项目设置入口采用官方固定路由及平台创建响应中的项目 ID，在部署开始前保存，因此全栈、构建失败和超时也可进入设置。
+全栈 `.dockerignore` 必须保留自身；若被规则排除，在末尾添加 `!/.dockerignore` 后重新验证。否则 CLI 会恢复默认排除规则，改变上传范围，因此检查阶段会拒绝发布。匹配大小写行为与 CLI 0.5.6 一致。网站地址只采用平台返回值；项目设置入口采用官方固定路由及平台创建响应中的项目 ID，在部署开始前保存，因此全栈、构建失败和超时也可进入设置。
 
 ## 范围与故障
 
@@ -64,7 +66,8 @@ CLI 创建项目产生的配置与上传目录隔离。复制后的文件再次�
 | MEOO_DISABLED | 部署管理员启用开关并重启 |
 | MEOO_CREDENTIALS_UNAVAILABLE / MEOO_CREDENTIAL_PERMISSIONS | 检查绝对路径、只读挂载、服务用户和 0600 权限 |
 | MEOO_AUTH_FAILED | 通过官方 CLI 修复账号登录，再由用户明确发起新发布 |
-| MEOO_CLI_VERSION_MISMATCH | 安装固定版本 0.5.4 |
+| MEOO_CLI_VERSION_MISMATCH | 安装与应用一致的固定版本 0.5.6 |
+| MEOO_CLI_VERSION_UNSUPPORTED | 平台已停止支持当前 CLI，本次发布未执行；同步升级应用适配与镜像，不清缓存绕过、不自动重发 |
 | MEOO_VERIFICATION_REQUIRED / MEOO_VERIFICATION_WORKSPACE_MISMATCH / MEOO_VERIFICATION_STALE | 对精确目录重新 VerifyJourney，传 publication_path、publication_runtime |
 | MEOO_VERIFICATION_UNAVAILABLE | 检查 Python capabilities 的 reason，修复浏览器/HTTP 验证环境并重启；不要跳过验证 |
 | MEOO_VERIFICATION_SETUP_REQUIRED / VERIFY_JOURNEY_INVALID_BASE_URL | 全栈浏览器验证需提供启动命令和同一端口的本地 HTTP 地址 |
