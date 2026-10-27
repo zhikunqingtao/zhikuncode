@@ -3,8 +3,8 @@
 <div align="center">
   <img src="docs/assets/logo.svg" alt="ZhikunCode" width="120" />
   <h1>ZhikunCode</h1>
-  <p><strong>开源 AI 编程助手 — 部署一次，浏览器全流程操控</strong></p>
-  <p>Agent 委派与后台任务 · Docker 自托管 · 国产大模型直连 · 深度安全架构</p>
+  <p><strong>开源 AI 编程工作台 — 自托管，通过浏览器操作</strong></p>
+  <p>Agent 分工与接续 · 上下文管理 · 工具授权 · 运行验证</p>
 
   <p>
     <a href="#-快速开始">快速开始</a> ·
@@ -28,13 +28,14 @@
     <a href="https://github.com/zhikunqingtao/zhikuncode"><img src="https://img.shields.io/github/last-commit/zhikunqingtao/zhikuncode" alt="Last Commit" /></a>
     <a href="https://github.com/zhikunqingtao/zhikuncode"><img src="https://img.shields.io/github/languages/code-size/zhikunqingtao/zhikuncode" alt="Code Size" /></a>
     <a href="https://github.com/zhikunqingtao/zhikuncode/actions/workflows/ci.yml"><img src="https://github.com/zhikunqingtao/zhikuncode/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-    <a href="https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html"><img src="https://img.shields.io/badge/SWE--bench%20Lite-56.0%25%20(168%2F300)-7a2410?logo=python&logoColor=white" alt="SWE-bench Lite 56.0% (168/300)" /></a>
   </p>
 </div>
 
 ---
 
-> **部署到服务器，打开浏览器就能用，手机上也行**
+ZhikunCode 将**多 Agent 分工、上下文管理、工具执行和运行验证**接入同一个浏览器工作台。模型读取项目、修改文件、执行命令，工具结果进入下一轮判断；你可以跟进子任务、检查修改，在运行中补充要求、处理审批或取消任务。
+
+**运行环境由你部署，模型 API 由你选择。** 任务覆盖代码开发与审查、网页和数据分析，以及 Word、Excel、PPT 等材料制作。先看下方公开成果，再按[快速开始](#quickstart)搭建，完成[首次任务](#first-task)。模型 API 与外部服务仍会接收相应请求中的数据。
 
 > 🏗️ **[查看完整系统架构图 →](https://zhikunqingtao.github.io/zhikuncode/ZhikunCode-Architecture.html)**  
 > Java Agent Runtime · React 浏览器操作面 · Python Capability Service · 全景可视化
@@ -45,10 +46,10 @@
 > **历史代码规模快照（非当前版本统计）：** `ea0170c` · 2026-08-09 · Git 跟踪的产品源代码 134,826 行 / 863 文件（Java 93,118 / 622、React 33,642 / 209、Python 服务与 CLI 8,066 / 32；不统计本地忽略文件）
 
 > 🔎 **[实时黄金监控：ZhikunCode vs Codex 同题 PK →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode-codex-gold-monitor-audit.html)**
-> ZhikunCode × Codex · 同一需求两套实现，14 维评分、过程截图与完整执行记录
+> ZhikunCode × Codex · 同一需求两套实现，14 维评分、过程截图与公开日志摘录
 
 > 🚄 **[12306 候补全链路可视化：单文件零依赖交付 →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode-codex-12306-audit.html)**
-> ZhikunCode/KimiK3 × Codex/GPT-5.6 Sol · 7 维对比评估，双方产物可直接在线试玩
+> ZhikunCode/KimiK3 × Codex/GPT-5.6 Sol · 7 维对比评估，附公开源码与 ZhikunCode 单文件演示
 
 > 🎮 **[5小时 AI 从零写出可玩的《王者荣耀》网页版 →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode%E5%BC%80%E5%8F%91%E7%8E%8B%E8%80%85%E8%8D%A3%E8%80%80.html)**
 > Kimi K3 · 一次连续开发 5 小时 29 分 · 19 个文件 / 7,979 行纯静态 Three.js · 打开浏览器即可试玩
@@ -63,10 +64,11 @@
 > 八份原报告 · 六维评分 · 可复核证据与约1小时57分钟过程录屏
 
 > 🏆 **[SWE-bench Lite 技术报告 →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html)**  
-> 提交命名空间 `20260525_zhikuncode` · 官方 harness 评测 Resolve **168 / 300 (56.0%)** · Patch 生成率 284 / 300 (94.7%)
+> 提交命名空间 `20260525_zhikuncode` · 历史 harness 结果 **168 / 300 (56.0%)**；公开轨迹存在参考修复暴露，评测边界见[正文](#swe-bench)。
 
 ---
 
+<a id="cases"></a>
 ## 🔎 公开工程案例
 
 ### 实时黄金监控：ZhikunCode vs Codex 同题 PK
@@ -75,7 +77,9 @@
 
 - ZhikunCode：Kimi K3 遇到 HTTP 429 后，由用户切换至 GLM-5.2 并在同一逻辑会话中继续。
 - Codex：GPT-5.6 Sol，推理强度 High。
-- 最终评分 ZhikunCode 68.3、Codex 68.4 —— 两者几乎打成平手。
+- 最终评分 ZhikunCode 68.3、Codex 68.4，两者接近；截图为历史行情，银行价格含估算，全球数据覆盖仍有缺口。
+
+[![黄金监控应用的历史成品截图](docs/case-studies/assets/gold-audit/zhikuncode-product.jpg)](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode-codex-gold-monitor-audit.html)
 
 **[查看对比报告 →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode-codex-gold-monitor-audit.html)** ·
 **[下载原始数据 →](docs/case-studies/zhikuncode-codex-gold-monitor-evidence.json)** ·
@@ -87,7 +91,10 @@
 
 - ZhikunCode：kimi-k3 交付单文件 HTML，1,061 行、零外部网络依赖，打开就能跑。
 - Codex：GPT-5.6 Sol（高推理模式）交付 Next.js 工程，会话截图显示总耗时 27m52s。
-- 最终加权评分 ZhikunCode 8.68、Codex 8.45 —— 差距很小，产物风格截然不同。
+- 最终加权评分 ZhikunCode 8.68、Codex 8.45，差距小于报告的 0.5 分区分阈值，不据此判断总体能力高低。
+- 作品含 8 幕自动播放、13 节点关系图与 6 张数学原理卡；这是候补流程概念演示，图中架构与数值不是铁路系统内部资料或实测。
+
+[![12306 候补概念可视化：系统关系动画](docs/case-studies/assets/12306-comparison/zhikuncode-02-arch.png)](https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/12306-comparison/artifacts/zhikuncode/12306-houbu.html)
 
 **[查看对比报告 →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode-codex-12306-audit.html)** ·
 **[产物在线 Demo →](https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/12306-comparison/artifacts/zhikuncode/12306-houbu.html)** ·
@@ -96,12 +103,16 @@
 
 ### 5小时，AI 从零写出可玩的《王者荣耀》网页版
 
-ZhikunCode 使用 Kimi K3 在 2026-08-09 凌晨一次性完成了一个纯静态 Three.js 5v5 MOBA 游戏：选将、对局、AI 队友与敌人全部可玩，打开浏览器就能进。
+ZhikunCode 使用 Kimi K3 在 2026-08-09 的连续开发记录中完成一个纯静态 Three.js 5v5 MOBA 单机原型：5 名可选英雄、三路兵线、技能和装备，从选将、对线，到结算与重开。
 
-- 一次连续开发 5 小时 29 分，产出 19 个第一方文件、7,979 行代码。
-- 10 个子 Agent 协作分工，覆盖玩法、渲染、AI 行为与关卡资源。
+- 首次请求至末次计费请求约 5 小时 29 分，产出 19 个第一方文件、7,979 行代码，另含 Three.js。
+- 10 个子 Agent 分工，覆盖玩法、渲染、AI 行为与关卡资源；其中 9 个因预算或时限结束，未完成部分由主 Agent 接手。
 - 纯静态交付，无后端、无外部网络依赖，浏览器直接运行。
-- 全过程留痕：43 张截图与 5 段原始录屏，可跟着报告一路下钻。
+- 公开材料包括代码、日志摘录、43 个 PNG 文件（42 个不同内容）及 5 段派生视频预览；预览不等于原始录屏。
+
+[![MOBA 原型录屏中的河道战斗](docs/case-studies/assets/king/videos/storyboard-frames/05-02.jpg)](https://king.zhikun.xin/?demo=1)
+
+**具体如何调试：** 浏览器运行状态显示约 100 个小兵聚集在地图拐角 `(-80,60)`；主 Agent 据此委派路径与分离逻辑修复，再运行长局检查。后续又定位并修复终局僵持、基地贴墙等问题。报告保留“运行取证→代码修改→复验”的记录，可用来核查分工和验证实际发生了什么。
 
 **[查看详细案例 →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode%E5%BC%80%E5%8F%91%E7%8E%8B%E8%80%85%E8%8D%A3%E8%80%80.html)** ·
 **[在线试玩（5英雄选将）→](https://king.zhikun.xin/)** ·
@@ -112,12 +123,18 @@ ZhikunCode 使用 Kimi K3 在 2026-08-09 凌晨一次性完成了一个纯静态
 
 五款 AI 办公工具——千问办公、Qoder、豆包办公、WorkBuddy 与 ZhikunCode——依次执行同一组六条连续指令，围绕宇树科技完成从 Excel 分析底稿、Word 研究报告、PPT 到信息图与交互 HTML 的完整办公链路，共产出 30 件固定终稿并逐件复核证据。
 
-正式排名双榜列示：六任务等权榜 ZhikunCode 以 93.8 分列第 1（千问 93.6 分第 2）；均衡投研实务榜千问 93.3 分第 1、ZhikunCode 92.7 分第 2。30 件终稿的交付闸门分布为 G0 3 件 / G1 20 件 / G2 7 件。本报告为单次固定样本任务链实测，不外推为各工具的总体能力。
+六任务等权评分 ZhikunCode 93.77、千问 93.57；投研实务权重评分 ZhikunCode 92.65、千问 93.32，两榜均处于近分组。ZhikunCode 六件终稿均为 G1，需修正后采用。这是单次固定样本、不同模型条件下的产物评测，不外推为产品总体排名。
 
 **[查看完整报告（GitHub Pages）→](https://zhikunqingtao.github.io/aireport/case-studies/AI%E5%8A%9E%E5%85%AC%E5%B7%A5%E5%85%B7%E5%AF%B9%E6%AF%94%E6%B5%8B%E8%AF%84_%E5%AE%87%E6%A0%91%E7%A7%91%E6%8A%80_%E6%88%AA%E8%87%B32026-08-30.html)** ·
 **[阿里云 OSS 镜像 →](https://oss.zhikun.xin/zhikuncode/aireport/case-studies/AI%E5%8A%9E%E5%85%AC%E5%B7%A5%E5%85%B7%E5%AF%B9%E6%AF%94%E6%B5%8B%E8%AF%84_%E5%AE%87%E6%A0%91%E7%A7%91%E6%8A%80_%E6%88%AA%E8%87%B32026-08-30.html)**
 
+### 教学 Word 与 PPT
+
+与 WorkBuddy 完成同题教学材料，检查文档结构、25 页课件、配图和要求落实情况；这是固定产物比较，不代表教学效果评估。[查看产物对比](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode对比workbuddy.html)。
+
 ### AI Coding 代码审查对比：17 份报告
+
+两位评估者分别分析同一组报告，保留方法与证据；不是两组独立产品试验。
 
 **[Claude Opus5.5：排名分析方法、过程、证据与结论 →](https://github.com/zhikunqingtao/zhikuncode/blob/aicoding-eval-0923/docs/case-studies/assets/aicoding%E8%AF%84%E6%B5%8B/Claude%20Opus5.5-17%E4%BB%BD%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A%E6%8E%92%E5%90%8D%E5%88%86%E6%9E%90%E6%96%B9%E6%B3%95%E8%BF%87%E7%A8%8B%E8%AF%81%E6%8D%AE%E4%B8%8E%E7%BB%93%E8%AE%BA.md)** ·
 **[GPT-6 Astra Ultra：公平排名与可复核证据 →](https://github.com/zhikunqingtao/zhikuncode/blob/aicoding-eval-0923/docs/case-studies/assets/aicoding%E8%AF%84%E6%B5%8B/GPT-6%20Astra%20Ultra-17%E4%BB%BD%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A%E5%85%AC%E5%B9%B3%E6%8E%92%E5%90%8D%E4%B8%8E%E5%8F%AF%E5%A4%8D%E6%A0%B8%E8%AF%81%E6%8D%AE.md)**
@@ -130,36 +147,39 @@ ZhikunCode 使用 Kimi K3 在 2026-08-09 凌晨一次性完成了一个纯静态
 **[证据与复算 →](docs/case-studies/assets/AICoding%E8%AF%84%E6%B5%8B0925/%E8%AF%81%E6%8D%AE%E9%99%84%E4%BB%B6/README.md)** ·
 **[过程录屏与时间索引 →](docs/case-studies/assets/AICoding%E8%AF%84%E6%B5%8B0925/%E8%AF%81%E6%8D%AE%E9%99%84%E4%BB%B6/%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B%E5%BD%95%E5%B1%8F/%E5%BD%95%E5%B1%8F%E6%97%B6%E9%97%B4%E7%B4%A2%E5%BC%95%E4%B8%8E%E8%BF%87%E7%A8%8B%E6%A0%B8%E9%AA%8C.md)**
 
-> 以上案例均为单次任务实测记录，详细方法与数据见各案例报告页。
+ZhikunCode 在八方审查中找到工具输出 `outputTruncated` 与上层读取 `truncated` 的字段错配，并排除一项工作目录丢失的误报；复核也保留其自身漏检和错误建议。[查看具体发现](docs/case-studies/assets/AICoding评测0925/AICoding八方评测_综合排名与证据审计.md)。
+
+> 以上案例的模型、输入和验收条件不同。详细方法与数据见各报告；公开材料范围及文件校验见[证据说明](#evidence-integrity)。
 
 ---
 
+<a id="capabilities"></a>
 ## ✨ 特性亮点
 
 | | 特性 | 说明 |
 |---|---|---|
 | 🌐 | **浏览器全流程操控** | 部署一次，任何设备的浏览器即可完成全流程操作 —— 权限审批、方案协商、任务管控，手机上也能用，无需安装客户端 |
-| 🧭 | **双视图任务工作台** | 同一 Session 可在简洁工作台与开发工作台之间自由切换。简洁工作台集中展示当前要求、执行状态、主要成果、待处理事项和验收结果；开发工作台保留完整对话、工具、文件、Git、终端、浏览器与 Agent 信息。切换只改变信息组织，不改变后台执行方式 |
-| 📦 | **当前交付投影** | 按当前 Root Run 及其递归子 Run 关联本轮要求、最终回复、交付物、待处理 Interaction、活动与 Evidence，避免把不同执行轮次的数据拼接成一次交付；无法精确关联的旧 Session 会明确采用兼容回退 |
+| 🧭 | **开发工作台与过程显示** | 开发工作台展示对话、工具、文件、Git、终端、浏览器与 Agent 信息；精简、标准、完整过程三档控制过程展示。“本轮修改”可检查已记录的成功原生 Edit／Write；简洁视图切换入口目前隐藏 |
+| 📦 | **当前交付投影** | 后端按 Root Run 及递归子 Run 关联本轮要求、回复、产物、待处理交互与证据；旧会话无法精确关联时采用兼容回退。这是运行数据组织能力，不代表简洁视图切换已开放 |
 | 🔀 | **会话资料合并** | 将 2～5 个空闲会话的摘要、已持久化过程文本和可确认归属的临时产物整理到一个新会话，保留来源会话；新会话等待下一条指令，不自动合并工程代码 |
 | 📁 | **Project 与 Run 控制** | 直连本机可选用原生目录选择器，远程部署只浏览配置的 allowed roots；Project 经真实路径规范化并持久授权，Session 拒绝客户端任意 `workingDirectory`。运行中输入按 Session 投递并返回 queued/applied/rejected，支持取消、包含 INTERRUPTED 的 CAS 单一终态与 WebSocket 恢复 |
 | 🔗 | **引用本地文件** | 直连本机通过系统选择器把 canonical 路径加入提示词（不上传内容）；ECS、远程或代理访问通过浏览器选择文件，立即上传为 OSS 永久公开对象，再把地址加入提示词。远程上传需要先配置 OSS |
 | 🤖 | **Agent 委派与后台任务** | 五种子 Agent 角色、独立上下文与并行执行；同步结果回传、当前 Run 后台结果汇总，以及可查询、可请求取消的后台任务 |
 | 🔒 | **统一授权安全架构** | 所有核心工具统一经过 Tool Gateway：规范化输入冻结 → Operation Analyzer 风险与资源分析 → 系统不变量检查 → RUN/SESSION/WORKSPACE Grant 匹配或持久权限交互 → 执行前动态复检 → 结构化结果审计。高风险操作只允许单次授权；专用 Network/MCP Analyzer 对 SAFE/GUARDED 操作支持按工具记住 RUN/SESSION 授权，未知 MCP/动态工具默认只能单次审批 |
-| 🇨🇳 | **国产大模型直连** | 千问 / DeepSeek / Moonshot / 智谱GLM / MiniMax 开箱即用，国内网络直连，无需科学上网 |
+| 🇨🇳 | **国产大模型直连** | 可同时配置千问 / DeepSeek / Moonshot / 智谱GLM / MiniMax 等渠道，使用各自的 Key、端点和可用模型 |
 | 🐳 | **Docker 一键部署** | `docker compose up -d` 默认启动 Java 后端和内置静态前端；镜像同时包含可选的受管 Python 服务，数据存本地 |
-| 📤 | **OSS 发布与截图粘贴（可选）** | `/publish-oss` 仍只按明确指令发布已验证产物；粘贴截图支持双路径——OSS 已配置时走后端快速上传，OSS 未配置时自动降级为 Base64 直传，无需额外配置即可使用图片分析能力 |
-| 🌍 | **秒悟应用发布（可选）** | 通过 `/publish-meoo` 将已验证的静态网站或全栈应用发布为独立新站点，获取可分享的网站链接；默认关闭，完全访问模式外每次发布需单独确认 |
+| 📤 | **OSS 发布与截图粘贴（可选）** | 按明确指令发布工作区文件；有匹配 Manifest 时复检验证状态和哈希。粘贴截图在 OSS 可用时立即上传，否则用 Base64；远程文件引用会上传永久公开对象，详见配置说明 |
+| 🌍 | **秒悟应用发布（可选）** | 通过 `/publish-meoo` 将已验证的静态网站或全栈应用发布为独立新站点，获取可分享的网站链接；默认关闭，发布按当前权限模式授权或拒绝 |
 | 🎙️ | **语音交互（ASR / TTS）** | 对话输入支持麦克风语音识别（qwen3-asr-flash），AI 回复支持一键朗读（qwen3-tts-flash）；接入阿里云百炼 DashScope，配置 API Key 即用，未配置时自动隐藏 |
-| ⚡ | **智能上下文管理** | 六层压缩级联（Snip / MicroCompact / ContextCollapse / AutoCompact / CollapseDrain / ReactiveCompact）+ 增量折叠（每10轮自动压缩）+ 413 两级上下文压缩（CollapseDrain 激进压缩 → ReactiveCompact 反应式压缩）+ 精确 Token 计数（tiktoken 多模型支持）+ 自纠错循环（SelfCorrectionLoop，编译/测试失败自动诊断修复，最多3次）+ Token三级告警 + 图片上下文治理（大图外置化 → 按需注入 → 预算守卫三层防护），无缝应对超长对话。核心引擎为 ContextCascade 与 QueryEngine |
-| 📷 | **多模态图片对话** | 支持图片上传输入，模型自动识别图片内容并分析；**智能视觉模型路由**——当前模型不支持图片时，自动切换至同厂商视觉模型处理，处理完成后无缝切回原模型；DeepSeek V4.1 Flash（`deepseek-flash`）原生支持视觉，并作为 DeepSeek 系列图片理解兜底。**图片预算守卫**——大图片（>50KB）自动外置化为轻量 JSON 引用，API 调用前按需注入，两阶段 Token 预算守卫确保多图对话不累积超限（单张≤1.5MB，总量≤2MB，单次最多注入 8 张）。ZenMux 图片模型包括 Fable 5.1、Opus 5.5、Sonnet 5.5、Haiku 5.5、GPT-5.6 Sol、GPT-6 Astra、Gemini 4 Argon、Grok 4.7 与 Muse Wonder 1.0（各模型数量上限见模型目录） |
+| ⚡ | **上下文管理与恢复** | 裁剪旧工具输出、渐进折叠、摘要压缩与上游上下文拒绝后的分级恢复；图片外置引用、按需注入和预算守卫减少历史图片负担。自纠错循环与精确 tokenizer 为默认关闭的可选增强 |
+| 📷 | **多模态图片对话** | 支持上传或粘贴图片。当前模型不支持图片时，依次尝试配置的兜底模型、模型家族、同 Provider 和其他已配置视觉模型；没有可用目标时不能保证兜底。外置图片引用重新注入时，单次最多 8 张，Base64 单张上限 1,500,000 字节、总量上限 2,000,000 字节；实际还受模型支持图片数和剩余预算约束。图片引用、完整性检查与预算限制见 ImageRefInjector / TokenBudgetGuard |
 | 🖼️ | **浏览器语义快照** | `/snap` 命令智能捕获网页完整状态（DOM 结构 + 交互元素），支持富交互页面语义提取，生成结构化 JSON 供 Agent 解析和回放验证 |
 | 💬 | **轮次与任务过程视图** | 显示方式三档：精简档默认折叠问题、过程与回复，可分别展开；标准、完整过程档保留完整问题与回复，按档展示过程，运行中同样生效。移动端常驻输入卡片提供附件、语音和显示方式切换，首页模板可直接填入草稿。 |
 | 📊 | **实时活动追踪与审批** | Activity Panel 实时记录 AI 工具执行全流程，L1/L2/L3 三层展示体系，Signal 智能标记（auto_approve/review_recommended/needs_review），一键批量审批决策，SQLite 后端持久化，支持会话恢复 |
-| 🧪 | **运行时验证框架（Runtime Verification）** | VerifierFactory 三模态分发（browser/http_api/auto）+ 8 种 HTTP action handler + JSONPath 断言 + 证据链 SQLite 存储 + Feature Flag 双重门控 + 前端实时进度面板 |
-| 🔍 | **RV-4 证据包可视化** | 验证产物 7 类证据（screenshot / command / console / test / video / har / diff）Tab 分栏展示，移动端订阅 STOMP `verify_attention` 通知一键审批/驳回，REST API `/api/evidence/*` 提供查询与 Blob 下载 |
-| 🏆 | **SWE-bench Lite 历史实测（2026-05）** | 历史评测模型 `qwen3.7-max`（保留原记录）+ 6 工具闭集（Read/Edit/Write/Bash/Grep/Glob），无网络、无 sub-agent；官方 harness 评测 **Resolve 56.0% (168/300)**、Patch 生成率 **94.7% (284/300)**，[技术报告 →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html) |
-| 🚀 | **极致性能** | REST API p50 1.5ms · WS STOMP 握手 2.22ms · 490次真实请求采样验证，核心引擎零外部依赖纯 Java 实现 |
+| 🧪 | **运行时验证框架（Runtime Verification）** | browser／http_api 两类验证器及 auto 自动选择 + 8 种 HTTP action handler + JSONPath 断言 + 证据链 SQLite 存储 + Feature Flag 双重门控 + 前端实时进度面板 |
+| 🔍 | **证据包查看** | 查看验证步骤及实际留存的截图、命令、控制台、测试、视频、HAR、diff 等证据类型；类型定义不保证每次都产出。移动证据审批仍有未接通链路 |
+| 🏆 | **SWE-bench Lite 历史记录** | 2026-05、qwen3.7-max、六工具、无子 Agent；历史 harness 结果 168/300。公开轨迹存在参考修复暴露，不能无条件视为独立完成率，详见评测正文 |
+| 🚀 | **工程测试与观测** | 仓库提供后端、前端、Python 测试和 CI；历史接口延迟属于特定环境采样，不是模型完成任务耗时，也不代表当前版本全部测试通过 |
 | 🏭 | **运行时可靠性** | Run 状态 CAS 原子管理 · 完整 Session 快照、Run event sequence 与待处理持久交互重放 · 进程硬超时+梯度终止 · 作用域 Grant 与子 Agent 受控继承 · Artifact declare→seal→hash 验证及显式发布 · 结构化工具结果生成工具卡片与权威下载链接 · `sid/rid/prid/agent/turn/tool/llm` 日志关联 · BestEffortObservabilityRecorder 补充事件失败隔离 · Provider 本地预算守卫 |
 
 ---
@@ -182,9 +202,10 @@ ZhikunCode 使用 Kimi K3 在 2026-08-09 凌晨一次性完成了一个纯静态
 - **闭关**：收起装饰层，专注书写。
 - **装裱分享**：将会话题名与可编辑的题跋制作成立轴、手卷或册页样式的单张 PNG 图片并导出。
 
+<a id="workbench"></a>
 ### 对话工作台与修改验收
 
-新建会话默认使用**开发工作台、标准显示方式**，简洁／开发工作台共享会话，显示方式可选精简、标准、完整过程。助手回复末尾的“本轮修改”可展开文件清单，查看本轮原生 `Edit`／`Write` 的逐次修改（仅含成功且路径可核实的操作）。
+新建会话默认使用**开发工作台、标准显示方式**，显示方式可选精简、标准、完整过程；简洁工作台的切换入口目前隐藏。助手回复末尾的“本轮修改”可展开文件清单，查看本轮原生 `Edit`／`Write` 的逐次修改（仅含成功且路径可核实的操作）。
 
 ### 会话资料合并（2～5 个来源）
 
@@ -194,111 +215,236 @@ ZhikunCode 使用 Kimi K3 在 2026-08-09 凌晨一次性完成了一个纯静态
 
 语音识别需配置 `LLM_PROVIDER_DASHSCOPE_API_KEY`（不能用 Token Plan Key），热词纠正在根目录 `.env` 设置 `ASR_CORRECTIONS` 后重启后端生效。格式为 `标准写法:变体1,变体2;标准写法2:变体3`，例如 `zhikuncode:zhi kun code,zkun code,智坤code;PostgreSQL:post gre sql`。配置项见 [`.env.example`](.env.example)。
 
+<a id="quickstart"></a>
 ## ⚡ 快速开始
 
 ### 前置准备：获取 LLM API Key
 
-本项目需要 LLM（大语言模型）API Key 才能运行。默认使用**阿里云千问（DashScope）**，国内网络直连。
+准备支持工具调用的模型 API Key，可从[阿里云百炼](https://bailian.console.aliyun.com/cn-beijing/?tab=model#/api-key)、[DeepSeek](https://platform.deepseek.com/)、[Moonshot/Kimi](https://platform.moonshot.cn/)或其他支持的渠道获取。普通 DashScope 与 Token Plan Key 不能混用；费用、额度和账号权限以所选服务为准。
 
-**获取千问 API Key：**
-1. 访问 [阿里云百炼平台 API Key 管理](https://bailian.console.aliyun.com/cn-beijing/?tab=model#/api-key)
-2. 注册或登录阿里云账号
-3. 创建 API Key，复制完整密钥（以 `sk-` 开头）
-
-> 千问提供免费额度，足够个人开发使用。也可以使用 [DeepSeek](https://platform.deepseek.com/)、[Moonshot/Kimi](https://platform.moonshot.cn/) 等国内服务商，详见下方"支持的 LLM 服务商"。
+首次使用时，登录所选服务商的平台，在 API Key 管理页创建密钥并复制保存；在下方克隆仓库并执行 `cp .env.example .env` 后，将其填入 `.env` 中对应渠道的变量（例如 `LLM_PROVIDER_DASHSCOPE_API_KEY`）。不要提交含密钥的 `.env`。
 
 ### 方式一：Docker 部署（推荐）
 
-只需 3 步，从零到可用：
+准备一个支持工具调用的模型 API Key。以下命令面向 macOS／Linux 的 Bash 或 Zsh；Docker 还需 Docker Engine、Compose V2 和能下载构建依赖的网络。
+
+| 方式 | 本次能体验什么 | 入口 |
+|---|---|---|
+| Docker 基础部署 | 对话、文件修改、命令和测试；镜像含前端与 Node，无需宿主安装 Java、Node | 下方命令 → [首次任务](#first-task) |
+| 本地三服务 | 开发调试、完整前端代理，以及依赖就绪的 Python 分析／浏览器能力 | [本地安装](#local-setup) → [首次任务](#first-task) |
+
+Docker 入口检查 DashScope、Token Plan、DeepSeek、Moonshot、Zhipu、ZenMux 或旧式 `LLM_API_KEY`；仅有 Kimi Code、MiniMax、OpenRouter 专用 Key 时会在入口退出，请使用本地三服务路径。基础部署在本机构建镜像，不是拉取预构建应用镜像。
 
 ```bash
-# 1. 克隆仓库
 git clone https://github.com/zhikunqingtao/zhikuncode.git
 cd zhikuncode
-
-# 2. 配置 API Key
 cp .env.example .env
-# 编辑 .env，填入你的 LLM API Key（默认使用千问/DashScope，国内直连）
+# 编辑 .env，填写自己的 Key，例如 LLM_PROVIDER_DASHSCOPE_API_KEY
+# 设置 WORKSPACE_PATH=/你的项目绝对路径；目录需存在且允许容器用户读写
 
-# 3. 启动
-docker compose up -d
+docker compose up -d --build
+docker compose ps
+curl -fsS http://localhost:8080/actuator/health
 ```
 
-> **首次构建说明：** 第一次运行会自动构建 Docker 镜像，需要下载依赖并编译，预计耗时 **15-30 分钟**（取决于网络速度）。后续启动只需几秒。可通过 `docker compose logs -f` 查看构建进度。
+已有 `.env` 时保留自己的配置。健康检查应包含 `"status":"UP"`；打开 [localhost:8080](http://localhost:8080)，选择模型并授权容器内 `/app/workspace` 下的项目。端口改动需按 `.env` 中 `ZHIKUN_PORT` 同步访问；启动失败看 `docker compose logs --tail=100 zhikuncode`。停止用 `docker compose stop`，保留数据时不要使用 `down -v`。
 
-启动完成后，打开浏览器访问 **http://localhost:8080** 即可使用。
+新会话默认完全访问（`AUTO_APPROVE`）；需要审批时先切换权限模式。基础 Compose 不启动 Python，相关验证能力见[可选配置](#docker-python)。默认容器入口会放行到达后端的来源，首次试用应在受控网络，远程部署先处理[访问边界](#security)。
 
-> 基础 `docker-compose.yml` 默认只启动 Java 后端（由它提供内置静态前端）。Docker 镜像已包含 Python 运行时与服务代码，但不会默认启动；需要容器内 Python 服务时，请通过自己的 Compose override 显式传入 `PYTHON_SERVICE_AUTO_START=true`、`PYTHON_SERVICE_PATH=/app/python-service`、`PYTHON_SERVICE_EXECUTABLE=/app/python-service/.venv/bin/python` 和 `WORKSPACE_ROOT=/app/workspace`，然后使用两个 Compose 文件重新创建容器。若还要让浏览器使用直连 Python 的界面能力，override 必须额外把 Python 绑定到容器接口、仅映射到宿主机 loopback，并通过反向代理开放所需的精确路由；不要把 `8000` 端口直接暴露到公网。
-
-> **系统要求：** Docker 20.10+，Docker Compose V2，建议 4GB+ 内存。
-
+<a id="local-setup"></a>
 ### 方式二：本地开发
 
-**前置条件：** JDK 21、Node.js 22+、Python 3.11~3.12（不支持 3.13+）
-
-```bash
-git clone https://github.com/zhikunqingtao/zhikuncode.git
-cd zhikuncode
-
-# 配置环境变量
-cp .env.example .env
-# 编辑 .env，填入你的 LLM API Key
-
-# 停止旧进程后启动三端服务
-./stop.sh
-./start.sh
-```
-
-三端服务会同时启动：
-
-| 服务 | 地址 | 说明 |
-|------|------|------|
-| **Backend** | `http://localhost:8080` | Java Spring Boot 后端，核心 API |
-| **Python Service** | `http://localhost:8000` | FastAPI 服务，代码分析 |
-| **Frontend** | `http://localhost:5173` | React 开发服务器 |
-
-> `./start.sh` 默认把仓库根目录设为 workspace；仅当 allowed roots 和本地 picker 开关都没有非空配置时，才自动启用直连本机目录浏览。
-
-#### 本地工作台使用说明
-
-- 首次使用默认采用**开发工作台**，未选择会话时显示欢迎页；可通过页面顶部随时切换到**简洁工作台**。
-- 简洁工作台面向结果，展示当前 Root Run 对应的要求、最终回复、主要成果、待处理事项、近期活动和验收状态，不把旧执行结果混入本轮交付。
-- 开发工作台保留完整对话、工具调用、文件、Diff、Git、终端、浏览器、Agent 和证据视图。
-- 视图选择保存在当前浏览器中，并支持按 Session 记住选择；切换视图不会中断任务或改变运行状态。
-- PDF、图片、文本和 Markdown 等支持在工作台内安全预览；其他文件可切换到开发工作台文件区处理。
-- “在文件夹中显示”仅适用于从本机浏览器直连本地 ZhikunCode 的场景。
-
 <details>
-<summary><b>手动分别启动各服务</b></summary>
+<summary>本地三服务：依赖、三终端启动与健康检查</summary>
+
+准备 JDK 21、Node.js 22+、Python 3.11 或 3.12、Git、curl、ripgrep；Java 构建使用仓库自带 Maven Wrapper。先按上方步骤获取源码并配置 `.env`，确认 8080／8000／5173 端口未被其他服务占用。从仓库根安装依赖：
 
 ```bash
-# 后端（从仓库根目录启动，仅适用于直连本机开发）
-export ZHIKUN_DEFAULT_WORKSPACE="$PWD"
-export ZHIKUN_LOCAL_PICKER_ENABLED=true
-cd backend && ./mvnw spring-boot:run -DskipTests
-
-# Python 服务（另开终端，从仓库根目录启动）
-cd python-service
-python -m venv venv && source venv/bin/activate
-pip install -r requirements.txt
-export WORKSPACE_ROOT="$(cd .. && pwd)"
-export ZHIKUN_LOCAL_PICKER_ENABLED=true
-export PYTHONPATH="$PWD/src"
-uvicorn src.main:app --host 127.0.0.1 --port 8000
-
-# 前端（另开终端，从仓库根目录启动）
-cd frontend && npm install && npm run dev
+python3.11 -m venv python-service/.venv
+python-service/.venv/bin/python -m pip install -r python-service/requirements.lock
+python-service/.venv/bin/python -m playwright install chromium
+npm --prefix frontend ci
 ```
+
+使用 Python 3.12 时替换首行解释器。Linux 按 Playwright 输出补齐 Chromium 系统库；文件类型检测可能需要 `libmagic`。下面显式使用 `.venv`，避免把依赖装进与运行时不同的环境。
+
+**打开三个终端，每个终端都从仓库根目录开始，先执行公共配置：**
+
+```bash
+set -a
+source .env
+set +a
+export ZHIKUN_DEFAULT_WORKSPACE="$PWD"
+export WORKSPACE_ROOT="$PWD"
+export ZHIKUN_LOCAL_PICKER_ENABLED=true
+export PATH="$PWD/scripts/mcp:$PATH"
+```
+
+只加载自己维护的可信 `.env`。本机 picker 适用于直连本机；远程部署保持关闭并配置 allowed roots。然后分别执行：
+
+```bash
+# 终端一：Java 后端，Python 在另一个终端独立运行
+export PYTHON_SERVICE_AUTO_START=false
+cd backend
+./mvnw spring-boot:run -DskipTests
+```
+
+```bash
+# 终端二：Python 能力服务
+export PYTHONPATH="$PWD/python-service/src"
+python-service/.venv/bin/python -m uvicorn src.main:app --app-dir python-service --host 127.0.0.1 --port 8000
+```
+
+```bash
+# 终端三：前端开发代理
+cd frontend
+npm run dev
+```
+
+在另一个终端检查：
+
+```bash
+curl -fsS http://127.0.0.1:8080/actuator/health
+curl -fsS http://127.0.0.1:8000/api/health
+curl -fsS http://127.0.0.1:8000/api/health/capabilities
+curl -fsS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:5173/
+```
+
+Java 应为 `UP`，Python 为 `ok`，前端 HTTP 为 `200`；能力列表还需检查各域的 `available` 与 `reason`。打开 [localhost:5173](http://localhost:5173) 后继续[首次任务](#first-task)。各终端按 `Ctrl+C` 停止自己的服务。
+
+依赖准备后也可使用 `./start.sh`，但它会清理固定端口、终止匹配的旧 Java 进程并删除 `backend/target`；脚本优先使用 `python-service/venv`，其次 `.venv`，最后系统 Python。共享开发机优先采用上面的手动方式。Vite 开发代理只供本机使用，不应直接暴露到远程网络。
 
 </details>
 
-> **RV-1 运行时验证依赖**：`jsonpath-ng`（JSONPath 断言引擎）、`httpx`（异步 HTTP 客户端），已包含在 `python-service/requirements.txt` 中。
+#### 本地工作台使用说明
 
-> **权限数据说明：** 当前授权架构以 V015 持久交互和 V019 受约束 Grant 为数据库权威，不读取旧权限表。开发环境升级时直接重建项目数据库，并在新版本中重新授权。
+新建会话并选择、授权服务端项目目录，然后选择模型并描述任务。开发工作台提供文件、Git、终端、浏览器及 Agent 视图；助手回复末尾的“本轮修改”展示已记录的成功原生 Edit／Write。目录在 Docker 中使用 `/app/workspace` 下的路径；远程后端不能直接读取客户端电脑上的本地路径。“在文件夹中显示”仅适用于支持该操作的直连本机环境。
+
+<a id="docker-python"></a>
+<details>
+<summary>Docker 可选：启用容器内 Python 能力服务</summary>
+
+基础镜像包含 Python 环境，默认未启动。以下从仓库根通过标准输入传入 override；以后重新创建容器时也需要保留这组覆盖设置：
+
+```bash
+docker compose -f docker-compose.yml -f - up -d --build <<'YAML'
+services:
+  zhikuncode:
+    environment:
+      PYTHON_SERVICE_AUTO_START: "true"
+      PYTHON_SERVICE_PATH: /app/python-service
+      PYTHON_SERVICE_EXECUTABLE: /app/python-service/.venv/bin/python
+      WORKSPACE_ROOT: /app/workspace
+YAML
+docker compose exec zhikuncode curl -fsS http://127.0.0.1:8000/api/health/capabilities
+```
+
+这条路径使 Java 能调用容器内 Python，仍需检查 Feature Flag 和实际能力状态。前端直连 Python 的文件／Git／分析界面还需同源代理，不能只开进程就视为全部界面就绪。代理范围以 [Vite 配置](frontend/vite.config.ts)与 [Python 路由](python-service/src/main.py)为准；保留 Java 的文件选择、引用和搜索入口，并让 Java、Python 与 WebSocket 共用访问控制。不要直接公开 Python 端口。
+
+</details>
+
+<a id="first-task"></a>
+<details>
+<summary>首次任务：准备两个文件，让模型改代码，再独立验收</summary>
+
+本练习不安装第三方包。先保留一个专用终端；**从 zhikuncode 仓库根目录执行**下面的准备命令，创建独立临时项目（两种部署方式共用）：
+
+```bash
+ZHIKUN_DEMO=$(mktemp -d "${TMPDIR:-/tmp}/zhikuncode-first-task.XXXXXX")
+mkdir -p "$ZHIKUN_DEMO/src" "$ZHIKUN_DEMO/test"
+cat > "$ZHIKUN_DEMO/src/shipping.mjs" <<'JS'
+/** Amounts are in yuan. Existing rule: free shipping at 100, otherwise 6. */
+export function shippingFee(subtotal) {
+  if (!Number.isFinite(subtotal) || subtotal < 0) {
+    throw new RangeError('subtotal must be a finite, non-negative number');
+  }
+  return subtotal >= 100 ? 0 : 6;
+}
+JS
+cat > "$ZHIKUN_DEMO/test/shipping.test.mjs" <<'JS'
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { shippingFee } from '../src/shipping.mjs';
+
+test('regular: zero subtotal costs 6', () => assert.equal(shippingFee(0), 6));
+test('regular: below 100 costs 6', () => assert.equal(shippingFee(99.99), 6));
+test('regular: exactly 100 is free', () => assert.equal(shippingFee(100), 0));
+test('regular: above 100 is free', () => assert.equal(shippingFee(150), 0));
+test('member: below 80 costs 6', () => assert.equal(shippingFee(79.99, true), 6));
+// These two acceptance tests intentionally fail before the first task is done.
+test('member: exactly 80 is free', () => assert.equal(shippingFee(80, true), 0));
+test('member: below 100 is free', () => assert.equal(shippingFee(99.99, true), 0));
+test('member: at 100 remains free', () => assert.equal(shippingFee(100, true), 0));
+test('negative subtotal is rejected', () => assert.throws(() => shippingFee(-1), RangeError));
+test('NaN subtotal is rejected', () => assert.throws(() => shippingFee(NaN), RangeError));
+test('Infinity subtotal is rejected', () => assert.throws(() => shippingFee(Infinity), RangeError));
+test('-Infinity subtotal is rejected', () => assert.throws(() => shippingFee(-Infinity), RangeError));
+JS
+```
+
+**本地三服务用户**在同一终端继续；需要 Node.js 22+：
+
+```bash
+git -C "$ZHIKUN_DEMO" init -q
+git -C "$ZHIKUN_DEMO" add .
+ZHIKUN_BASE=$(git -C "$ZHIKUN_DEMO" write-tree)
+(cd "$ZHIKUN_DEMO" && pwd -P && node --test test/shipping.test.mjs)
+```
+
+**Docker 用户**在同一终端继续；使用容器自带 Node，不要求宿主安装 Node。第一行需成功确认挂载可写：
+
+```bash
+docker compose exec -T zhikuncode sh -c 'test -w /app/workspace'
+ZHIKUN_CONTAINER_DEMO=$(docker compose exec -T zhikuncode mktemp -d /app/workspace/first-task.XXXXXX)
+tar -C "$ZHIKUN_DEMO" -cf - src test | docker compose exec -T zhikuncode tar -C "$ZHIKUN_CONTAINER_DEMO" -xf -
+docker compose exec -T -w "$ZHIKUN_CONTAINER_DEMO" zhikuncode git init -q
+docker compose exec -T -w "$ZHIKUN_CONTAINER_DEMO" zhikuncode git add .
+ZHIKUN_BASE=$(docker compose exec -T -w "$ZHIKUN_CONTAINER_DEMO" zhikuncode git write-tree)
+printf '%s\n' "$ZHIKUN_CONTAINER_DEMO"
+docker compose exec -T -w "$ZHIKUN_CONTAINER_DEMO" zhikuncode node --test test/shipping.test.mjs
+```
+
+`git write-tree` 将初始文件快照的 tree ID 保存到 `ZHIKUN_BASE`，不创建提交；后续即使索引改变，仍与这份固定快照比较。保留当前终端及变量供验收使用。初始应是 **10 通过、2 失败，退出码 1**；失败项为 `member: exactly 80 is free` 与 `member: below 100 is free`。若出现其他错误，先处理环境。
+
+打开工作台，新建会话并授权打印出的项目路径。本地使用 `pwd -P` 的路径，Docker 使用 `/app/workspace/first-task.…`；选择支持工具调用的模型，发送：
+
+```text
+这是独立的运费规则练习项目。阅读 src/shipping.mjs 和 test/shipping.test.mjs，
+先运行 node --test test/shipping.test.mjs 确认当前失败。
+只修改 src/shipping.mjs，实现 shippingFee(subtotal, isMember = false)：
+普通用户满100元免运费，否则6元；会员满80元免运费，否则6元。
+不传第二个参数时保持普通用户行为；负数或非有限金额仍抛出 RangeError。
+不要改测试，不安装依赖，不联网，不提交或推送。
+修改后重新运行测试并检查 git diff，报告实际结果和改动文件；未执行的检查明确说明。
+```
+
+在工具卡片中查看实际读写和命令输出。完成后，**本地用户**回到原终端独立验收：
+
+```bash
+(cd "$ZHIKUN_DEMO" && node --test test/shipping.test.mjs)
+git -C "$ZHIKUN_DEMO" diff "$ZHIKUN_BASE" -- src/shipping.mjs
+git -C "$ZHIKUN_DEMO" diff --name-only "$ZHIKUN_BASE"
+git -C "$ZHIKUN_DEMO" diff --exit-code "$ZHIKUN_BASE" -- test/shipping.test.mjs
+git -C "$ZHIKUN_DEMO" ls-files --others --exclude-standard
+```
+
+**Docker 用户**在原仓库终端验收容器中的同一个项目：
+
+```bash
+docker compose exec -T -w "$ZHIKUN_CONTAINER_DEMO" zhikuncode node --test test/shipping.test.mjs
+docker compose exec -T -w "$ZHIKUN_CONTAINER_DEMO" zhikuncode git diff "$ZHIKUN_BASE" -- src/shipping.mjs
+docker compose exec -T -w "$ZHIKUN_CONTAINER_DEMO" zhikuncode git diff --name-only "$ZHIKUN_BASE"
+docker compose exec -T -w "$ZHIKUN_CONTAINER_DEMO" zhikuncode git diff --exit-code "$ZHIKUN_BASE" -- test/shipping.test.mjs
+docker compose exec -T -w "$ZHIKUN_CONTAINER_DEMO" zhikuncode git ls-files --others --exclude-standard
+```
+
+验收终点：**12 通过、0 失败**；相对固定基线的 diff 只有 `src/shipping.mjs`，测试文件无变化；检查未跟踪文件，区分应用元数据与额外业务文件。这验证基本改码与测试流程，不代表已经验证并行 Agent、浏览器或发布能力，也不是模型成绩保证。
+
+</details>
 
 ### 可选：OSS 产物发布、截图粘贴与远程文件引用
 
-ZhikunCode 提供内置 `/publish-oss` Skill，可从同一持久化根 Session 内的根 Run 与通过 `parent_run_id` 建立的后代 Run 中选择一个已验证产物条目，发布为 OSS 永久公开链接。底层 OSS 发布能力**默认关闭且绝不自动上传**，需单独配置启用；Skill 管理页中的开关不替代部署配置。生成文件、完成 Run、预览或打开文件都不会触发上传；每次发布都必须由用户明确提出，并通过一次高风险权限确认。
+ZhikunCode 提供 `/publish-oss` 命令，将工作区内单个普通文件发布为 OSS 永久公开链接。底层发布能力默认关闭，需单独配置启用；部署未启用时，命令不出现在命令列表和补全中。匹配到同一持久化根 Session 及后代 Run 的 Manifest 时，要求状态为 `verified`／`partial`、目标条目已验证且哈希仍匹配；未匹配 Manifest 时允许按工作区文件路径发布，仍检查路径、文件类型、大小及敏感内容。生成、预览文件不会自动发布，但下述截图粘贴和远程引用有独立的即时上传路径。发布必须由用户明确请求；`AUTO_APPROVE` 可自动授权，`PLAN` 和 `DONT_ASK` 拒绝这类高风险发布，其余权限模式要求单次确认。配置、文件和内容检查仍须通过。
 
 启用同一套 OSS 配置后，浏览器还能感知从其他应用复制并粘贴到对话框的 PNG/JPEG/WebP 截图（单张不超过 5 MiB），通过固定后端通道立即上传，并将服务端验证过的 OSS 图片地址直接交给视觉模型。这个路径不调用 `/publish-oss` Skill，也不额外调用 LLM；OSS 未配置时自动降级为 Base64 直传，无需额外配置即可使用图片分析能力。
 
@@ -333,14 +479,14 @@ OSS 关闭时，无效的自定义域／预览配置会产生警告并从 CSP �
 
 使用流程：
 
-1. 在当前持久化根 Session 中生成产物；Manifest 完成 declare → seal/hash → verify 后，状态可以是 `verified`，也可以是包含目标已验证条目的 `partial`。
+1. 在已授权项目中准备要发布的单个文件并检查内容。有匹配 Manifest 时，目标条目必须已验证且哈希一致；没有 Manifest 时按工作区文件策略检查。
 2. 明确输入 `/publish-oss <文件路径>`，或说明“上传刚生成的产物到 OSS”。
-3. 核对确认卡片中的文件名、大小、公开范围和“永久公开”警告后，批准本次操作。
+3. 先确认文件和公开范围；如当前权限模式要求审批，核对卡片后决定是否批准。`AUTO_APPROVE` 可自动通过权限裁决。
 4. 上传成功后使用发布成功卡片打开预览或下载；以浏览器实际响应为准，不让模型重新拼接链接。
 
 安全边界与当前限制：
 
-- 只允许同一持久化根 Session 内根 Run 或授权后代 Run 所声明、目标条目已验证且仍匹配 Manifest 哈希的 workspace 内**单个普通文件**，默认不超过 100 MiB。
+- 只发布 workspace 内单个普通文件，默认不超过 100 MiB；有匹配 Manifest 时复核其归属、条目状态和哈希。无 Manifest 的工作区文件回退不等于已经做过运行验证。
 - 拒绝目录、批量上传、符号链接、workspace 外路径、`.env`、私钥、数据库、凭证配置及检测到敏感内容的文件。
 - 对象先私有上传，远端校验成功后才切换为 `public-read`；失败时清理本次新建的私有对象。
 - 返回地址为**永久公开链接**。卡片依据公开地址的响应判断预览或下载；检查失败时保守显示“下载”，不会撤销已成功的发布。OSS 默认域名通常会下载 HTML。
@@ -349,6 +495,8 @@ OSS 关闭时，无效的自定义域／预览配置会产生警告并从 CSP �
 - 当前精简版不提供批量发布、发布历史或撤销入口；删除公开对象需要运维人员在 OSS 侧显式执行。
 - 本地与 ECS 都支持真实上传；本地使用默认凭证链，ECS 建议使用自动轮换的 RAM Role 临时凭证。
 - 远程文件引用使用原始请求体流式上传，不扩大 Spring 的全局 multipart 限制；若 ECS 前还有反向代理，代理的请求体上限也必须不低于 `ZHIKUN_OSS_MAX_FILE_BYTES`。
+
+秒悟 `/publish-meoo` 的策略不同：要求绑定实际通过的 VerifyJourney 证据、项目目录、运行方式和发布快照，发布前复检；每次创建新站点并消耗平台额度。配置与步骤见[秒悟发布指南](docs/deployment/meoo.md)。
 
 ### 支持的 LLM 服务商
 
@@ -371,9 +519,9 @@ LLM_PROVIDER_DEEPSEEK_API_KEY=your-deepseek-key
 # Moonshot (Kimi)
 LLM_PROVIDER_MOONSHOT_API_KEY=your-moonshot-key
 
-# Kimi Code 订阅：K3 + K2.8 Preview（与 Moonshot 按量渠道独立）
+# Kimi Code 订阅：K3.1 Pro Highspeed + K2.8 Preview（与 Moonshot 按量渠道独立）
 LLM_PROVIDER_KIMI_CODE_API_KEY=your-kimi-code-key
-# LLM_PROVIDER_KIMI_CODE_MODELS=k3,kimi-for-coding
+# LLM_PROVIDER_KIMI_CODE_MODELS=k3.1-pro-highspeed,kimi-for-coding
 
 # Zhipu (智谱 GLM)
 LLM_PROVIDER_ZHIPU_API_KEY=your-zhipu-api-key-here
@@ -387,7 +535,7 @@ LLM_PROVIDER_MINIMAX_API_KEY=your-minimax-api-key-here
 LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 ```
 
-**Kimi Code 订阅：** 配置 `LLM_PROVIDER_KIMI_CODE_API_KEY` 并重启后，可选择 **Kimi K3（订阅）**（`k3`）或 **Kimi K2.8 Preview（订阅）**（`kimi-for-coding`）。两者走 `https://api.kimi.com/coding/v1`，流式与非流式调用均固定 `thinking.type=enabled`、`reasoning_effort=max`，上下文配置为 **1,048,576 tokens**，单次输出预算为 131,072 tokens（应用上限，非官方最大输出声明）。K3 的 1M 权限要求 Pro / Allegretto 及以上套餐；K2.8 Preview 对具备 coding 权益的会员开放 1M。订阅模型 ID、密钥和路由独立于按量 `kimi-k3`，不自动跨渠道切换；本地启动与 Docker Compose 均支持。订阅用量不折算为 Moonshot 按量价格，界面估算为 0 不代表免费。模型 ID 与规格核对日期：2026-09-20，见 [官方模型配置](https://www.kimi.com/code/docs/kimi-code/models.html)。
+**Kimi Code 订阅：** 配置独立的 `LLM_PROVIDER_KIMI_CODE_API_KEY` 后，仓库默认注册 `k3.1-pro-highspeed` 与 `kimi-for-coding`，请求端点为 `https://api.kimi.com/coding/v1`；Moonshot 按量渠道默认 `kimi-k3.1-pro-highspeed`，密钥、模型 ID 与路由分开，不自动跨渠道切换。订阅模型的流式与非流式请求均显式发送 `thinking.type=enabled`、`reasoning_effort=max`。注册表声明 1,048,576 token 上下文和 131,072 token 输出上限，主循环推荐输出预算另按 65,536 token 上限裁剪；这是应用配置，不代表账号必然有相应权限。订阅用量不按 Moonshot 按量价格估算，界面估算为 0 不代表免费。仅配置 Kimi Code Key 仍会被当前 Docker 入口检查拒绝，先采用本地开发路径。历史案例的 Kimi K3 保持原记录。模型资料参见 [Kimi Code 官方模型文档](https://www.kimi.com/code/docs/kimi-code/models.html)。
 
 **GLM-5.3（百炼）：** 复用 `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY`，默认模型列表已包含 `bailian/glm-5.3`；若 `.env` 自定义了 `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS`，请将该 ID 加入列表并重启。内部模型 ID 为 `bailian/glm-5.3`，仅发往百炼 Token Plan 的请求使用上游 ID `glm-5.3`，现有 `glm-5.3` 仍走智谱直连。百炼配置中填写裸 `glm-5.3` 也会自动规范化并去重，避免注册顺序影响路由。流式与非流式均固定 `enable_thinking=true`、`reasoning_effort=max`、`clear_thinking=false`，配置最大 **1,000,000 tokens** 上下文和 65,536 tokens 单次输出预算（已实测接受的应用预算，非官方最大输出声明）；支持工具调用与历史思考回传，文本模型不开放图片输入。订阅 Credits 以百炼账单为准，界面 0 单价不代表免费。2026-09-21 核对：[Token Plan 支持模型](https://help.aliyun.com/zh/model-studio/token-plan-personal-overview)、[GLM 参数](https://help.aliyun.com/zh/model-studio/glm)、[官方上下文配置](https://help.aliyun.com/zh/model-studio/openclaw)。
 
@@ -400,7 +548,7 @@ LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 | **千问/DashScope** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen3.8-max-0902 | 按量计费 Provider，国内直连 |
 | **阿里云百炼 Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max / qwen3.8-flash / deepseek-v4.1-flash | 使用独立 `sk-sp-` Key；模型均标注“百炼”。V4.1 Flash 为服务端 `app.model.default`、快速查询及图片兜底的默认值；前端初始模型偏好仍为 `qwen3.8-max-0902`，用户配置／会话选择优先 |
 | **DeepSeek** | `https://api.deepseek.com/v1` | deepseek-flash | 国内直连；DeepSeek V4.1 Flash，支持思考、工具调用与原生视觉 |
-| **Moonshot（Kimi）** | `https://api.moonshot.cn/v1` | kimi-k3 | 国内直连；kimi-k3 支持 1M 上下文和原生视觉 |
+| **Moonshot（Kimi）** | `https://api.moonshot.cn/v1` | kimi-k3.1-pro-highspeed | 独立 Moonshot 按量 Key；当前注册表配置视觉和 1M 上下文 |
 | **Zhipu（智谱 GLM）** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.3, glm-5.3-flash | 国内直连 |
 | **MiniMax** | `https://api.minimax.chat/v1` | MiniMax-M3 | 百万上下文 |
 | **ZenMux（多模型中转）** | `https://zenmux.ai/api/v1` | anthropic/claude-fable-5.1 / anthropic/claude-opus-5.5 / anthropic/claude-sonnet-5.5 / anthropic/claude-haiku-5.5 / openai/gpt-5.6-sol / openai/gpt-6-astra / google/gemini-4-argon / x-ai/grok-4.7 / meta/muse-wonder-1.0 | OpenAI/Google/xAI/Meta 模型使用 Responses 推理与工具续轮；支持图片 |
@@ -441,28 +589,31 @@ ZhikunCode 当前预置了 17 个阿里云百炼 MCP 服务、共 83 个白名�
    ```bash
    LLM_PROVIDER_DASHSCOPE_API_KEY=sk-xxxxxxxx
    ```
-2. 首次修改 `.env` 后，通过 `./stop.sh && ./start.sh` 完整重启三端。
+2. 修改 `.env` 后按原部署方式重启：Docker 用原 Compose 文件与 override 执行 `up -d` 应用配置；手动启动者重新加载 `.env` 后重启后端；使用启动脚本的用户才执行 stop／start（脚本会清理固定端口）。
 3. 在页面顶部打开 **MCP 管理**，仅启用当前任务需要的服务；后续开关即时生效，无需重启。
 
 > 注册表中的 `"enabled": true` 表示该工具进入管理员白名单，不等于服务在运行时默认开启。工具必须同时通过注册表白名单、服务开关和凭证可用性三层检查。
 
 ---
 
+<a id="swe-bench"></a>
 ## 🏆 SWE-bench Lite 评测
 
-ZhikunCode 已完成 SWE-bench Lite（300 实例，pass@1）官方 harness 评测，**Resolve Rate 56.0% (168/300)**。所有评测产物（`all_preds.jsonl`、`results.json`、`metadata.yaml`、轨迹）已开源在 [`docs/swe-bench/20260525/`](docs/swe-bench/20260525/)，可第三方复现。
+2026-05 历史运行使用 `qwen3.7-max` 和六个工具，无子 Agent；官方 harness 结果为 **168 / 300（56.0%）Resolved**，284 / 300 生成 Patch。公开产物见 [历史归档](docs/swe-bench/20260525/)。
+
+**至少一例公开轨迹包含对应的已合并修复，不能将成绩无条件视为未接触参考修复的独立完成率。** [`sympy__sympy-11897`](docs/swe-bench/20260525/trajs/sympy__sympy-11897.md) 第 37、39 次 Bash 输出包含参考修复，源码修改块与最终预测补丁相同；实际工具输入记录为 `{}`，不能据此判断来自实时联网还是已有材料，也不能推断其他实例无效。原说明指向的 `swe-bench/swe_bench.py` 未纳入 Git；仓库另有[评测脚本](docs/swe-bench/scripts/swe_bench.py)，但它与历史材料的预算和版本条件不同，公开材料不足以严格重跑原环境。
 
 ### 关键指标
 
 | 指标 | 数值 | 出处 |
 |---|---|---|
-| Resolved Instances | **168 / 300 (56.0%)** | `docs/swe-bench/20260525/results.json` `resolved=168` |
+| Resolved Instances | **168 / 300 (56.0%)** | `docs/swe-bench/20260525/results.json` `resolved_instances=168` |
 | Patch 生成率 | **284 / 300 (94.7%)** | `all_preds.jsonl`（其中 16 条空 patch） |
 | 历史主干模型（保留原记录） | `qwen3.7-max` | `docs/swe-bench/20260525/metadata.yaml` |
-| 工具闭集 | Read / Edit / Write / Bash / Grep / Glob | [`swe-bench/swe_bench.py`](swe-bench/swe_bench.py) `ALLOWED_TOOLS` |
-| 单实例预算 | 60 轮 / 900 秒 | [`swe_bench.py`](swe-bench/swe_bench.py) `solve_instance(max_turns=60, timeout=900)` |
-| 并发 worker | 1 | `--workers` 默认值 |
-| 网络 / Sub-agent | 均禁用 | 系统提示显式声明 |
+| 工具闭集 | Read / Edit / Write / Bash / Grep / Glob | 历史提交说明与公开轨迹 |
+| 单实例预算 | 历史材料口径不同 | 原主 README、归档说明和当前脚本不一致，不能用当前默认值反推历史条件 |
+| 说明中的并发 worker | 1 | 历史说明，不作为当前部署默认值 |
+| 网络 / Sub-agent | 无子 Agent；联网状态不能仅凭提示声明认定 | 已发现参考修复内容，详见上文 |
 | 提交命名空间 | `20260525_zhikuncode` | `metadata.yaml` |
 
 ### 仓库级表现（`results/resolved_by_repo.json`）
@@ -485,12 +636,31 @@ ZhikunCode 已完成 SWE-bench Lite（300 实例，pass@1）官方 harness 评�
 
 ### 工程亮点（每一项均可在源码定位）
 
-- **Agent-Loop 显式四相位** ANALYZE→LOCATE→FIX→VERIFY，相位边界由系统提示硬约束（[swe_bench.py](swe-bench/swe_bench.py)）
-- **六层上下文压缩级联** Snip / MicroCompact / ContextCollapse / AutoCompact / CollapseDrain / ReactiveCompact（[ContextCascade.java](backend/src/main/java/com/aicodeassistant/engine/ContextCascade.java)，源码注释中 Level 1.5 ContextCollapse 为渐进折叠中间层）
-- **413 两阶段恢复** CollapseDrain → ReactiveCompact，保障 60 轮会话收敛于上下文窗口内
-- **自纠错循环（SelfCorrectionLoop）** 编译/测试失败结构化再提示，默认 MAX_ATTEMPTS=3，SWE-bench 模式提升至 7 次（[SelfCorrectionLoop.java](backend/src/main/java/com/aicodeassistant/engine/correction/SelfCorrectionLoop.java)）
+当前主干可查阅 [ContextCascade](backend/src/main/java/com/aicodeassistant/engine/ContextCascade.java) 和 [QueryEngine](backend/src/main/java/com/aicodeassistant/engine/QueryEngine.java) 的上下文管理、工具循环与恢复策略；这是当前实现说明，不能据此推断历史运行器启用了全部机制。[自纠错（SelfCorrectionLoop）](backend/src/main/java/com/aicodeassistant/engine/correction/SelfCorrectionLoop.java) 为可选开关，默认关闭。
 
-📄 完整方法学与可复现命令见技术报告：<https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html>
+[技术报告](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html) · [结果数据](docs/swe-bench/20260525/results.json) · [预测补丁](docs/swe-bench/20260525/all_preds.jsonl) · [原始轨迹](docs/swe-bench/20260525/trajs/)
+
+<a id="evidence-integrity"></a>
+<details>
+<summary>公开证据的范围与文件校验</summary>
+
+黄金监控与 12306 案例保留评分 JSON、公开日志摘录和图片；黄金完整原始日志和产物 ZIP 未公开，12306 的 HTML 可直接打开，另一实现的公开源码不等于已部署演示。MOBA 有第一方代码、截图与派生视频预览，不把预览称为原始录屏。
+
+两份原 SHA-256 清单对应 `cd9261c7`（2026-07-28）；[该历史版本](https://github.com/zhikunqingtao/zhikuncode/tree/cd9261c755ecda8fc9528cca6383a7f375b532b4/docs/case-studies)的黄金 10/10、12306 21/21 文件匹配。当前 HTML 和共用案例 README 有后续导航／说明变更，不再逐字匹配原清单；已核对的评分 JSON、日志摘录、图片和 12306 产物保持匹配。不要把当前整包写成全部通过，也不要将哈希一致当成业务内容或评分正确的证明。
+
+原始材料：[黄金证据](docs/case-studies/zhikuncode-codex-gold-monitor-evidence.json) · [12306 证据](docs/case-studies/zhikuncode-codex-12306-evidence.json) · [黄金清单](docs/case-studies/zhikuncode-codex-gold-monitor-SHA256SUMS.txt) · [12306 清单](docs/case-studies/zhikuncode-codex-12306-SHA256SUMS.txt)。
+
+从仓库根检查当前文件：
+
+```bash
+cd docs/case-studies
+shasum -a 256 -c zhikuncode-codex-gold-monitor-SHA256SUMS.txt
+shasum -a 256 -c zhikuncode-codex-12306-SHA256SUMS.txt
+```
+
+报告和共用 README 的已知差异会返回校验失败；不要重生成清单来掩盖这些差异。
+
+</details>
 
 ---
 
@@ -498,52 +668,42 @@ ZhikunCode 已完成 SWE-bench Lite（300 实例，pass@1）官方 harness 评�
 
 ### 功能对比
 
-| 特性 | ZhikunCode | Aider | Cline | Cursor | Claude Code | Copilot |
-|------|:---:|:---:|:---:|:---:|:---:|:---:|
-| 开源免费 | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Web UI | ✅ 全功能 | ⚠️ 实验浏览器 UI | ❌ | ⚠️ Web版 | ✅ | ⚠️ GitHub.com |
-| Docker 一键自托管 | ✅ 完整 Web 服务 | ⚠️ CLI 容器化 | ❌ | ⚠️ 企业付费 | ❌ | ❌ |
-| 国产大模型直连 | ✅ 原生支持 | ⚠️ 需配置兼容 API | ⚠️ 需配置兼容 API | ❌ | ❌ | ❌ |
-| 多 Agent 协作 | ✅ Agent 委派 + 后台任务 | ❌ | ✅ Kanban + CLI 并行 | ✅ Multi-Agents | ✅ Sub-Agents | ✅ /fleet + Agent Mode |
-| 浏览器全流程操控¹ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| 安全沙箱 | ✅ 8层 | ❌ | ❌ | ⚠️ 企业级 | ✅ OS级 | ⚠️ GitHub 权限策略 |
-| MCP 工具扩展 | ✅ | ⚠️ 第三方 | ✅ | ✅ | ✅ | ✅ |
-| CLI 终端工具 | ✅ aica + 35+ 斜杠命令 | ✅ CLI-first | ✅ CLI 2.0 | ✅ Cursor CLI | ✅ CLI-only | ✅ Copilot CLI |
-| 可扩展skill技能系统 | ✅ Markdown 驱动 + 内置/项目/用户技能 | ❌ | ❌ | ✅ Rules | ✅ Hooks | ❌ |
-| 插件系统 | ✅ Java SPI 插件 + 沙箱隔离 + 热重载 | ❌ | ❌ | ✅ Plugins | ✅ Skills/Hooks | ✅ Plugins |
-| 跨会话记忆 | ✅ 三层记忆 + BM25 搜索 | ❌ | ❌ | ✅ Rules | ✅ Memory | ❌ |
-| 活动追踪与审批 | ✅ L1/L2/L3 三层 | ❌ | ❌ | ❌ | ✅ 权限管理 | ❌ |
-| Activity 持久化 | ✅ SQLite + STOMP | ❌ | ❌ | ❌ | ⚠️ 内存级 | ❌ |
-| 无需安装客户端 | ✅ | ❌ | ❌ | ⚠️ | ✅ | ❌ |
+产品能力和版本变化较快，本节以公开同题任务和明确条件作比较；单次作品与评分不等于产品总体排名。
 
-> ¹ **浏览器全流程操控**：部署后任意设备浏览器（包括手机）即可完整操控编码全流程——权限审批、方案协商、任务管控。这与 Cline/Cursor 的"AI 控制浏览器做自动化测试"是不同的概念。
+| 同题任务 | 已公开的比较 | 解读范围 |
+|---|---|---|
+| 黄金监控 | ZhikunCode 68.3、Codex 68.4；14 个维度 | 接近；模型不同，报告保留各自缺陷 |
+| 12306 概念可视化 | ZhikunCode 8.68、Codex 8.45；单 HTML 与 Next.js 工程 | 差距小于报告区分阈值；公开源码不等于都已部署 |
+| 宇树办公任务链 | 五款工具、六任务、30 件终稿 | ZhikunCode 与千问两榜均处近分组；ZhikunCode 六件需修正后采用 |
+| 八方代码审查 | 同一提交的八份报告，附复核与复算材料 | 对比具体有效发现、误报和漏检，不外推总体能力 |
 
+报告入口见[公开工程案例](#cases)。
+
+<a id="adoption"></a>
 ### 安全特性对比
 
-| 安全特性 | ZhikunCode | Aider | Cline | Claude Code |
-|---------|:---:|:---:|:---:|:---:|
-| 命令执行沙箱 | 8 层检查 | ❌ 用户审批 | ❌ 用户审批 | ✅ gVisor/Firecracker |
-| 工具授权 | 统一 Tool Gateway + 执行前动态复检 | ❌ | 简单确认 | 权限管理系统 |
-| 安全测试覆盖 | 权限/Bash/路径/并发专项测试 | 未公开 | 未公开 | 未公开 |
-| 敏感路径拦截 | ✅ | ❌ | ❌ | ❌ |
-| 危险命令阻断 | ✅ | ❌ | ❌ | ✅ 部分 |
-| 环境变量白名单 | ✅ | ❌ | ❌ | ❌ |
+采用时应逐项核对部署条件，而不把授权检查、容器部署和操作系统沙箱视为同一能力：
 
-> **说明：** 以上对比基于各项目公开文档（截至 2026 年 4 月），AI 编程工具迭代迅速，如有不准确之处欢迎提 [Issue](https://github.com/zhikunqingtao/zhikuncode/issues) 指正。Cline CLI 2.0、Cursor 2.0+、Claude Code Desktop、GitHub Copilot /fleet 等均在快速迭代中。
->
-> **最新动态（2026 年 4 月）：** Claude Code Desktop App 已发布（支持本地+云端混合执行）；Cursor 3.1 新增 Canvas 特性（交互式仪表盘+自定义 UI 组件）；各竞品最新版本号：Aider v0.86+、Cline v1.0.35+、Cursor 3.1+、Claude Code 2.1.119+、GitHub Copilot CLI 1.0.35+。
+| 评估项 | ZhikunCode 当前行为 |
+|---|---|
+| 自托管与数据 | Java／Web 工作台自托管，运行数据保存于 SQLite 和本地文件；模型及外部服务接收相应输入 |
+| 执行控制 | 项目授权、工具网关、持久审批、运行取消；新会话默认完全访问 |
+| 隔离 | worktree 隔离代码目录；可选 Docker 命令沙箱默认关闭且不覆盖全部路径 |
+| 账号边界 | 需配置入口认证与网络控制；实例访问控制不等于多租户隔离 |
 
 #### ZhikunCode 差异化能力展示
 
-| 能力维度 | ZhikunCode 实现 | 技术亮点 |
-|---------|----------------|----------|
-| 上下文压缩 | ✅ 6层级联压缩 + 413两级上下文压缩 | ContextCascade 支持从 L0 Snip 到 L4 ReactiveCompact 渐进式压缩 |
-| 运行时验证（Runtime Verification） | ✅ 三模态运行时验证 + 7类证据链 | VerifierFactory 分发（browser/http_api/auto），Feature Flag 控制 |
-| MCP 传输协议 | ✅ 4种传输方式(StdIO/SSE/WebSocket/HTTP) | Client+Server 双向模式，覆盖本地与远程全场景 |
-| SWE-bench 实测 | ✅ 56.0% 通过率（开源可复现） | 完整评测流程开源，支持独立验证 |
+| 能力维度 | 可核查的实现与使用入口 |
+|---|---|
+| 长任务推进 | 上下文级联、分级恢复、多 Agent 分工和结果接续；见[架构](#how-it-works)及[Agent](#agents) |
+| 行为与交付检查 | 浏览器／HTTP 断言、实际工具输出、逐次修改、证据与产物记录；验证依赖须就绪并实际调用 |
+| 浏览器操作 | 桌面与手机查看任务、补充要求、处理审批、检查结果；重连恢复记录，重启不续执行栈 |
+| 扩展 | Markdown Skill、Java SPI 插件、MCP 服务和可配置模型；各入口有独立启用条件 |
 
 ---
 
+<a id="️-架构概览"></a>
+<a id="how-it-works"></a>
 ## 🏗️ 架构概览
 
 ZhikunCode 采用三端分离架构，Java 后端负责核心编排，React 前端提供交互界面，Python 服务处理代码分析：
@@ -570,7 +730,7 @@ ZhikunCode 采用三端分离架构，Java 后端负责核心编排，React 前�
 |----|--------|------|
 | **后端** | Java 21, Spring Boot 3.4.x, WebSocket, SQLite | 核心编排引擎、LLM API 路由、Agent 管理、内置工具与 MCP 动态扩展、统一授权网关、会话持久化 |
 | **前端** | React 18, TypeScript 5.6, Vite 5, TailwindCSS, Monaco Editor, xterm.js, Zustand | 对话式交互 UI、代码编辑器、内置终端、文件浏览器、设置面板、实时流式输出、委派结果查看 |
-| **Python 服务** | FastAPI, Uvicorn, Python 3.11+ | 代码分析、AST 解析、MCP 工具桥接 |
+| **Python 服务** | FastAPI, Uvicorn, Python 3.11/3.12 | 代码分析、AST 解析、MCP 工具桥接 |
 
 ### Docker 部署架构
 
@@ -608,15 +768,16 @@ ZhikunCode 的智能决策由以下核心引擎协同驱动：
 | **图片注入器（ImageRefInjector）** | 图片引用安全注入与预算管理 | 候选选取、动态预算、完整性校验和去重 |
 | **Token预算守卫（TokenBudgetGuard）** | 两阶段 Token 预算控制 | 历史 Base64 预清理 + 最终 payload 梯度降级 |
 | **工具执行管线（ToolExecutionPipeline）** | 工具执行全生命周期 | 校验、输入冻结、授权、执行和结果归一化 |
-| **自纠错循环（SelfCorrectionLoop）** | 错误诊断与自动修复 | MAX_ATTEMPTS=3(默认)/7(SWE-bench) |
+| **自纠错循环（SelfCorrectionLoop）** | 可选错误诊断与修复提示 | 默认关闭；配置启用后仍有尝试次数和运行预算限制 |
 | **RunControlService** | Run 生命周期 CAS | 状态原子更新，COMPLETED/FAILED/CANCELLED/INTERRUPTED 单一终态权威 |
 | **RunExecutionRegistry** | 活跃 Run 执行注册 | 以 Session 映射内存活跃 Run、输入队列与取消上下文；不承担 checkpoint 持久化 |
 | **DurableInteractionService** | 持久交互 | Inbox、ACK、服务端 deadline、CAS 终态与重连恢复 |
 | **Project 工作空间服务** | Project 选择与信任边界 | 持久授权、真实路径规范化、Session 工作目录固定、符号链接/别名/重绑定及越界复检 |
-| **Artifact Manifest 与发布策略** | 验证产物归属和显式发布 | 从同一根 Session 的 `verified` 或 `partial` Manifest 中选择已验证条目，发布前复核哈希 |
+| **Artifact Manifest 与发布策略** | 产物归属、完整性与发布检查 | Manifest 登记文件并校验哈希；OSS 有普通工作区文件回退，秒悟强制绑定通过的运行验证证据与发布快照 |
 | **BestEffortObservabilityRecorder** | 补充观测故障隔离 | 有界异步事件队列、丢弃/写失败指标；记录失败不反向破坏主执行链 |
 | **日志关联与恢复投影** | 诊断关联和断线恢复 | MDC 提供 `sid/rid/prid/agent/turn/tool/llm`；完整 Session 快照、Run event sequence、活跃工具状态及持久交互重放恢复前端 |
 
+<a id="-agent-主循环"></a>
 ### Agent Loop 查询循环
 
 ZhikunCode 的 QueryEngine 通过多步迭代循环驱动 Agent 决策与工具执行：
@@ -629,28 +790,30 @@ ZhikunCode 的 QueryEngine 通过多步迭代循环驱动 Agent 决策与工具�
 
 | 组件 | 职责 | 配置项 |
 |------|------|--------|
-| IncrementalCollapseManager | 每10轮触发一次增量上下文折叠 | `context.cascade.incremental-collapse.enabled` |
+| IncrementalCollapseManager | 当前按代码常量每 10 轮尝试增量折叠 | 同名 YAML 数值未绑定，不能假定修改配置即可调整 |
 | ContextCascade | 六层压缩级联（Snip→MicroCompact→ContextCollapse→AutoCompact→CollapseDrain→ReactiveCompact） | `context.cascade.*` |
-| MicroCompactService | 清除旧工具结果内容，降低上下文体积 | `features.flags.CACHED_MICROCOMPACT` |
-| ModelTierService | 模型降级链管理，30分钟冷却期自动恢复 | `app.model.tier-chain` |
+| MicroCompactService | 清除旧工具结果内容，保护近期内容 | 主循环调用；CACHED_MICROCOMPACT 仅控制提示段 |
+| ModelTierService | 模型降级与冷却；无 retryAfter 时默认 30 分钟，恢复还取决于后续成功调用 | `app.model.tier-chain` |
 
 **413 恢复**：由 [QueryEngine.java](backend/src/main/java/com/aicodeassistant/engine/QueryEngine.java) 编排，先尝试两级上下文压缩：
-1. **Level 3** — CollapseDrain 激进压缩（contextWindow × 0.5 目标）
-2. **Level 4** — ReactiveCompact 反应式压缩（仅保留 1 轮 + 极度压缩）
+1. **Level 3** — CollapseDrain 激进压缩，按当前恢复预算收缩历史
+2. **Level 4** — ReactiveCompact 反应式压缩，进一步缩减历史并保留必要上下文
 
 若仍失败且错误与媒体相关，再尝试移除媒体块；恢复耗尽后释放错误并终止，不继续落入普通模型降级。两级压缩不等同于完整错误恢复链路。
+
+收到上游明确的 token 上下文超限响应后，系统会按被拒请求的历史估算量，为本次执行中的实际模型收紧恢复预算；限制不带入下一次执行。恢复保留用户原文与完整工具事务；必要内容仍无法满足恢复目标时会停止恢复并提示新开会话。[恢复实现](backend/src/main/java/com/aicodeassistant/engine/QueryEngine.java) · [回归用例](backend/src/test/java/com/aicodeassistant/engine/QueryEngineUnitTest.java)。
 
 <details>
 <summary><b>六层压缩级联（ContextCascade）详解</b></summary>
 
 | 层级 | 名称 | 语义 | 触发条件 |
 |------|------|------|----------|
-| L0 | Snip（首选裁剪） | 优先裁剪工具输出中的冗余内容 | 上下文接近阈值 |
-| L1 | MicroCompact（微压缩） | 清除旧工具结果，降低上下文体积 | L0 不足 |
-| L1.5 | ContextCollapse（渐进折叠） | 增量折叠中间层，每10轮触发 | 配置启用 |
+| L0 | Snip（首选裁剪） | 按模型窗口预算截断过长工具结果 | 每轮检查工具结果预算 |
+| L1 | MicroCompact（微压缩） | 清除旧工具结果并保护近期内容 | 按保留尾部规则处理 |
+| L1.5 | ContextCollapse（渐进折叠） | 渐进折叠历史；增量折叠另以代码固定的 10 轮 Agent 循环阈值判断是否触发 | 启用对应机制时 |
 | L2 | AutoCompact（自动压缩） | 系统自动压缩全局上下文 | 常规阈值突破 |
-| L3 | CollapseDrain（激进压缩） | contextWindow × 0.5 目标，413恢复Phase1 | 413错误第一阶段 |
-| L4 | ReactiveCompact（反应式压缩） | 仅保留1轮 + 极度压缩，413恢复Phase2 | 413错误第二阶段 |
+| L3 | CollapseDrain（激进压缩） | 按恢复预算激进压缩 | 上游上下文拒绝后的第一阶段 |
+| L4 | ReactiveCompact（反应式压缩） | 进一步缩减历史并保留必要上下文 | 第一阶段仍不足时 |
 
 源码：`ContextCascade.java`
 
@@ -658,28 +821,28 @@ ZhikunCode 的 QueryEngine 通过多步迭代循环驱动 Agent 决策与工具�
 
 ---
 
+<a id="security"></a>
 ## 🔒 安全架构
 
-安全是 ZhikunCode 的核心设计原则。每一条命令执行前，都要经过多层安全检查。
+工具执行由授权、风险分析和具体执行路径共同约束。新会话默认完全访问（`AUTO_APPROVE`）；需人工确认时应先切换权限模式。授权控制、Git worktree 与 Docker 沙箱分别解决不同问题。
 
-### 8 层 Bash 安全沙箱
+<a id="8-层-bash-安全沙箱"></a>
+### Bash 检查与可选命令沙箱
 
-所有 Shell 命令执行前，必须通过以下 8 层检查：
+| 环节 | 当前行为与边界 |
+|---|---|
+| 命令与资源分析 | 解析命令、识别风险及资源，拒绝明确禁止的操作；不等于能识别所有 Shell 行为 |
+| 工具授权 | 按权限模式、Grant 与交互裁决；完全访问可自动批准到达授权阶段的高风险操作 |
+| 执行前检查 | 复核对应执行路径的目录、授权状态及运行准入；各工具分析器的复检范围不同 |
+| 进程与输出 | 受管执行有超时、终止和输出限制；取消回执不等于所有进程已经退出 |
+| Docker 命令沙箱 | 默认关闭；开启后还需 Docker 可用及执行路由支持，不覆盖所有后台／工具路径 |
+| 记录与诊断 | 工具结果、运行事件与审计记录帮助追踪；记录存在不证明业务结果正确 |
 
-| 层级 | 检查内容 | 说明 |
-|------|---------|------|
-| **第 1 层** | 命令解析 | 解析命令结构，识别管道、重定向、子命令 |
-| **第 2 层** | 黑名单过滤 | 三级拦截体系（ABSOLUTE_DENY/HIGH_RISK_ASK/AUDIT_LOG），阻断已知危险命令（`rm -rf /`、`mkfs`、`dd`、`format` 等），含 ReDoS 正则防护 |
-| **第 3 层** | 路径遍历检测 | 防止 `../` 路径穿越攻击，阻断设备路径、UNC 路径 |
-| **第 4 层** | 权限验证 | 统一授权网关裁决，敏感操作需用户审批 |
-| **第 5 层** | 沙箱执行 | 破坏性命令强制在 Docker 沙箱中执行（只读文件系统 + 内存限制 + 网络隔离） |
-| **第 6 层** | 参数净化 | 环境变量白名单、命令注入防护 |
-| **第 7 层** | 输出校验 | 检测异常输出，敏感信息脱敏 |
-| **第 8 层** | 审计日志 | 完整记录每次命令执行，可追溯 |
+源码：[BashTool](backend/src/main/java/com/aicodeassistant/tool/impl/BashTool.java) · [授权服务](backend/src/main/java/com/aicodeassistant/authorization/AuthorizationService.java)。
 
 ### 统一工具授权流程
 
-所有核心工具执行都经过同一条不可绕过的授权链：
+核心工具通过统一管线与网关进行授权，具体检查按工具类型实现：
 
 ```text
 Schema/Tool 校验
@@ -695,7 +858,7 @@ Schema/Tool 校验
 
 - 工具使用已冻结的规范输入执行，授权后修改原始参数不会改变实际执行内容。
 - 高风险操作只能选择 ONCE，不生成可复用 Grant。
-- 可证明安全的 Bash 命令只支持 RUN/SESSION 精确授权，不支持 WORKSPACE 宽授权。
+- Bash 的 SAFE／GUARDED 操作可记住 RUN／SESSION 工具范围授权，后续仍核对工具语义、风险和约束；不是只匹配原命令字符串，不支持 WORKSPACE。
 - 受约束的文件读取和编辑可以选择 SESSION/WORKSPACE。
 - 未知 MCP 和动态工具默认只能 ONCE；只有专用 Analyzer 才能产生可复用授权。
 - `network-v1` 和 `mcp-v1` 的 SAFE/GUARDED 操作可选择 RUN/SESSION：保存的 Grant 仅匹配同一工具，输入值可变化；不支持 WORKSPACE，HIGH 风险仍只能 ONCE。
@@ -732,7 +895,7 @@ Web 新会话必须先选择一个已授权目录。远程和 Docker 部署的�
 | 模式 | 实际行为 |
 |------|----------|
 | DEFAULT | 已授权 Project 内的普通文件编辑自动允许；其他无可复用 Grant 的受控操作请求用户确认 |
-| PLAN | 只允许安全工作区读取，其他 Effect 拒绝 |
+| PLAN | 允许安全工作区读取及列入 SAFE_INTERNAL 的内部操作；拒绝其他受控 Effect |
 | ACCEPT_EDITS | 自动允许工作区内非高风险文件编辑，其他受控操作仍需确认 |
 | DONT_ASK | 不创建交互；安全读取、已有 Grant 和已授权 Project 内普通文件操作可执行，其他需要交互的操作直接拒绝 |
 | AUTO_APPROVE | 自动批准到达人工授权阶段的工具操作，包括工作区外文件、公共互联网请求和秒悟发布；秒悟发布仍强制验证证据绑定、快照一致性与内容安全检查；硬拒绝、安全 Hook、SSRF 防护和部署沙箱仍然生效 |
@@ -743,13 +906,19 @@ Web 新会话必须先选择一个已授权目录。远程和 Docker 部署的�
 
 ### 受保护路径
 
-以下路径始终受系统安全不变量保护，权限模式和已保存 Grant 都不能绕过：
+以下路径由保护规则重点处理；不同工具及读写操作的结果不同。敏感文件读取可能进入高风险授权，不能把名单理解为任何权限模式下都绝对不可读：
 
 - `.git` — Git 仓库数据
 - `.env` — 环境变量和密钥
 - `.ssh` — SSH 密钥
 - `.gnupg` — GPG 密钥
 - `.aws` — AWS 凭证
+
+### 远程部署与访问边界
+
+镜像默认 `ALLOW_PRIVATE_NETWORK=true` 会放行所有到达后端的来源，并非只允许私网免认证。对外部署需在入口配置认证、TLS、防火墙和端口绑定；实例访问控制不等于多用户／租户隔离。改变该值须通过 Compose environment／override 显式传入，仅写根 `.env` 不会覆盖未透传变量。设为 false 后仍需核对代理来源与认证行为，不能当成完整公网身份体系。
+
+模型 API、MCP 和发布服务会接收请求中的相关数据；自托管运行环境不代表外部调用全部留在本机。源码：[访问过滤器](backend/src/main/java/com/aicodeassistant/config/RemoteAccessSecurityFilter.java)。
 
 ### 安全测试
 
@@ -768,12 +937,14 @@ Web 新会话必须先选择一个已授权目录。远程和 Docker 部署的�
 
 - 上述场景均有专项测试覆盖；完整安全套件通过本地回归或专项工作流执行。
 
+<a id="-质量保障"></a>
 ### 🧪 质量验证
 
-完整功能测试报告见 [ZhikunCode v9.3 全链路测试报告](docs/test-results/v9.3/ZhikunCode全链路测试报告.md)（2026-05-16）
+历史测试报告见 [全链路测试报告](docs/test-results/v9.3/ZhikunCode全链路测试报告.md)（目录名保留 v9.3，报告正文为 v9.5、2026-06-05）。下列数量均为注明日期的快照；历史采样总数不是当前独立测试用例数，也不代表当前提交已经通过全部检查。
 
 **持续集成：**
-- **GitHub Actions 自动化流水线**：主 CI 执行后端与 Python 测试、前端检查和构建；Docker 镜像验证仅在 `main` push 时执行。
+- **GitHub Actions 自动化流水线**：主 CI 执行后端与 Python 测试、前端测试和构建；Docker 镜像验证仅在 `main` push 时执行。[查看流水线](.github/workflows/ci.yml)。
+- **公开案例校验**：CI 通过 `node scripts/verify-king-case.mjs` 复算 MOBA 公开材料，依赖 Node.js 22 和 FFmpeg；校验文件与记录一致性，不替代对业务效果的判断。[校验脚本](scripts/verify-king-case.mjs)。
 
 **前端专项验证快照（2026-10-04，历史记录）：**
 
@@ -799,7 +970,7 @@ Web 新会话必须先选择一个已授权目录。远程和 Docker 部署的�
 - **APOS Phase 2 E2E**：5 模块 50 用例（变更影响全景 / Pipeline 视图与 DAG / 异常检测与告警 / 移动端响应式 / Phase 2 集成功能）48 PASS / 2 SKIP，通过率 96%
 - **APOS 风险修复专项**：11 用例 100% PASS（工具调用 / 批量操作 / 并发竞态 / API 降级）
 - **AI Coding 功能增强专项**：6 大模块（SelfCorrectionLoop / 精确Tokenizer / Skill预算安全 / BashTool动态超时 / GitDiffTracker / SearchStrategyRouter）33 用例 + 238 单元测试 + 7 集成测试 + Feature Flag 双向验证，100% PASS
-- **功能完整性验证**：100% 覆盖 v1.0 规划功能
+- **历史功能验证**：报告按当时用例范围记录结果，不代表当前版本全部功能完整或无缺陷
 
 **测试框架详情（2026-09-02 历史记录）：**
 
@@ -807,10 +978,12 @@ Web 新会话必须先选择一个已授权目录。远程和 Docker 部署的�
 |------|------|---------|------|
 | JUnit 5 + Mockito | 后端单元/集成测试 | 上下文/授权网关/技能/插件/LLM/MCP/记忆/并发/SSE/持久化/工具/工作台投影等（覆盖范围摘录） | 1258 tests / 0 failure / 0 error / 62 skipped |
 | Vitest | 前端单元测试 | Store 生命周期/跨 Tab 同步/流式渲染/权限交互/重连恢复/工作台与路由边界 | 207 PASS / 16 skipped |
-| Playwright + 节点脚本 | 端到端 E2E | 简洁工作台 / 可视化 3 种 viewType / 浏览器快照 MVP / APOS Phase 1 全栈 / APOS Phase 2 全栈 | 简洁工作台 7/7 PASS；Task 7/8/APOS 历史基线全绿 |
+| Playwright + 节点脚本 | 端到端 E2E | 简洁工作台 / 可视化 3 种 viewType / 浏览器快照 MVP / APOS Phase 1 全栈 / APOS Phase 2 全栈 | 简洁工作台 7/7 PASS；其他历史结果与跳过项见报告 |
 | Pytest | Python 服务测试 | Token 估算/文件处理/浏览器自动化/语义快照/代码分析器/CLI | 107 PASS |
 
-**性能基线摘录（v9.3，原报告共 490 次真实请求采样）：**
+**历史性能采样（2026-05-09，本地 macOS，490 次请求）：**
+
+单连接串行采样，14 个混合端点包括前端首页与 Python 健康接口；不含 LLM 推理耗时，也不是并发压测。
 
 | 指标 | p50 | p95 | p99 |
 |-----|-----|-----|-----|
@@ -823,7 +996,7 @@ Web 新会话必须先选择一个已授权目录。远程和 Docker 部署的�
 - 分模块测试结果：[docs/test-results/](docs/test-results/)
 - 前端 E2E 脚本：[frontend/e2e/](frontend/e2e/)
 - 隔离主题回归脚本：[frontend/tests/browser/theme-regression.mjs](frontend/tests/browser/theme-regression.mjs)
-- E2E 截图证据：[docs/test-results/screenshots/](docs/test-results/screenshots/)（42 项）
+- E2E 截图证据：[docs/test-results/screenshots/](docs/test-results/screenshots/)
 
 从仓库根目录运行主题回归（首次运行先安装前端依赖与 Playwright Chromium；已安装时可直接执行测试命令）：
 
@@ -861,7 +1034,7 @@ npm run test:theme-regression
 | 19 | F25 API 契约可视化 | 6 | 100% | ★ v1.0 新增 |
 | 20 | F35 代码→图表自动生成 | 25 | 100% | ★ v1.0 新增 |
 | 21 | F40 代码路径追踪可视化 | 25 | 100% | ★ v1.0 新增 |
-| 22 | 单元测试体系（v9.3 扩展） | 84 | 100% | E2E 模块级测试用例数（后端 JUnit 1500+ 已在别处统计） |
+| 22 | 单元测试体系（v9.3 扩展） | 84 | 100% | 原报告模块级用例数，与独立 JUnit 数量不是同一口径 |
 | 23 | APOS 基础 UI | 4 | 100% | ★ 首次覆盖 |
 | 24 | APOS 数据流转 | 4 | 100% | ★ 首次覆盖 |
 | 25 | APOS 三层展示 | 4 | 100% | ★ 首次覆盖 |
@@ -881,6 +1054,7 @@ npm run test:theme-regression
 
 ---
 
+<a id="extensions"></a>
 ## 🎯 skill技能系统
 
 ZhikunCode 的skill技能系统（Skill System）是一个 **Markdown 驱动的可扩展工作流引擎**。每个技能就是一个 `.md` 文件，用 YAML frontmatter 定义元数据，用 Markdown 正文定义执行指令。
@@ -899,7 +1073,9 @@ PC 和平板通过顶部 **Skill** 入口、手机通过 **更多 → Skill 管�
 
 ### 13 个内置技能
 
-在 Web 输入框输入 `/skill <技能名>` 打开技能弹窗，再填写参数并执行；发布使用表中的专用命令。技能提供工作流指引，同名直接命令（如 `/review`）有独立实现。
+在 Web 输入框输入 `/skill <技能名>` 打开技能弹窗，填写参数或任务说明后执行。内置 `commit`、`pr`、`test`、`verify`、`debug`、`remember`、`software-architecture`、`prompt-engineering`、`csv-data-summarizer`、`test-driven-development` 会在模板后保留完整补充说明；内置 `review` 将完整说明作为审查范围。Web `/skill` 与模型调用 `Skill` 都使用这套渲染规则。其他技能（包括项目或用户提供的同名覆盖）仍按声明参数替换模板，不自动追加原文。
+
+发布使用表中的专用命令；同名直接命令（如 `/review`）有独立实现。内置 13 个工作流默认启用，实际调用仍受开关、工具权限与服务配置约束。部署未启用 OSS 或秒悟时，对应 `/publish-oss` 或 `/publish-meoo` 不出现在命令列表和补全中；启用部署功能后仍需对应 Skill 可用。
 
 | 技能 | 命令 | 功能 |
 |------|------|------|
@@ -914,7 +1090,7 @@ PC 和平板通过顶部 **Skill** 入口、手机通过 **更多 → Skill 管�
 | **数据摘要** | `/skill csv-data-summarizer` | CSV统计分析+可视化图表+Markdown报告 |
 | **Prompt工程** | `/skill prompt-engineering` | 优化prompt结构、清晰度和有效性 |
 | **测试驱动开发** | `/skill test-driven-development` | TDD红→绿→重构循环方法论指导 |
-| **OSS 产物发布** | `/publish-oss` | 经单次高风险授权，从同一持久化根 Session 的根 Run 或授权后代 Run 中发布目标条目已验证且哈希仍匹配的产物；底层发布能力默认关闭且不会自动上传 |
+| **OSS 产物发布** | `/publish-oss` | 显式发布工作区单文件；匹配 Manifest 时校验条目与哈希，无匹配时按文件策略检查。部署默认关闭，审批依当前权限模式 |
 | **秒悟应用发布** | `/publish-meoo` | 每次创建新站点、保留旧站点并占用平台额度；结果卡显示匿名访问验证状态。[配置与使用说明](docs/deployment/meoo.md) |
 
 ### 技能加载来源
@@ -931,12 +1107,12 @@ bundled → project → user
 | **user** | `~/.zhikun/skills/` | 用户全局自定义技能 | ✅ 已实现 |
 | **project** | `.zhikun/skills/` | 项目级技能；是否纳入版本控制取决于 Git 忽略规则 | ✅ 已实现 |
 | **plugin** | 插件提供 | JAR 插件内嵌的技能 | 预留 |
-| **bundled** | 内置 | 13 个开箱即用技能 | ✅ 已实现 |
+| **bundled** | 内置 | 13 个工作流定义，执行依赖各自条件 | ✅ 已实现 |
 | **mcp** | MCP 构建 | 通过 MCP 协议注册的技能 | 预留 |
 
 ### 自定义技能
 
-在 `~/.zhikun/skills/` 或项目根目录 `.zhikun/skills/` 下创建 `.md` 文件：
+在后端运行用户的 `~/.zhikun/skills/translate.md` 中保存以下示例，重启后端加载。`project` 来源的 `.zhikun/skills/` 按后端启动目录解析，不随界面选择的 Project 切换：
 
 ```markdown
 ---
@@ -947,7 +1123,7 @@ arguments:
 
 # 翻译任务
 
-将用户选中的代码翻译为 {{language}}，保持原有逻辑和注释风格。
+将原对话中明确指定的代码翻译为 {{language}}，保持原有逻辑和必要注释。
 ```
 
 Web 调用方式：输入 `/skill translate`，在弹窗参数栏填写 `language=python` 或 `python`，再执行。
@@ -975,19 +1151,21 @@ Web 调用方式：输入 `/skill translate`，在弹窗参数栏填写 `languag
 | `paths` | list | 文件路径 glob 模式声明（元数据） |
 | `shell` | string | Shell 类型声明（默认 bash）；当前不据此启动或切换 Shell |
 
-> 已监听目录中的技能文件支持热更新（500ms 防抖）。删除同名覆盖文件不会自动恢复内置定义；修改内置资源或清理覆盖文件后，应重新构建并重启后端，再刷新前端菜单。
+> 已监听的项目技能目录支持热更新（500ms 防抖）；用户目录新增或修改后建议重启。删除同名覆盖文件不会自动恢复内置定义；修改内置资源或清理覆盖文件后，应重新构建并重启后端，再刷新前端菜单。
 
 **安全与运行控制：**
 - **技能加载与上下文**：不设置单技能或会话累计的 token 加载额度；模型上下文容量、运行轮次和输出限制仍然适用，重复加载仍会增加实际输入 token 消耗。
 - **工具声明**：`allowed_tools` 描述预期工具；当前不保证运行时强制执行这份列表，实际工具权限仍然适用
-- **参数检查**：`Skill` 工具入口对每个已解析参数检查 2000 字符上限，并匹配六类危险正则模式：`$(...)`、反引号、`; command`、管道命令、`&& rm`、`${...}`；后续工具调用仍经过实际授权与执行检查。
+- **文本技能检查**：模型调用 `Skill` 时，上述 10 个内置补充说明技能及内置 `review` 按原始说明全文检查 2000 长度上限（Java `String.length()`，包含参数名、空白和换行），不将 Markdown 或代码示例按 shell 危险模式过滤。对这 10 个技能，全文限长比此前逐参数限长更严格：单个参数未超限也可能因全文超限而被拒绝。本次保留此工具入口限制。
+- **其他技能检查**：通过 `Skill` 工具调用其他技能（包括自定义技能、同名覆盖和发布技能）时，仍对每个解析参数检查 2000 长度上限及六类危险正则模式：`$(...)`、反引号、`; command`、管道命令、`&& rm`、`${...}`。
+- **Web 命令入口**：`/skill` 不经过 `SkillToolValidator`，本次未给该入口新增上述长度或正则检查；同一段说明可能在 Web 命令入口可用、在 `Skill` 工具入口因全文超限被拒绝。后续实际工具调用仍经过授权和执行检查。
 - **Fork 深度检查**：fork 模式检查调用时的当前上下文深度，深度 ≥3 时拒绝；该入口仍只返回渲染正文与元数据。
 
 ---
 
 ## 🧩 插件系统
 
-ZhikunCode 的插件系统通过标准 **Java SPI（ServiceLoader）** 机制发现和加载第三方 JAR 插件，提供四大桥接能力：命令注册、工具注册、钩子拦截、MCP 服务器集成。通过 `plugin.enabled` Feature Flag 控制启停。
+ZhikunCode 的插件系统通过标准 **Java SPI（ServiceLoader）** 机制发现和加载第三方 JAR 插件，提供四大桥接能力：命令注册、工具注册、钩子拦截、MCP 服务器集成。`plugin.enabled`（默认 true）控制启动时自动加载，不是所有入口的运行时禁用开关；显式 reload／install 入口仍可初始化插件。
 
 ### 四大桥接能力
 
@@ -1000,8 +1178,8 @@ ZhikunCode 的插件系统通过标准 **Java SPI（ServiceLoader）** 机制发
 
 ### 安全特性
 
-- **PluginClassLoader 沙箱隔离** — 插件通过包白名单访问宿主 API：核心 API 包（`com.aicodeassistant.plugin.*`、`tool.*`、`command.*`、`mcp.*`）、标准库（`java.*`、`javax.*`、`jdk.*`、`sun.*`、`org.slf4j.*`）、基础框架（`org.springframework.*`、`com.fasterxml.jackson.*`、`jakarta.*`）。未在白名单中的宿主类访问会抛出 `ClassNotFoundException`
-- **钩子执行超时保护** — Virtual Thread + `CompletableFuture.orTimeout(5s)`，超时自动放行，防止插件阻塞主流程
+- **PluginClassLoader 类加载控制** — 插件通过包白名单访问宿主 API：核心 API 包（`com.aicodeassistant.plugin.*`、`tool.*`、`command.*`、`mcp.*`）、标准库（`java.*`、`javax.*`、`jdk.*`、`sun.*`、`org.slf4j.*`）、基础框架（`org.springframework.*`、`com.fasterxml.jackson.*`、`jakarta.*`）。未在白名单中的宿主类访问会抛出 `ClassNotFoundException`。插件仍在后端进程执行，这不是针对恶意代码的操作系统沙箱
+- **钩子执行超时保护** — 设置 5 秒等待超时；前置安全钩子失败或超时会拒绝执行，其他展示类钩子失败记录后继续。等待超时不等于插件线程已停止
 - **JAR 文件验证** — 加载前校验文件存在性、JAR 格式合法性、大小限制（默认 50MB）、SPI 配置文件（`META-INF/services/`）完整性
 - **API 版本兼容检查** — 插件声明 `minApiVersion` / `maxApiVersion`，宿主自动校验兼容性
 
@@ -1009,13 +1187,13 @@ ZhikunCode 的插件系统通过标准 **Java SPI（ServiceLoader）** 机制发
 
 支持运行时重新加载所有插件，无需重启服务：
 
-- 使用 `ReentrantReadWriteLock` 保证热重载期间的并发安全
+- 使用 `ReentrantReadWriteLock` 串行化重载与相关查询；不代表所有执行中的插件任务都已停止
 - 重载流程：卸载所有插件（注销命令/工具/钩子/MCP + 关闭 ClassLoader）→ 重新扫描加载
 - 触发方式：`/reload-plugins` 斜杠命令 或 REST API
 
 ### 8 种钩子事件类型
 
-插件可注册以下事件钩子，在关键节点执行自定义逻辑：
+插件接口声明以下事件；实际触发以接入链路为准，`TaskCompleted` 当前没有自动触发调用方：
 
 | 事件类型 | 触发时机 |
 |---------|----------|
@@ -1024,7 +1202,7 @@ ZhikunCode 的插件系统通过标准 **Java SPI（ServiceLoader）** 机制发
 | `UserPromptSubmit` | 提示词提交时 |
 | `SessionStart` | 会话开始 |
 | `SessionEnd` | 会话结束 |
-| `TaskCompleted` | 任务完成 |
+| `TaskCompleted` | 声明已存在，尚未自动触发 |
 | `Notification` | 通知事件 |
 | `Stop` | 停止事件 |
 
@@ -1066,21 +1244,22 @@ com.example.MyPlugin
 
 ---
 
+<a id="memory"></a>
 ## 🧠 记忆系统
 
-ZhikunCode 内置三层记忆架构，让 AI 助手能够 **跨会话记住你的偏好、项目约定和工作流程**。
+ZhikunCode 提供个人记忆与项目约定管理，也有团队 Markdown 组织方式；不同来源的加载入口不同。可把常用构建、测试和工程约定保存下来，在后续任务中复用。
 
 ### 三层记忆架构
 
 | 层级 | 文件 | 作用域 | 说明 |
 |------|------|--------|------|
-| **个人记忆** | `~/.ai-code-assistant/MEMORY.md` | 全局跨项目 | AI 自动记录用户偏好、常用模式、错误解决方案 |
+| **个人记忆** | `~/.ai-code-assistant/MEMORY.md` | 全局跨项目 | 通过 Memory 工具或页面读写，按需使用 |
 | **项目记忆** | `zhikun.md` / `zhikun.local.md` | 当前项目 | 项目级编码约定、架构决策、构建流程 |
-| **团队记忆** | `.zhikun/team-memories/*.md` | 团队共享 | 随代码库分发的团队规范和共享知识 |
+| **团队记忆** | `.zhikun/team-memories/*.md` | 团队共享 | 随代码库分发，经普通文件读取按需使用；未自动注入普通会话 |
 
 ### 记忆分类
 
-基于认知心理学模型的设计分类（实现层面通过文件路径和元数据标签区分），记忆自动归类为四种类型：
+实现支持四类标签；普通 Memory 工具写入默认使用 semantic，不能理解为自动语义分类：
 
 | 分类 | 说明 | 示例 |
 |------|------|------|
@@ -1091,13 +1270,13 @@ ZhikunCode 内置三层记忆架构，让 AI 助手能够 **跨会话记住你�
 
 ### 自动记忆与搜索
 
-AI 在交互过程中通过内置的 MemoryTool 自动记录和检索记忆：
+- **项目自动加载** — 所选 Project 根的 `zhikun.md` 与 `zhikun.local.md` 加入系统提示，不向父目录搜索。
+- **个人记忆工具** — Memory 提供 read／write／delete；实际是否写入取决于调用，不保证每轮自动记忆。
+- **团队资料** — 可用普通文件读取工具按需查看团队 Markdown；没有全量自动注入保证。
+- **来源记录** — 条目支持 source 等元数据。
+- **检索实现的状态** — 代码包含 BM25 与可选 LLM 重排，但尚未接入普通 Memory 工具或会话自动加载。不能把内部方法当作已经开放的搜索入口。
 
-- **自动写入** — AI 发现重要信息时主动记录（用户偏好、项目规范等）
-- **自动加载** — 每次会话启动时自动注入系统提示，无需手动操作
-- **BM25 搜索** — 纯 Java 实现的 BM25 搜索引擎，支持中英文混合检索（Unigram + Bigram 中文分词）
-- **来源追踪** — 支持记忆来源追踪（source 字段），区分 REST API 创建与 LLM 工具创建的记忆
-- **LLM 重排** — 可选的 LLM 精排服务，BM25 粗筛后由大模型进行相关性精排
+实现：[MemdirService](backend/src/main/java/com/aicodeassistant/memdir/MemdirService.java) · [项目约定加载](backend/src/main/java/com/aicodeassistant/service/ProjectMemoryService.java)。
 
 ### 页面管理记忆
 
@@ -1109,7 +1288,7 @@ AI 在交互过程中通过内置的 MemoryTool 自动记录和检索记忆：
 
 ### 项目记忆文件
 
-在项目根目录创建记忆文件，AI 会自动读取并遵循：
+在所选 Project 根目录创建以下文件，其内容会进入系统提示；是否准确执行仍需检查实际输出，不要在其中写凭证：
 
 ```markdown
 # zhikun.md — 项目约定（随代码库提交）
@@ -1135,25 +1314,24 @@ AI 在交互过程中通过内置的 MemoryTool 自动记录和检索记忆：
 
 ### 安全保护
 
-- 截断保护：个人记忆最多 200 行 / 25KB，防止系统提示 Token 爆炸
-- 自动压缩：超出 50,000 字符时自动压缩，保留最新 70%
-- 自动过期：90 天未访问的记忆自动清理
-- 路径穿越防护：项目记忆写入时校验绝对路径和符号链接
+- 页面保存有 50,000 字符限制，并提供备份、并发冲突检测和原子替换。
+- 项目约定有单文件读取上限与路径／符号链接检查。
+- 代码中的提示读取截断和过期清理是辅助路径；普通会话未接入个人／团队记忆全量加载，也没有周期清理调用。
 
 ---
 
 ## 💻 CLI 工具
 
-除了 Web UI，ZhikunCode 还提供完整的命令行能力，覆盖三种场景：
+除了 Web UI，ZhikunCode 提供复用后端引擎的命令行客户端，支持脚本输入、结构化输出和会话续接。
 
 ### Python CLI（aica）— 终端 AI 编程
 
 `aica` 是 ZhikunCode 的命令行客户端，设计为 UNIX 管道一等公民：
 
 ```bash
-# 安装
-cd python-service
-pip install -e ".[cli]"
+# 安装：先完成本地 Python 环境准备，从仓库根执行
+python-service/.venv/bin/python -m pip install -e './python-service[cli]'
+export PATH="$PWD/python-service/.venv/bin:$PATH"
 
 # 基础使用
 aica "帮我重构这个函数"
@@ -1187,11 +1365,11 @@ aica --continue "fix the bug we just discussed"
 | 管道支持 | 自动读取 stdin，与 shell 管道无缝组合 |
 | 权限模式 | `--permission-mode default/plan/accept_edits/dont_ask/auto_approve` 控制授权策略（CLI 未指定时新建默认完全访问、续接沿用会话权限；`auto_approve` 取消人工确认，含秒悟发布；不能绕过硬拒绝、安全 Hook、SSRF 或部署沙箱） |
 | 会话管理 | `--continue` 继续上次会话，`--resume <id>` 恢复指定会话 |
-| 模型选择 | `--model` 指定模型，`--effort` 控制推理深度 |
+| 模型选择 | `--model` 指定已配置模型；`--effort` 虽在 CLI 中解析，当前查询接口没有对应字段，不作为已生效功能 |
 | 工具控制 | `--allowed-tools` / `--disallowed-tools` 白名单/黑名单 |
 | 退出码 | 0=成功，1=通用错误，2=参数错误，3=连接错误，4=认证错误，130=Ctrl+C 中断 |
 
-> `aica` 通过 HTTP/SSE 连接 ZhikunCode 后端，共享同一套 Agent 引擎、工具集和安全架构。适合 CI/CD 集成和脚本自动化场景。
+> `aica` 通过 HTTP/SSE 连接后端，共享模型与权限控制。`--effort`、`--fallback-model`、`--fork-session`、`--json-schema` 虽能解析并发送，后端查询接口没有对应字段，不能依赖它们改变执行行为；以 [CLI](python-service/cli/main.py) 与 [查询接口](backend/src/main/java/com/aicodeassistant/controller/QueryController.java) 为准。自动化中应检查退出码和实际工具结果。
 
 ### 35+ 斜杠命令 — Web UI 快捷操作
 
@@ -1220,23 +1398,23 @@ aica --continue "fix the bug we just discussed"
 
 ## 📱 浏览器全流程操控
 
-这是 ZhikunCode 的核心差异化特性。与 Cursor、Cline 等需要安装桌面客户端或 IDE 插件的工具不同，ZhikunCode 是一个独立的 Web 应用 —— 部署一次，任何设备的浏览器都能用。
+ZhikunCode 是独立的 Web 应用。完成部署与访问控制后，可通过电脑、平板或手机浏览器跟进服务器上的任务。
 
 ### 为什么这很重要？
 
-| 场景 | 传统 AI 编程工具 | ZhikunCode |
-|------|-----------------|------------|
-| 通勤路上想审批一个权限请求 | ❌ 必须打开电脑 | ✅ 手机浏览器直接操作 |
-| 同事想试用你的 AI 编程助手 | ❌ 需要安装 VS Code + 插件 | ✅ 发一个链接就行 |
-| 部署到团队服务器多人共用 | ❌ 每人都要装客户端 | ✅ 浏览器打开就用 |
-| iPad 上改代码 | ❌ 没有原生客户端 | ✅ Safari/Chrome 直接用 |
+| 场景 | 使用方式与条件 |
+|---|---|
+| 离开电脑后跟进任务 | 手机浏览器查看运行状态、补充要求及处理待办审批 |
+| 在另一台设备继续查看 | 连接同一后端恢复会话与运行事件；后端重启不自动续跑执行栈 |
+| 在服务器处理项目 | 授权服务端目录；本地文件引用和远程上传是不同路径 |
+| 团队评估部署 | 可共用受控实例，但需要自行明确访问身份、项目权限与数据边界 |
 
 ### 完整的浏览器操控能力
 
-通过浏览器，你可以完成 AI 编程的全部流程：
+浏览器提供以下任务操作入口：
 
 - **对话式编程** — 输入自然语言需求，Agent 自动生成代码，实时流式输出
-- **权限审批** — 每个敏感操作都会弹出审批请求，你可以 允许/拒绝/修改
+- **权限审批** — 需要交互裁决时处理服务端提供的选项；默认完全访问可自动批准，并非每个敏感操作都弹窗
 - **方案协商** — Agent 提出方案后可以在浏览器中讨论、修改、确认
 - **任务管控** — 查看任务状态与结果，按任务 ID 请求取消并查询停止确认
 - **文件浏览** — 在浏览器中直接查看和导航项目文件树
@@ -1257,7 +1435,7 @@ aica --continue "fix the bug we just discussed"
 
 ### 🌉 Bridge 跨端桥接
 
-ZhikunCode 通过 Bridge 模块提供跨端桥接（Cross-Platform Bridge）能力：
+源码中保留以下 Bridge 组件，但连接与移动证据审批仍有未接通链路，不能作为完整跨端桥接功能宣传。普通浏览器远程操作不依赖它们：
 
 | 组件 | 职责 |
 |------|------|
@@ -1267,6 +1445,7 @@ ZhikunCode 通过 Bridge 模块提供跨端桥接（Cross-Platform Bridge）能�
 
 ---
 
+<a id="agents"></a>
 ## 🤖 Agent 委派与后台任务
 
 把独立调查、实现或验证交给子 Agent，让主 Agent 保持对整体目标的掌握；把需要持续查询的执行交给后台 Task，用任务 ID 跟踪状态与结果。两者都能让耗时工作与主对话配合推进，各自承担明确的职责。
@@ -1366,11 +1545,11 @@ Task 的执行状态由 `TaskCoordinator` 管理，查询区分“已请求取�
 
 ## 🧩 MCP 工具扩展
 
-ZhikunCode 实现了标准的 [MCP（Model Context Protocol）](https://modelcontextprotocol.io/) 协议，支持 Client + Server 双向模式，通过 4 种传输方式（StdIO/SSE/WebSocket/HTTP）连接外部 MCP 服务：
+ZhikunCode 的 [MCP（Model Context Protocol）](https://modelcontextprotocol.io/) 客户端支持 STDIO、SSE、HTTP 和 WebSocket，用于接入外部服务；另有可选 HTTP JSON-RPC 服务端入口，两者覆盖范围不同。
 
 ### 预置 MCP 服务
 
-当前注册表包含 17 个服务、83 个白名单工具。服务是否在运行时开放由独立的服务级开关控制；实际可用性还取决于百炼 API Key、控制台开通状态和账户额度。
+当前注册表收录 17 个预置服务、83 个白名单工具，不代表全部已连接或逐项实测。运行时还需通过服务开关、凭证、端点、账号开通／额度及远端工具列表检查，以管理页状态和实际调用为准。
 
 - **默认开启（4 个）**：智谱联网搜索、高德地图、千问图像、万相视频。
 - **默认关闭（13 个）**：新闻、法律、企业信息、文本内容审核、A 股金融数据、企业知识产权、万方文献、arXiv、1688 选品、物流、贵金属、零售洞察、旅游消费。
@@ -1418,6 +1597,8 @@ ALIBABA_CLOUD_OPS_VISIBLE_TOOLS=ECS_DescribeInstances,ECS_DescribeRegions,ECS_De
 
 修改 `.env` 或外部 MCP 连接配置后需要重启；重启后还需在 **MCP 管理** 页面手动启用所需服务。之后在管理页启用或关闭服务无需再次重启。
 
+本地外部服务还需要对应运行程序：GitHub wrapper 需要官方二进制或可用 Docker；Alibaba Cloud Ops wrapper 需要专用运行环境或 `uvx`。镜像已包含对应运行依赖；本地仅把 `scripts/mcp` 加到 PATH 或填写 Key 并不会安装它们。参见 [GitHub wrapper](scripts/mcp/zhikun-github-mcp) 和 [Alibaba wrapper](scripts/mcp/zhikun-alibaba-cloud-ops-mcp)。
+
 ### 自定义 MCP 工具
 
 管理员可在 `configuration/mcp/mcp_capability_registry.json` 中注册新的 MCP 工具。这里的 `enabled` 是工具白名单，不是用户服务开关：
@@ -1437,7 +1618,7 @@ ALIBABA_CLOUD_OPS_VISIBLE_TOOLS=ECS_DescribeInstances,ECS_DescribeRegions,ECS_De
 
 ### MCP 协议能力增强
 
-- **MCP Roots 安全边界**：声明工作区文件系统根，防止 MCP 服务器越界访问
+- **MCP Roots 范围声明**：向服务声明工作区根；不构成对远端进程的操作系统沙箱
 - **MCP 长操作进度追踪**：实时显示 MCP 工具执行进度，支持用户取消
 - **MCP Schema 智能压缩**：自动压缩大型工具参数描述，减少 LLM 上下文占用
 - **MCP 服务级上下文隔离**：关闭的服务不会建立连接、注册工具或向模型上下文注入 Schema
@@ -1445,17 +1626,18 @@ ALIBABA_CLOUD_OPS_VISIBLE_TOOLS=ECS_DescribeInstances,ECS_DescribeRegions,ECS_De
 
 ### MCP 协议传输层
 
-ZhikunCode 支持 MCP 协议的 Client + Server 双向模式，覆盖 4 种传输方式：
+| 客户端传输 | 典型连接方式 |
+|---|---|
+| STDIO | 启动本地子进程并通过标准输入输出通信 |
+| SSE | 连接远端 SSE 服务 |
+| HTTP | 连接远端 HTTP MCP 端点 |
+| WebSocket | 连接 WebSocket MCP 服务 |
 
-| 传输方式 | 方向 | 适用场景 |
-|---------|------|----------|
-| **StdIO** | Client | 本地进程通信，启动外部 MCP Server |
-| **SSE (Server-Sent Events)** | Client | 远程 HTTP 长连接，如 DashScope 托管 MCP |
-| **WebSocket** | Client/Server | 双向实时通信 |
-| **HTTP (Streamable)** | Client/Server | 标准 HTTP 请求响应 |
+服务端在 `mcp.server.enabled=true` 时提供 `/mcp` HTTP JSON-RPC 入口；不能据此宣称四类服务端均已接通。STDIO 服务端类尚无启动调用方，WebSocket `/app/mcp` 属于界面管理通道。实现见 [MCP 源码](backend/src/main/java/com/aicodeassistant/mcp/)。
 
 ---
 
+<a id="️-内置工具集"></a>
 ## 🛠️ 内置工具集
 
 ZhikunCode 提供 **40+ 内置工具**，并支持 MCP、插件与平台条件工具动态扩展；最终可用集合以当前部署、Feature Flag 和已连接的 MCP Server 为准：
@@ -1464,7 +1646,7 @@ ZhikunCode 提供 **40+ 内置工具**，并支持 MCP、插件与平台条件�
 |------|------|------|
 | **文件操作** | Read、Write、Edit、NotebookEdit | 读取、写入、编辑文件（原子写入+SHA-256冲突检测），支持 Jupyter Notebook；Read 支持大图片自动外置化（>50KB 转 JSON 引用，由 ImageRefInjector 按需注入） |
 | **代码搜索** | Grep、Glob、ToolSearch、LSP、Snip | 正则搜索、文件匹配、工具搜索、LSP 语言服务（含调用层级分析）、代码片段、智能分层搜索（作用域感知 4 层优先级路由） |
-| **命令执行** | Bash、PowerShell、REPL | Shell 沙箱执行（动态超时分类 + 受控恢复提示，不自动重试）、Windows PowerShell、交互式 REPL 会话 |
+| **命令执行** | Bash、PowerShell、REPL | Shell 执行（授权、动态超时分类与受控恢复提示；可选沙箱不覆盖全部路径，不自动重试）、Windows PowerShell、交互式 REPL 会话 |
 | **Git 操作** | Git、Worktree | Git 命令执行、Worktree 管理 |
 | **Web 工具** | WebSearch、WebFetch、WebBrowser | 网络搜索、网页抓取、浏览器自动化 |
 | **Agent 委派** | Agent | 五种角色、独立上下文、并行执行、同步或后台结果回收 |
@@ -1474,7 +1656,7 @@ ZhikunCode 提供 **40+ 内置工具**，并支持 MCP、插件与平台条件�
 | **计划工具** | EnterPlanMode、ExitPlanMode、VerifyPlanExecution | EnterPlanMode／ExitPlanMode 尚未接入权限切换，返回 PLAN_MODE_UNAVAILABLE；VerifyPlanExecution 提供文件、内容与命令结果检查 |
 | **配置** | Config、SyntheticOutput | 配置管理、合成输出 |
 | **监控** | Monitor、CtxInspect、TerminalCapture | 系统监控、上下文检查、终端输出捕获 |
-| **验证** | VerifyJourney | 运行时验证 — 浏览器端到端测试、HTTP API 断言链、混合模式自动切换；内部由 BrowserVerifier、HttpApiVerifier 策略实现 |
+| **验证** | VerifyJourney | 浏览器交互或 HTTP API 断言；auto 按步骤为整次旅程选择验证器，不是任意混合步骤切换。需运行验证开关与对应 Python 能力就绪 |
 | **MCP 扩展** | MCP 工具适配器 | 连接外部 MCP 服务（动态注册） |
 
 `PLAN` 权限模式仍然可用，与计划面板相互独立。`/plan` 和 `/plan on [名称]` 显示前端计划面板，`/plan off` 隐藏面板；这些命令不会改变会话权限。`EnterPlanMode`／`ExitPlanMode` 工具也不会切换权限、提交审批或展示计划文件。
@@ -1498,17 +1680,21 @@ ZhikunCode 提供多种可视化能力，展示 AI 编程过程中的数据和�
 | **文件树导航** | 侧边栏项目文件树，支持搜索过滤、虚拟滚动、文件类型图标 |
 | **代码复杂度 Treemap** | 基于 recharts 的交互式矩形面积图，面积映射代码行数(LOC)，颜色映射风险等级(A-E)，支持钻取导航、语言/风险过滤、统计卡片，Python radon + tree-sitter 多语言分析 |
 | **变更影响链路** | 基于 @xyflow/react 的 DAG 可视化，展示代码变更的影响传播路径，LibCST 精准解析 Python 调用图，BFS 逐层传播分析，节点类型/置信度/影响层级一目了然 |
-| **API 契约可视化** | 自动合并 Java + Python 双端 OpenAPI 规范，端点列表按 Tag 分组、HTTP 方法颜色编码、Schema 递归展示，支持 All/Java/Python 数据源切换 |
+| **API 契约可视化** | 合并 ZhikunCode 自身运行中的 Java + Python 双端 OpenAPI 规范（不自动推断任意用户项目的接口），端点列表按 Tag 分组、HTTP 方法颜色编码、Schema 递归展示，支持 All/Java/Python 数据源切换 |
 | **代码→图表自动生成** | 输入代码文件路径自动生成 Mermaid 时序图/流程图，Python LibCST + tree-sitter 多语言解析，调用链 BFS 遍历自动识别 Controller/Service/Repository 参与者，五维置信度评分(0-1)，Monaco Editor 实时编辑源码，SVG 复制 / PNG 下载导出，支持 1-5 级遍历深度控制 |
-| **代码路径追踪可视化** | 基于 @xyflow/react 的代码调用路径追踪可视化，Python CodePathTracer 正向 BFS 追踪 + 六层分层标注（Controller/Service/Repository/Database/External/Utility），dagre TB 布局算法自动排列节点，自定义 LayerNode 按层级着色，MiniMap 全局导览 + LayerStatsBar 层级统计，支持 API 端点扫描、参数追踪、节点点击详情、maxDepth 深度控制，通过侧边栏"代码路径" Tab 进入 |
+| **代码路径追踪可视化** | 基于 @xyflow/react 的静态代码调用路径可视化，Python CodePathTracer 正向 BFS 遍历 + 六层分层标注（Controller/Service/Repository/Database/External/Utility），dagre TB 布局算法自动排列节点，自定义 LayerNode 按层级着色，MiniMap 全局导览 + LayerStatsBar 层级统计，支持 API 端点扫描、参数追踪、节点点击详情、maxDepth 深度控制，通过侧边栏"代码路径" Tab 进入 |
 | **运行时验证进度面板** | JourneyVerifyPanel — 实时显示验证步骤执行状态（waiting/executing/passed/failed）、STOMP 推送进度、证据链关联 |
-| **RV-4 证据包查看器** | EvidenceBundleView — 7 类证据（screenshot / command / console / test / video / har / diff）按类型分 Tab 展示；MobileApprovalSheet 订阅 STOMP `verify_attention` 通知（`/user/queue/messages`），移动端底部弹层支持一键审批/驳回；REST API：`GET /api/evidence/{bundleId}`、`GET /api/evidence/session/{sessionId}`、`GET /api/evidence/blob/{sha256}` |
+| **RV-4 证据包查看器** | 查看已保存的 screenshot / command / console / test / video / har / diff 等证据类型，实际产出依步骤与环境而定；移动证据审批尚未完整接通。REST 入口提供证据查询与 Blob 下载：`GET /api/evidence/{bundleId}`、`GET /api/evidence/session/{sessionId}`、`GET /api/evidence/blob/{sha256}` |
 | **Activity Panel 活动面板** | 三层卡片展示（L1 紧凑 → L2 展开 → L3 Portal），实时显示工具执行状态、Signal 风险标记、审批决策状态 |
 
-> **v9.3 新增**：`/visualize` 命令通过 VisualizationAutoRouter 自动推送三种格式（mermaid / json / text），WS STOMP `/app/command` 端到端延迟 p50 < 3ms。
+> `/visualize` 通过 VisualizationAutoRouter 推送 mermaid／json／text。分析页面可从侧边栏进入；部分页面依赖 Python 服务及前端同源代理，基础 Docker 部署不能保证全部可用。调用图包含语言相关解析与启发式分析，置信度不等于准确率，也不是完整运行时追踪。
+
+验证时可要求模型打开实际页面完成指定操作，或调用 VerifyJourney 对接口状态／JSONPath 作断言，再检查工具结果和留存证据。自动模式为整次旅程选择浏览器或 HTTP 验证器；证据存储成功与测试行为通过是不同结果。
 
 ---
 
+<a id="️-配置说明"></a>
+<a id="configuration"></a>
 ## ⚙️ 配置说明
 
 ### 模型选择与路由
@@ -1519,7 +1705,7 @@ ZhikunCode 提供多种可视化能力，展示 AI 编程过程中的数据和�
 
 ### 环境变量
 
-环境变量通过 `.env` 文件管理。复制 `.env.example` 后按需修改：
+配置模板在 [`.env.example`](.env.example)，完整默认值和开关以 [application.yml](backend/src/main/resources/application.yml) 与 [ModelRegistry](backend/src/main/java/com/aicodeassistant/llm/ModelRegistry.java) 为准。手动启动时需显式加载 `.env`，Docker 只传入 Compose 列出的变量；写入 `.env` 不等于已进入进程。修改启动配置后重启对应服务。
 
 **多 Provider 配置（推荐）：**
 
@@ -1530,7 +1716,7 @@ ZhikunCode 提供多种可视化能力，展示 AI 编程过程中的数据和�
 | `LLM_PROVIDER_DEEPSEEK_API_KEY` | — | — | DeepSeek API Key |
 | `LLM_PROVIDER_MOONSHOT_API_KEY` | — | — | Moonshot/Kimi API Key |
 | `LLM_PROVIDER_KIMI_CODE_API_KEY` | — | — | Kimi Code 订阅 API Key；留空不注册订阅渠道 |
-| `LLM_PROVIDER_KIMI_CODE_MODELS` | — | k3,kimi-for-coding | Kimi K3 / K2.8 Preview 订阅模型列表 |
+| `LLM_PROVIDER_KIMI_CODE_MODELS` | — | k3.1-pro-highspeed,kimi-for-coding | Kimi Code 订阅模型列表；权限与额度取决于账号 |
 | `LLM_PROVIDER_ZHIPU_API_KEY` | — | — | 智谱 GLM API Key |
 | `LLM_PROVIDER_OPENROUTER_API_KEY` | — | — | OpenRouter API Key；留空不注册此 Provider |
 | `LLM_PROVIDER_OPENROUTER_MODELS` | — | openrouter/anthropic/claude-fable-5.1 | OpenRouter 可用模型列表（逗号分隔） |
@@ -1540,7 +1726,7 @@ ZhikunCode 提供多种可视化能力，展示 AI 编程过程中的数据和�
 | `LLM_COMPACT_PROVIDER` | — | deepseek | 压缩摘要 Provider；需已注册该 Provider，配合 `LLM_COMPACT_MODEL` 使用 |
 | `LLM_VISION_FALLBACK_MODEL` | — | deepseek-v4.1-flash | 当前模型不支持图片时优先使用的视觉模型 |
 
-> 多 Provider 模式下至少配置一个 Provider 的 API Key 即可。前端支持自由切换已配置的 Provider。
+> 前端可切换已配置且可用的 Provider。当前 Docker 入口只检查 DashScope、Token Plan、DeepSeek、Moonshot、Zhipu、ZenMux 或旧式 Key；仅 Kimi Code、MiniMax、OpenRouter Key 时会退出，可先按本地三服务启动。
 
 **WebSearch 配置（本地启动与 Docker Compose 均支持）：**
 
@@ -1556,7 +1742,7 @@ DeepSeek 仅接入 Search，`include_content` 默认关闭。收到 HTTP 408、4
 
 **OpenRouter / Claude Fable 5.1：** 在 `.env` 中填写 `LLM_PROVIDER_OPENROUTER_API_KEY`，重启服务后从模型列表选择 `Claude Fable 5.1（OpenRouter）`（`openrouter/anthropic/claude-fable-5.1`）。如需设为默认模型，增加 `LLM_DEFAULT_MODEL=openrouter/anthropic/claude-fable-5.1`。本地启动与 Docker Compose 均支持上述变量。
 
-本次模型目录精简由项目主动进行，不表示供应商下架。OpenRouter **Provider 默认模型**从免费预览的 Union Alpha 改为收费的 Claude Fable 5.1，仅影响使用该 Provider 默认回退的请求；全局 `app.model.default` 与 `LLM_DEFAULT_MODEL` 的默认值仍为百炼 `deepseek-v4.1-flash`。Fable 价格参考见下文。
+本次模型目录精简由项目主动进行，不表示供应商下架。OpenRouter **Provider 默认模型**从免费预览的 Union Alpha 改为收费的 Claude Fable 5.1，仅影响使用该 Provider 默认回退的请求；全局 `app.model.default` 与 `LLM_DEFAULT_MODEL` 的默认值仍为百炼 `deepseek-v4.1-flash`。实际计费以服务商账单为准。
 
 接入复用现有 `llm.providers.*` → `MultiProviderConfiguration` → `OpenAiCompatibleProvider` 链路，端点为 `https://openrouter.ai/api/v1`，沿用流式输出、图片输入、工具调用和 Key 轮换。能力由 `ModelRegistry` 统一提供给 `/api/models`，无需新增前端分支。
 
@@ -1566,13 +1752,13 @@ DeepSeek 仅接入 Search，`include_content` 默认关闭。收到 HTTP 408、4
 |---|---|---|---|
 | Claude Fable 5.1（OpenRouter） | `openrouter/anthropic/claude-fable-5.1` | `anthropic/claude-fable-5.1` | 1,000,000 / 128,000 |
 
-Claude Fable 5.1 使用已有 OpenRouter Key，默认请求 `reasoning.effort=max`、`exclude=false`，不受通用 thinking 关闭开关降档；官方当前标记该模型为强制推理模型。上下文使用官方完整窗口，仍保留现有输出预留、压缩阈值和安全余量。单次输出预算由现有运行配置决定，上表是模型支持上限，并非每次都生成该长度。
+Claude Fable 5.1 使用已有 OpenRouter Key，默认请求 `reasoning.effort=max`、`exclude=false`，不受通用 thinking 关闭开关降档；这是仓库注册与请求配置，账号可用性和上游规格需向服务商核实。上下文按注册表窗口配置，仍保留现有输出预留、压缩阈值和安全余量。单次输出预算由现有运行配置决定，上表是仓库登记上限，并非对服务商规格的独立保证，也非每次都生成该长度。
 
 内部 ID 的 `openrouter/` 前缀只用于路由、能力、会话与重试隔离，发送请求时去掉；现有 ZenMux 的 `openai/gpt-6-astra`、`anthropic/claude-fable-5.1` 路由保持不变。OpenRouter 的模型列表若填写官方原始 ID `anthropic/claude-fable-5.1`，启动时也会自动规范化并去重，避免注册顺序决定渠道。其他重复 ID 明确拒绝歧义路由。
 
-流式 thinking 使用现有展示事件；`reasoning_details`（含签名/加密数据）按原序保存，并仅对同 Provider、同模型的后续请求回传，切换渠道或模型不复用。价格按官方普通上下文参考录入，当前输入 $10/M、输出 $50/M。
+流式 thinking 使用现有展示事件；`reasoning_details`（含签名/加密数据）按原序保存，并仅对同 Provider、同模型的后续请求回传，切换渠道或模型不复用。费用展示采用仓库登记的参考价格，实际计费以账号和服务商账单为准。
 
-规格与推理参数核对日期：2026-09-17。参考：[Fable](https://openrouter.ai/anthropic/claude-fable-5.1)、[Reasoning 文档](https://openrouter.ai/docs/guides/best-practices/reasoning-tokens)。
+原配置记录日期：2026-09-17；模型与服务商页面可能变化。参考：[Fable](https://openrouter.ai/anthropic/claude-fable-5.1)、[Reasoning 文档](https://openrouter.ai/docs/guides/best-practices/reasoning-tokens)。
 
 **单 Provider 配置（向后兼容）：**
 
@@ -1598,7 +1784,7 @@ Claude Fable 5.1 使用已有 OpenRouter Key，默认请求 `reasoning.effort=ma
 | `ZHIKUN_LOCAL_PICKER_ENABLED` | — | false（后端）；true（`./start.sh` 且两个相关变量均无非空配置） | 仅供直连本机桌面服务浏览本机文件系统；显式 `false` 和 allowed roots 配置均会保留，反向代理和生产部署应保持关闭并配置 allowed roots |
 | `ZHIKUN_GLOBAL_DB_PATH` | — | `~/.config/ai-code-assistant/global.db` | Project 授权和全局配置数据库文件路径 |
 | `ZHIKUNCODE_DATABASE_PROJECT_ROOT` | — | Project 工作目录 | Session 数据库根目录；Docker Compose 固定为 `/app/data` |
-| `ALLOW_PRIVATE_NETWORK` | — | true（Docker） | Docker 环境下允许私有网段免认证访问 |
+| `ALLOW_PRIVATE_NETWORK` | — | true（Docker） | 放行所有到达后端的来源，并非仅私网；远程部署见安全章节 |
 | `LOG_DIR` | — | /app/log | 容器内日志目录 |
 | `MCP_REGISTRY_PATH` | — | 自动配置 | MCP 能力注册表文件路径 |
 
@@ -1613,7 +1799,7 @@ Claude Fable 5.1 使用已有 OpenRouter Key，默认请求 `reasoning.effort=ma
 | `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.8-max-0902 | 按量计费 DashScope 可用模型列表（逗号分隔；实际目录可动态扩展） |
 | `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` | — | qwen3.8-max,qwen3.8-flash,deepseek-v4.1-flash,bailian/glm-5.3 | 百炼 Token Plan Provider 可用模型列表；与普通 DashScope、DeepSeek 直连配置相互独立 |
 | `LLM_PROVIDER_DEEPSEEK_MODELS` | — | deepseek-flash | DeepSeek 可用模型列表；默认使用 V4.1 Flash（逗号分隔） |
-| `LLM_PROVIDER_MOONSHOT_MODELS` | — | kimi-k3 | Moonshot 可用模型列表（逗号分隔） |
+| `LLM_PROVIDER_MOONSHOT_MODELS` | — | kimi-k3.1-pro-highspeed | Moonshot 可用模型列表（逗号分隔） |
 | `LLM_PROVIDER_ZHIPU_MODELS` | — | glm-5.3,glm-5.3-flash | 智谱 GLM 可用模型列表（逗号分隔） |
 
 上述两个后台等待变量需进入后端进程环境；Docker 部署须通过 Compose override 的 `environment` 显式传入，仅写入项目 `.env` 不会自动透传。
@@ -1622,16 +1808,18 @@ Claude Fable 5.1 使用已有 OpenRouter Key，默认请求 `reasoning.effort=ma
 
 | 配置项 | 默认值 | 说明 |
 |--------|--------|------|
-| `context.cascade.incremental-collapse.enabled` | true | 启用增量折叠 |
-| `context.cascade.incremental-collapse.segment-turns` | 10 | 折叠触发间隔（轮数） |
-| `context.cascade.incremental-collapse.session-timeout-minutes` | 30 | 会话超时时间 |
-| `features.flags.CACHED_MICROCOMPACT` | true | 启用微压缩服务 |
-| `features.flags.TOKEN_BUDGET` | false | Token 预算控制（默认关闭，需要时手动开启） |
+| `context.cascade.incremental-collapse.enabled` | true | 启动时决定是否注册 IncrementalCollapseManager；设为 false 时禁用该组件触发的增量折叠，修改后需重启 |
+| `context.cascade.incremental-collapse.segment-turns` | 10 | YAML 声明值；实际 10 轮来自代码常量 |
+| `context.cascade.incremental-collapse.session-timeout-minutes` | 30 | YAML 声明值；当前跟踪状态的 30 分钟清理条件来自代码常量，不是任务超时 |
+| `features.flags.CACHED_MICROCOMPACT` | true | 控制系统提示中的微压缩说明段，不关闭实际 ContextCascade 微压缩 |
+| `features.flags.TOKEN_BUDGET` | false | 控制系统提示中的预算说明段，不代表 TokenBudgetGuard 默认关闭 |
 | `features.flags.SELF_CORRECTION_LOOP` | false | 执行失败自动诊断修复循环（编译错误/测试失败，最多重试3次） |
 | `features.flags.PRECISE_TOKENIZER` | false | 精确 Token 计数（调用 Python tiktoken，替代字符估算） |
 | `features.flags.GIT_DIFF_TRACKER` | false | Git 变更追踪与编辑历史聚合 |
 | `features.flags.SEARCH_STRATEGY_ROUTER` | false | 作用域感知分层搜索策略路由 |
 | `RUNTIME_VERIFICATION` | true | 启用运行时验证框架（开启后前端显示验证进度面板，需同时配合 BROWSER_AUTOMATION 或 HTTP_API 能力域） |
+
+通过 `FeatureFlagService` 读取的功能开关，可用后端进程环境变量 `FEATURE_<大写键名>` 覆盖 `features.flags` 中的对应值，例如 `FEATURE_PRECISE_TOKENIZER=true`；此规则不适用于任意配置项。手动启动需先加载环境变量，Docker 则需在 Compose 的 `environment` 中显式传入；仅写入根 `.env` 不会自动透传。修改后重启后端生效。
 
 ### Docker 资源限制
 
@@ -1644,16 +1832,29 @@ Claude Fable 5.1 使用已有 OpenRouter Key，默认请求 `reasoning.effort=ma
 | 健康检查间隔 | 30s |
 | 启动等待时间 | 60s |
 
-> **注意：** 首次构建镜像期间需要更多内存（Maven 编译 + npm build）。如果构建失败，请在 Docker Desktop 设置中增加内存分配至 6GB 以上。运行时容器内存上限为 4GB（可在 docker-compose.yml 中调整）。
+> 首次构建同时涉及 Maven 与前端构建；若出现内存不足，按构建日志增加 Docker 可用内存。表中为 Compose 声明值，实际限制取决于运行环境是否应用该配置。
 
 ---
 
+<a id="troubleshooting"></a>
 ## ❓ FAQ
+
+| 现象 | 先检查什么 |
+|---|---|
+| 构建／启动失败 | JDK 21、Node 22、依赖下载；Docker 看 `docker compose logs --tail=100 zhikuncode`，手动启动看各终端 |
+| Key 无效／没有工具调用 | 选择的 Provider 与模型、实际服务商错误、Docker 入口支持范围和模型工具调用能力 |
+| 端口占用 | 先识别 8080／8000／5173 的监听进程；不要终止不属于本次启动的服务 |
+| 找不到项目／挂载不可写 | 本地使用真实路径；Docker 选择容器路径，检查宿主卷权限和 Docker Desktop 文件共享 |
+| Python 活着但能力不可用 | `/api/health/capabilities` 中的 available／reason、实际解释器、依赖和 Chromium |
+| 页面断线／审批未出现 | WebSocket 代理与服务日志；重连恢复过程，默认完全访问可能不弹审批，后端重启则旧运行中断 |
+
+使用 `start.sh` 时日志位于 `log/backend-console.log`、`log/python-console.log`、`log/frontend-console.log`。Compose 的 `zhikun-data` 卷保存 `/app/data` 下的会话和全局配置，项目来自独立挂载；备份应同时覆盖两者，保留数据时不要执行 `docker compose down -v`。错误信息中先移除凭证再分享。
+
 
 <details>
 <summary><b>Q1：支持哪些大模型？</b></summary>
 
-支持所有兼容 OpenAI API 格式的模型，包括：
+提供 OpenAI 兼容接口接入路径和多 Provider 配置，例如：
 
 - **千问 / DashScope**（国内直连，默认推荐）
 - **DeepSeek**（国内直连）
@@ -1664,7 +1865,7 @@ Claude Fable 5.1 使用已有 OpenRouter Key，默认请求 `reasoning.effort=ma
 - **Anthropic Claude**（通过 OpenAI 兼容 API）
 - **本地模型**（通过 Ollama、vLLM 等）
 
-只要是兼容 OpenAI API 格式的服务商，配置好 `LLM_BASE_URL` 和 `LLM_API_KEY` 就能用。
+配置 `LLM_BASE_URL`、`LLM_API_KEY` 和模型 ID 后仍需验证兼容性，尤其工具调用、流式输出、图片和推理字段；兼容协议名称不保证每个模型能力都可用。
 
 </details>
 
@@ -1681,7 +1882,7 @@ Claude Fable 5.1 使用已有 OpenRouter Key，默认请求 `reasoning.effort=ma
 ```bash
 git clone https://github.com/zhikunqingtao/zhikuncode.git && cd zhikuncode
 cp .env.example .env  # 编辑填入 API Key
-docker compose up -d  # 启动
+docker compose up -d --build  # 构建并启动
 ```
 
 打开 `http://localhost:8080` 即可使用。
@@ -1695,9 +1896,11 @@ docker compose up -d  # 启动
 
 - **会话数据** — SQLite 数据库，存储在 Docker Volume `zhikun-data` 中
 - **项目代码** — 通过 Volume 挂载你本地的项目目录
-- **API Key** — 只存在你的 `.env` 文件和运行中的容器环境变量中
+- **API Key** — 由部署环境和配置管理；排查日志或分享资料前应移除凭证
 
-> **首次升级：** Compose 现在把 Session 数据库和全局配置数据库分别持久化到 `zhikun-data` 中的 `/app/data/.ai-code-assistant` 和 `/app/data/global.db`。已有部署如需保留旧容器内的数据，请先停止并备份 `/app/.ai-code-assistant` 和 `/app/.config/ai-code-assistant/global.db`，再按以下步骤恢复；全程不要使用 `docker compose down -v`。
+> **旧授权数据库升级边界：** 当前 V015 持久交互与 V019 授权表不保证兼容旧版授权 schema，旧权限不会自动转成当前 Grant。旧表可能缺少必需列或与新表同名，迁移校验失败会阻止启动。升级前应停止应用并一致备份项目库、全局库及相关数据，先在隔离副本验证目标版本迁移与启动；不兼容时停止升级、保留原库，采用经过验证的迁移方案后重新授权。项目库也保存会话和消息，不能直接删库或无条件重建；只有明确可丢弃的开发库才适合重建。
+>
+> **已验证兼容后的存储路径迁移：** Compose 现在把 Session 数据库和全局配置数据库分别持久化到 `zhikun-data` 中的 `/app/data/.ai-code-assistant` 和 `/app/data/global.db`。以下步骤仅处理旧容器数据的复制与恢复，不转换授权 schema。确认上述副本验证通过后，停止并备份 `/app/.ai-code-assistant` 和 `/app/.config/ai-code-assistant/global.db`，再恢复到新位置；全程不要使用 `docker compose down -v`。
 >
 > ```bash
 > docker compose stop zhikuncode
@@ -1717,17 +1920,17 @@ docker compose up -d  # 启动
 >
 > `docker compose create` 只创建、不启动新容器；必须在首次 `start` 前完成恢复和 `chown`。旧路径不存在时可跳过对应的 `docker cp` 和恢复目标。确认 Session、配置和已授权 Project 正常后再删除本地备份。
 
-ZhikunCode 不运行任何遥测服务。API Key 直连你配置的 LLM 服务商，中间不经过任何代理或中转服务器。
+实际请求发往你配置的模型／MCP／云服务端点；如果选择聚合 Provider 或代理，请求也会经过该渠道。自托管不代表所有输入只留在本地。
 
 </details>
 
 <details>
 <summary><b>Q4：支持内网 / 离线部署吗？</b></summary>
 
-**支持。** Docker 部署后完全在内网运行。
+可以部署在内网；使用云模型、联网搜索、MCP 或发布时仍需访问相应端点。完全离线还需提前准备构建依赖、模型和运行资源，并验证所选模型的工具调用兼容性。
 
 - **使用国产模型（千问/DeepSeek）：** 国内网络直连，无需科学上网
-- **完全离线：** 搭配 Ollama 运行本地模型，`LLM_BASE_URL=http://host.docker.internal:11434/v1`
+- **本地模型：** 可配置 Ollama 的兼容端点；例如 Docker Desktop 下宿主服务为 `http://host.docker.internal:11434/v1`，Linux 需另行配置宿主地址。是否适合当前任务需实际验证
 - **企业内网：** 只需确保服务器能访问 LLM API 端点即可
 
 </details>
@@ -1754,7 +1957,7 @@ ZhikunCode 不运行任何遥测服务。API Key 直连你配置的 LLM 服务�
 - **VS Code + Copilot** —— 做行级代码补全
 - **ZhikunCode** —— 做对话式 Agent 编程、复杂任务编排
 
-两者互补，不冲突。
+两者可并用；同时修改同一项目时应协调文件范围，避免覆盖彼此改动。
 
 </details>
 
@@ -1812,7 +2015,7 @@ docker ps -a
 docker logs zhikuncode
 
 # 查看健康检查详情
-docker inspect --format='json .State.Health' zhikuncode | python3 -m json.tool
+docker inspect --format='{{json .State.Health}}' zhikuncode | python3 -m json.tool
 ```
 
 **常见启动失败原因：**
@@ -1832,13 +2035,13 @@ docker exec -it zhikuncode tail -100 /app/log/app.log
 
 **关于 `ALLOW_PRIVATE_NETWORK`：**
 
-此变量控制是否允许 Docker 桥接网络内的请求免认证访问。在 Docker 环境中默认为 `true`，因为容器网络本身已提供隔离。如需更严格的安全策略（如多租户环境），可设置为 `false`，此时所有非 localhost 请求都需要 Bearer Token 认证。
+当前镜像默认 `true` 会放行所有到达后端的来源；容器网络不能替代入口认证。请按[安全章节](#security)配置认证、TLS、端口绑定和代理边界。设为 false 需通过 Compose 显式传入，之后仍要核对认证行为。
 
 **调整 JVM 内存：**
 
 在 `.env` 中设置：
 ```bash
-JAVA_OPTS=-Xms512m -Xmx2048m --enable-preview
+JAVA_OPTS="-Xms512m -Xmx2048m --enable-preview"
 ```
 
 </details>
@@ -1863,6 +2066,9 @@ docker compose up -d
 </details>
 
 ---
+
+<a id="resources"></a>
+继续阅读：[案例资料](docs/case-studies/) · [系统架构图](https://zhikunqingtao.github.io/zhikuncode/ZhikunCode-Architecture.html) · [能力总览](https://zhikunqingtao.github.io/zhikuncode/ZhikunCode-Capability-Overview.html) · [会话合并设计](docs/session-merge-architecture-v2.md) · [安全问题报告](SECURITY.md)。
 
 ## 🤝 贡献
 

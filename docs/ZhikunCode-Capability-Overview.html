@@ -21,9 +21,69 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
 @keyframes pulseFlowLine { 0% { stroke-dashoffset: 40; opacity: 0.6; } 50% { opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 0.6; } }
 @keyframes subtlePulse { 0%,100% { opacity: 0.85; } 50% { opacity: 1; } }
 </style>
-</head>
+<style>
+.current-guide{margin:0 0 28px;padding:24px;border:1px solid #315273;border-radius:12px;background:#101d30;color:#dce8f4;font:15px/1.8 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;overflow-wrap:anywhere}.current-guide h2{font-size:22px;margin:12px 0}.current-guide p{margin:10px 0}.current-guide ul{padding-left:22px;margin:12px 0}.current-guide a{color:#75bcff;text-decoration:underline;text-underline-offset:3px}.current-guide nav{display:flex;gap:10px 22px;flex-wrap:wrap}.current-guide .asof{color:#75d7b2;font-size:12px;letter-spacing:.04em}.current-guide strong{color:#fff}.current-guide code{font-size:.9em}.current-guide a:focus-visible{outline:2px solid #75bcff;outline-offset:4px}.current-guide .scope{font-size:13px;color:#9eb0c6}.current-guide .reading-map{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:0;list-style:none}.current-guide .reading-map li{border:1px solid #31435e;border-radius:8px;padding:12px}.current-guide .reading-map small{display:block;color:#9eb0c6}@media(max-width:700px){.current-guide{padding:17px;font-size:14px}.current-guide .reading-map{grid-template-columns:1fr}.current-guide h2{font-size:20px}}
+</style></head>
 <body>
 <div class="blueprint-container">
+<section class="current-guide" id="current-guide" aria-label="当前阅读说明">
+<nav aria-label="文档导航">
+<a href="index.html">展示首页</a>
+<a href="https://github.com/zhikunqingtao/zhikuncode/blob/main/README.md#resources">使用说明与资料</a>
+<a href="ZhikunCode-Architecture.html">架构图</a>
+<a href="ZhikunCode-Capability-Overview.html">能力地图</a>
+<a href="https://github.com/zhikunqingtao/zhikuncode/blob/main/README.md#cases">案例与证据</a>
+<a href="https://github.com/zhikunqingtao/zhikuncode/blob/main/README.md#adoption">采用条件</a>
+</nav>
+<p class="asof">关键行为核对记录：2026-10-23 · 核对基线 5865df59</p>
+<h2>能力地图：先确认入口和使用条件</h2>
+<p>Java 管理模型调用、工具执行、授权和运行状态；React 提供浏览器操作界面；可选 Python 服务提供代码、文件、Git 分析、浏览器与 HTTP 验证等能力。</p>
+<ul>
+<li>
+<strong>当前界面：</strong>开发工作台与标准显示方式；简洁工作台切换入口已隐藏。仍可选择精简、标准、完整过程三档显示。</li>
+<li>
+<strong>执行与恢复：</strong>完整模型响应持久化、取消检查通过后才提交已验证工具；流式参数预览不代表已开始执行。重连恢复会话与交互投影；进程重启后不自动续跑旧线程。</li>
+<li>
+<strong>默认与依赖：</strong>基础 Compose 启动 Java 与静态前端，Python 已打包但默认不启动。WebBrowser 与 Runtime Verification 开关默认开启，仍需对应 Python 能力；精确 tokenizer、自纠错循环、Cron 触发、Monitor 与 ToolSearch 默认关闭。</li>
+<li>
+<strong>授权与隔离：</strong>新会话默认 <code>AUTO_APPROVE</code>，硬拒绝与复检仍生效。Docker 命令隔离默认关闭；Docker 不可用可回退，后台命令先走普通执行路径。Project 与插件类加载隔离均不等于 OS 沙箱；远程部署需单独配置入口访问控制。</li>
+<li>
+<strong>图内条件工具：</strong>星号标记项中 EnterPlan/ExitPlan 当前返回不可用；Cron 与 Monitor 默认关闭。<br>
+<strong>检查与交付：</strong>文件 hash 校验说明完整性，需求验收取决于实际检查。OSS 在无匹配 Manifest 条目时可为已有工作区文件建立发布快照；秒悟另有验证与发布契约。发布仍须显式请求和相应配置。</li>
+<li>
+<strong>技能入口：</strong>10 个内置文本技能保留完整补充说明，review 保留完整审查范围；Skill 工具检查这些输入的全文长度（含参数名和空白），上限为 2000，不过滤 shell 模式。Web <code>/skill</code> 不经该校验器；其他技能在工具入口仍逐参数校验。<a href="https://github.com/zhikunqingtao/zhikuncode/blob/main/README.md#extensions">名单与兼容性说明</a>。部署未启用 OSS 或秒悟时，对应发布命令隐藏。</li>
+</ul>
+<p>
+<a href="https://github.com/zhikunqingtao/zhikuncode/blob/main/README.md#quickstart">部署及 Python 路由</a> · <a href="https://github.com/zhikunqingtao/zhikuncode/blob/main/README.md#configuration">模型与开关</a> · <a href="https://github.com/zhikunqingtao/zhikuncode/blob/main/README.md#security">权限、网络与隔离</a> · <a href="https://github.com/zhikunqingtao/zhikuncode/blob/main/README.md#how-it-works">执行、验证与产物</a>
+</p>
+<ul class="reading-map">
+<li>
+<a href="https://github.com/zhikunqingtao/zhikuncode/blob/main/README.md#workbench">操作界面与 CLI</a>
+<small>项目、会话、输入、修改查看</small>
+</li>
+<li>
+<a href="https://github.com/zhikunqingtao/zhikuncode/blob/main/README.md#agents">Agent 与任务</a>
+<small>委派、工作目录、取消与整合</small>
+</li>
+<li>
+<a href="https://github.com/zhikunqingtao/zhikuncode/blob/main/README.md#extensions">Skill / MCP / Plugin</a>
+<small>能力发现、接入与信任条件</small>
+</li>
+<li>
+<a href="https://github.com/zhikunqingtao/zhikuncode/blob/main/README.md#how-it-works">工具、验证与交付</a>
+<small>执行状态、检查范围、产物身份</small>
+</li>
+<li>
+<a href="https://github.com/zhikunqingtao/zhikuncode/blob/main/README.md#memory">项目知识与记忆</a>
+<small>约定、检索和实际消费</small>
+</li>
+<li>
+<a href="https://github.com/zhikunqingtao/zhikuncode/blob/main/README.md#configuration">模型与可选能力</a>
+<small>配置、依赖和默认开关</small>
+</li>
+</ul>
+<p class="scope">图示保留原有结构与公开锚点；旧规模统计为 ea0170c / 2026-08-09 的历史快照。模型数字与原图细节沿用各自核对窗口，采用时以配置指南和当前源码为准。本次校准上述关键边界，不将全部图示视为当前版本的端到端实测。<a href="https://github.com/zhikunqingtao/zhikuncode/blob/main/README.md#resources">使用说明与源码入口</a>。</p>
+</section>
 <div class="blueprint-scroll" tabindex="0" role="region" aria-label="系统架构大图，可横向滚动"><svg id="audit-diagram-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 4860" preserveAspectRatio="xMidYMin meet">
 <defs>
   <!-- Circuit board grid pattern -->
@@ -104,7 +164,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
 <g transform="translate(700, 50)">
   <text x="0" y="42" text-anchor="middle" fill="#00e5ff" font-size="52" font-weight="800" filter="url(#glowCyan)" style="animation: breathe 4s infinite">ZhikunCode</text>
   <text x="0" y="78" text-anchor="middle" fill="#B8D4E8" font-size="22" font-weight="600" letter-spacing="8">系统工程架构大图</text>
-  <text x="0" y="110" text-anchor="middle" fill="#8BA4B8" font-size="13">当前能力 · 13个内置技能 · 工具授权 · Agent / Task · 显式发布 · 2026-09-16</text>
+  <text x="0" y="110" text-anchor="middle" fill="#8BA4B8" font-size="13">能力地图 · 工具授权 · Agent / Task · 显式发布 · 条件见页首</text>
   <line x1="-500" y1="125" x2="500" y2="125" stroke="url(#flowLine)" stroke-width="1.5" opacity="0.5"/>
 </g>
 
@@ -161,8 +221,8 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
   <g transform="translate(970, 35)">
     <rect x="0" y="0" width="310" height="145" rx="4" fill="#0f2035" stroke="#00e5ff" stroke-width="0.8" opacity="0.8"/>
     <text x="10" y="20" fill="#00e5ff" font-size="12" font-weight="bold">对话渲染与轮次投影</text>
-    <text x="10" y="40" fill="#8da4b0" font-size="9">流式消息 → TurnCard · 双工作台</text>
-    <text x="10" y="55" fill="#8da4b0" font-size="9">三档显示方式；新会话默认开发 + 标准</text>
+    <text x="10" y="40" fill="#8da4b0" font-size="9">流式消息 → TurnCard · 开发工作台</text>
+    <text x="10" y="55" fill="#8da4b0" font-size="9">三档显示方式；工作台切换入口隐藏</text>
     <text x="10" y="70" fill="#8da4b0" font-size="9">主题切换保留草稿与展开状态</text>
     <line x1="10" y1="80" x2="290" y2="80" stroke="#253555" stroke-width="0.5"/>
     <text x="10" y="95" fill="#00e5ff" font-size="11" font-weight="bold">本轮文件投影*</text>
@@ -427,7 +487,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
       <text x="0" y="38" fill="#8da4b0" font-size="8">1M context · native vision · tools</text>
       <text x="0" y="50" fill="#8da4b0" font-size="8">deepseek-v4.1-flash（百炼默认，1M）</text>
       <text x="0" y="62" fill="#8da4b0" font-size="8">qwen3.8-max-0902 | qwen3.8-max / flash（百炼）</text>
-      <text x="0" y="74" fill="#8da4b0" font-size="8">DeepSeek V4.1 Flash（百炼 / 直连）| kimi-k3</text>
+      <text x="0" y="74" fill="#8da4b0" font-size="8">kimi-k3.1-pro-highspeed (1M, vision)</text>
       <text x="0" y="86" fill="#8da4b0" font-size="8">glm-5.3 (1M) | glm-5.3-flash (1M, 50张图)</text>
     </g>
 
@@ -450,7 +510,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
     <!-- Degradation chain -->
     <g transform="translate(20, 250)">
       <rect x="0" y="0" width="580" height="38" rx="3" fill="#1a1a2e" stroke="#ff8f00" stroke-width="0.6"/>
-      <text x="10" y="14" fill="#ff8f00" font-size="9" font-weight="bold">默认 / 快速 / 摘要 / 图片兜底：百炼 V4.1 Flash · reasoning_effort="max"</text>
+      <text x="10" y="14" fill="#ff8f00" font-size="9" font-weight="bold">默认/快速/视觉：百炼 Flash；摘要：DeepSeek 直连 Flash</text>
       <text x="10" y="28" fill="#8da4b0" font-size="8">Sonnet / Qwen Max → deepseek-v4.1-flash（百炼）→ deepseek-flash（直连）</text>
     </g>
   </g>
@@ -483,7 +543,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
       <rect x="105" y="60" width="110" height="22" rx="2" fill="#4e342e" stroke="#ff8a65" stroke-width="0.5"/>
       <text x="110" y="75" fill="#ffcc80" font-size="8">TerminalCapture</text>
       <rect x="220" y="60" width="90" height="22" rx="2" fill="#4e342e" stroke="#ff8a65" stroke-width="0.5"/>
-      <text x="225" y="75" fill="#ffcc80" font-size="8">MonitorTool</text>
+      <text x="225" y="75" fill="#ffcc80" font-size="8">Monitor*</text>
 
       <!-- Code analysis tools -->
       <text x="0" y="100" fill="#80d8ff" font-size="9" font-weight="bold">代码分析(4)</text>
@@ -521,11 +581,11 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
       <rect x="150" y="192" width="80" height="22" rx="2" fill="#263238" stroke="#8da4b0" stroke-width="0.5"/>
       <text x="155" y="207" fill="#b0bec5" font-size="7">VerifyPlan</text>
       <rect x="235" y="192" width="80" height="22" rx="2" fill="#263238" stroke="#8da4b0" stroke-width="0.5"/>
-      <text x="240" y="207" fill="#b0bec5" font-size="7">EnterPlan</text>
+      <text x="240" y="207" fill="#b0bec5" font-size="7">EnterPlan*</text>
       <rect x="320" y="192" width="75" height="22" rx="2" fill="#263238" stroke="#8da4b0" stroke-width="0.5"/>
-      <text x="325" y="207" fill="#b0bec5" font-size="7">ExitPlan</text>
+      <text x="325" y="207" fill="#b0bec5" font-size="7">ExitPlan*</text>
       <rect x="400" y="192" width="80" height="22" rx="2" fill="#263238" stroke="#8da4b0" stroke-width="0.5"/>
-      <text x="405" y="207" fill="#b0bec5" font-size="7">CronCreate</text>
+      <text x="405" y="207" fill="#b0bec5" font-size="7">CronCreate*</text>
       <rect x="485" y="192" width="75" height="22" rx="2" fill="#263238" stroke="#8da4b0" stroke-width="0.5"/>
       <text x="490" y="207" fill="#b0bec5" font-size="7">CronDelete</text>
       <rect x="0" y="218" width="70" height="22" rx="2" fill="#263238" stroke="#8da4b0" stroke-width="0.5"/>
@@ -620,7 +680,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
   <!-- ═══ 2G: SelfCorrectionLoop ═══ -->
   <g transform="translate(440, 1420)">
     <rect x="0" y="0" width="440" height="200" rx="10" fill="url(#cardBgGrad)" stroke="#F59E0B" stroke-width="1.4" opacity="1"/>
-    <text x="15" y="22" fill="#FBBF24" font-size="13" font-weight="bold">自纠错循环（SelfCorrectionLoop）</text>
+    <text x="15" y="22" fill="#FBBF24" font-size="13" font-weight="bold">可选自纠错（默认关闭）</text>
     <text x="290" y="22" fill="#8da4b0" font-size="10">仓库感知</text>
 
     <!-- Loop diagram -->
@@ -720,7 +780,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
     <!-- Startup loading order -->
     <g transform="translate(20, 38)">
       <text x="0" y="12" fill="#ffd54f" font-size="9" font-weight="bold">启动加载顺序：</text>
-      <text x="0" y="28" fill="#8da4b0" font-size="8">BUNDLED（内置）→ PROJECT（项目）→ USER（用户）· 同名后加载覆盖</text>
+      <text x="0" y="28" fill="#8da4b0" font-size="8">BUNDLED → PROJECT（启动目录解析，非所选项目）→ USER · 同名后加载覆盖</text>
     </g>
 
     <!-- Built-in skills grid -->
@@ -897,18 +957,18 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
   <g transform="translate(20, 2590)">
     <rect x="0" y="0" width="380" height="160" rx="10" fill="url(#cardBgGrad)" stroke="#6366F1" stroke-width="1.4" opacity="1"/>
     <rect x="0" y="0" width="380" height="160" rx="10" fill="url(#bridgeGrad)" opacity="0.06"/>
-    <text x="15" y="22" fill="#818CF8" font-size="12" font-weight="bold">跨端桥接（Bridge）</text>
-    <text x="210" y="22" fill="#8da4b0" font-size="10">bridge/ 9文件</text>
+    <text x="15" y="22" fill="#818CF8" font-size="12" font-weight="bold">Bridge（尚未接通）</text>
+    <text x="240" y="22" fill="#8da4b0" font-size="9">实验骨架 · 待集成</text>
 
     <g transform="translate(15, 38)">
       <rect x="0" y="0" width="345" height="28" rx="2" fill="#1E1B4B" stroke="#6366F1" stroke-width="0.6"/>
-      <text x="8" y="18" fill="#A5B4FC" font-size="9">BridgeServer — 跨端通信桥 · 设备发现</text>
+      <text x="8" y="18" fill="#A5B4FC" font-size="9">BridgeServer — 命令 / 文件处理仍为占位</text>
 
       <rect x="0" y="32" width="345" height="28" rx="2" fill="#1E1B4B" stroke="#6366F1" stroke-width="0.6"/>
-      <text x="8" y="50" fill="#A5B4FC" font-size="9">BridgeApiClient — 长轮询 · 消息队列</text>
+      <text x="8" y="50" fill="#A5B4FC" font-size="9">BridgeApiClient — JSON 解析尚未实现</text>
 
       <rect x="0" y="64" width="345" height="28" rx="2" fill="#1E1B4B" stroke="#8B5CF6" stroke-width="0.6"/>
-      <text x="8" y="82" fill="#A5B4FC" font-size="9">TrustedDeviceManager — 设备指纹认证</text>
+      <text x="8" y="82" fill="#A5B4FC" font-size="9">TrustedDeviceManager — 尚未接入服务</text>
 
       <rect x="0" y="96" width="170" height="28" rx="2" fill="#1E1B4B" stroke="#8B5CF6" stroke-width="0.6"/>
       <text x="8" y="114" fill="#A5B4FC" font-size="9">BridgeJwtManager</text>
@@ -934,7 +994,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
 
       <rect x="0" y="60" width="385" height="26" rx="2" fill="#1a237e" stroke="#FFC107" stroke-width="0.6"/>
       <text x="8" y="77" fill="#FFF176" font-size="9" font-weight="bold">技能加载层</text>
-      <text x="90" y="77" fill="#8da4b0" font-size="8">BUNDLED→PROJECT→USER · 后加载覆盖</text>
+      <text x="90" y="77" fill="#8da4b0" font-size="8">启动目录加载 PROJECT · 同名后加载覆盖</text>
 
       <rect x="0" y="90" width="385" height="26" rx="2" fill="#1a237e" stroke="#FFB300" stroke-width="0.6"/>
       <text x="8" y="107" fill="#FFF176" font-size="9" font-weight="bold">约束规则层</text>
@@ -1161,9 +1221,9 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
   <line x1="10" y1="1700" x2="10" y2="660" stroke="#EF4444" stroke-width="1" stroke-dasharray="4,3" opacity="0.4"/>
   <text x="35" y="1695" fill="#EF4444" font-size="7" opacity="0.7">Security→AuthorizationService→Gateway 安全纵深</text>
 
-  <!-- Bridge → Frontend+Backend (跨端通信) -->
+  <!-- Bridge → Frontend+Backend (预留连接，尚未接通) -->
   <line x1="210" y1="2590" x2="210" y2="2575" stroke="#6366F1" stroke-width="1" stroke-dasharray="4,3" opacity="0.5"/>
-  <text x="55" y="2580" fill="#818CF8" font-size="7" opacity="0.7">Bridge ↔ 跨端桥接</text>
+  <text x="55" y="2580" fill="#818CF8" font-size="7" opacity="0.7">Bridge 预留链路</text>
 
   <!-- ═════════════════════ ENHANCEMENT: HIGH-VALUE ADDITIONS ═════════════════════ -->
 
@@ -1184,7 +1244,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
   <g transform="translate(20, 1950)">
     <rect x="0" y="0" width="880" height="250" rx="10" fill="url(#cardBgGrad)" stroke="#DC4A5C" stroke-width="1.8" opacity="1"/>
     <rect x="0" y="0" width="880" height="250" rx="10" fill="#DC4A5C" opacity="0.05"/>
-    <text x="15" y="22" fill="#F87171" font-size="13" font-weight="bold" filter="url(#glowRed)">8层Bash安全沙箱（BashSecuritySandbox）</text>
+    <text x="15" y="22" fill="#F87171" font-size="13" font-weight="bold" filter="url(#glowRed)">Bash 分层检查与可选 Docker 隔离</text>
     <text x="365" y="22" fill="#8da4b0" font-size="10">BashTool.java 31.7KB · 纵深防御架构</text>
     <g transform="translate(15, 36)">
       <rect x="0" y="0" width="845" height="25" rx="2" fill="#450A0A" stroke="#B91C1C" stroke-width="0.7"/>
@@ -1431,7 +1491,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
   <rect x="0" y="0" width="1320" height="390" rx="10" fill="none" stroke="#4B5EAA" stroke-width="1.5" opacity="0.7"/>
   <rect x="0" y="0" width="1320" height="390" rx="10" fill="url(#cardBgGrad)" opacity="0.55"/>
   <rect x="20" y="-12" width="490" height="24" rx="6" fill="#0B0D17"/>
-  <text x="30" y="4" fill="#00e5ff" font-size="15" font-weight="bold">LATEST RUNTIME CONTROL · ea0170c · 2026-08-09</text>
+  <text x="30" y="4" fill="#00e5ff" font-size="15" font-weight="bold">RUNTIME CONTROL · 关键边界核对 2026-10-23</text>
   <text x="535" y="4" fill="#8BA4B8" font-size="11">Project · Steering · Verified Artifact · Observability / Recovery</text>
 
   <!-- Project / Session -->
@@ -1472,7 +1532,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
     <text x="16" y="28" fill="#10B981" font-size="13" font-weight="bold">VERIFIED ARTIFACT</text>
     <rect x="194" y="12" width="79" height="22" rx="11" fill="#10B981" opacity="0.12"/><text x="233" y="27" text-anchor="middle" fill="#10B981" font-size="8">OPTIONAL</text>
     <text x="16" y="58" fill="#A7F3D0" font-size="10" font-weight="600">Declare → Seal / Hash → Verify</text>
-    <text x="16" y="82" fill="#8da4b0" font-size="9">• verified/partial manifest 中的验证条目</text>
+    <text x="16" y="82" fill="#8da4b0" font-size="9">• Manifest 完整性 / 工作区发布快照</text>
     <text x="16" y="104" fill="#8da4b0" font-size="9">• PublishArtifact 显式高风险授权</text>
     <text x="16" y="126" fill="#8da4b0" font-size="9">• OSS 私有上传 / 远端校验 / 公开</text>
     <text x="16" y="148" fill="#8da4b0" font-size="9">• 权威下载链接结构化返回</text>
@@ -1525,7 +1585,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
 <line x1="1360" y1="190" x2="1360" y2="4620" stroke="url(#flowLine)" stroke-width="1.5" stroke-dasharray="8,6" opacity="0.35" style="animation: pulseFlowLine 3s linear infinite"/>
 
 <!-- Footer -->
-<text x="700" y="4770" text-anchor="middle" fill="#4B5EAA" font-size="11" font-weight="500">ZhikunCode System Architecture Blueprint · 2026-09-16 · 标 * 为本次源码新增能力</text>
+<text x="700" y="4770" text-anchor="middle" fill="#4B5EAA" font-size="11" font-weight="500">ZhikunCode Blueprint · 原图窗口 2026-09-16 · 当前关键边界见页首</text>
 
 </svg>
 </div>

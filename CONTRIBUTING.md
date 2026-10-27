@@ -8,13 +8,13 @@ Thank you for your interest in contributing to ZhikunCode! Every contribution ma
 
 - **JDK 21** (e.g., Eclipse Temurin or GraalVM)
 - **Node.js 22+** and **npm**
-- **Python 3.11+**
-- **Maven 3.9+**
+- **Python 3.11 or 3.12**
+- Use the repository's **Maven Wrapper (`./mvnw`)** for Java builds.
 
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/zhikuncode/zhikuncode.git
+git clone https://github.com/zhikunqingtao/zhikuncode.git
 cd zhikuncode
 ```
 
@@ -29,36 +29,9 @@ cp .env.example .env
 
 ### Start Services
 
-**Backend (Java Spring Boot)**
+Follow the [local setup instructions](docs/README_EN.md#local-setup) for dependency installation, loading `.env` in each terminal, and starting the three services. Use its Python 3.11/3.12 virtual environment and `PYTHONPATH="$PWD/python-service/src"` setting from the repository root; the Python service imports modules from that directory.
 
-```bash
-cd backend
-./mvnw spring-boot:run
-```
-
-**Frontend (React + TypeScript)**
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-**Python Service (FastAPI)**
-
-```bash
-cd python-service
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn src.main:app --reload
-```
-
-Or use the convenience script from the project root:
-
-```bash
-./start.sh
-```
+That guide also provides health checks and shutdown instructions. On a shared development machine, use the manual startup path: `start.sh` stops processes on fixed ports and removes `backend/target`.
 
 ## Project Structure
 

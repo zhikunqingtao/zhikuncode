@@ -11,10 +11,9 @@
 <meta property="og:description" content="ZhikunCode full-stack architecture reference with Agent Loop, frozen-input authorization, constrained grants, durable interaction, Tool Gateway admission, and multi-LLM support.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://zhikunqingtao.github.io/zhikuncode/ZhikunCode-Architecture.html">
-<meta property="og:image" content="https://zhikunqingtao.github.io/zhikuncode/assets/architecture-preview.png">
-<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="ZhikunCode — Complete System Architecture">
-<meta name="twitter:description" content="Enterprise-grade AI-powered Web IDE architecture reference with full-stack design documentation.">
+<meta name="twitter:description" content="Self-hosted AI engineering workbench: runtime, authorization, verification and deployment conditions.">
 <link rel="canonical" href="https://zhikunqingtao.github.io/zhikuncode/ZhikunCode-Architecture.html">
 <style>
 :root {
@@ -181,6 +180,8 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scroll>svg{min-width:850px}.reference-scroll:focus-visible{outline:2px solid var(--cyan)}
 @media(max-width:1023px){.nav,.nav.collapsed{width:52px}.nav-brand span,.nav-item span,.nav-section-label,.nav-toggle{display:none}.nav-item{padding:12px}.main,.nav.collapsed~.main{margin-left:52px;padding:16px 12px 48px;min-width:0}.grid-2,.grid-3,.grid-4{grid-template-columns:minmax(0,1fr)}.card{overflow:auto;min-width:0}.section-head{flex-wrap:wrap}.section-head .meta{margin-left:0}.header h1{font-size:1.8rem}.section{overflow-wrap:anywhere}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style><style>
+.current-guide{margin:0 0 28px;padding:24px;border:1px solid #315273;border-radius:12px;background:#101d30;color:#dce8f4;font:15px/1.8 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;overflow-wrap:anywhere}.current-guide h2{font-size:22px;margin:12px 0}.current-guide p{margin:10px 0}.current-guide ul{padding-left:22px;margin:12px 0}.current-guide a{color:#75bcff;text-decoration:underline;text-underline-offset:3px}.current-guide nav{display:flex;gap:10px 22px;flex-wrap:wrap}.current-guide .asof{color:#75d7b2;font-size:12px;letter-spacing:.04em}.current-guide strong{color:#fff}.current-guide code{font-size:.9em}.current-guide a:focus-visible{outline:2px solid #75bcff;outline-offset:4px}.current-guide .scope{font-size:13px;color:#9eb0c6}.current-guide .reading-map{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:0;list-style:none}.current-guide .reading-map li{border:1px solid #31435e;border-radius:8px;padding:12px}.current-guide .reading-map small{display:block;color:#9eb0c6}@media(max-width:700px){.current-guide{padding:17px;font-size:14px}.current-guide .reading-map{grid-template-columns:1fr}.current-guide h2{font-size:20px}}
 </style></head>
 <body>
 
@@ -257,12 +258,41 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
 
 <!-- ===== MAIN ===== -->
 <div class="main">
+<section class="current-guide" id="current-guide" aria-label="当前阅读说明">
+<nav aria-label="文档导航">
+<a href="index.html">展示首页</a>
+<a href="https://github.com/zhikunqingtao/zhikuncode/blob/main/README.md#resources">使用说明与资料</a>
+<a href="ZhikunCode-Architecture.html">架构图</a>
+<a href="ZhikunCode-Capability-Overview.html">能力地图</a>
+<a href="https://github.com/zhikunqingtao/zhikuncode/blob/main/README.md#cases">案例与证据</a>
+<a href="https://github.com/zhikunqingtao/zhikuncode/blob/main/README.md#adoption">采用条件</a>
+</nav>
+<p class="asof">关键行为核对记录：2026-10-23 · 核对基线 5865df59</p>
+<h2>架构关系、当前行为与实现入口</h2>
+<p>Java 管理模型调用、工具执行、授权和运行状态；React 提供浏览器操作界面；可选 Python 服务提供代码、文件、Git 分析、浏览器与 HTTP 验证等能力。</p>
+<ul>
+<li>
+<strong>当前界面：</strong>开发工作台与标准显示方式；简洁工作台切换入口已隐藏。仍可选择精简、标准、完整过程三档显示。</li>
+<li>
+<strong>执行与恢复：</strong>完整模型响应持久化、取消检查通过后才提交已验证工具；流式参数预览不代表已开始执行。重连恢复会话与交互投影；进程重启后不自动续跑旧线程。</li>
+<li>
+<strong>默认与依赖：</strong>基础 Compose 启动 Java 与静态前端，Python 已打包但默认不启动。WebBrowser 与 Runtime Verification 开关默认开启，仍需对应 Python 能力；精确 tokenizer、自纠错循环、Cron 触发、Monitor 与 ToolSearch 默认关闭。</li>
+<li>
+<strong>授权与隔离：</strong>新会话默认 <code>AUTO_APPROVE</code>，硬拒绝与复检仍生效。Docker 命令隔离默认关闭；Docker 不可用可回退，后台命令先走普通执行路径。Project 与插件类加载隔离均不等于 OS 沙箱；远程部署需单独配置入口访问控制。</li>
+<li>
+<strong>检查与交付：</strong>文件 hash 校验说明完整性，需求验收取决于实际检查。OSS 在无匹配 Manifest 条目时可为已有工作区文件建立发布快照；秒悟另有验证与发布契约。发布仍须显式请求和相应配置。</li>
+</ul>
+<p>
+<a href="https://github.com/zhikunqingtao/zhikuncode/blob/main/README.md#quickstart">部署及 Python 路由</a> · <a href="https://github.com/zhikunqingtao/zhikuncode/blob/main/README.md#configuration">模型与开关</a> · <a href="https://github.com/zhikunqingtao/zhikuncode/blob/main/README.md#security">权限、网络与隔离</a> · <a href="https://github.com/zhikunqingtao/zhikuncode/blob/main/README.md#how-it-works">执行、验证与产物</a>
+</p>
+<p class="scope">图示保留原有结构与公开锚点；旧规模统计为 ea0170c / 2026-08-09 的历史快照。模型数字与原图细节沿用各自核对窗口，采用时以配置指南和当前源码为准。本次校准上述关键边界，不将全部图示视为当前版本的端到端实测。<a href="https://github.com/zhikunqingtao/zhikuncode/blob/main/README.md#resources">使用说明与源码入口</a>。</p>
+</section>
 
 <!-- HEADER -->
 <div class="header" id="top">
   <h1>ZhikunCode 系统架构</h1>
-  <div class="sub">Enterprise-Grade AI-Powered Web IDE — Architecture Reference</div>
-  <p class="sub">下列规模统计保留 2026-08-09 快照；能力与流程按 2026-09-16 工作区核对。</p><div class="badge-row">
+  <div class="sub">Self-hosted AI Engineering Workbench — Architecture Reference</div>
+  <p class="sub">规模保留 2026-08-09 快照；原图窗口为 2026-09-16，当前关键边界见页首说明。</p><div class="badge-row">
     <span class="badge"><span class="c" style="background:var(--java)"></span><span class="mono">Java 68.8%</span></span>
     <span class="badge"><span class="c" style="background:var(--ts)"></span><span class="mono">React 25.0%</span></span>
     <span class="badge"><span class="c" style="background:var(--py)"></span><span class="mono">Python + CLI 6.0%</span></span>
@@ -343,7 +373,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <text x="270" y="268" text-anchor="middle" fill="#6B70A0" font-size="10" style="font-family:'JetBrains Mono',monospace">Port 8080 · Agent Loop · Permission · MCP · Tools</text>
       <!-- Python box -->
       <rect x="520" y="200" width="300" height="90" rx="12" fill="#0F1221" stroke="#84CC16" stroke-width="2"/>
-      <text x="670" y="230" text-anchor="middle" fill="#84CC16" font-size="16" font-weight="700" style="font-family:'JetBrains Mono',monospace">Python 分析服务</text>
+      <text x="670" y="230" text-anchor="middle" fill="#84CC16" font-size="16" font-weight="700" style="font-family:'JetBrains Mono',monospace">Python 能力服务</text>
       <text x="670" y="250" text-anchor="middle" fill="#9FA4C4" font-size="11" style="font-family:'JetBrains Mono',monospace">32 文件 · FastAPI + CLI</text>
       <text x="670" y="268" text-anchor="middle" fill="#6B70A0" font-size="10" style="font-family:'JetBrains Mono',monospace">Port 8000 · 7 能力域 · tree-sitter</text>
       <!-- Infra boxes -->
@@ -457,7 +487,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
 
       <!-- ===== PYTHON SERVICE BLOCK ===== -->
       <rect x="620" y="220" width="300" height="200" rx="14" fill="url(#gPy)" stroke="#84CC16" stroke-width="1.5" filter="url(#glowP)"/>
-      <text x="770" y="248" text-anchor="middle" fill="#84CC16" font-size="16" font-weight="700" style="font-family:'JetBrains Mono',monospace">Python 分析服务</text>
+      <text x="770" y="248" text-anchor="middle" fill="#84CC16" font-size="16" font-weight="700" style="font-family:'JetBrains Mono',monospace">Python 能力服务</text>
       <text x="770" y="264" text-anchor="middle" fill="#9FA4C4" font-size="11" style="font-family:'JetBrains Mono',monospace">32 文件 · 服务 + CLI</text>
       <rect x="640" y="278" width="130" height="36" rx="6" fill="#151829" stroke="#84CC16" stroke-width=".8"/>
       <text x="705" y="300" text-anchor="middle" fill="#84CC16" font-size="9" font-weight="600">Analyzers</text>
@@ -610,7 +640,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <rect x="450" y="192" width="145" height="32" rx="5" fill="#151829" stroke="#10B981" stroke-width="1"/>
       <text x="455" y="205" font-size="6.5" fill="#10B981" font-weight="700">⑤</text>
       <text x="467" y="205" font-size="7" fill="#9FA4C4">工具并行执行</text>
-      <text x="455" y="218" font-size="6" fill="#6B70A0">Virtual Thread · 即时启动有序返回</text>
+      <text x="455" y="218" font-size="6" fill="#6B70A0">Virtual Thread · 验证后提交，按序返回</text>
 
       <!-- Step 5.5 -->
       <rect x="610" y="192" width="155" height="32" rx="5" fill="#151829" stroke="#353860" stroke-width=".8"/>
@@ -643,7 +673,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
 
       <!-- BlockStop streaming note -->
       <rect x="295" y="340" width="470" height="28" rx="5" fill="rgba(255,107,157,.06)" stroke="#FF6B9D" stroke-width=".8"/>
-      <text x="530" y="358" text-anchor="middle" font-size="7" fill="#FF6B9D">⚡ 流式触发: StreamCollector 在 BlockStop 事件时即时启动工具执行 (不等待完整响应)</text>
+      <text x="530" y="358" text-anchor="middle" font-size="7" fill="#FF6B9D">执行准入：完整响应持久化与取消检查通过后，才提交已验证工具</text>
 
       <!-- LLM API -->
       <rect x="560" y="405" width="180" height="40" rx="7" fill="#151829" stroke="#FF6B9D" stroke-width="1.2"/>
@@ -652,7 +682,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
 
       <!-- Python Service -->
       <rect x="310" y="405" width="200" height="40" rx="7" fill="#151829" stroke="#84CC16" stroke-width="1.2"/>
-      <text x="410" y="423" text-anchor="middle" font-size="9" fill="#84CC16" font-weight="600">Python 分析服务 (:8000)</text>
+      <text x="410" y="423" text-anchor="middle" font-size="9" fill="#84CC16" font-weight="600">Python 能力服务 (:8000)</text>
       <text x="410" y="437" text-anchor="middle" font-size="7" fill="#6B70A0">HTTP Proxy · FastAPI · tree-sitter · 7能力域</text>
 
       <!-- ====== RIGHT: Result Return ====== -->
@@ -1015,7 +1045,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
     自纠错检测 — 错误感知与自动恢复
   </h3>
   <div class="card" style="margin-top:0;padding:0;overflow:hidden;border:1px solid var(--border2)">
-    <div style="padding:16px 20px 8px;font-size:.85rem;font-weight:700;color:#FF6B9D;letter-spacing:.02em">▸ Step 5.5 Self-Correction Detection · SelfCorrectionLoop.java MAX_ATTEMPTS_DEFAULT=3 / MAX_ATTEMPTS_SWE_BENCH=7（场景动态选择）</div>
+    <div style="padding:16px 20px 8px;font-size:.85rem;font-weight:700;color:#FF6B9D;letter-spacing:.02em">▸ Step 5.5 Self-Correction Detection · SelfCorrectionLoop.java · 默认关闭 · 启用后 DEFAULT=3 / SWE_BENCH=7</div>
     <div id="diagram-reference-6" class="reference-scroll" tabindex="0" role="region" aria-label="架构图 6，可横向滚动"><svg id="sc-svg" width="100%" viewBox="0 0 900 500" xmlns="http://www.w3.org/2000/svg" style="display:block;font-family:'JetBrains Mono',monospace">
       <defs>
         <linearGradient id="sc-bg-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FF6B9D" stop-opacity=".08"/><stop offset="100%" stop-color="#FF6B9D" stop-opacity=".01"/></linearGradient>
@@ -1771,7 +1801,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
 
       <!-- L6: 沙箱隔离 -->
       <rect x="80" y="506" width="600" height="48" rx="8" fill="url(#gBashL6)" stroke="#10B981" stroke-width="1.2"/>
-      <text x="100" y="526" fill="#10B981" font-size="12" font-weight="700" style="font-family:'JetBrains Mono',monospace">L6 沙箱隔离执行</text>
+      <text x="100" y="526" fill="#10B981" font-size="12" font-weight="700" style="font-family:'JetBrains Mono',monospace">L6 条件沙箱执行</text>
       <text x="340" y="538" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">SandboxManager</text>
       <text x="500" y="538" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">SandboxConfig</text>
       <text x="640" y="538" fill="#9FA4C4" font-size="8" style="font-family:'JetBrains Mono',monospace">Docker容器隔离</text>
@@ -1911,8 +1941,8 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <!-- 命令沙箱判断逻辑 -->
       <rect x="325" y="262" width="540" height="92" rx="6" fill="#151829" stroke="#3B82F6" stroke-width=".8"/>
       <text x="595" y="280" text-anchor="middle" fill="#60A5FA" font-size="9" font-weight="700" style="font-family:'JetBrains Mono',monospace">命令沙箱路由 — shouldUseSandbox() :91-135</text>
-      <text x="340" y="298" fill="#93C5FD" font-size="8" style="font-family:'JetBrains Mono',monospace">破坏性命令 → 强制沙箱: rm, rmdir, mv, chmod, chown, mkfs, dd, format, fdisk, parted</text>
-      <text x="340" y="314" fill="#93C5FD" font-size="8" style="font-family:'JetBrains Mono',monospace">网络命令 → 强制沙箱: curl, wget, nc, ncat, telnet</text>
+      <text x="340" y="298" fill="#93C5FD" font-size="8" style="font-family:'JetBrains Mono',monospace">条件路由：启用且 Docker 可用时，匹配的前台命令进入沙箱</text>
+      <text x="340" y="314" fill="#93C5FD" font-size="8" style="font-family:'JetBrains Mono',monospace">后台分支走普通执行；Docker 不可用时可能回退</text>
       <text x="340" y="330" fill="#9CA3AF" font-size="8" style="font-family:'JetBrains Mono',monospace">sudo 包装检测: 解包 sudo 前缀后再匹配首命令令牌</text>
       <text x="340" y="346" fill="#6B7280" font-size="7" style="font-family:'JetBrains Mono',monospace">条件: isSandboxingEnabled() = config.enabled && isDockerAvailable()</text>
 
@@ -2063,7 +2093,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <line x1="610" y1="240" x2="610" y2="262" stroke="#EF4444" stroke-width="1" opacity=".5"/>
       <rect x="536" y="262" width="148" height="42" rx="8" fill="#151829" stroke="#EF4444" stroke-width="1.2"/>
       <text x="610" y="282" fill="#EF4444" font-size="10" font-weight="600" text-anchor="middle" style="font-family:'JetBrains Mono',monospace">Moonshot / Kimi</text>
-      <text x="610" y="296" fill="#6B70A0" font-size="8" text-anchor="middle" style="font-family:'JetBrains Mono',monospace">kimi-k3</text>
+      <text x="610" y="296" fill="#6B70A0" font-size="8" text-anchor="middle" style="font-family:'JetBrains Mono',monospace">kimi-k3.1-pro-highspeed</text>
       <!-- Ollama -->
       <line x1="760" y1="240" x2="760" y2="262" stroke="#84CC16" stroke-width="1" opacity=".5"/>
       <rect x="686" y="262" width="148" height="42" rx="8" fill="#151829" stroke="#84CC16" stroke-width="1.2"/>
@@ -3706,7 +3736,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
   <rect x="10" y="270" width="440" height="48" rx="8" fill="#151829" stroke="#EF4444" stroke-width="1" stroke-dasharray="4 3"/>
   <text x="20" y="286" fill="#EF4444" font-size="8.5" font-weight="700" style="font-family:'JetBrains Mono',monospace">错误处理与降级路径</text>
   <text x="20" y="299" fill="#EF4444" font-size="6.8" style="font-family:'JetBrains Mono',monospace">validateJar失败→跳过 | API版本不兼容→PluginError | onLoad超时(10s)→skip</text>
-  <text x="20" y="311" fill="#EF4444" font-size="6.8" style="font-family:'JetBrains Mono',monospace">CLASS_LOAD_FAILED→PluginError | 钩子超时(5s)→allow() | 不阻止主应用 L37</text>
+  <text x="20" y="311" fill="#EF4444" font-size="6.8" style="font-family:'JetBrains Mono',monospace">钩子超时/异常：PRE_TOOL_USE 拒绝本次工具；展示钩子记录日志后继续</text>
   <!-- Error arrows -->
   <line x1="229" y1="205" x2="180" y2="267" stroke="#EF4444" stroke-width=".8" stroke-dasharray="3 3" marker-end="url(#plc-ar)"/>
   <line x1="375" y1="205" x2="310" y2="267" stroke="#EF4444" stroke-width=".8" stroke-dasharray="3 3" marker-end="url(#plc-ar)"/>
@@ -3715,7 +3745,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
   <rect x="460" y="270" width="428" height="48" rx="8" fill="#151829" stroke="#10B981" stroke-width="1"/>
   <text x="470" y="286" fill="#10B981" font-size="8.5" font-weight="700" style="font-family:'JetBrains Mono',monospace">Agent Loop 集成点</text>
   <text x="470" y="299" fill="#10B981" font-size="6.8" style="font-family:'JetBrains Mono',monospace">QueryEngine→executePreToolUseHooks()→工具执行→executePostToolUseHooks()</text>
-  <text x="470" y="311" fill="#10B981" font-size="6.8" style="font-family:'JetBrains Mono',monospace">8种事件: PRE/POST_TOOL_USE · SESSION_START/END · TASK_COMPLETED ··</text>
+  <text x="470" y="311" fill="#10B981" font-size="6.8" style="font-family:'JetBrains Mono',monospace">8种事件枚举；TASK_COMPLETED 当前可注册，但任务完成路径未触发</text>
   <!-- Integration arrow -->
   <line x1="672" y1="205" x2="672" y2="267" stroke="#10B981" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#plc-ag)"/>
 
@@ -3857,7 +3887,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
 
     <!-- ===== BOTTOM: Security Protected Paths ===== -->
     <rect x="20" y="420" width="920" height="80" rx="10" fill="#0F1221" stroke="#252840" stroke-width="1"/>
-    <text x="40" y="444" fill="#EF4444" font-size="10" font-weight="700" style="font-family:'JetBrains Mono',monospace">安全保护路径（不可绕过）</text>
+    <text x="40" y="444" fill="#EF4444" font-size="10" font-weight="700" style="font-family:'JetBrains Mono',monospace">路径检查：区分读取、写入和权限模式</text>
     <rect x="40" y="455" width="70" height="20" rx="4" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
     <text x="75" y="469" text-anchor="middle" fill="#EF4444" font-size="8" style="font-family:'JetBrains Mono',monospace">.git</text>
     <rect x="118" y="455" width="80" height="20" rx="4" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
@@ -3870,9 +3900,9 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
     <text x="377" y="469" text-anchor="middle" fill="#EF4444" font-size="8" style="font-family:'JetBrains Mono',monospace">.gnupg</text>
     <rect x="420" y="455" width="60" height="20" rx="4" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
     <text x="450" y="469" text-anchor="middle" fill="#EF4444" font-size="8" style="font-family:'JetBrains Mono',monospace">.aws</text>
-    <text x="500" y="469" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">← File/Bash Analyzer 与 finalDynamicRecheck 负责路径、链接和动态环境复检</text>
+    <text x="500" y="469" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">.env / .ssh 敏感读取可被 AUTO_APPROVE 批准</text>
 
-    <text x="40" y="492" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">OperationAnalyzerRegistry · PermissionGrantRepository · DurableInteractionService · ToolExecutionGateway</text>
+    <text x="40" y="492" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">确认要求不等于硬拒绝；安全 Hook、最终动态复检及操作系统权限仍然适用</text>
 
     <!-- ===== BOTTOM: Summary Bar ===== -->
     <rect x="20" y="520" width="920" height="80" rx="10" fill="#0F1221" stroke="#F59E0B" stroke-width=".8"/>
@@ -4678,21 +4708,21 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
 
 <h3 id="svg-artifact-publish" style="font-size:1.05rem;font-weight:700;color:#10B981;margin:28px 0 12px;letter-spacing:.02em;scroll-margin-top:24px">验证产物归属与显式发布链路</h3>
   <div class="card java-accent">
-    <div class="card-title" onclick="toggleDetail(this)"><span class="toggle open">▶</span> Artifact declare → seal/hash → verified entry → PublishArtifact → OSS <span class="tag green">Verified / Partial</span><span class="tag red">显式高风险</span></div>
+    <div class="card-title" onclick="toggleDetail(this)"><span class="toggle open">▶</span> Artifact / 工作区快照 → hash 复核 → PublishArtifact → OSS <span class="tag green">完整性与内容检查分开</span><span class="tag red">显式高风险</span></div>
     <div class="card-detail show">
-      <p style="font-size:.8rem;color:var(--text2);margin-bottom:14px">下图上半部分描述 <span class="mono">/publish-oss</span> 产物发布链路：工具先声明预期输出，执行完成后封存并计算哈希；Manifest 状态可以是 verified，也可以是包含目标已验证条目的 partial。目标条目还需在发布前再次匹配哈希，并在用户明确提出发布和通过一次高风险授权后才能进入 OSS。生成、预览或完成 Run 均不会自动上传。下半部分是独立的秒悟发布路径：以工作区快照与 VerifyJourney 证据为依据，不复用 OSS Manifest 作为发布前提。</p>
+      <p style="font-size:.8rem;color:var(--text2);margin-bottom:14px">下图上半部分描述 <span class="mono">/publish-oss</span>：有匹配 Manifest 条目时核验状态、归属与哈希；没有匹配条目时，对已有工作区文件建立发布快照。两条路径都检查文件、敏感内容与发布策略，用户显式请求后按当前权限裁决发布。默认 SHA-256 校验产生 integrity_verified，说明字节完整性，不代表需求验收。下半部分是独立的秒悟路径，以工作区快照与 VerifyJourney 证据为依据；生成、预览和完成 Run 不会自动发布。</p>
       <div id="diagram-reference-29" class="reference-scroll" tabindex="0" role="region" aria-label="架构图 29，可横向滚动"><svg id="audit-diagram-29" viewBox="0 0 960 480" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
         <defs><marker id="artifactArrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#6B70A0"/></marker></defs>
         <rect width="960" height="480" rx="10" fill="#0B0D17"/><rect x="1" y="1" width="958" height="478" rx="9" fill="none" stroke="#252840"/>
         <rect x="25" y="58" width="145" height="90" rx="8" fill="#151829" stroke="#3B82F6"/><text x="97" y="84" text-anchor="middle" fill="#3B82F6" font-size="10" font-weight="700">declare</text><text x="97" y="106" text-anchor="middle" fill="#9FA4C4" font-size="8">planOutputs()</text><text x="97" y="128" text-anchor="middle" fill="#6B70A0" font-size="8">路径 / 类型 / owner</text>
         <rect x="205" y="58" width="145" height="90" rx="8" fill="#151829" stroke="#F59E0B"/><text x="277" y="84" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="700">seal + hash</text><text x="277" y="106" text-anchor="middle" fill="#9FA4C4" font-size="8">普通文件封存</text><text x="277" y="128" text-anchor="middle" fill="#6B70A0" font-size="8">size / SHA-256</text>
-        <rect x="385" y="58" width="155" height="90" rx="8" fill="#151829" stroke="#10B981"/><text x="462" y="84" text-anchor="middle" fill="#10B981" font-size="10" font-weight="700">verified entry</text><text x="462" y="106" text-anchor="middle" fill="#9FA4C4" font-size="8">manifest: verified / partial</text><text x="462" y="128" text-anchor="middle" fill="#6B70A0" font-size="8">发布前再次验 hash</text>
+        <rect x="385" y="58" width="155" height="90" rx="8" fill="#151829" stroke="#10B981"/><text x="462" y="84" text-anchor="middle" fill="#10B981" font-size="10" font-weight="700">完整性与发布策略</text><text x="462" y="106" text-anchor="middle" fill="#9FA4C4" font-size="8">Manifest / workspace snapshot</text><text x="462" y="128" text-anchor="middle" fill="#6B70A0" font-size="8">发布前再次验 hash</text>
         <rect x="575" y="58" width="160" height="90" rx="8" fill="#151829" stroke="#EF4444"/><text x="655" y="84" text-anchor="middle" fill="#EF4444" font-size="10" font-weight="700">PublishArtifact</text><text x="655" y="106" text-anchor="middle" fill="#9FA4C4" font-size="8">明确指令 + ONCE</text><text x="655" y="128" text-anchor="middle" fill="#6B70A0" font-size="8">敏感内容 / 路径复检</text>
         <rect x="770" y="58" width="165" height="90" rx="8" fill="#151829" stroke="#06B6D4"/><text x="852" y="84" text-anchor="middle" fill="#06B6D4" font-size="10" font-weight="700">OSS 权威外链</text><text x="852" y="106" text-anchor="middle" fill="#9FA4C4" font-size="8">私有上传 → 远端校验</text><text x="852" y="128" text-anchor="middle" fill="#6B70A0" font-size="8">成功后 public-read</text>
         <line x1="170" y1="103" x2="205" y2="103" stroke="#6B70A0" class="anim-line" marker-end="url(#artifactArrow)"/><line x1="350" y1="103" x2="385" y2="103" stroke="#6B70A0" class="anim-line" marker-end="url(#artifactArrow)"/><line x1="540" y1="103" x2="575" y2="103" stroke="#6B70A0" class="anim-line" marker-end="url(#artifactArrow)"/><line x1="735" y1="103" x2="770" y2="103" stroke="#6B70A0" class="anim-line" marker-end="url(#artifactArrow)"/>
         <rect x="150" y="195" width="660" height="70" rx="10" fill="rgba(168,85,247,.08)" stroke="#A855F7" stroke-width="1"/>
         <text x="480" y="218" text-anchor="middle" fill="#A855F7" font-size="10" font-weight="700">根 Session 与后代 Run 产物归属</text>
-        <text x="480" y="239" text-anchor="middle" fill="#9FA4C4" font-size="8.5">候选包括同一持久化根 Session 的根 Run，以及通过 parent_run_id 建立的授权后代 Run；目标条目必须已验证且哈希仍匹配</text>
+        <text x="480" y="239" text-anchor="middle" fill="#9FA4C4" font-size="8.5">候选包括同一持久化根 Session 的根 Run，以及通过 parent_run_id 建立的授权后代 Run；匹配条目须完整性验证且 hash 一致；无匹配条目走工作区快照</text>
         <text x="480" y="256" text-anchor="middle" fill="#6B70A0" font-size="8">目录、批量、符号链接、workspace 外路径、凭证与敏感文件拒绝发布</text>
       <g id="current-publication" data-integrated="publication"><text x="20" y="308" fill="#10B981" font-size="13">秒悟发布 · 显式请求 /publish-meoo · 默认关闭</text><g><rect x="20.0" y="322" width="168.0" height="86" rx="8" fill="#151829" stroke="#3B82F6"/><text x="32.0" y="345" fill="#3B82F6" font-size="12">检查与验证</text><text x="32.0" y="366" fill="#9FA4C4" font-size="10">路径 / 模式 / 内容摘要</text><text x="32.0" y="383" fill="#9FA4C4" font-size="10">VerifyJourney 证据</text></g><path d="M188.0 365 H204.0 m-4 -4 l4 4 l-4 4" fill="none" stroke="#6B70A0"/><g><rect x="208.0" y="322" width="168.0" height="86" rx="8" fill="#151829" stroke="#EF4444"/><text x="220.0" y="345" fill="#EF4444" font-size="12">PublishMeoo</text><text x="220.0" y="366" fill="#9FA4C4" font-size="10">独立授权 · 快照复核</text><text x="220.0" y="383" fill="#9FA4C4" font-size="10">变更 / 缺失证据则拒绝</text></g><path d="M376.0 365 H392.0 m-4 -4 l4 4 l-4 4" fill="none" stroke="#6B70A0"/><g><rect x="396.0" y="322" width="168.0" height="86" rx="8" fill="#151829" stroke="#A855F7"/><text x="408.0" y="345" fill="#A855F7" font-size="12">CLI → 秒悟平台</text><text x="408.0" y="366" fill="#9FA4C4" font-size="10">新站点 · 消耗额度</text><text x="408.0" y="383" fill="#9FA4C4" font-size="10">旧站点保留</text></g><path d="M564.0 365 H580.0 m-4 -4 l4 4 l-4 4" fill="none" stroke="#6B70A0"/><g><rect x="584.0" y="322" width="168.0" height="86" rx="8" fill="#151829" stroke="#06B6D4"/><text x="596.0" y="345" fill="#06B6D4" font-size="12">公网验证</text><text x="596.0" y="366" fill="#9FA4C4" font-size="10">静态：匿名 + 内容一致</text><text x="596.0" y="383" fill="#9FA4C4" font-size="10">全栈：匿名 HTTPS</text></g><path d="M752.0 365 H768.0 m-4 -4 l4 4 l-4 4" fill="none" stroke="#6B70A0"/><g><rect x="772.0" y="322" width="168.0" height="86" rx="8" fill="#151829" stroke="#10B981"/><text x="784.0" y="345" fill="#10B981" font-size="12">持久记录 / 网站卡</text><text x="784.0" y="366" fill="#9FA4C4" font-size="10">Run / 工具调用去重</text><text x="784.0" y="383" fill="#9FA4C4" font-size="10">失败 / 待确认明确展示</text></g><text x="20" y="435" fill="#9FA4C4" font-size="11">验证 / 授权未通过不发布；远端创建后失败保留记录，超时不自动重发，也不保证远端取消。</text></g></svg></div>
     </div>
@@ -5564,13 +5594,13 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <div class="card-title" onclick="toggleDetail(this)"><span class="toggle">▶</span> Skill 系统 <span class="tag java">13 个内置 Skill · 动态扩展</span></div>
       <div class="card-detail">
         <div class="tree">
-          <div class="tree-item"><span class="tn">SkillRegistry</span><span class="tv">13 个内置 Skill；BUNDLED → PROJECT → USER 依次注册，同名后者覆盖；项目目录热重载</span></div>
+          <div class="tree-item"><span class="tn">SkillRegistry</span><span class="tv">13 个内置 Skill；BUNDLED → PROJECT → USER 依次注册，同名后者覆盖；PROJECT 按 JVM 启动目录或其直接父目录解析，不随所选 Project 切换；只热重载已监听目录</span></div>
           <div class="tree-item"><span class="tn">Bundled Catalog</span><span class="tv">commit · review · test · pr · debug · verify · remember · software-architecture · csv-data-summarizer · prompt-engineering · test-driven-development · publish-oss · publish-meoo</span></div>
           <div class="tree-item"><span class="tn">SkillDefinition</span><span class="tv">record 类型 · SkillSource 六值描述来源，不构成加载优先级</span></div>
           <div class="tree-item"><span class="tn">FrontmatterParser</span><span class="tv">简化 YAML 解析 (key: value / 列表项)</span></div>
           <div class="tree-item"><span class="tn">FrontmatterData</span><span class="tv">16 个 frontmatter 字段</span></div>
           <div class="tree-item"><span class="tn">SkillExecutor</span><span class="tv">Skill 工具的正文 / 元数据返回 · 结果构造等待 120s · 参数校验</span></div>
-          <div class="tree-item"><span class="tn">SkillToolValidator</span><span class="tv">参数注入检测；当前嵌套深度 ≥3 时拒绝 fork (allowed-tools 白名单仅声明，运行时未拦截)</span></div>
+          <div class="tree-item"><span class="tn">SkillToolValidator</span><span class="tv">内置文本技能检查全文长度，其他技能保留逐参数与 shell 模式检查；当前嵌套深度 ≥3 时拒绝 fork (allowed-tools 白名单仅声明，运行时未拦截)</span></div>
         </div>
       </div>
     </div>
@@ -5927,7 +5957,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
 
   <!-- SVG 插画: Hook + Plugin 协作扩展机制 -->
   <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:28px;margin-top:24px">
-<h4 style="font-size:.88rem;font-weight:700;margin-bottom:16px;color:var(--text);text-align:center">插件系统 SPI 发现与沙箱隔离架构 <span style="color:var(--text3);font-weight:400;font-size:.75rem">— plugin/ 14文件 + hook/ 5文件 · ServiceLoader SPI · URLClassLoader 隔离</span></h4>
+<h4 style="font-size:.88rem;font-weight:700;margin-bottom:16px;color:var(--text);text-align:center">可信插件 SPI 发现与类加载边界 <span style="color:var(--text3);font-weight:400;font-size:.75rem">— plugin/ 14文件 + hook/ 5文件 · ServiceLoader SPI · URLClassLoader 隔离</span></h4>
 <div id="diagram-reference-36" class="reference-scroll" tabindex="0" role="region" aria-label="架构图 36，可横向滚动"><svg id="audit-diagram-36" viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg" style="width:100%;min-width:750px">
   <defs>
     <linearGradient id="gSpiDisc" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#10B981" stop-opacity=".18"/><stop offset="100%" stop-color="#10B981" stop-opacity=".04"/></linearGradient>
@@ -5974,8 +6004,8 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
 
   <!-- ===== LAYER 2: Sandbox Isolation (Middle) ===== -->
   <rect x="30" y="180" width="680" height="160" rx="10" fill="url(#gSpiSand)" stroke="#EF4444" stroke-width="1.2"/>
-  <text x="50" y="204" fill="#EF4444" font-size="12" font-weight="700" style="font-family:'JetBrains Mono',monospace">沙箱隔离架构</text>
-  <text x="50" y="220" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">PluginClassLoader URLClassLoader · Fail-Closed 安全模式</text>
+  <text x="50" y="204" fill="#EF4444" font-size="12" font-weight="700" style="font-family:'JetBrains Mono',monospace">类加载隔离边界</text>
+  <text x="50" y="220" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">PluginClassLoader URLClassLoader · 同 JVM 类加载边界</text>
 
   <!-- ClassLoader isolation diagram -->
   <rect x="50" y="235" width="180" height="90" rx="8" fill="#151829" stroke="#EF4444" stroke-width="1"/>
@@ -5991,7 +6021,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
   <text x="360" y="255" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="700" style="font-family:'JetBrains Mono',monospace">隔离不委托 ✗</text>
   <text x="360" y="275" text-anchor="middle" fill="#EF4444" font-size="8" style="font-family:'JetBrains Mono',monospace">其他宿主类 → 不可访问</text>
   <text x="360" y="292" text-anchor="middle" fill="#EF4444" font-size="8" style="font-family:'JetBrains Mono',monospace">Fail-Closed 安全默认</text>
-  <text x="360" y="309" text-anchor="middle" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">插件只能访问公开API</text>
+  <text x="360" y="309" text-anchor="middle" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">宿主类可见性受限，非 OS 隔离</text>
 
   <text x="470" y="280" fill="#10B981" font-size="14">→</text>
 
@@ -5999,7 +6029,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
   <text x="590" y="255" text-anchor="middle" fill="#10B981" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">JDK标准库 ✓</text>
   <text x="590" y="275" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">java.* / javax.*</text>
   <text x="590" y="292" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">委托BootstrapClassLoader</text>
-  <text x="590" y="309" text-anchor="middle" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">标准库始终安全可用</text>
+  <text x="590" y="309" text-anchor="middle" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">标准库仍有宿主进程权限</text>
 
   <!-- ===== LAYER 3: Hook System (Bottom) ===== -->
   <rect x="30" y="360" width="680" height="130" rx="10" fill="url(#gSpiHook)" stroke="#A855F7" stroke-width="1.2"/>
@@ -6129,7 +6159,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <text x="330" y="86" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600" style="font-family:'JetBrains Mono',monospace">SkillRegistry</text>
       <text x="330" y="102" text-anchor="middle" fill="#e8e8f0" font-size="8.5" style="font-family:'JetBrains Mono',monospace">SkillRegistry.java</text>
       <text x="330" y="118" text-anchor="middle" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">BUNDLED → PROJECT → USER</text>
-      <text x="330" y="130" text-anchor="middle" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">三类依次注册 · 同名后者覆盖</text>
+      <text x="330" y="130" text-anchor="middle" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">PROJECT 按启动目录解析</text>
 
       <!-- FrontmatterParser -->
       <rect x="450" y="66" width="180" height="70" rx="8" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
@@ -6203,12 +6233,12 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <text x="800" y="318" text-anchor="middle" fill="#F59E0B" font-size="9.5" font-weight="700" style="font-family:'JetBrains Mono',monospace">SkillSource · 六种来源枚举</text>
       <text x="678" y="334" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">MANAGED — 企业管理（预留）</text>
       <text x="678" y="348" fill="#3B82F6" font-size="7.5" style="font-family:'JetBrains Mono',monospace">USER — ~/.zhikun/skills/ ✓</text>
-      <text x="678" y="362" fill="#3B82F6" font-size="7.5" style="font-family:'JetBrains Mono',monospace">PROJECT — .zhikun/skills/ ✓</text>
+      <text x="678" y="362" fill="#3B82F6" font-size="7.5" style="font-family:'JetBrains Mono',monospace">PROJECT — 启动目录解析，非所选项目</text>
       <text x="678" y="376" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">PLUGIN — 插件提供（预留）</text>
       <text x="678" y="390" fill="#10B981" font-size="7.5" style="font-family:'JetBrains Mono',monospace">BUNDLED — 内置 13 项 ✓</text>
       <text x="678" y="404" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">MCP — MCP 构建（预留）</text>
       <text x="800" y="422" text-anchor="middle" fill="#6B70A0" font-size="7" style="font-family:'JetBrains Mono',monospace">加载顺序: BUNDLED→PROJECT→USER (后覆盖前)</text>
-      <text x="800" y="434" text-anchor="middle" fill="#F59E0B" font-size="7" style="font-family:'JetBrains Mono',monospace">WatchService 热重载 · DEBOUNCE_MS=500</text>
+      <text x="800" y="434" text-anchor="middle" fill="#F59E0B" font-size="7" style="font-family:'JetBrains Mono',monospace">仅已监听目录热重载 · 用户目录需重启加载</text>
 
       <!-- 底部统计条 -->
       <rect x="30" y="460" width="900" height="14" rx="4" fill="#151829"/>
@@ -6236,6 +6266,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
           • Skill 工具的 <span style="color:#10B981">inline</span>：渲染正文通过 tool_result 返回<br>
           • <span style="color:#06B6D4">fork</span>：返回正文及 agent/model/effort 等元数据，不创建子 Agent<br>
           • Web 的 <code>/skill</code> 走 SkillCommand：渲染后由 PROMPT 路径继续当前会话<br>
+          • 两个入口均为 10 个内置文本技能保留完整补充说明，内置 review 保留完整审查范围；<a href="https://github.com/zhikunqingtao/zhikuncode/blob/main/README.md#extensions">名单与参数规则</a><br>
           • <code style="color:#F59E0B">120s</code> 仅限制 inline/fork 的结果构造等待，不含此前解析/渲染或后续模型执行
         </div>
       </div>
@@ -6244,10 +6275,13 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <div style="background:#0F1221;border:1px solid #252840;border-radius:8px;padding:12px">
         <div style="color:#EF4444;font-weight:700;margin-bottom:6px;font-size:.82rem">▸ SkillToolValidator 安全检查</div>
         <div style="color:#9FA4C4;font-size:.72rem;line-height:1.55">
-          • 每个解析参数：<code style="color:#F59E0B">MAX_ARG_LENGTH = 2000</code> 字符<br>
+          • Skill 工具：10 个内置补充说明技能及 review 检查原始全文 <code style="color:#F59E0B">String.length() ≤ 2000</code>，含参数名、空白和换行，不做 shell 模式过滤<br>
+          • 10 个补充说明技能由逐参数限长收紧为全文限长；本次保留该工具入口限制<br>
+          • 其他技能（含自定义同名覆盖和发布技能）经 Skill 工具调用时仍逐参数限长 2000，并检查下列模式<br>
+          • Web <code>/skill</code> 不经过此校验器，本次未新增长度或正则检查；后续工具授权仍生效<br>
           • <code style="color:#F59E0B">MAX_FORK_NESTING_DEPTH = 3</code>：当前嵌套深度 ≥3 时拒绝 fork<br>
           • 6 个 shell 注入正则: <code style="color:#10B981">$(...)</code> · <code style="color:#10B981">`...`</code> · <code style="color:#10B981">; cmd</code> · <code style="color:#10B981">| cmd</code> · <code style="color:#10B981">&amp;&amp; rm</code> · <code style="color:#10B981">${...}</code><br>
-          • SkillExecutor 集成: <span style="color:#10B981">validateArgs() ✓</span> · <span style="color:#10B981">validateForkPermission() ✓</span><br>
+          • SkillExecutor 集成: <span style="color:#10B981">validateText() / validateArgs()</span> · <span style="color:#10B981">validateForkPermission()</span><br>
           • <span style="color:#F59E0B">allowed-tools 白名单声明 (运行时验证规划中，validate() 当前仅测试覆盖)</span>
         </div>
       </div>
@@ -6256,7 +6290,8 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <div style="background:#0F1221;border:1px solid #252840;border-radius:8px;padding:12px">
         <div style="color:#A855F7;font-weight:700;margin-bottom:6px;font-size:.82rem">▸ WatchService 热重载</div>
         <div style="color:#9FA4C4;font-size:.72rem;line-height:1.55">
-          • 监听目录: 项目 <code style="color:#10B981">.zhikun/skills/</code> (含一级子目录)<br>
+          • 监听目录: 启动时按 JVM 工作目录或其直接父目录解析的 <code style="color:#10B981">.zhikun/skills/</code> (含一级子目录)，不跟随所选 Project<br>
+          • 仅启动时已存在且成功注册的目录被监听；用户目录变更或稍后创建项目技能目录需重启后端加载<br>
           • 事件类型: ENTRY_CREATE · ENTRY_MODIFY · ENTRY_DELETE<br>
           • 防抖间隔: <code style="color:#F59E0B">DEBOUNCE_MS = 500</code> ms (ScheduledExecutorService)<br>
           • 守护线程: <code style="color:#10B981">skill-file-watcher</code> · <code style="color:#10B981">skill-watcher-debounce</code><br>
@@ -6268,7 +6303,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
 
     <div style="margin-top:14px;padding:10px 12px;background:#0F1221;border-left:3px solid #F59E0B;border-radius:4px;font-size:.72rem;color:#9FA4C4;line-height:1.55">
       <span style="color:#F59E0B;font-weight:700">稳定职责锚点：</span>
-      SkillRegistry（BUNDLED → PROJECT → USER 注册与项目热重载） · SkillDefinition（六值来源枚举与元数据） · SkillExecutor（工具正文 / 元数据返回） · SkillCommand（命令提示返回）。加载不设会话累计额度，模型上下文容量保护仍适用；具体源码行号不作为架构契约。
+      SkillRegistry（BUNDLED → PROJECT → USER 注册；PROJECT 基于启动目录，仅已监听目录热重载） · SkillDefinition（六值来源枚举与元数据） · SkillExecutor（工具正文 / 元数据返回） · SkillCommand（命令提示返回）。加载不设会话累计额度，模型上下文容量保护仍适用；具体源码行号不作为架构契约。
     </div>
   </div>
 
@@ -6314,7 +6349,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
   </div>
   <div class="card java-accent">
     <div class="card-title" style="cursor:default">根 Session 身份、授权与验证产物归属</div>
-    <p style="font-size:.78rem;color:var(--text2)">子 Agent 通过 root session / root run 身份匹配受约束 Grant，不建立第二套授权权威。Artifact 保留 agent 与 parent run 关联；显式发布候选来自同一持久化根 Session 的根 Run 与授权后代 Run，目标条目必须已验证且发布前哈希仍匹配。</p>
+    <p style="font-size:.78rem;color:var(--text2)">子 Agent 通过 root session / root run 身份匹配受约束 Grant，不建立第二套授权权威。Artifact 保留 agent 与 parent run 关联；显式发布候选来自同一持久化根 Session 的根 Run 与授权后代 Run，匹配条目须完整性验证且发布前 hash 一致；无匹配条目使用工作区发布快照。</p>
   </div>
 
   <div class="card" style="margin-top:16px;padding:0;overflow:hidden;border:1px solid var(--border2)">
@@ -6664,7 +6699,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <line x1="500" y1="508" x2="530" y2="508" stroke="#EF4444" stroke-width="1.5" stroke-dasharray="4"/><text x="536" y="512" fill="#EF4444" font-size="9" style="font-family:'JetBrains Mono',monospace">broadcast广播</text>
       <line x1="680" y1="508" x2="710" y2="508" stroke="#A855F7" stroke-width="1" stroke-dasharray="4"/><text x="716" y="512" fill="#a0a0b8" font-size="9" style="font-family:'JetBrains Mono',monospace">configStore依赖</text>
 
-    <g id="current-frontend" data-integrated="frontend"><g><rect x="30" y="545" width="280" height="86" rx="8" fill="#151829" stroke="#06B6D4"/><text x="42" y="568" fill="#06B6D4" font-size="12">消息 / 工具结果 → 轮次投影</text><text x="42" y="589" fill="#9FA4C4" font-size="10">TurnCard · 三档显示方式 · 双工作台</text><text x="42" y="606" fill="#9FA4C4" font-size="10">新会话：开发 + 标准；三主题共享状态</text></g><g><rect x="340" y="545" width="280" height="86" rx="8" fill="#151829" stroke="#06B6D4"/><text x="352" y="568" fill="#06B6D4" font-size="12">成功 Edit / Write → 文件记录*</text><text x="352" y="589" fill="#9FA4C4" font-size="10">按调用标识关联，不推测 Bash 改动</text><text x="352" y="606" fill="#9FA4C4" font-size="10">逐次差异，不读当前磁盘或合成净差异</text></g><g><rect x="650" y="545" width="280" height="86" rx="8" fill="#151829" stroke="#06B6D4"/><text x="662" y="568" fill="#06B6D4" font-size="12">模型选择 → 会话状态</text><text x="662" y="589" fill="#9FA4C4" font-size="10">已绑定会话：连接与绑定保护</text><text x="662" y="606" fill="#9FA4C4" font-size="10">首页预选*：本地暂存 → 首次创建</text></g><path d="M310 587 H336 m-4 -4 l4 4 l-4 4" fill="none" stroke="#6B70A0"/><text x="30" y="652" fill="#9FA4C4" font-size="11">* 2026-09-16 源码新增能力：本轮文件修改、首页模型预选；不更改全局模型偏好。</text><text x="30" y="675" fill="#9FA4C4" font-size="11">差异详情：≥1024px 侧面板，窄屏全屏；主题、输入草稿与视口测量由共享组件管理。</text></g></svg></div>
+    <g id="current-frontend" data-integrated="frontend"><g><rect x="30" y="545" width="280" height="86" rx="8" fill="#151829" stroke="#06B6D4"/><text x="42" y="568" fill="#06B6D4" font-size="12">消息 / 工具结果 → 轮次投影</text><text x="42" y="589" fill="#9FA4C4" font-size="10">TurnCard · 三档显示方式 · 开发工作台</text><text x="42" y="606" fill="#9FA4C4" font-size="10">新会话：开发 + 标准；切换入口隐藏</text></g><g><rect x="340" y="545" width="280" height="86" rx="8" fill="#151829" stroke="#06B6D4"/><text x="352" y="568" fill="#06B6D4" font-size="12">成功 Edit / Write → 文件记录*</text><text x="352" y="589" fill="#9FA4C4" font-size="10">按调用标识关联，不推测 Bash 改动</text><text x="352" y="606" fill="#9FA4C4" font-size="10">逐次差异，不读当前磁盘或合成净差异</text></g><g><rect x="650" y="545" width="280" height="86" rx="8" fill="#151829" stroke="#06B6D4"/><text x="662" y="568" fill="#06B6D4" font-size="12">模型选择 → 会话状态</text><text x="662" y="589" fill="#9FA4C4" font-size="10">已绑定会话：连接与绑定保护</text><text x="662" y="606" fill="#9FA4C4" font-size="10">首页预选*：本地暂存 → 首次创建</text></g><path d="M310 587 H336 m-4 -4 l4 4 l-4 4" fill="none" stroke="#6B70A0"/><text x="30" y="652" fill="#9FA4C4" font-size="11">* 2026-09-16 源码新增能力：本轮文件修改、首页模型预选；不更改全局模型偏好。</text><text x="30" y="675" fill="#9FA4C4" font-size="11">差异详情：≥1024px 侧面板，窄屏全屏；主题、输入草稿与视口测量由共享组件管理。</text></g></svg></div>
   </div>
 
   <!-- SVG: Zustand Store 依赖关系 DAG -->
@@ -7172,7 +7207,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
 <div class="section" id="s13">
   <div class="section-head">
     <span class="section-num py">14</span>
-    <h2>Python 分析服务架构</h2>
+    <h2>Python 能力服务架构</h2>
     <span class="meta">服务 + CLI · 32 文件 · 7 能力域</span>
   </div>
 
@@ -7774,7 +7809,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
   <div class="section-head">
     <span class="section-num all">15</span>
     <h2>部署架构 — 单容器多进程</h2>
-    <span class="meta">Single Container · Java主进程托管Python子进程 · 前端静态资源集成 · 日志按日滚动</span>
+    <span class="meta">Single Container · Java 主进程 · 可选受管 Python · 前端静态资源集成 · 日志按日滚动</span>
   </div>
 
   <!-- SVG: 单容器多进程部署架构图 -->
@@ -7924,7 +7959,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
 
 <!-- Footer -->
 <div style="text-align:center;padding:48px 0 24px;color:var(--text3);font-size:.75rem;border-top:1px solid var(--border);margin-top:48px">
-  ZhikunCode Architecture Reference · 2026-09-16 · 规模图保留 2026-08-09 历史统计，非当前数量
+  ZhikunCode Architecture Reference · 2026-10-23 关键边界校准 · 原图与历史统计窗口见页首
 </div>
 
 </div><!-- /main -->
