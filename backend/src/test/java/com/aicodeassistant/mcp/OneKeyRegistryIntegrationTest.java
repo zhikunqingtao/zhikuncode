@@ -6,11 +6,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.env.YamlPropertySourceLoader;
 import org.springframework.core.env.Environment;
-import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.env.SystemEnvironmentPropertySource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.env.MockEnvironment;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -85,13 +85,8 @@ class OneKeyRegistryIntegrationTest {
 
     @Test
     void dockerDashscopeKeyFlowsThroughApplicationYamlIntoAllDashscopeMcpAuthorization() throws Exception {
-        StandardEnvironment environment = new StandardEnvironment();
-        environment.getPropertySources().addFirst(new SystemEnvironmentPropertySource(
-                "dockerEnvironment",
-                Map.of("LLM_PROVIDER_DASHSCOPE_API_KEY", "docker-dashscope-key")));
-        YamlPropertySourceLoader yamlLoader = new YamlPropertySourceLoader();
-        yamlLoader.load("applicationYaml", new ClassPathResource("application.yml"))
-                .forEach(source -> environment.getPropertySources().addLast(source));
+        MockEnvironment environment = applicationYamlWithEnvironment(
+                Map.of("LLM_PROVIDER_DASHSCOPE_API_KEY", "docker-dashscope-key"));
 
         assertEquals("docker-dashscope-key",
                 environment.getProperty("llm.providers.dashscope.api-key"));
@@ -126,13 +121,8 @@ class OneKeyRegistryIntegrationTest {
 
     @Test
     void genericLlmApiKeyDoesNotAuthenticateZhipuDashscopeMcp() throws Exception {
-        StandardEnvironment environment = new StandardEnvironment();
-        environment.getPropertySources().addFirst(new SystemEnvironmentPropertySource(
-                "genericLlmEnvironment",
-                Map.of("LLM_API_KEY", "generic-llm-key")));
-        YamlPropertySourceLoader yamlLoader = new YamlPropertySourceLoader();
-        yamlLoader.load("applicationYaml", new ClassPathResource("application.yml"))
-                .forEach(source -> environment.getPropertySources().addLast(source));
+        MockEnvironment environment = applicationYamlWithEnvironment(
+                Map.of("LLM_API_KEY", "generic-llm-key"));
 
         assertEquals("", environment.getProperty("llm.providers.dashscope.api-key"));
 
@@ -152,6 +142,16 @@ class OneKeyRegistryIntegrationTest {
                 null, null, null, null, null, null);
 
         assertTrue(manager.buildConfigFromRegistry(zhipuDefinition).headers().isEmpty());
+    }
+
+    private static MockEnvironment applicationYamlWithEnvironment(Map<String, Object> variables) throws IOException {
+        // Keep environment-variable lookup semantics without importing host credentials or JVM properties.
+        MockEnvironment environment = new MockEnvironment();
+        environment.getPropertySources().addFirst(new SystemEnvironmentPropertySource("testEnvironment", variables));
+        YamlPropertySourceLoader yamlLoader = new YamlPropertySourceLoader();
+        yamlLoader.load("applicationYaml", new ClassPathResource("application.yml"))
+                .forEach(source -> environment.getPropertySources().addLast(source));
+        return environment;
     }
 
     @Test
