@@ -26,7 +26,9 @@ public final class PublishOssCommand implements PromptCommand {
 
     @Override public String getName() { return "publish-oss"; }
 
-    @Override public boolean isAvailable() { return skills.resolve("publish-oss") != null; }
+    @Override public boolean isAvailable() {
+        return properties.isEnabled() && skills.resolve("publish-oss") != null;
+    }
 
     @Override public boolean isHidden() { return !isAvailable(); }
 

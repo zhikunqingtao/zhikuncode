@@ -123,8 +123,12 @@ class SkillAvailabilityTest {
         for (String name : List.of("publish-oss", "publish-meoo")) {
             registry.register(skill(name, name, "PUBLISH_BODY", SkillDefinition.SkillSource.BUNDLED));
         }
-        var oss = new PublishOssCommand(registry, new OssPublishProperties());
-        var meoo = new PublishMeooCommand(registry, new MeooPublishProperties());
+        OssPublishProperties ossProperties = new OssPublishProperties();
+        ossProperties.setEnabled(true);
+        MeooPublishProperties meooProperties = new MeooPublishProperties();
+        meooProperties.setEnabled(true);
+        var oss = new PublishOssCommand(registry, ossProperties);
+        var meoo = new PublishMeooCommand(registry, meooProperties);
         HelpCommand help = new HelpCommand(new CommandRegistry(List.of(oss, meoo)));
         assertThat(help.execute("", null).data()).containsEntry("total", 2);
         assertThat(help.execute("publish-oss", null).value()).contains(oss.getDescription());
@@ -147,6 +151,54 @@ class SkillAvailabilityTest {
         registry.setEnabled("publish-oss", true);
         assertThat(help.execute("", null).data()).containsEntry("total", 1);
         assertThat(help.execute("publish-oss", null).value()).contains(oss.getDescription());
+        assertThat(help.execute("publish-meoo", null).isSuccess()).isFalse();
+    }
+
+    @Test
+    void deploymentConfigurationControlsPublishListsHelpAndSuggestionsWithoutRebuildingRegistry() {
+        for (String name : List.of("publish-oss", "publish-meoo")) {
+            registry.register(skill(name, name, "PUBLISH_BODY", SkillDefinition.SkillSource.BUNDLED));
+        }
+        OssPublishProperties ossProperties = new OssPublishProperties();
+        MeooPublishProperties meooProperties = new MeooPublishProperties();
+        var oss = new PublishOssCommand(registry, ossProperties);
+        var meoo = new PublishMeooCommand(registry, meooProperties);
+        var commands = new CommandRegistry(List.of(oss, meoo));
+        HelpCommand help = new HelpCommand(commands);
+
+        assertThat(commands.getVisibleCommands()).isEmpty();
+        assertThat(commands.suggestCommands("publish")).doesNotContain("publish-oss", "publish-meoo");
+        var disabledList = help.execute("", null);
+        assertThat(disabledList.data()).containsEntry("total", 0);
+        assertThat(disabledList.data().toString()).doesNotContain("publish-oss", "publish-meoo");
+        for (String name : List.of("publish-oss", "publish-meoo", "PUBLISH-OSS")) {
+            var detail = help.execute(name, null);
+            assertThat(detail.isSuccess()).isFalse();
+            assertThat(detail.value()).isNull();
+            assertThat(detail.error()).contains("Unknown command")
+                    .doesNotContain(oss.getDescription(), meoo.getDescription(),
+                            "PublishArtifact", "InspectMeooDeployment");
+        }
+
+        ossProperties.setEnabled(true);
+        assertThat(commands.getVisibleCommands()).containsExactly(oss);
+        assertThat(commands.suggestCommands("publish")).contains("publish-oss").doesNotContain("publish-meoo");
+        assertThat(help.execute("", null).data()).containsEntry("total", 1);
+        assertThat(help.execute("publish-oss", null).value()).contains(oss.getDescription());
+        assertThat(help.execute("publish-meoo", null).isSuccess()).isFalse();
+
+        meooProperties.setEnabled(true);
+        assertThat(commands.getVisibleCommands()).containsExactlyInAnyOrder(oss, meoo);
+        assertThat(commands.suggestCommands("publish")).contains("publish-oss", "publish-meoo");
+        assertThat(help.execute("", null).data()).containsEntry("total", 2);
+        assertThat(help.execute("publish-meoo", null).value()).contains(meoo.getDescription());
+
+        ossProperties.setEnabled(false);
+        meooProperties.setEnabled(false);
+        assertThat(commands.getVisibleCommands()).isEmpty();
+        assertThat(commands.suggestCommands("publish")).doesNotContain("publish-oss", "publish-meoo");
+        assertThat(help.execute("", null).data()).containsEntry("total", 0);
+        assertThat(help.execute("publish-oss", null).isSuccess()).isFalse();
         assertThat(help.execute("publish-meoo", null).isSuccess()).isFalse();
     }
 

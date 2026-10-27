@@ -26,7 +26,9 @@ public final class PublishMeooCommand implements PromptCommand {
 
     @Override public String getName() { return "publish-meoo"; }
 
-    @Override public boolean isAvailable() { return skills.resolve("publish-meoo") != null; }
+    @Override public boolean isAvailable() {
+        return properties.isEnabled() && skills.resolve("publish-meoo") != null;
+    }
 
     @Override public boolean isHidden() { return !isAvailable(); }
 
