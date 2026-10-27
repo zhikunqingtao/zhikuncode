@@ -1,19 +1,30 @@
 ---
 name: software-architecture
 description: 提供Clean Architecture、SOLID原则与15种核心设计模式的中文化决策指引，重点覆盖Java/Spring Boot服务端场景
-allowed-tools: [Read, Write]
-arguments: [problem_description, tech_stack]
+allowed-tools:
+  - Read
+  - Write
+arguments:
+  - problem_description
+  - tech_stack
 argument-hint: "问题描述与技术栈，如 '订单服务耦合过深 java-spring-boot'"
 when_to_use: 当用户面临架构选型、模块解耦、设计模式选择或代码可维护性问题时
 effort: medium
 context: inline
 user-invocable: true
-version: "1.0"
+version: "1.1"
 ---
 
 # /software-architecture — 软件架构与设计模式中文指引
 
-为服务端开发场景提供 Clean Architecture、SOLID 原则与核心设计模式的结构化决策支持。聚焦 Java / Spring Boot 实践，参考国内企业（阿里、字节跳动）的架构规范。
+为服务端开发场景提供 Clean Architecture、SOLID 原则与核心设计模式的结构化决策支持。示例侧重 Java / Spring Boot，实际建议以用户技术栈和项目约定为准。
+
+## 用户输入的初步解析线索（可能不完整）
+
+- 问题描述：{{problem_description}}
+- 技术栈：{{tech_stack}}
+
+参数可能因空白切分而截断或错位，不能将上述线索当作已确认的问题或技术栈。结合原对话与完整补充说明判断范围；显式命名参数优先于位置参数，同名命名参数以最后一个值为准；未填写参数不视为事实。仅要求评估时不修改代码或创建文档，实施范围遵循已有授权。
 
 ## 触发词
 - "架构怎么设计"
@@ -25,9 +36,11 @@ version: "1.0"
 
 ## 执行流程
 
-### 第一步：问题分类（工具：无，纯推理）
+以下模型、原则和模式按实际问题选用，不强制采用某种分层或模式。
 
-阅读用户提供的 `problem_description`，从以下维度归类：
+### 第一步：问题分类（工具：Read 按需）
+
+阅读用户提供的 `problem_description`，结合实际代码与项目约定核对问题，再从以下维度归类；缺少依据时明确假设：
 
 | 类别 | 典型描述 | 推荐工具集 |
 |------|---------|-----------|
@@ -72,8 +85,6 @@ version: "1.0"
 - **Interface Adapters**：`adapter/web`（Controller）、`adapter/persistence`（MyBatis/JPA Repository 实现）
 - **Frameworks**：`infrastructure` 下的配置、Spring Boot 启动类、第三方 SDK 包装
 
-> 阿里《Java开发手册》对应"应用分层"章节：开放接口层 / 终端显示层 / Web层 / Service层 / Manager层 / DAO层；可视为 Clean Architecture 的本地化变体。
-
 ### 第三步：SOLID 原则匹配（工具：无，纯推理）
 
 | 原则 | 中文名 | 核心要点 | Java 示例 |
@@ -84,8 +95,8 @@ version: "1.0"
 | **I**SP | 接口隔离 | 客户端不应依赖不需要的方法 | 拆分 `Readable` / `Writable` 而非一个 `Stream` |
 | **D**IP | 依赖倒置 | 依赖抽象，不依赖具体实现 | Service 依赖 `OrderRepository` 接口，Spring 注入实现 |
 
-**SRP 反例与修正**：
-```java
+**SRP 反例与修正**（伪代码，不可直接编译）：
+```text
 // ❌ 反例：UserService 同时管理认证和邮件
 class UserService {
     User login(String name, String pwd) { /* ... */ }
@@ -97,8 +108,8 @@ class UserAuthService { User login(...) { } }
 class UserNotificationService { void sendWelcome(...) { } }
 ```
 
-**OCP 落地（策略模式）**：
-```java
+**OCP 落地（策略模式）**（伪代码，省略初始化、业务实现与错误处理，不可直接运行）：
+```text
 public interface PaymentStrategy { PayResult pay(Order o); }
 
 @Service public class AlipayStrategy implements PaymentStrategy { }
@@ -106,7 +117,7 @@ public interface PaymentStrategy { PayResult pay(Order o); }
 
 @Service
 public class PaymentService {
-    private final Map<String, PaymentStrategy> strategies; // Spring 自动注入
+    private final Map<String, PaymentStrategy> strategies; // 示意策略映射
     public PayResult pay(String channel, Order o) {
         return strategies.get(channel).pay(o);
     }
@@ -121,7 +132,7 @@ public class PaymentService {
 │   ├─ 同类多变种 → ① 工厂方法
 │   ├─ 多产品族   → ② 抽象工厂
 │   ├─ 参数过多   → ③ 建造者（Builder）
-│   ├─ 全局唯一   → ④ 单例（Spring Bean 默认即是）
+│   ├─ 共享实例   → ④ 单例（先确认作用域和生命周期）
 │   └─ 复制成本高 → ⑤ 原型
 ├─ 结构组合
 │   ├─ 接口不兼容   → ⑥ 适配器
@@ -153,20 +164,18 @@ public class PaymentService {
 
 根据 `tech_stack` 参数（如 `java-spring-boot` / `python-fastapi` / `node-express`）输出适配建议：
 
-**Java / Spring Boot 重点**（默认）：
+**Java / Spring Boot 重点**（仅在实际使用该技术栈时）：
 - 优先用 Spring 原生能力承载模式：`@Component` 实现策略、`ApplicationEvent` 实现观察者、`@Aspect` 实现装饰器
-- DI 容器天然契合 DIP：所有依赖通过构造器注入
-- 事务边界放在 Use Case 层（`@Transactional`），不下沉到 Adapter
-- 字节跳动 Java 服务实践：DDD + Clean Architecture 折中，按"领域包 + 应用包 + 适配包"分包，禁止跨包反向依赖
-- 阿里 COLA 架构：`adapter / app / domain / infrastructure / client`，可作为本地化参考
+- 优先通过构造器注入依赖
+- 按业务一致性要求确定事务边界，不仅因分层调整而移动 `@Transactional`
 
 **Python / Node 等**：仅给出原则映射，不强行套用 Java 特性。
 
 ### 第六步：输出决策建议（工具：Write 可选）
 
-按结构化模板输出，必要时写入 `docs/architecture/<topic>.md`：
+以下结构模板按需使用，省略不适用项；仅按用户要求写入 `docs/architecture/<topic>.md` 等约定位置：
 
-```markdown
+````markdown
 ## 🏛️ 架构建议
 
 **问题摘要**：{problem_description}
@@ -179,7 +188,7 @@ public class PaymentService {
 ### 二、推荐方案
 1. **分层调整**：{Clean Architecture 落点}
 2. **关键原则**：{命中的 SOLID 原则}
-3. **设计模式**：{推荐的 1-3 个模式 + 理由}
+3. **设计模式**：{推荐模式及理由，如适用}
 
 ### 三、改造步骤
 - 第1步：{最小改动}
@@ -196,25 +205,24 @@ public class PaymentService {
 - ⚠️ {迁移成本}
 
 ### 六、参考资料
-- 阿里巴巴《Java开发手册》分层规约
-- 字节跳动 Java 微服务架构实践
-- 《Clean Architecture》—— Robert C. Martin
-```
+- {实际查阅且与结论相关的资料；没有则省略}
+````
 
 ## 决策原则
 
 1. **奥卡姆剃刀**：能用最简方案解决的，不引入额外抽象
 2. **YAGNI**：不为"以后可能需要"提前抽象
-3. **可测试优先**：每个建议都要保证业务逻辑可单元测试（即必须遵守 DIP）
-4. **本地化对标**：优先参考阿里 COLA、字节技术规范，避免照搬纯西方教科书示例
+3. **可测试优先**：说明如何验证关键业务行为，不等同于必须引入接口
+4. **项目约定优先**：不把未经核实的外部规范当作项目事实
 5. **渐进式改造**：大型重构必须给出最小可落地的第一步
 
 ## 安全规则
 - 不建议未经测试覆盖的大范围重构
 - 不在生产代码中引入未经评审的 SPI 机制
+- 区分建议、已执行的验证与未验证部分，不虚报改造效果
 - 涉及安全/事务/并发关键路径时，必须额外提示风险
 
 ## 错误处理策略
-- 用户描述不足以归类 → 主动列出 8 大问题类别请用户对号入座
-- 多种模式都适用 → 列出 Top2 并给出取舍标准（团队熟悉度 / 后续扩展可能性）
+- 用户描述不足以归类 → 询问缺失的具体信息
+- 多种模式都适用 → 比较候选方案及取舍标准，不强制凑数
 - 模式与现有代码风格冲突 → 提示渐进式过渡，不强推大爆炸式改造

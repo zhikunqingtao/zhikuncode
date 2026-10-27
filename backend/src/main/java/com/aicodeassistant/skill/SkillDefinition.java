@@ -2,6 +2,7 @@ package com.aicodeassistant.skill;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 技能定义 — 解析后的完整技能对象。
@@ -23,6 +24,11 @@ public record SkillDefinition(
         SkillSource source,
         String filePath
 ) {
+
+    private static final Set<String> SUPPLEMENTARY_INSTRUCTION_SKILLS = Set.of(
+            "commit", "pr", "test", "verify", "debug", "remember",
+            "software-architecture", "prompt-engineering", "csv-data-summarizer",
+            "test-driven-development");
 
     /** Stable settings key, independent of a display name/frontmatter alias. */
     public String id() {
@@ -80,6 +86,22 @@ public record SkillDefinition(
      */
     public String renderTemplate(Map<String, String> params) {
         return ArgumentSubstitution.substitute(content, params);
+    }
+
+    public boolean acceptsSupplementaryInstructions() {
+        return source == SkillSource.BUNDLED && SUPPLEMENTARY_INSTRUCTION_SKILLS.contains(name);
+    }
+
+    /** Preserve prose beyond positional parameters without recursively substituting user text. */
+    public String renderPrompt(Map<String, String> params, String rawArgs) {
+        String rendered = renderTemplate(params);
+        if (acceptsSupplementaryInstructions() && rawArgs != null && !rawArgs.isBlank()) {
+            rendered += "\n\n## 本次用户补充说明\n\n"
+                    + "请结合以下完整说明判断任务范围和限制。对于已声明参数，显式命名参数（key=value）优先于位置参数，同名命名参数重复时采用最后一个值。"
+                    + "若模板参数因空白切分而不完整，应核对完整原文，不要将截断片段当作完整路径或范围；仍有歧义时先澄清。\n\n"
+                    + rawArgs;
+        }
+        return rendered;
     }
 
     /**

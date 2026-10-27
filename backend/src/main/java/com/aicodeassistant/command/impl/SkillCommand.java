@@ -85,7 +85,7 @@ public class SkillCommand implements PromptCommand {
             // Review scope is prose, not the shared positional/key=value parameter grammar.
             params.put("review_scope", skillArgs);
         }
-        String renderedPrompt = skill.renderTemplate(params);
+        String renderedPrompt = skill.renderPrompt(params, skillArgs);
 
         // 返回渲染后的提示词，由 PROMPT 路径注入 LLM 对话
         return CommandResult.text(renderedPrompt);

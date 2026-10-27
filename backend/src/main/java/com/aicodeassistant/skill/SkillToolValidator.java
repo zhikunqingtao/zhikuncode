@@ -56,10 +56,8 @@ public class SkillToolValidator {
             if (value == null) continue;
 
             // 长度检查
-            if (value.length() > MAX_ARG_LENGTH) {
-                return ValidationResult.deny("Argument '" + entry.getKey()
-                    + "' exceeds max length " + MAX_ARG_LENGTH + " for skill '" + skillName + "'");
-            }
+            ValidationResult lengthValidation = validateText(skillName, entry.getKey(), value);
+            if (!lengthValidation.allowed()) return lengthValidation;
 
             // 危险模式检查
             for (Pattern pattern : DANGEROUS_PATTERNS) {
@@ -70,6 +68,15 @@ public class SkillToolValidator {
                         + entry.getKey() + "' for skill '" + skillName + "'");
                 }
             }
+        }
+        return ValidationResult.allow();
+    }
+
+    /** Validate prompt text without interpreting Markdown or code examples as shell commands. */
+    public ValidationResult validateText(String skillName, String argumentName, String text) {
+        if (text != null && text.length() > MAX_ARG_LENGTH) {
+            return ValidationResult.deny("Argument '" + argumentName
+                    + "' exceeds max length " + MAX_ARG_LENGTH + " for skill '" + skillName + "'");
         }
         return ValidationResult.allow();
     }

@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class SkillReviewScopeTest {
     private static final String SCOPE = "commit=abc123  排除 docs/**\n只查 \"src/a b.java\" x=y C:\\repo $value "
-            + "{{args}} {{review_scope}} review_scope=ignored";
+            + "{{args}} {{review_scope}} review_scope=ignored `FooService` ${value} a | b; echo value";
 
     @TempDir Path workspace;
     private SkillRegistry registry;
@@ -109,9 +109,9 @@ class SkillReviewScopeTest {
     }
 
     @Test
-    void dangerousScopeStillFails() {
-        assertThat(executor.execute("review", "只审查 $(touch /tmp/example)", context).failureCode())
-                .isEqualTo("SKILL_ARGUMENTS_INVALID");
+    void codeExamplesInScopeRemainLiteralText() {
+        String scope = "只审查下面的命令示例，不要执行：\n```sh\n$(example) && rm file\n```";
+        assertThat(render(true, "review", scope)).containsOnlyOnce(scope);
     }
 
     @Test

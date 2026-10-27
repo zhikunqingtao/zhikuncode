@@ -69,19 +69,23 @@ public class SkillExecutor {
 
         // 2. 参数解析和替换
         Map<String, String> params = skill.parseArgs(args);
-        if (skill.source() == SkillDefinition.SkillSource.BUNDLED && "review".equals(skill.name())) {
+        boolean bundledReview = skill.source() == SkillDefinition.SkillSource.BUNDLED && "review".equals(skill.name());
+        if (bundledReview) {
             // Preserve the complete scope while keeping it inside argument validation.
             params.put("review_scope", args != null ? args : "");
         }
 
         // 2.5 参数安全验证
-        SkillToolValidator.ValidationResult argsValidation = skillToolValidator.validateArgs(skill.effectiveName(), params);
+        // These bundled inputs are prompt text, so validate the complete text rather than shell syntax.
+        SkillToolValidator.ValidationResult argsValidation = skill.acceptsSupplementaryInstructions() || bundledReview
+                ? skillToolValidator.validateText(skill.effectiveName(), bundledReview ? "review_scope" : "instructions", args)
+                : skillToolValidator.validateArgs(skill.effectiveName(), params);
         if (!argsValidation.allowed()) {
             log.warn("[SKILL] Args validation failed for '{}': {}", skill.effectiveName(), argsValidation.reason());
             return ToolResult.validationError("SKILL_ARGUMENTS_INVALID", "Skill argument validation failed: " + argsValidation.reason());
         }
 
-        String renderedPrompt = skill.renderTemplate(params);
+        String renderedPrompt = skill.renderPrompt(params, args);
 
         // 3. Fork权限验证
         if (skill.frontmatter().isFork()) {
