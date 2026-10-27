@@ -215,6 +215,25 @@ class ContextCompactorTest {
         assertEquals("summary_already_attempted",compactor.compact(history(),context,true).failureReason());
         verify(provider,times(1)).summarize(any(),any());
     }
+    @Test void failedSummarySelectionCanShrinkAgainOnlyWithALowerHistoryBudget() {
+        when(provider.summarize(any(), any())).thenReturn(SummaryResult.failed("summary_http_400"));
+        var phase = context(12000);
+        var first = compactor.compact(history(), phase, false);
+        assertEquals("key_selection", first.mode());
+        var source = first.compactedMessages();
+        int target = first.afterTokens() / 2;
+        var recovery = new CompactionContext(phase.model(), phase.contextWindow(), target, phase.tokenCharRatio(),
+                phase.call(), phase.deadlineNanos(), phase.stillValid(), phase.phaseDeadline(), phase.summaryAttempted());
+        var second = compactor.compact(source, recovery, true);
+        assertNull(second.skipReason(), second.skipReason());
+        assertEquals("summary_already_attempted", second.failureReason());
+        assertTrue(second.afterTokens() <= target);
+        assertTrue(second.compactedMessages().contains(source.getFirst()));
+        assertTrue(second.compactedMessages().contains(source.getLast()));
+        assertDoesNotThrow(() -> CompactionHistory.analyze(second.compactedMessages()));
+        verify(provider, times(1)).summarize(any(), any());
+    }
+
     @Test void invalidOptionalConfigurationAndUnknownCapacityNeverInvokeProvider() {
         env.setProperty("app.compact.timeout-ms","not-a-number");
         assertEquals("invalid_summary_configuration",compactor.compact(history(),context(12000),false).failureReason());

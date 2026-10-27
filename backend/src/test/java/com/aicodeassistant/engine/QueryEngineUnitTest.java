@@ -3389,6 +3389,253 @@ class QueryEngineUnitTest {
         assertThat(state.getCompactionContext().historyBudget()).isEqualTo(phase1.getValue());
     }
 
+    @Nested
+    class UpstreamContextRecoveryBudgetTests {
+        private final TokenCounter actualCounter = new TokenCounter(modelRegistry, null, null);
+        private LlmProvider executionProvider;
+        private LlmProvider summaryProvider;
+        private ContextCompactor actualCompactor;
+        private CompactService actualCompactService;
+        private final List<Integer> sentTokens = new ArrayList<>();
+        private final List<Integer> payloadChars = new ArrayList<>();
+        private QueryLoopState activeState;
+        private BiConsumer<Integer, StreamChatCallback> behavior;
+
+        @BeforeEach
+        void useRealContextPipeline() {
+            summaryProvider = mock(LlmProvider.class);
+            executionProvider = mock(LlmProvider.class);
+            lenient().when(providerRegistry.findProviderByName("deepseek")).thenReturn(Optional.of(summaryProvider));
+            lenient().when(summaryProvider.supportsSummary(any(), any())).thenReturn(true);
+            lenient().when(modelRegistry.findExplicitCapabilities(any(), eq(summaryProvider))).thenReturn(Optional.of(
+                    new ModelCapabilities("deepseek-flash", "Summary", 32768, 1000000,
+                            true, true, false, 0, false, 0, 0)));
+            lenient().when(summaryProvider.summarize(any(), any())).thenReturn(SummaryResult.failed("summary_http_400"));
+            actualCompactor = new ContextCompactor(actualCounter, providerRegistry, modelRegistry,
+                    new CompactConfiguration(null));
+            actualCompactService = new CompactService(actualCounter, providerRegistry, null, null);
+            org.springframework.test.util.ReflectionTestUtils.setField(actualCompactService, "contextCompactor", actualCompactor);
+            var snip = new SnipService();
+            var micro = new MicroCompactService(actualCounter);
+            var cascade = new ContextCascade(snip, micro, new ContextCollapseService(6, 2000, 500),
+                    actualCompactService, actualCounter, modelRegistry);
+            queryEngine = new QueryEngine(providerRegistry, actualCompactService, apiRetryService, actualCounter,
+                    objectMapper, streamingToolExecutor, new MessageNormalizer(), hookService,
+                    snip, micro, modelRegistry, thinkingBudgetCalculator, modelTierService, fileHistoryService,
+                    toolResultSummarizer, cascade, compactMetrics, null, null, null, featureFlagService,
+                    new DefaultTerminationStrategy(), new ToolPriorityScheduler(), null, new AgentTimeoutConfig(),
+                    new TokenBudgetGuard(), imageRefInjector, null, null, userImageTranscoder);
+            lenient().when(providerRegistry.getProvider(anyString())).thenReturn(executionProvider);
+            lenient().when(streamingToolExecutor.newSession(any())).thenReturn(mock(StreamingToolExecutor.ExecutionSession.class));
+            lenient().when(apiRetryService.executeWithRetry(any(), anyString(), anyString(), any()))
+                    .thenAnswer(inv -> inv.getArgument(0, Supplier.class).get());
+            lenient().when(hookService.executeStopHooks(anyList(), anyString())).thenReturn(HookRegistry.StopHookResult.ok());
+            lenient().doAnswer(inv -> {
+                String model = inv.getArgument(0);
+                sentTokens.add(actualCounter.estimateTokens(CompactionHistory.forRequest(activeState.getMessages()), model));
+                payloadChars.add(objectMapper.writeValueAsString(inv.getArgument(1, List.class)).length());
+                behavior.accept(sentTokens.size(), inv.getArgument(7));
+                return null;
+            }).when(executionProvider).streamChat(anyString(), anyList(), anyString(), anyList(), anyInt(), any(),
+                    any(LlmCallContext.class), any(StreamChatCallback.class));
+        }
+
+        private QueryLoopState longHistory() {
+            var messages = new ArrayList<Message>();
+            messages.add(ContextCompactorTest.user("goal", "Inspect /repo/main.java. Keep all user corrections. Do not deploy."));
+            for (int i = 0; i < 100; i++) {
+                messages.add(ContextCompactorTest.call("a" + i, "t" + i, 7000));
+                messages.add(ContextCompactorTest.result("r" + i, "t" + i, "evidence ".repeat(125)));
+            }
+            messages.add(ContextCompactorTest.user("latest", "Explain the failure, preserve the exact authorization and newest request."));
+            return new QueryLoopState(messages, ToolUseContext.of("/tmp", "context-recovery-test"));
+        }
+
+        private void answer(StreamChatCallback callback) {
+            callback.onEvent(new LlmStreamEvent.TextDelta("Recovered with the user's instructions intact."));
+            callback.onEvent(new LlmStreamEvent.MessageDelta(new Usage(10, 5, 0, 0), "end_turn"));
+            callback.onComplete();
+        }
+
+        private LlmApiException upstreamLimit() {
+            return new LlmApiException("prompt is too long: 1081793 tokens > 1000000 maximum", false, 400);
+        }
+
+        @Test
+        void failedSummaryThenUpstreamRejectionShrinksRealRequestAndUsesSendTimeSnapshot() {
+            activeState = longHistory();
+            Message goal = activeState.getMessages().getFirst();
+            Message latest = activeState.getMessages().getLast();
+            Message steering = ContextCompactorTest.user("steering", "New correction received while the rejected request was in flight.");
+            behavior = (call, callback) -> {
+                if (call == 1) {
+                    activeState.addMessage(steering);
+                    throw upstreamLimit();
+                }
+                answer(callback);
+            };
+
+            var result = queryEngine.execute(buildConfig(), activeState, handler);
+
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(sentTokens).hasSize(2);
+            assertThat(sentTokens.get(1)).isLessThanOrEqualTo(sentTokens.get(0) / 2);
+            assertThat(payloadChars.get(1)).isLessThan(payloadChars.get(0));
+            assertThat(activeState.contextRecoveryBudget("mock-model", Integer.MAX_VALUE)).isEqualTo(sentTokens.get(0) / 2);
+            assertThat(activeState.getCompactionContext().historyBudget()).isEqualTo(sentTokens.get(0) / 2);
+            assertThat(activeState.getMessages()).contains(goal, latest, steering);
+            org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> CompactionHistory.analyze(activeState.getMessages()));
+            verify(summaryProvider, times(1)).summarize(any(), any());
+        }
+
+        @Test
+        void repeatedUpstreamRejectionsPreserveExistingFourRequestBound() {
+            activeState = longHistory();
+            behavior = (call, callback) -> { throw upstreamLimit(); };
+
+            var result = queryEngine.execute(buildConfig(), activeState, handler);
+
+            assertThat(result.isSuccess()).isFalse();
+            assertThat(sentTokens).hasSize(4); // existing drain -> reactive -> drain -> terminal guard
+            for (int i = 1; i < sentTokens.size(); i++)
+                assertThat(sentTokens.get(i)).isLessThanOrEqualTo(sentTokens.get(i - 1) / 2);
+            assertThat(activeState.hasAttemptedReactiveCompact()).isTrue();
+            assertThat(activeState.isRecoveryExhausted()).isTrue();
+            // Existing per-turn phase reset allows one summary in each later recovery phase.
+            verify(summaryProvider, times(3)).summarize(any(), any());
+        }
+
+        @Test
+        void ceilingUsesEffectiveModelAndIsResetOnlyOnNextExecute() {
+            activeState = longHistory();
+            when(modelTierService.resolveModel(anyString(), anyList())).thenReturn("effective-model");
+            behavior = (call, callback) -> { if (call == 1) throw upstreamLimit(); answer(callback); };
+            assertThat(queryEngine.execute(buildConfig(), activeState, handler).isSuccess()).isTrue();
+            assertThat(activeState.hasContextRecoveryCeiling("effective-model")).isTrue();
+            assertThat(activeState.hasContextRecoveryCeiling("mock-model")).isFalse();
+            int ceiling = activeState.contextRecoveryBudget("effective-model", Integer.MAX_VALUE);
+            activeState.resetRecoveryCount();
+            activeState.setHasAttemptedReactiveCompact(false);
+            assertThat(activeState.contextRecoveryBudget("effective-model", Integer.MAX_VALUE)).isEqualTo(ceiling);
+            activeState.tightenContextRecoveryCeiling("other-model", 4000);
+            assertThat(activeState.contextRecoveryBudget("effective-model", Integer.MAX_VALUE)).isEqualTo(ceiling);
+            activeState.tightenContextRecoveryCeiling("effective-model", ceiling * 4);
+            assertThat(activeState.contextRecoveryBudget("effective-model", Integer.MAX_VALUE)).isEqualTo(ceiling);
+
+            assertThat(queryEngine.execute(buildConfig(), activeState, new TestHandler()).isSuccess()).isTrue();
+            assertThat(activeState.hasContextRecoveryCeiling("effective-model")).isFalse();
+            assertThat(activeState.hasContextRecoveryCeiling("other-model")).isFalse();
+        }
+
+        @org.junit.jupiter.params.ParameterizedTest
+        @org.junit.jupiter.params.provider.CsvSource({
+                "400, invalid api key", "400, invalid_image", "413, request entity too large",
+                "413, file_too_large", "413, image too_large", "413, request exceeds 1048576 bytes",
+                "400, token limit exceeded for output", "500, prompt is too long: 200 tokens > 100 maximum"
+        })
+        void nonTokenContextFailuresDoNotTightenBudget(int status, String message) {
+            activeState = longHistory();
+            behavior = (call, callback) -> { throw new LlmApiException(message, false, status); };
+            queryEngine.execute(buildConfig(), activeState, handler);
+            assertThat(activeState.hasContextRecoveryCeiling("mock-model")).isFalse();
+            assertThat(sentTokens.size()).isBetween(1, 4);
+        }
+
+        @Test
+        void contextWindowOnlyErrorDoesNotWidenRecoveryEntry() {
+            activeState = longHistory();
+            behavior = (call, callback) -> {
+                throw new LlmApiException("request exceeds context window: 1200000 tokens", false, 400);
+            };
+            var recoveryEvents = new ArrayList<RecoveryEvent>();
+            var boundaryHandler = new TestHandler() {
+                @Override public void onRecovery(RecoveryEvent event) { recoveryEvents.add(event); }
+            };
+
+            var result = queryEngine.execute(buildConfig(), activeState, boundaryHandler);
+
+            assertThat(result.isSuccess()).isFalse();
+            assertThat(sentTokens).hasSize(1);
+            assertThat(activeState.hasContextRecoveryCeiling("mock-model")).isFalse();
+            assertThat(activeState.hasAttemptedReactiveCompact()).isFalse();
+            assertThat(activeState.isRecoveryExhausted()).isFalse();
+            assertThat(recoveryEvents).isEmpty();
+        }
+
+        @org.junit.jupiter.params.ParameterizedTest
+        @org.junit.jupiter.params.provider.ValueSource(strings = {"cancelled", "suppressed", "local_guard"})
+        void cancellationSuppressionAndLocalGuardCannotLearnUpstreamCeiling(String kind) {
+            activeState = longHistory();
+            behavior = (call, callback) -> {
+                if ("cancelled".equals(kind)) throw new LlmApiException(upstreamLimit().getMessage(), false, 400, "cancelled", 0);
+                if ("suppressed".equals(kind)) throw upstreamLimit().withRetryable(false);
+                throw new LlmApiException(upstreamLimit().getMessage(), false, 400, "CONTEXT_BUDGET_EXCEEDED", 0);
+            };
+            queryEngine.execute(buildConfig(), activeState, handler);
+            assertThat(activeState.hasContextRecoveryCeiling("mock-model")).isFalse();
+            assertThat(sentTokens).hasSize(1);
+        }
+
+        @Test
+        void mandatoryContentAboveRecoveryTargetFailsWithoutCallingItActualWindowOverflow() {
+            activeState = new QueryLoopState(List.of(
+                    ContextCompactorTest.user("mandatory", "User requirement ".repeat(1000)),
+                    new Message.AssistantMessage("old-answer", Instant.EPOCH,
+                            List.of(new ContentBlock.TextBlock("small previous answer")), null, null),
+                    ContextCompactorTest.user("latest", "Keep every requirement above.")),
+                    ToolUseContext.of("/tmp", "mandatory-recovery-test"));
+            List<Message> original = List.copyOf(activeState.getMessages());
+            behavior = (call, callback) -> { throw upstreamLimit(); };
+
+            var result = queryEngine.execute(buildConfig(), activeState, handler);
+
+            assertThat(sentTokens).hasSize(1);
+            assertThat(result.error()).contains("无法满足本次恢复目标", "请新开会话");
+            assertThat(activeState.getMessages()).containsExactlyElementsOf(original);
+        }
+
+        @Test
+        void reactiveRecoveryPreservesProtectedTailWithRealCompactor() {
+            activeState = longHistory();
+            List<Message> original = List.copyOf(activeState.getMessages());
+            Message protectedTail = original.getLast();
+            activeState.tightenContextRecoveryCeiling("mock-model", 20000);
+            boolean recovered = org.springframework.test.util.ReflectionTestUtils.invokeMethod(queryEngine,
+                    "tryReactiveCompact", buildConfig(), activeState, handler, protectedTail.uuid());
+            assertThat(recovered).isTrue();
+            assertThat(activeState.getMessages()).contains(original.getFirst(), protectedTail);
+            assertThat(activeState.getMessages().getLast()).isSameAs(protectedTail);
+            assertThat(actualCounter.estimateTokens(CompactionHistory.forRequest(activeState.getMessages()), "mock-model"))
+                    .isLessThanOrEqualTo(10000);
+            org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> CompactionHistory.analyze(activeState.getMessages()));
+            assertThat(sentTokens).isEmpty();
+        }
+
+        @Test
+        void handoffIsReservedBeforeCeilingAndProtectedTailIsSubtractedExactlyOnce() {
+            activeState = longHistory();
+            activeState.setHandoffOperationId("merged-test");
+            HandoffContextService handoff = mock(HandoffContextService.class);
+            when(handoff.project(any(), anyString(), anyInt(), anyDouble(), anyBoolean()))
+                    .thenReturn(new HandoffContextService.Projection(List.of(), 200));
+            org.springframework.test.util.ReflectionTestUtils.setField(queryEngine, "handoffContext", handoff);
+            activeState.tightenContextRecoveryCeiling("mock-model", 2000);
+            List<Message> tail = List.of(ContextCompactorTest.user("image-request", "Protected newest request ".repeat(10)));
+            int tailTokens = actualCounter.estimateTokens(tail, "mock-model");
+            CompactionContext first = org.springframework.test.util.ReflectionTestUtils.invokeMethod(queryEngine,
+                    "prepareCompactionContext", buildConfig(), activeState, "mock-model", tail, true);
+            assertThat(first.historyBudget()).isEqualTo(1000 - tailTokens);
+            CompactionContext second = org.springframework.test.util.ReflectionTestUtils.invokeMethod(queryEngine,
+                    "prepareCompactionContext", buildConfig(), activeState, "mock-model", tail, false);
+            assertThat(second.historyBudget()).isEqualTo(first.historyBudget());
+            assertThat(second.summaryAttempted()).isSameAs(first.summaryAttempted());
+            CompactionContext other = org.springframework.test.util.ReflectionTestUtils.invokeMethod(queryEngine,
+                    "prepareCompactionContext", buildConfig(), activeState, "other-model", tail, true);
+            int ordinary = 200000 - 8192 - (int)(buildConfig().systemPrompt().length() / 3.5) - 10000 - 200;
+            assertThat(other.historyBudget()).isEqualTo(ordinary - tailTokens);
+        }
+    }
+
     // ═══════════════ 辅助 ═══════════════
 
     private QueryConfig buildConfig() {

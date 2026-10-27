@@ -48,6 +48,18 @@ public class QueryLoopState {
     private CompactionContext compactionContext;
     public CompactionContext getCompactionContext() { return compactionContext; }
     public void setCompactionContext(CompactionContext context) { compactionContext = context; }
+    /** In-memory limits learned from rejected requests; scoped to one execute() and execution model. */
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private final java.util.Map<String, Integer> contextRecoveryCeilings = new java.util.HashMap<>();
+    void resetContextRecoveryCeilings() { contextRecoveryCeilings.clear(); }
+    void tightenContextRecoveryCeiling(String model, int sentHistoryTokens) {
+        contextRecoveryCeilings.merge(model, Math.max(0, sentHistoryTokens / 2), Math::min);
+    }
+    int contextRecoveryBudget(String model, int ordinaryBudget) {
+        return Math.min(ordinaryBudget, contextRecoveryCeilings.getOrDefault(model, ordinaryBudget));
+    }
+    boolean hasContextRecoveryCeiling(String model) { return contextRecoveryCeilings.containsKey(model); }
+
     private List<Message> messages;
     private final List<Consumer<Message>> messageListeners = new ArrayList<>();
     private MessagePersistenceSink persistenceSink;

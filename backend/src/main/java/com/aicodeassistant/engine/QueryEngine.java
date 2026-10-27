@@ -294,6 +294,7 @@ public class QueryEngine {
     public QueryResult execute(QueryConfig config, QueryLoopState state,
                                 QueryMessageHandler handler) {
         state.resetRunStartupFailure();
+        state.resetContextRecoveryCeilings();
         log.info("QueryEngine 开始执行: model={}, maxTokens={}, maxTurns={}",
                 config.model(), config.maxTokens(), config.maxTurns());
 
@@ -1048,6 +1049,9 @@ public class QueryEngine {
                 break;
             }
             state.assertPersistenceHealthy();
+            // Snapshot the history that produced this request; streaming/steering may mutate state later.
+            final int sentHistoryTokens = tokenCounter.estimateTokens(
+                    CompactionHistory.forRequest(state.getMessages()), effectiveModel);
             log.debug("Turn {} Step3: 开始 API 调用 streamChat...", turn);
             String llmRequestId = "llm-" + java.util.UUID.randomUUID();
             long llmStartedNanos = System.nanoTime();
@@ -1183,6 +1187,12 @@ public class QueryEngine {
                 }
                 // 413 prompt_too_long → 消息扣留 + 两阶段恢复
                 if (isContextLimitError(e)) {
+                    if (isExplicitTokenContextLimitError(e)) {
+                        state.tightenContextRecoveryCeiling(effectiveModel, sentHistoryTokens);
+                        log.info("event=context_recovery_budget_tightened model={} sentHistoryTokens={} recoveryCeiling={} requestId={}",
+                                effectiveModel, sentHistoryTokens,
+                                state.contextRecoveryBudget(effectiveModel, Integer.MAX_VALUE), llmRequestId);
+                    }
 
                     // 扣留错误，不立即释放给消费者
                     state.addWithheldError(e);
@@ -1977,6 +1987,7 @@ public class QueryEngine {
         double ratio = modelRegistry.getTokenCharRatio(model);
         int budget = historyInputBudget(config, window, ratio, state.getEffectiveMaxTokens(config.maxTokens()));
         budget -= handoffProjection(config,state,model,budget,ratio).reservedTokens();
+        budget = state.contextRecoveryBudget(model, budget);
         if (!protectedTail.isEmpty()) budget -= tokenCounter.estimateTokens(protectedTail, model);
         String session = state.getToolUseContext() == null ? null : state.getToolUseContext().sessionId();
         var signal = session == null ? CancellationSignal.none() : getOrCreateAbortContext(session);
@@ -2093,8 +2104,9 @@ public class QueryEngine {
                 return true;
             }
             if ("mandatory_context_over_budget".equals(result.skipReason())) {
-                state.setRecoveryFailureMessage(
-                        "必须保留的上下文超过模型窗口，请使用已有新会话并重新提供必要要求。");
+                state.setRecoveryFailureMessage(state.hasContextRecoveryCeiling(executionModel)
+                        ? "必须保留的上下文无法满足本次恢复目标，无法继续安全压缩；请新开会话并重新提供必要要求和工作进度。"
+                        : "必须保留的上下文超过模型窗口，请使用已有新会话并重新提供必要要求。");
             }
         } catch (java.util.concurrent.CancellationException e) { throw e;
         } catch (Exception e) {
@@ -2873,6 +2885,18 @@ public class QueryEngine {
             log.info("[PreClean] 历史 Base64 清理: {} → {} tokens",
                 result.tokensBefore(), result.tokensAfter());
         }
+    }
+
+    /** Only an explicit upstream token-context rejection may lower the run/model recovery budget.
+     * Message terms are a strict subset of isContextLimitError; the recovery entry stays unchanged. */
+    private boolean isExplicitTokenContextLimitError(LlmApiException e) {
+        if (e.getStatusCode() != 400 && e.getStatusCode() != 413) return false;
+        String message = e.getMessage();
+        if (message == null) return false;
+        String lower = message.toLowerCase(Locale.ROOT);
+        return lower.contains("token") && (lower.contains("prompt is too long")
+                || lower.contains("prompt_too_long") || lower.contains("context length")
+                || lower.contains("maximum context"));
     }
 
     private boolean isContextLimitError(LlmApiException e) {
