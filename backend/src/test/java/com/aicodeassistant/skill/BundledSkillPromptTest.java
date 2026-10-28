@@ -204,6 +204,19 @@ class BundledSkillPromptTest {
     }
 
     @Test
+    void bundledCommitPromptHonorsValidAuthorizationAndExplicitStaging() throws Exception {
+        SkillDefinition skill = registerBuiltin("commit");
+
+        assertThat(skill.content())
+                .contains("此前明确提出且仍然有效")
+                .contains("用户已明确指定要提交的文件时，只对这些文件执行 `git add <文件>`")
+                .contains("不得使用 `git add -A` 或 `git add .`")
+                .contains("将纳入的文件超出授权范围")
+                .contains("先展示拟定的提交信息和文件清单并等待确认")
+                .doesNotContain("仅当用户在本轮明确要求直接提交", "授权仅来自");
+    }
+
+    @Test
     void disabledSkillStillCannotBeInvoked() throws Exception {
         registerBuiltin("debug");
         registry.setEnabled("debug", false);

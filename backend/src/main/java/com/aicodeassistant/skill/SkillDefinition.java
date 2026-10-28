@@ -88,6 +88,11 @@ public record SkillDefinition(
         return ArgumentSubstitution.substitute(content, params);
     }
 
+    /**
+     * 是否接受补充说明。返回 true 时，参数仅做长度验证
+     * （{@link SkillToolValidator#validateText}，不应用危险模式检查），并原样追加到提示中。
+     * 信任要求 source == BUNDLED 且名称在内置白名单中，绝不从 frontmatter 推导。
+     */
     public boolean acceptsSupplementaryInstructions() {
         return source == SkillSource.BUNDLED && SUPPLEMENTARY_INSTRUCTION_SKILLS.contains(name);
     }

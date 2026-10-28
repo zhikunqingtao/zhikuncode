@@ -76,7 +76,11 @@ public class SkillExecutor {
         }
 
         // 2.5 参数安全验证
-        // These bundled inputs are prompt text, so validate the complete text rather than shell syntax.
+        // Trusted bundled skills (supplementary-instruction whitelist + bundled review) receive prompt text that is
+        // appended to the skill prompt, never executed here: only the length limit applies (validateText). This is an
+        // intentional relaxation of shell-pattern checks for trusted bundled skills only; all others use validateArgs.
+        // This applies to the SkillTool / SkillExecutor path only; the `/skill` slash command (SkillCommand) renders the
+        // prompt directly and does not run SkillToolValidator.
         SkillToolValidator.ValidationResult argsValidation = skill.acceptsSupplementaryInstructions() || bundledReview
                 ? skillToolValidator.validateText(skill.effectiveName(), bundledReview ? "review_scope" : "instructions", args)
                 : skillToolValidator.validateArgs(skill.effectiveName(), params);

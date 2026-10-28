@@ -21,6 +21,7 @@ public class SkillToolValidator {
     private static final int MAX_FORK_NESTING_DEPTH = 3;
 
     // 危险参数模式: shell注入
+    // 注意：仅由 validateArgs() 应用；validateText()（受信任的内置补充说明技能及内置 review）不应用这些模式。
     private static final List<Pattern> DANGEROUS_PATTERNS = List.of(
         Pattern.compile("\\$\\(.*\\)"),      // $(command)
         Pattern.compile("`.*`"),              // `command`
@@ -72,7 +73,23 @@ public class SkillToolValidator {
         return ValidationResult.allow();
     }
 
-    /** Validate prompt text without interpreting Markdown or code examples as shell commands. */
+    /**
+     * 验证提示文本（仅长度检查）— 受信任内置技能的参数验证契约。
+     *
+     * <p>适用范围：source 为 BUNDLED 且接受补充说明的技能
+     * （见 {@link SkillDefinition#acceptsSupplementaryInstructions()}），以及内置 {@code review}。
+     * 这些输入被视为追加到技能提示中的提示文本，本代码不会执行它们。
+     *
+     * <p>仅应用长度限制（{@code MAX_ARG_LENGTH}）；有意<b>不</b>应用 {@code DANGEROUS_PATTERNS}，
+     * 以便 Markdown/代码示例（如反引号、管道、{@code $(...)}）按字面保留。这是相对
+     * {@link #validateArgs(String, Map)} 的有意放宽，仅针对受信任的内置技能。
+     *
+     * <p>其他所有技能（project/user/plugin/MCP 来源，以及不在白名单中的内置技能，
+     * 包括 publish-oss/publish-meoo）仍通过 {@link #validateArgs(String, Map)} 进行
+     * 长度与 {@code DANGEROUS_PATTERNS} 检查。
+     *
+     * <p>本契约仅作用于 SkillExecutor（Skill 工具）路径；{@code /skill} 斜杠命令（SkillCommand）直接渲染提示，不经过本校验器。
+     */
     public ValidationResult validateText(String skillName, String argumentName, String text) {
         if (text != null && text.length() > MAX_ARG_LENGTH) {
             return ValidationResult.deny("Argument '" + argumentName
