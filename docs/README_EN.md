@@ -551,7 +551,7 @@ If no multi-Provider keys are configured, the system automatically falls back to
 | **Alibaba Cloud Bailian Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max / qwen3.8-flash / deepseek-v4.1-flash | Independent `sk-sp-` key; models are labeled “Bailian”. V4.1 Flash defaults `app.model.default`, fast queries and vision fallback; the frontend initial preference remains `qwen3.8-max-0902`, with configured/session selections taking precedence |
 | **DeepSeek** | `https://api.deepseek.com/v1` | deepseek-flash | Direct connection in China; DeepSeek V4.1 Flash with thinking, tool use, and native vision |
 | **Moonshot (Kimi)** | `https://api.moonshot.cn/v1` | kimi-k3.1-pro-highspeed | Separate Moonshot pay-as-you-go key; current registry includes vision and 1M context |
-| **Zhipu (GLM)** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.3, glm-5.3-flash | China direct access |
+| **Zhipu (GLM)** | `https://open.bigmodel.cn/api/paas/v4` | glm-5.3, glm-5.3-flash | China direct access |
 | **MiniMax** | `https://api.minimax.chat/v1` | MiniMax-M3 | 1M context window |
 | **ZenMux (Multi-Model Gateway)** | `https://zenmux.ai/api/v1` | anthropic/claude-fable-5.1 / anthropic/claude-opus-5.5 / anthropic/claude-sonnet-5.5 / anthropic/claude-haiku-5.5 / openai/gpt-5.6-sol / openai/gpt-6-astra / google/gemini-4-argon / x-ai/grok-4.7 / meta/muse-wonder-1.0 | Responses reasoning/tool continuation for OpenAI, Google, xAI, and Meta models · Image support |
 | **OpenAI** | `https://api.openai.com/v1` | gpt-5.6-sol / gpt-5.4-mini | Requires international network access |

@@ -549,7 +549,7 @@ LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 | **阿里云百炼 Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max / qwen3.8-flash / deepseek-v4.1-flash | 使用独立 `sk-sp-` Key；模型均标注“百炼”。V4.1 Flash 为服务端 `app.model.default`、快速查询及图片兜底的默认值；前端初始模型偏好仍为 `qwen3.8-max-0902`，用户配置／会话选择优先 |
 | **DeepSeek** | `https://api.deepseek.com/v1` | deepseek-flash | 国内直连；DeepSeek V4.1 Flash，支持思考、工具调用与原生视觉 |
 | **Moonshot（Kimi）** | `https://api.moonshot.cn/v1` | kimi-k3.1-pro-highspeed | 独立 Moonshot 按量 Key；当前注册表配置视觉和 1M 上下文 |
-| **Zhipu（智谱 GLM）** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.3, glm-5.3-flash | 国内直连 |
+| **Zhipu（智谱 GLM）** | `https://open.bigmodel.cn/api/paas/v4` | glm-5.3, glm-5.3-flash | 国内直连 |
 | **MiniMax** | `https://api.minimax.chat/v1` | MiniMax-M3 | 百万上下文 |
 | **ZenMux（多模型中转）** | `https://zenmux.ai/api/v1` | anthropic/claude-fable-5.1 / anthropic/claude-opus-5.5 / anthropic/claude-sonnet-5.5 / anthropic/claude-haiku-5.5 / openai/gpt-5.6-sol / openai/gpt-6-astra / google/gemini-4-argon / x-ai/grok-4.7 / meta/muse-wonder-1.0 | OpenAI/Google/xAI/Meta 模型使用 Responses 推理与工具续轮；支持图片 |
 | **OpenAI** | `https://api.openai.com/v1` | gpt-5.6-sol / gpt-5.4-mini | 需要外网访问 |
