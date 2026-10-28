@@ -38,6 +38,12 @@ ZhikunCode brings **multi-agent delegation, context management, tool execution, 
 
 **You host the runtime and choose the model APIs.** It is intended for development, review, web applications, data analysis, and document deliverables. New sessions default to Full Access (`AUTO_APPROVE`); optional capabilities and deployment boundaries are described below.
 
+> 📱 **[Watch the phone recording: a game brief → online play → Android installation and gameplay](#mobile-to-android)** · Full 4m35s recording, live game, development report, APK, and source code.
+
+[![Actual recording frames: ZhikunCode on a phone, game delivery, and Android gameplay](case-studies/assets/mobile-to-android-20261028/cover.jpg)](https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/mobile-to-android-20261028/demo.mp4)
+
+**[Play Honor of the Canyon online →](https://ug4saov9xkks.meoo.pub)** · **[Download the game's Android APK →](https://share.zhikun.xin/zhikuncode-artifacts/workspace/workspace-63ac928c7693d6607179fd930e29b622/8d3cda9669bb39d3f95258a52f78fbd75b6aebf5699a66caa42db3c4f00128f5-canyon-moba.apk)**
+
 > 🏗️ **[View Full System Architecture →](https://zhikunqingtao.github.io/zhikuncode/ZhikunCode-Architecture.html)**  
 > Java Agent Runtime · React Browser Control Plane · Python Capability Service · Full Visualization
 
@@ -66,6 +72,51 @@ ZhikunCode brings **multi-agent delegation, context management, tool execution, 
 
 <a id="cases"></a>
 ## 🔎 Open Engineering Cases
+
+<a id="mobile-to-android"></a>
+### Phone Recording: From a Game Brief to Online Play and an Android APK
+
+A game brief sent through a phone browser to ZhikunCode on Alibaba Cloud ECS started development of **Honor of the Canyon (荣耀峡谷), a new Honor of Kings-style 3D MOBA single-player game**. Follow-up requests delivered an online version, a visual development walkthrough, and an Android APK installed and played on the same phone. **No Skill was invoked; the Android build components were downloaded and installed as needed.**
+
+**The main Agent took over when sub-agents reached their turn limits, fixed issues, and completed verification.** The development walkthrough records **17 Vitest tests and 27 browser checks passing**.
+
+**[Full phone recording →](https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/mobile-to-android-20261028/demo.mp4)** · **[Play online →](https://ug4saov9xkks.meoo.pub)** · **[Development walkthrough →](https://kfep92yogbmk.meoo.pub)** · **[Download Android APK →](https://share.zhikun.xin/zhikuncode-artifacts/workspace/workspace-63ac928c7693d6607179fd930e29b622/8d3cda9669bb39d3f95258a52f78fbd75b6aebf5699a66caa42db3c4f00128f5-canyon-moba.apk)**
+
+**Download source: [Web game (ZIP) →](https://share.zhikun.xin/zhikuncode-artifacts/d6f617ce-2d22-40d1-88c4-15f5b571b35b/10a540fa-598e-458d-8423-730c52ec6168/e0c5474537a23cc8081282eae4b33a9e2d951961ad51fbe59312b115a02df483-canyon-moba-complete.zip) · [Android project (ZIP) →](https://share.zhikun.xin/zhikuncode-artifacts/workspace/workspace-7bdd768f8c3b43c299bc8e26ac4bb526/a37117559e5804f8de0a5b66b19b2679262050cbdd25398d5a64d7aab9c1a26b-canyon-moba-android-source.zip)**
+
+<details>
+<summary>Video index and file hashes</summary>
+
+Recorded on **2026-10-28**. The approximately **4m35s** video combines task-history review with live installation and gameplay. The workspace displays **Kimi K3.1 Pro Highspeed**.
+
+| Time | What the recording shows |
+|---|---|
+| 00:00 | Reviewing the game brief, tool execution, and publication history in the phone browser |
+| 00:49 | Opening the visual development walkthrough |
+| 01:20 | Opening the online game, selecting a hero, and playing |
+| 02:29 | Downloading and installing the APK on the phone |
+| 02:54 | Launching the installed app and playing in landscape orientation |
+| 03:31 | Returning to the workspace: task navigation, model options, and themes |
+
+The APK bundles the game resources and loads them locally through Android WebView. The [original recording](case-studies/assets/mobile-to-android-20261028/demo.mp4) is about **24.67 MiB**, with its video and audio preserved without recompression. SHA-256:
+
+```text
+demo.mp4
+38e6791000ebd7663a0144aaaa5be6a6e49c9c84fc8b695c58592a4a8380b29a
+
+canyon-moba.apk
+8d3cda9669bb39d3f95258a52f78fbd75b6aebf5699a66caa42db3c4f00128f5
+
+canyon-moba-complete.zip
+e0c5474537a23cc8081282eae4b33a9e2d951961ad51fbe59312b115a02df483
+
+canyon-moba-android-source.zip
+a37117559e5804f8de0a5b66b19b2679262050cbdd25398d5a64d7aab9c1a26b
+```
+
+</details>
+
+**Try it yourself: [Local setup](#quickstart) · [Run your first task](#first-task)**
 
 ### Real-Time Gold Monitor: ZhikunCode vs Codex Head-to-Head
 
@@ -217,7 +268,7 @@ Speech recognition requires `LLM_PROVIDER_DASHSCOPE_API_KEY` (a Token Plan Key c
 
 Prepare a model API key with tool-calling support. Configure the matching provider in `.env`; DashScope pay-as-you-go, Bailian Token Plan, Moonshot, and Kimi Code use separate credentials. For example, obtain a DashScope key from [Alibaba Cloud Bailian](https://bailian.console.aliyun.com/cn-beijing/?tab=model#/api-key), then set `LLM_PROVIDER_DASHSCOPE_API_KEY`. Other provider portals include [DeepSeek](https://platform.deepseek.com/) and [Moonshot/Kimi](https://platform.moonshot.cn/). Provider quotas, access, and billing depend on your account. [Supported providers](#supported-llm-providers) and [configuration](#configuration) below describe the channels.
 
-For first-time setup, sign in to your provider's platform, create a key from its API key management page, and copy it for later use. After cloning the repository and running `cp .env.example .env` below, set the matching provider variable in `.env` (for example, `LLM_PROVIDER_DASHSCOPE_API_KEY`). Do not commit a `.env` containing credentials.
+For first-time setup, sign in to your provider's platform, create a key from its API key management page, and copy it for later use. After cloning the repository and running `cp .env.example .env` below, set the matching provider variable in `.env` (for example, `LLM_PROVIDER_DASHSCOPE_API_KEY`). Clear the API key values for unused providers, including any `your-…-key` placeholders. Do not commit a `.env` containing credentials.
 
 ### Option 1: Docker Deployment (Recommended)
 
@@ -226,7 +277,7 @@ Prepare an API key for a model that supports tool calling. These commands target
 | Setup | Best suited for | Requirements and instructions |
 |---|---|---|
 | **Base Docker deployment** | Start with chat, file, and command tools; the image bundles the frontend, so the host needs neither Java nor Node | Docker and Compose V2 → commands below; [enable Python capabilities separately](#docker-python) |
-| **Three local services** | Use the workspace, edit code, run browser and HTTP verification, and debug the application | JDK 21, Node.js 22, Python 3.11/3.12 → [Step-by-step setup and health checks](#local-setup) |
+| **Three local services** | Use the workspace, edit code, run browser and HTTP verification, and debug the application | JDK 21, Node.js 22.x (at least 22.13) or 24+, Python 3.11/3.12 → [Step-by-step setup and health checks](#local-setup) |
 
 The base Docker deployment builds an image from your local checkout. Its startup check recognizes DashScope, Token Plan, DeepSeek, Moonshot, Zhipu, ZenMux, or the legacy `LLM_API_KEY`. **If you only have a Kimi Code, MiniMax, or OpenRouter key, use the [three-service local setup](#local-setup)**; the container startup check does not yet recognize those three settings.
 
@@ -235,7 +286,8 @@ git clone https://github.com/zhikunqingtao/zhikuncode.git
 cd zhikuncode
 cp .env.example .env
 # Edit .env and set a supported key, such as LLM_PROVIDER_DASHSCOPE_API_KEY
-# Set WORKSPACE_PATH=/absolute/path/to/your/project in .env to mount your project
+# Set WORKSPACE_PATH=/absolute/path/to/your/project in .env
+# The directory must exist and be readable and writable by the container user
 
 docker compose up -d --build
 docker compose ps
@@ -256,7 +308,7 @@ You can explore existing results without configuring a model: open the [12306 vi
 <details>
 <summary>Three local services: installation, manual startup, and health checks</summary>
 
-Prepare JDK 21, Node.js 22+, Python 3.11 or 3.12, Git, curl, and ripgrep. Java builds use the repository's Maven Wrapper. Clone the source and configure `.env` as above, then confirm ports 8080, 8000, and 5173 are not occupied by other services. Install dependencies from the repository root:
+Prepare JDK 21, Node.js 22.x (at least 22.13) or 24+, Python 3.11 or 3.12, Git, curl, and ripgrep. Java builds use the repository's Maven Wrapper. Clone the source and configure `.env` as above, then confirm ports 8080, 8000, and 5173 are not occupied by other services. Install dependencies from the repository root:
 
 ```bash
 python3.11 -m venv python-service/.venv
@@ -505,7 +557,7 @@ ZhikunCode supports **multi-Provider simultaneous configuration** (recommended) 
 
 **Option A: Multi-Provider Configuration (Recommended)**
 
-Configure independent API Keys for each provider in `.env`, and switch freely from the frontend:
+Set an independent API key in `.env` for each provider you use, and leave unused providers' key values empty. The examples below show the available settings; you can switch between configured models in the frontend:
 
 ```bash
 # DashScope (Qwen series)
@@ -543,7 +595,7 @@ LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 
 **Option B: Single-Provider Configuration (Backward Compatible)**
 
-If no multi-Provider keys are configured, the system automatically falls back to single-Provider mode. Configure `LLM_BASE_URL` and `LLM_API_KEY` in `.env`:
+To use single-Provider mode, clear all `LLM_PROVIDER_*_API_KEY` values in `.env`, then configure `LLM_BASE_URL` and `LLM_API_KEY`. The system falls back to this mode when no multi-Provider keys are configured:
 
 | Provider | Base URL | Recommended Model | Notes |
 |----------|----------|-------------------|-------|
@@ -648,7 +700,9 @@ The published May 2026 `qwen3.7-max` record reports **168/300 (56.0%) resolved b
 <details>
 <summary>Evidence availability and checksum notes</summary>
 
-Gold-monitoring and 12306 reports publish structured evidence, log excerpts, and screenshots. The gold-monitoring case does not publish its complete raw logs or artifact ZIP. The MOBA archive contains source and derived video previews; the original videos are not published.
+Gold-monitoring and 12306 reports publish structured evidence, log excerpts, and screenshots. The gold-monitoring case does not publish its complete raw logs or artifact ZIP. The **2026-08-09 MOBA** archive contains source and derived video previews; the original videos are not published.
+
+The [phone-to-Android case](#mobile-to-android) includes the original recording, live game, development walkthrough, Android APK, source code for both the web game and Android project, and file hashes.
 
 The two existing SHA-256 manifests match the published evidence JSON, log excerpts, screenshots, and 12306 artifact source. Their report HTML and shared case README changed after the manifests were recorded: later changes added navigation/CSS, the game case, and a redaction wording correction. The [original commit](https://github.com/zhikunqingtao/zhikuncode/tree/cd9261c755ecda8fc9528cca6383a7f375b532b4/docs/case-studies) matches all gold entries (10/10) and 12306 entries (21/21). Do not describe the current entire package as matching the old manifests. Hashes check file bytes, not evaluation methodology or business correctness.
 
@@ -687,12 +741,12 @@ Evaluate the deployment against your own boundaries: runtime OS account, accessi
 
 #### ZhikunCode Differentiated Capabilities
 
-| Capability | Implementation and boundary |
+| Capability | Implementation and usage |
 |---|---|
-| Context management | Progressive trimming and compaction with model-aware input budgets; recovery can fail and terminate the run |
-| Runtime verification | Browser and HTTP strategies plus evidence viewers; dependencies, feature flags, and actual invocation are required |
-| MCP connectivity | Four client transports; server entry points have separate, limited wiring |
-| Inspectable results | Historical cases, predictions, trajectories, and reports, with exposure/checksum limitations stated alongside them |
+| Long-running tasks | Context management, staged recovery, multi-agent delegation, and result handoff; see [Architecture](#how-it-works) and [Agents](#agents) |
+| Behavior and delivery checks | Browser/HTTP assertions, actual tool output, per-operation changes, and evidence and artifact records; verification requires its dependencies and actual execution |
+| Browser control | Follow tasks, add instructions, handle approvals, and inspect results from desktop or mobile; reconnecting restores records, while a backend restart does not resume execution |
+| Extensions | Markdown Skills, Java SPI plugins, MCP services, and configurable models, each with its own setup requirements |
 
 ---
 
@@ -700,7 +754,7 @@ Evaluate the deployment against your own boundaries: runtime OS account, accessi
 <a id="️-architecture-overview"></a>
 ## 🏗️ Architecture Overview
 
-ZhikunCode uses a three-tier architecture: the Java backend handles core orchestration, the React frontend provides the UI, and the Python service handles code analysis.
+ZhikunCode uses a three-tier architecture: the Java backend handles core orchestration, the React frontend provides the UI, and the Python service provides code analysis, browser automation, and HTTP verification.
 
 ```
 ┌──────────────────┐      WebSocket / HTTP      ┌──────────────────────┐
@@ -724,7 +778,7 @@ ZhikunCode uses a three-tier architecture: the Java backend handles core orchest
 |-------|-----------|-----------------|
 | **Backend** | Java 21, Spring Boot 3.4.x, WebSocket, SQLite | Core orchestration engine, LLM API routing, Agent management, built-in tools and MCP dynamic extensions, unified authorization gateway, session persistence |
 | **Frontend** | React 18, TypeScript 5.6, Vite 5, TailwindCSS, Monaco Editor, xterm.js, Zustand | Conversational UI, code editor, built-in terminal, file browser, settings panel, real-time streaming output, delegation results |
-| **Python Service** | FastAPI, Uvicorn, Python 3.11/3.12 | Browser and HTTP verification, static code analysis, AST parsing and supporting APIs |
+| **Python Service** | FastAPI, Uvicorn, Python 3.11/3.12 | Code analysis, AST parsing, browser automation and HTTP verification, plus supporting file and Git APIs |
 
 ### Docker Deployment Architecture
 
@@ -1406,6 +1460,8 @@ Type `/` or press `Ctrl+K` in the Web UI to open the command palette with fuzzy 
 
 The browser is ZhikunCode's control surface. After deployment, desktop and mobile browsers can access conversations, task state, file views, and approval interactions without installing an IDE extension.
 
+See the [phone recording of a game delivered through an ECS deployment](#mobile-to-android): online play, a visual development report, APK download, and installation and gameplay on the same phone.
+
 ### Why This Matters
 
 | Scenario | ZhikunCode workflow |
@@ -1771,7 +1827,7 @@ Original configuration record dated 2026-09-17; provider specifications may chan
 | `LLM_DEFAULT_MODEL` | — | qwen3.8-max-0902 | Default model |
 | `LLM_MODELS` | — | Qwen series | Available models (comma-separated) |
 
-> If all `LLM_PROVIDER_*` keys are empty, the system automatically falls back to single-Provider mode.
+> If all `LLM_PROVIDER_*_API_KEY` values are empty, the system automatically falls back to single-Provider mode. Clear any placeholder values as well.
 
 **General Configuration:**
 
@@ -1834,7 +1890,7 @@ Default resource configuration (adjustable in `docker-compose.yml`):
 | Health check interval | 30s |
 | Startup grace period | 60s |
 
-> **Note:** The initial image build requires more memory (Maven compilation + npm build). If the build fails, increase Docker Desktop's memory allocation to 6GB or more in its settings. The runtime container memory limit is 4GB (adjustable in docker-compose.yml).
+> The initial build includes Maven and frontend builds. If the logs show insufficient memory, increase the memory available to Docker. The table lists Compose settings; whether the limits are enforced depends on the runtime environment.
 
 ---
 
@@ -1846,7 +1902,7 @@ Default resource configuration (adjustable in `docker-compose.yml`):
 
 | Symptom | Check |
 |---|---|
-| Build/startup failure | Build terminal; `docker compose ps` and `docker compose logs --tail=100 zhikuncode`; JDK 21 and dependency downloads for local builds |
+| Build/startup failure | Build terminal; `docker compose ps` and `docker compose logs --tail=100 zhikuncode`; JDK 21, the Node version in [local setup](#local-setup), and dependency downloads for local builds |
 | Model/Key error | Selected provider and model, valid credentials, endpoint connectivity, and the Docker entrypoint's supported key names |
 | Port occupied | Inspect 8080, 8000, and 5173 with `lsof`; use the manual startup path and do not stop an unidentified service |
 | Project or volume denied | Authorized server path, allowed roots, resolved path and mount ownership; Docker uses `/app/workspace`, not the host path |
@@ -1980,7 +2036,7 @@ Quick steps:
 
 We recommend starting with Issues labeled `good first issue`.
 
-**Development environment:** JDK 21, Node.js 22+, Python 3.11~3.12, Maven 3.9+
+**Development environment:** JDK 21, Node.js 22.x (at least 22.13) or 24+, Python 3.11~3.12, Maven 3.9+
 
 </details>
 

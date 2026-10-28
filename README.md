@@ -37,6 +37,12 @@ ZhikunCode 将**多 Agent 分工、上下文管理、工具执行和运行验证
 
 **运行环境由你部署，模型 API 由你选择。** 任务覆盖代码开发与审查、网页和数据分析，以及 Word、Excel、PPT 等材料制作。先看下方公开成果，再按[快速开始](#quickstart)搭建，完成[首次任务](#first-task)。模型 API 与外部服务仍会接收相应请求中的数据。
 
+> 📱 **[手机实录：一条游戏需求 → 在线试玩 → Android 安装与实机操作](#mobile-to-android)** · 4 分 35 秒完整录屏，附在线游戏、开发介绍页、APK 及源码。
+
+[![真实录屏画面：手机操作 ZhikunCode、网页游戏与 Android 实机试玩](docs/case-studies/assets/mobile-to-android-20261028/cover.jpg)](https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/mobile-to-android-20261028/demo.mp4)
+
+**[在线试玩《荣耀峡谷》 →](https://ug4saov9xkks.meoo.pub)** · **[下载游戏 Android APK →](https://share.zhikun.xin/zhikuncode-artifacts/workspace/workspace-63ac928c7693d6607179fd930e29b622/8d3cda9669bb39d3f95258a52f78fbd75b6aebf5699a66caa42db3c4f00128f5-canyon-moba.apk)**
+
 > 🏗️ **[查看完整系统架构图 →](https://zhikunqingtao.github.io/zhikuncode/ZhikunCode-Architecture.html)**  
 > Java Agent Runtime · React 浏览器操作面 · Python Capability Service · 全景可视化
 
@@ -70,6 +76,53 @@ ZhikunCode 将**多 Agent 分工、上下文管理、工具执行和运行验证
 
 <a id="cases"></a>
 ## 🔎 公开工程案例
+
+<a id="mobile-to-android"></a>
+### 手机实录：从一条游戏需求，到在线试玩和 Android 安装包
+
+用手机浏览器操作部署在阿里云 ECS 上的 ZhikunCode，从一条需求出发，开发全新的王者荣耀风格 3D MOBA 单人游戏《荣耀峡谷》，随后发布在线试玩网址、生成开发过程可视化网页，再打包成 Android App，在手机上安装试玩。**全程未调用 Skill，所需 Android 构建组件按需下载安装。**
+
+**子任务达到轮次上限后，主 Agent 接管、修复问题并完成验证。** 开发介绍页记录了 **17 项 Vitest 测试、27 项浏览器检查**通过。
+
+**[观看完整实录 →](https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/mobile-to-android-20261028/demo.mp4)** · **[在线试玩 →](https://ug4saov9xkks.meoo.pub)** · **[开发过程介绍 →](https://kfep92yogbmk.meoo.pub)** · **[下载 Android APK →](https://share.zhikun.xin/zhikuncode-artifacts/workspace/workspace-63ac928c7693d6607179fd930e29b622/8d3cda9669bb39d3f95258a52f78fbd75b6aebf5699a66caa42db3c4f00128f5-canyon-moba.apk)**
+
+**下载源码：[网页游戏（ZIP）→](https://share.zhikun.xin/zhikuncode-artifacts/d6f617ce-2d22-40d1-88c4-15f5b571b35b/10a540fa-598e-458d-8423-730c52ec6168/e0c5474537a23cc8081282eae4b33a9e2d951961ad51fbe59312b115a02df483-canyon-moba-complete.zip) · [Android 工程（ZIP）→](https://share.zhikun.xin/zhikuncode-artifacts/workspace/workspace-7bdd768f8c3b43c299bc8e26ac4bb526/a37117559e5804f8de0a5b66b19b2679262050cbdd25398d5a64d7aab9c1a26b-canyon-moba-android-source.zip)**
+
+<details>
+<summary>视频时间索引与文件校验</summary>
+
+录制于 **2026-10-28**，时长约 **4 分 35 秒**，包含任务历史回看和现场安装试玩。录屏工作台显示的模型为 **Kimi K3.1 Pro Highspeed**。
+
+| 时间（约） | 画面内容 |
+|---|---|
+| 00:00 | 手机浏览器回看游戏需求、工具执行与发布记录 |
+| 00:49 | 打开开发过程可视化介绍页 |
+| 01:20 | 打开在线游戏、选将和试玩 |
+| 02:29 | 下载 APK，在手机上安装 |
+| 02:54 | 启动已安装的 App，横屏操作游戏 |
+| 03:31 | 返回工作台，查看任务导航、模型选项和主题 |
+
+APK 内置游戏页面和资源，由 Android WebView 加载本地文件。
+
+[仓库原视频](docs/case-studies/assets/mobile-to-android-20261028/demo.mp4)约 **24.67 MiB**，保留全部画面与音轨，未经重新压缩。SHA-256：
+
+```text
+demo.mp4
+38e6791000ebd7663a0144aaaa5be6a6e49c9c84fc8b695c58592a4a8380b29a
+
+canyon-moba.apk
+8d3cda9669bb39d3f95258a52f78fbd75b6aebf5699a66caa42db3c4f00128f5
+
+canyon-moba-complete.zip
+e0c5474537a23cc8081282eae4b33a9e2d951961ad51fbe59312b115a02df483
+
+canyon-moba-android-source.zip
+a37117559e5804f8de0a5b66b19b2679262050cbdd25398d5a64d7aab9c1a26b
+```
+
+</details>
+
+**自己试试：[本地部署](#quickstart) · [完成首次任务](#first-task)**
 
 ### 实时黄金监控：ZhikunCode vs Codex 同题 PK
 
@@ -222,7 +275,7 @@ ZhikunCode 在八方审查中找到工具输出 `outputTruncated` 与上层读�
 
 准备支持工具调用的模型 API Key，可从[阿里云百炼](https://bailian.console.aliyun.com/cn-beijing/?tab=model#/api-key)、[DeepSeek](https://platform.deepseek.com/)、[Moonshot/Kimi](https://platform.moonshot.cn/)或其他支持的渠道获取。普通 DashScope 与 Token Plan Key 不能混用；费用、额度和账号权限以所选服务为准。
 
-首次使用时，登录所选服务商的平台，在 API Key 管理页创建密钥并复制保存；在下方克隆仓库并执行 `cp .env.example .env` 后，将其填入 `.env` 中对应渠道的变量（例如 `LLM_PROVIDER_DASHSCOPE_API_KEY`）。不要提交含密钥的 `.env`。
+首次使用时，登录所选服务商的平台，在 API Key 管理页创建密钥并复制保存；在下方克隆仓库并执行 `cp .env.example .env` 后，将其填入 `.env` 中对应渠道的变量（例如 `LLM_PROVIDER_DASHSCOPE_API_KEY`）。将未使用渠道的 API Key 值清空，不要保留 `your-…-key` 示例值。不要提交含密钥的 `.env`。
 
 ### 方式一：Docker 部署（推荐）
 
@@ -257,7 +310,7 @@ curl -fsS http://localhost:8080/actuator/health
 <details>
 <summary>本地三服务：依赖、三终端启动与健康检查</summary>
 
-准备 JDK 21、Node.js 22+、Python 3.11 或 3.12、Git、curl、ripgrep；Java 构建使用仓库自带 Maven Wrapper。先按上方步骤获取源码并配置 `.env`，确认 8080／8000／5173 端口未被其他服务占用。从仓库根安装依赖：
+准备 JDK 21、Node.js 22.x（至少 22.13）或 24+、Python 3.11 或 3.12、Git、curl、ripgrep；Java 构建使用仓库自带 Maven Wrapper。先按上方步骤获取源码并配置 `.env`，确认 8080／8000／5173 端口未被其他服务占用。从仓库根安装依赖：
 
 ```bash
 python3.11 -m venv python-service/.venv
@@ -504,7 +557,7 @@ ZhikunCode 支持**多 Provider 同时配置**（推荐）和单 Provider 两种
 
 **方式一：多 Provider 配置（推荐）**
 
-在 `.env` 中为每个服务商配置独立的 API Key，前端可自由切换：
+在 `.env` 中为要使用的服务商填写独立的 API Key，未使用渠道的 Key 值留空；以下为配置示例，前端可切换已配置的模型：
 
 ```bash
 # DashScope（千问系列）
@@ -541,7 +594,7 @@ LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 
 **方式二：单 Provider 配置（向后兼容）**
 
-如未配置多 Provider，系统自动回退到单 Provider 模式。在 `.env` 中配置 `LLM_BASE_URL` 和 `LLM_API_KEY` 即可切换：
+使用单 Provider 模式时，先清空 `.env` 中所有 `LLM_PROVIDER_*_API_KEY` 的值，再配置 `LLM_BASE_URL` 和 `LLM_API_KEY`；系统在未配置多 Provider 时自动回退：
 
 | 服务商 | Base URL | 推荐模型 | 备注 |
 |--------|----------|----------|------|
@@ -644,7 +697,9 @@ ZhikunCode 当前预置了 17 个阿里云百炼 MCP 服务、共 83 个白名�
 <details>
 <summary>公开证据的范围与文件校验</summary>
 
-黄金监控与 12306 案例保留评分 JSON、公开日志摘录和图片；黄金完整原始日志和产物 ZIP 未公开，12306 的 HTML 可直接打开，另一实现的公开源码不等于已部署演示。MOBA 有第一方代码、截图与派生视频预览，不把预览称为原始录屏。
+黄金监控与 12306 案例保留评分 JSON、公开日志摘录和图片；黄金完整原始日志和产物 ZIP 未公开，12306 的 HTML 可直接打开，另一实现的公开源码不等于已部署演示。2026-08-09 的 MOBA 案例有第一方代码、截图与派生视频预览，不把预览称为原始录屏。
+
+[手机到 Android 案例](#mobile-to-android)提供完整原录屏、在线游戏、开发介绍页、APK，以及网页游戏和 Android 工程源码，文件哈希见折叠说明。
 
 两份原 SHA-256 清单对应 `cd9261c7`（2026-07-28）；[该历史版本](https://github.com/zhikunqingtao/zhikuncode/tree/cd9261c755ecda8fc9528cca6383a7f375b532b4/docs/case-studies)的黄金 10/10、12306 21/21 文件匹配。当前 HTML 和共用案例 README 有后续导航／说明变更，不再逐字匹配原清单；已核对的评分 JSON、日志摘录、图片和 12306 产物保持匹配。不要把当前整包写成全部通过，也不要将哈希一致当成业务内容或评分正确的证明。
 
@@ -706,7 +761,7 @@ shasum -a 256 -c zhikuncode-codex-12306-SHA256SUMS.txt
 <a id="how-it-works"></a>
 ## 🏗️ 架构概览
 
-ZhikunCode 采用三端分离架构，Java 后端负责核心编排，React 前端提供交互界面，Python 服务处理代码分析：
+ZhikunCode 采用三端分离架构，Java 后端负责核心编排，React 前端提供交互界面，Python 服务提供代码分析、浏览器自动化与 HTTP 验证能力：
 
 ```
 ┌──────────────────┐      WebSocket / HTTP      ┌──────────────────────┐
@@ -730,7 +785,7 @@ ZhikunCode 采用三端分离架构，Java 后端负责核心编排，React 前�
 |----|--------|------|
 | **后端** | Java 21, Spring Boot 3.4.x, WebSocket, SQLite | 核心编排引擎、LLM API 路由、Agent 管理、内置工具与 MCP 动态扩展、统一授权网关、会话持久化 |
 | **前端** | React 18, TypeScript 5.6, Vite 5, TailwindCSS, Monaco Editor, xterm.js, Zustand | 对话式交互 UI、代码编辑器、内置终端、文件浏览器、设置面板、实时流式输出、委派结果查看 |
-| **Python 服务** | FastAPI, Uvicorn, Python 3.11/3.12 | 代码分析、AST 解析、MCP 工具桥接 |
+| **Python 服务** | FastAPI, Uvicorn, Python 3.11/3.12 | 代码分析、AST 解析、浏览器自动化与 HTTP 验证，以及文件和 Git 等辅助 API |
 
 ### Docker 部署架构
 
@@ -1400,6 +1455,8 @@ aica --continue "fix the bug we just discussed"
 
 ZhikunCode 是独立的 Web 应用。完成部署与访问控制后，可通过电脑、平板或手机浏览器跟进服务器上的任务。
 
+参看[手机操作 ECS 上的 ZhikunCode 交付游戏的实录](#mobile-to-android)：在线试玩、开发介绍页、APK 下载，以及同一部手机上的安装和游戏操作。
+
 ### 为什么这很重要？
 
 | 场景 | 使用方式与条件 |
@@ -1769,7 +1826,7 @@ Claude Fable 5.1 使用已有 OpenRouter Key，默认请求 `reasoning.effort=ma
 | `LLM_DEFAULT_MODEL` | — | qwen3.8-max-0902 | 默认模型 |
 | `LLM_MODELS` | — | 千问系列 | 可用模型列表（逗号分隔） |
 
-> 如 `LLM_PROVIDER_*` 均为空，系统自动回退到单 Provider 模式。
+> 如所有 `LLM_PROVIDER_*_API_KEY` 的值均为空，系统自动回退到单 Provider 模式；示例占位值也需清空。
 
 **通用配置：**
 
@@ -1841,7 +1898,7 @@ Claude Fable 5.1 使用已有 OpenRouter Key，默认请求 `reasoning.effort=ma
 
 | 现象 | 先检查什么 |
 |---|---|
-| 构建／启动失败 | JDK 21、Node 22、依赖下载；Docker 看 `docker compose logs --tail=100 zhikuncode`，手动启动看各终端 |
+| 构建／启动失败 | JDK 21、Node 版本（见[本地安装](#local-setup)）、依赖下载；Docker 看 `docker compose logs --tail=100 zhikuncode`，手动启动看各终端 |
 | Key 无效／没有工具调用 | 选择的 Provider 与模型、实际服务商错误、Docker 入口支持范围和模型工具调用能力 |
 | 端口占用 | 先识别 8080／8000／5173 的监听进程；不要终止不属于本次启动的服务 |
 | 找不到项目／挂载不可写 | 本地使用真实路径；Docker 选择容器路径，检查宿主卷权限和 Docker Desktop 文件共享 |
@@ -1974,7 +2031,7 @@ docker compose up -d --build  # 构建并启动
 
 推荐从标记为 `good first issue` 的 Issue 开始。
 
-**开发环境需要：** JDK 21、Node.js 22+、Python 3.11~3.12、Maven 3.9+
+**开发环境需要：** JDK 21、Node.js 22.x（至少 22.13）或 24+、Python 3.11~3.12、Maven 3.9+
 
 </details>
 
