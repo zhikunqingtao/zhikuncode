@@ -15,8 +15,7 @@ import static org.mockito.Mockito.*;
 class ZhipuMcpConfigTest {
 
     private static final String MCP_SSE_URL = "https://dashscope.aliyuncs.com/api/v1/mcps/zhipu-websearch/sse";
-    private static final String API_KEY = System.getenv("LLM_API_KEY") != null
-            ? System.getenv("LLM_API_KEY") : "test-api-key-placeholder";
+    private static final String API_KEY = "test-api-key-placeholder";
 
     @Test
     void testMcpServerConfigCreation() {
@@ -45,7 +44,6 @@ class ZhipuMcpConfigTest {
         System.out.println("类型: " + config.type());
         System.out.println("URL: " + config.url());
         System.out.println("Scope: " + config.scope());
-        System.out.println("Headers: " + config.headers());
         System.out.println("====================================\n");
     }
 
@@ -176,7 +174,7 @@ class ZhipuMcpConfigTest {
         System.out.println("      type: " + expectedType);
         System.out.println("      url: " + expectedUrl);
         System.out.println("      headers:");
-        System.out.println("        Authorization: " + expectedHeader.substring(0, 20) + "...");
+        System.out.println("        Authorization: Bearer ***");
         System.out.println("==========================================\n");
 
         assertNotNull(expectedType);

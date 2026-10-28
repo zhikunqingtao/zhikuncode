@@ -24,8 +24,10 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class AliyunIntegrationTest {
 
-    private static final String ALIYUN_API_KEY = System.getenv("LLM_API_KEY") != null
-            ? System.getenv("LLM_API_KEY") : "test-api-key-placeholder";
+    /** 离线测试使用的固定占位 Key，避免宿主机凭据进入测试。 */
+    private static final String PLACEHOLDER_API_KEY = "test-api-key-placeholder";
+    /** 真实调用测试的启用开关与 Key 来源（仅由 @EnabledIfEnvironmentVariable 门控的测试读取）。 */
+    private static final String LIVE_API_KEY_ENV = "ALIYUN_API_KEY";
 
     private OpenAiCompatibleProvider provider;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -34,16 +36,25 @@ class AliyunIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        provider = new OpenAiCompatibleProvider(
+        provider = createProvider(PLACEHOLDER_API_KEY);
+    }
+
+    private OpenAiCompatibleProvider createProvider(String apiKey) {
+        return new OpenAiCompatibleProvider(
                 "dashscope-test",
                 objectMapper,
                 DEFAULT_HTTP_PROPS,
-                new ApiKeyRotationManager(ALIYUN_API_KEY),
-                ALIYUN_API_KEY,
+                new ApiKeyRotationManager(apiKey),
+                apiKey,
                 "https://dashscope.aliyuncs.com/compatible-mode/v1",
                 "qwen3.8-max-0902",
                 List.of("qwen3.8-max-0902", "qwen-max", "qwen-plus", "qwen-turbo")
         );
+    }
+
+    /** 仅供真实 API 调用测试使用：从 ALIYUN_API_KEY 读取 Key 并替换 provider。 */
+    private void useLiveProvider() {
+        provider = createProvider(System.getenv(LIVE_API_KEY_ENV));
     }
 
     @Test
@@ -67,6 +78,7 @@ class AliyunIntegrationTest {
     @Test
     @EnabledIfEnvironmentVariable(named = "ALIYUN_API_KEY", matches = ".+")
     void testSimpleChatCompletion() throws InterruptedException {
+        useLiveProvider();
         // ==================== 入参 ====================
         String model = "qwen3.8-max-0902";
         String systemPrompt = "你是一个有帮助的AI助手";
@@ -80,7 +92,6 @@ class AliyunIntegrationTest {
         System.out.println("系统提示 (systemPrompt): " + systemPrompt);
         System.out.println("消息 (messages): " + messages);
         System.out.println("最大Token (maxTokens): " + maxTokens);
-        System.out.println("API Key: " + ALIYUN_API_KEY.substring(0, 10) + "...");
         System.out.println("Base URL: https://dashscope.aliyuncs.com/compatible-mode/v1");
         System.out.println("===========================================\n");
 
@@ -151,6 +162,7 @@ class AliyunIntegrationTest {
     @Test
     @EnabledIfEnvironmentVariable(named = "ALIYUN_API_KEY", matches = ".+")
     void testToolUseCapability() throws InterruptedException {
+        useLiveProvider();
         // Given - 定义一个简单的搜索工具
         Map<String, Object> searchTool = Map.of(
                 "type", "function",
