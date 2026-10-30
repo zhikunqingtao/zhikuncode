@@ -1,0 +1,187 @@
+{
+  "generatedDate": "2026-10-31",
+  "edition": "contacts-only",
+  "scope": "Only the demonstrated phone number and contact display names are masked. Other picture content is retained. Audio is removed.",
+  "videos": [
+    {
+      "id": "dws-calendar-files",
+      "file": "视频/01-手机日历与DWS-脱敏.mp4",
+      "sha256": "19e2860909d8385f3420659b16f60b29d8f0bd79611714c5917c0f11a288bb3a",
+      "originalSha256": "ab64380a14f2208e3092d007ffd614717258d9763a79e6796694ed6e05c73204",
+      "originalUnchanged": true,
+      "originalDuration": 711.714399,
+      "duration": 711.714399,
+      "audioTracks": 0,
+      "originalFrameTimestampsPreserved": true,
+      "videoPacketsIdenticalToOriginal": false,
+      "fullDecodePassed": true,
+      "bytes": 22607637
+    },
+    {
+      "id": "sms-call",
+      "file": "视频/02-短信与拨号-脱敏.mp4",
+      "sha256": "1368623fc2e8f25a6887d98fc3e022f2eb0de180f60d9a0e4c82ac971feed63e",
+      "originalSha256": "bf5e4d037d67570e31d0145ab136fe4b3badfd587b358a9c4f6a89b2e7d6622a",
+      "originalUnchanged": true,
+      "originalDuration": 147.79458,
+      "duration": 147.79458,
+      "audioTracks": 0,
+      "originalFrameTimestampsPreserved": true,
+      "videoPacketsIdenticalToOriginal": false,
+      "fullDecodePassed": true,
+      "bytes": 4870862
+    },
+    {
+      "id": "ctrip",
+      "file": "视频/03-携程网页操作-脱敏.mp4",
+      "sha256": "c21330922c8dcf3fcd4e3235bc88c831fa29802ddb2aee6b45529f7550ff8a5e",
+      "originalSha256": "195c2d523cd55e1d9e510065996f1b549219d4a359b422612d195239d484f672",
+      "originalUnchanged": true,
+      "originalDuration": 472.920385,
+      "duration": 472.920385,
+      "audioTracks": 0,
+      "originalFrameTimestampsPreserved": true,
+      "videoPacketsIdenticalToOriginal": true,
+      "fullDecodePassed": true,
+      "bytes": 5853710
+    },
+    {
+      "id": "shopping",
+      "file": "视频/04-淘宝京东操作-脱敏.mp4",
+      "sha256": "a28c5eb3dd01b787e417a8248ef48460f02069f8f643a26ed56d9b4a94235c17",
+      "originalSha256": "7fb8ece35aea2ddb21521880b153930cf5541f406a73a710bca36e7d9da9adc1",
+      "originalUnchanged": true,
+      "originalDuration": 210.999297,
+      "duration": 210.999297,
+      "audioTracks": 0,
+      "originalFrameTimestampsPreserved": true,
+      "videoPacketsIdenticalToOriginal": true,
+      "fullDecodePassed": true,
+      "bytes": 3693897
+    }
+  ],
+  "maskGeometry": [
+    {
+      "id": "dws-calendar-files",
+      "ocrSamples": 2723,
+      "targetRegions": 2415,
+      "tracks": 18,
+      "maskFrames": 17233,
+      "nonEmptyMaskFrames": 3273,
+      "maximumCoveredFraction": 0.009003665123456791,
+      "meanCoveredFraction": 0.001002117184237066
+    },
+    {
+      "id": "sms-call",
+      "ocrSamples": 1466,
+      "targetRegions": 2974,
+      "tracks": 26,
+      "maskFrames": 3579,
+      "nonEmptyMaskFrames": 2982,
+      "maximumCoveredFraction": 0.036675347222222224,
+      "meanCoveredFraction": 0.01337070936235546
+    }
+  ],
+  "sourceTargetBoxCoverage": [
+    {
+      "id": "dws-calendar-files",
+      "targetBoxesChecked": 2415,
+      "uncoveredBoxes": 0,
+      "failures": []
+    },
+    {
+      "id": "sms-call",
+      "targetBoxesChecked": 2974,
+      "uncoveredBoxes": 0,
+      "failures": []
+    }
+  ],
+  "browser": {
+    "internalLinks": [
+      "视频/01-手机日历与DWS-脱敏.mp4?v=contacts-20261031",
+      "视频/01-手机日历与DWS-脱敏.mp4",
+      "视频/02-短信与拨号-脱敏.mp4?v=contacts-20261031",
+      "视频/02-短信与拨号-脱敏.mp4",
+      "视频/03-携程网页操作-脱敏.mp4?v=contacts-20261031",
+      "视频/03-携程网页操作-脱敏.mp4",
+      "视频/04-淘宝京东操作-脱敏.mp4?v=contacts-20261031",
+      "视频/04-淘宝京东操作-脱敏.mp4",
+      "处理与校验说明.txt"
+    ],
+    "playback": [
+      {
+        "id": "video-dws-calendar-files",
+        "advanced": true
+      },
+      {
+        "id": "video-sms-call",
+        "advanced": true
+      },
+      {
+        "id": "video-ctrip",
+        "advanced": true
+      },
+      {
+        "id": "video-shopping",
+        "advanced": true
+      }
+    ],
+    "checks": [
+      {
+        "id": "video-dws-calendar-files",
+        "meta": {
+          "duration": 711.714399,
+          "width": 432,
+          "height": 960
+        }
+      },
+      {
+        "id": "video-sms-call",
+        "meta": {
+          "duration": 147.79458,
+          "width": 432,
+          "height": 960
+        }
+      },
+      {
+        "id": "video-ctrip",
+        "meta": {
+          "duration": 472.920385,
+          "width": 432,
+          "height": 960
+        }
+      },
+      {
+        "id": "video-shopping",
+        "meta": {
+          "duration": 210.999297,
+          "width": 432,
+          "height": 960
+        }
+      }
+    ],
+    "chaptersChecked": 23,
+    "pageErrors": [],
+    "externalRequests": [],
+    "mobileOverflow": false,
+    "relocatedArchivePassed": true
+  },
+  "encodedTargetPixelChecks": [
+    {
+      "id": "dws-calendar-files",
+      "decodedFrames": 17234,
+      "targetBoxesPixelChecked": 2415,
+      "minimumCoveredPixelFraction": 1,
+      "failedRegions": 0,
+      "failures": []
+    },
+    {
+      "id": "sms-call",
+      "decodedFrames": 3580,
+      "targetBoxesPixelChecked": 2974,
+      "minimumCoveredPixelFraction": 1,
+      "failedRegions": 0,
+      "failures": []
+    }
+  ]
+}

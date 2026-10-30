@@ -124,6 +124,65 @@ a37117559e5804f8de0a5b66b19b2679262050cbdd25398d5a64d7aab9c1a26b
 
 **自己试试：[本地部署](#quickstart) · [完成首次任务](#first-task)**
 
+<a id="mobile-edition"></a>
+### ZhikunCode 手机部署版本（zkcode）
+
+zkcode 是 ZhikunCode 的手机部署版本。四段真实操作录像展示手机日历与照片、钉钉协作、短信发送与拨号，以及携程、淘宝和京东网页中的查询、筛选与人工接管。
+
+**[打开完整展示页 →](https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E5%BC%80%E5%A7%8B%E9%98%85%E8%AF%BB.html)** · **[下载离线展示包（ZIP，35.6 MiB）→](https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%84%B1%E6%95%8F%E5%B1%95%E7%A4%BA%E7%89%88.zip)**
+
+点击封面查看对应演示，点击时间点定位到视频片段。四段录像共约 **25 分 43 秒**，均为静音版。
+
+<table>
+<tr>
+<td width="50%" valign="top">
+<strong>01 · 日历、照片与钉钉协作</strong><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E5%BC%80%E5%A7%8B%E9%98%85%E8%AF%BB.html#dws-calendar-files"><img src="docs/case-studies/assets/zkcode-mobile-20261031/video-dws-calendar-files-poster.jpg" width="200" alt="日历、照片与钉钉协作"></a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/01-%E6%89%8B%E6%9C%BA%E6%97%A5%E5%8E%86%E4%B8%8EDWS-%E8%84%B1%E6%95%8F.mp4">播放完整视频 · 11:51</a>
+<p><a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/01-%E6%89%8B%E6%9C%BA%E6%97%A5%E5%8E%86%E4%B8%8EDWS-%E8%84%B1%E6%95%8F.mp4#t=35">00:35 查询本机日历</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/01-%E6%89%8B%E6%9C%BA%E6%97%A5%E5%8E%86%E4%B8%8EDWS-%E8%84%B1%E6%95%8F.mp4#t=75">01:15 创建本机日程</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/01-%E6%89%8B%E6%9C%BA%E6%97%A5%E5%8E%86%E4%B8%8EDWS-%E8%84%B1%E6%95%8F.mp4#t=160">02:40 查询钉钉日历</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/01-%E6%89%8B%E6%9C%BA%E6%97%A5%E5%8E%86%E4%B8%8EDWS-%E8%84%B1%E6%95%8F.mp4#t=220">03:40 同步与结果核对</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/01-%E6%89%8B%E6%9C%BA%E6%97%A5%E5%8E%86%E4%B8%8EDWS-%E8%84%B1%E6%95%8F.mp4#t=430">07:10 读取手机照片</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/01-%E6%89%8B%E6%9C%BA%E6%97%A5%E5%8E%86%E4%B8%8EDWS-%E8%84%B1%E6%95%8F.mp4#t=637">10:37 照片送达钉钉</a></p>
+</td>
+<td width="50%" valign="top">
+<strong>02 · 短信发送与手机拨号</strong><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E5%BC%80%E5%A7%8B%E9%98%85%E8%AF%BB.html#sms-call"><img src="docs/case-studies/assets/zkcode-mobile-20261031/video-sms-call-poster.jpg" width="200" alt="短信发送与手机拨号"></a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/02-%E7%9F%AD%E4%BF%A1%E4%B8%8E%E6%8B%A8%E5%8F%B7-%E8%84%B1%E6%95%8F.mp4">播放完整视频 · 02:27</a>
+<p><a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/02-%E7%9F%AD%E4%BF%A1%E4%B8%8E%E6%8B%A8%E5%8F%B7-%E8%84%B1%E6%95%8F.mp4#t=52">00:52 查看短信发送记录</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/02-%E7%9F%AD%E4%BF%A1%E4%B8%8E%E6%8B%A8%E5%8F%B7-%E8%84%B1%E6%95%8F.mp4#t=101">01:41 手机原生拨号</a></p>
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+<strong>03 · 携程航班查询、筛选与接管</strong><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E5%BC%80%E5%A7%8B%E9%98%85%E8%AF%BB.html#ctrip"><img src="docs/case-studies/assets/zkcode-mobile-20261031/video-ctrip-poster.jpg" width="200" alt="携程航班查询、筛选与接管"></a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/03-%E6%90%BA%E7%A8%8B%E7%BD%91%E9%A1%B5%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4">播放完整视频 · 07:52</a>
+<p><a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/03-%E6%90%BA%E7%A8%8B%E7%BD%91%E9%A1%B5%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=8">00:08 发起航班查询</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/03-%E6%90%BA%E7%A8%8B%E7%BD%91%E9%A1%B5%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=56">00:56 核验账户访问</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/03-%E6%90%BA%E7%A8%8B%E7%BD%91%E9%A1%B5%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=88">01:28 读取航班结果</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/03-%E6%90%BA%E7%A8%8B%E7%BD%91%E9%A1%B5%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=301">05:01 整理前五个航班</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/03-%E6%90%BA%E7%A8%8B%E7%BD%91%E9%A1%B5%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=352">05:52 追问下午最低价</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/03-%E6%90%BA%E7%A8%8B%E7%BD%91%E9%A1%B5%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=404">06:44 应用下午筛选</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/03-%E6%90%BA%E7%A8%8B%E7%BD%91%E9%A1%B5%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=428">07:08 查看票价详情</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/03-%E6%90%BA%E7%A8%8B%E7%BD%91%E9%A1%B5%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=442">07:22 原地交给人工</a></p>
+</td>
+<td width="50%" valign="top">
+<strong>04 · 淘宝购物车与京东搜索</strong><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E5%BC%80%E5%A7%8B%E9%98%85%E8%AF%BB.html#shopping"><img src="docs/case-studies/assets/zkcode-mobile-20261031/video-shopping-poster.jpg" width="200" alt="淘宝购物车与京东搜索"></a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/04-%E6%B7%98%E5%AE%9D%E4%BA%AC%E4%B8%9C%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4">播放完整视频 · 03:30</a>
+<p><a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/04-%E6%B7%98%E5%AE%9D%E4%BA%AC%E4%B8%9C%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=12">00:12 读取购物车商品</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/04-%E6%B7%98%E5%AE%9D%E4%BA%AC%E4%B8%9C%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=78">01:18 进入商品详情</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/04-%E6%B7%98%E5%AE%9D%E4%BA%AC%E4%B8%9C%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=108">01:48 跨站搜索商品</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/04-%E6%B7%98%E5%AE%9D%E4%BA%AC%E4%B8%9C%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=131">02:11 搜索升降桌</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/04-%E6%B7%98%E5%AE%9D%E4%BA%AC%E4%B8%9C%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=144">02:24 搜索杯子</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/04-%E6%B7%98%E5%AE%9D%E4%BA%AC%E4%B8%9C%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=180">03:00 保留页面并转人工</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/04-%E6%B7%98%E5%AE%9D%E4%BA%AC%E4%B8%9C%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=199">03:19 返回对话汇总</a></p>
+</td>
+</tr>
+</table>
+
 ### 实时黄金监控：ZhikunCode vs Codex 同题 PK
 
 同一个实时黄金监控需求，分别交给 ZhikunCode 与 Codex 从零完成，再按需求理解、开发交互、数据准确性、架构、代码质量、用户体验等 14 个维度打分。报告同时保留双方的优点与缺陷。

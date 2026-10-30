@@ -118,6 +118,65 @@ a37117559e5804f8de0a5b66b19b2679262050cbdd25398d5a64d7aab9c1a26b
 
 **Try it yourself: [Local setup](#quickstart) · [Run your first task](#first-task)**
 
+<a id="mobile-edition"></a>
+### ZhikunCode on Android (zkcode)
+
+zkcode is the phone-deployed version of ZhikunCode. Four recordings show phone calendar and photo tasks, DingTalk collaboration, SMS and dialing, and webpage queries, filtering and human handoff on Ctrip, Taobao and JD.
+
+**[Open the full showcase (Chinese) →](https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E5%BC%80%E5%A7%8B%E9%98%85%E8%AF%BB.html)** · **[Download the offline showcase (ZIP, 35.6 MiB) →](https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%84%B1%E6%95%8F%E5%B1%95%E7%A4%BA%E7%89%88.zip)**
+
+Click a cover to open its demo, or a timestamp to jump to that point in the video. The four silent recordings total approximately **25m43s**.
+
+<table>
+<tr>
+<td width="50%" valign="top">
+<strong>01 · Calendar, photos and DingTalk</strong><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E5%BC%80%E5%A7%8B%E9%98%85%E8%AF%BB.html#dws-calendar-files"><img src="case-studies/assets/zkcode-mobile-20261031/video-dws-calendar-files-poster.jpg" width="200" alt="Calendar, photos and DingTalk"></a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/01-%E6%89%8B%E6%9C%BA%E6%97%A5%E5%8E%86%E4%B8%8EDWS-%E8%84%B1%E6%95%8F.mp4">Watch full video · 11:51</a>
+<p><a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/01-%E6%89%8B%E6%9C%BA%E6%97%A5%E5%8E%86%E4%B8%8EDWS-%E8%84%B1%E6%95%8F.mp4#t=35">00:35 Read phone calendar</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/01-%E6%89%8B%E6%9C%BA%E6%97%A5%E5%8E%86%E4%B8%8EDWS-%E8%84%B1%E6%95%8F.mp4#t=75">01:15 Create a phone event</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/01-%E6%89%8B%E6%9C%BA%E6%97%A5%E5%8E%86%E4%B8%8EDWS-%E8%84%B1%E6%95%8F.mp4#t=160">02:40 Read DingTalk calendar</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/01-%E6%89%8B%E6%9C%BA%E6%97%A5%E5%8E%86%E4%B8%8EDWS-%E8%84%B1%E6%95%8F.mp4#t=220">03:40 Sync and check results</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/01-%E6%89%8B%E6%9C%BA%E6%97%A5%E5%8E%86%E4%B8%8EDWS-%E8%84%B1%E6%95%8F.mp4#t=430">07:10 Read phone photos</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/01-%E6%89%8B%E6%9C%BA%E6%97%A5%E5%8E%86%E4%B8%8EDWS-%E8%84%B1%E6%95%8F.mp4#t=637">10:37 Send a photo to DingTalk</a></p>
+</td>
+<td width="50%" valign="top">
+<strong>02 · SMS and phone dialing</strong><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E5%BC%80%E5%A7%8B%E9%98%85%E8%AF%BB.html#sms-call"><img src="case-studies/assets/zkcode-mobile-20261031/video-sms-call-poster.jpg" width="200" alt="SMS and phone dialing"></a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/02-%E7%9F%AD%E4%BF%A1%E4%B8%8E%E6%8B%A8%E5%8F%B7-%E8%84%B1%E6%95%8F.mp4">Watch full video · 02:27</a>
+<p><a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/02-%E7%9F%AD%E4%BF%A1%E4%B8%8E%E6%8B%A8%E5%8F%B7-%E8%84%B1%E6%95%8F.mp4#t=52">00:52 View sent SMS</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/02-%E7%9F%AD%E4%BF%A1%E4%B8%8E%E6%8B%A8%E5%8F%B7-%E8%84%B1%E6%95%8F.mp4#t=101">01:41 Open native dialing</a></p>
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+<strong>03 · Ctrip flight search and handoff</strong><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E5%BC%80%E5%A7%8B%E9%98%85%E8%AF%BB.html#ctrip"><img src="case-studies/assets/zkcode-mobile-20261031/video-ctrip-poster.jpg" width="200" alt="Ctrip flight search and handoff"></a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/03-%E6%90%BA%E7%A8%8B%E7%BD%91%E9%A1%B5%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4">Watch full video · 07:52</a>
+<p><a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/03-%E6%90%BA%E7%A8%8B%E7%BD%91%E9%A1%B5%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=8">00:08 Start a flight query</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/03-%E6%90%BA%E7%A8%8B%E7%BD%91%E9%A1%B5%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=56">00:56 Check account access</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/03-%E6%90%BA%E7%A8%8B%E7%BD%91%E9%A1%B5%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=88">01:28 Read flight results</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/03-%E6%90%BA%E7%A8%8B%E7%BD%91%E9%A1%B5%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=301">05:01 Summarize five flights</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/03-%E6%90%BA%E7%A8%8B%E7%BD%91%E9%A1%B5%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=352">05:52 Ask for afternoon fares</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/03-%E6%90%BA%E7%A8%8B%E7%BD%91%E9%A1%B5%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=404">06:44 Filter afternoon flights</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/03-%E6%90%BA%E7%A8%8B%E7%BD%91%E9%A1%B5%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=428">07:08 View fare details</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/03-%E6%90%BA%E7%A8%8B%E7%BD%91%E9%A1%B5%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=442">07:22 Hand over the current page</a></p>
+</td>
+<td width="50%" valign="top">
+<strong>04 · Taobao cart and JD search</strong><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E5%BC%80%E5%A7%8B%E9%98%85%E8%AF%BB.html#shopping"><img src="case-studies/assets/zkcode-mobile-20261031/video-shopping-poster.jpg" width="200" alt="Taobao cart and JD search"></a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/04-%E6%B7%98%E5%AE%9D%E4%BA%AC%E4%B8%9C%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4">Watch full video · 03:30</a>
+<p><a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/04-%E6%B7%98%E5%AE%9D%E4%BA%AC%E4%B8%9C%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=12">00:12 Read cart items</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/04-%E6%B7%98%E5%AE%9D%E4%BA%AC%E4%B8%9C%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=78">01:18 Open product details</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/04-%E6%B7%98%E5%AE%9D%E4%BA%AC%E4%B8%9C%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=108">01:48 Search on JD</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/04-%E6%B7%98%E5%AE%9D%E4%BA%AC%E4%B8%9C%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=131">02:11 Search for desks</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/04-%E6%B7%98%E5%AE%9D%E4%BA%AC%E4%B8%9C%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=144">02:24 Search for cups</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/04-%E6%B7%98%E5%AE%9D%E4%BA%AC%E4%B8%9C%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=180">03:00 Keep the page for handoff</a><br>
+<a href="https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/zkcode-mobile-20261031/%E8%A7%86%E9%A2%91/04-%E6%B7%98%E5%AE%9D%E4%BA%AC%E4%B8%9C%E6%93%8D%E4%BD%9C-%E8%84%B1%E6%95%8F.mp4#t=199">03:19 Return to the summary</a></p>
+</td>
+</tr>
+</table>
+
 ### Real-Time Gold Monitor: ZhikunCode vs Codex Head-to-Head
 
 [![Historical gold-monitoring dashboard](case-studies/assets/gold-audit/zhikuncode-product.jpg)](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode-codex-gold-monitor-audit.html)
