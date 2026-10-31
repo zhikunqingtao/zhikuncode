@@ -33,6 +33,16 @@ final class StreamTransportAttempt extends EventListener {
     private int status;
     private long firstByteMillis = -1;
     private long headersMillis = -1;
+    private long requestBodyDeclaredBytes = -1;
+    private long requestBodyCompletedBytes = -1;
+    private long requestBodyStartMillis = -1;
+    private long requestBodyEndMillis = -1;
+    private long requestFailedMillis = -1;
+    private String requestFailureType = "none";
+    private int connectTimeoutMillis = -1;
+    private int readTimeoutMillis = -1;
+    private int writeTimeoutMillis = -1;
+    private int callTimeoutMillis = -1;
     private long bytes;
     private long frames;
     private long events;
@@ -46,17 +56,24 @@ final class StreamTransportAttempt extends EventListener {
     StreamTransportAttempt(String callId) { this.callId = safeId(callId); }
 
     Call newCall(OkHttpClient client, Request request) {
+        connectTimeoutMillis = client.connectTimeoutMillis();
+        readTimeoutMillis = client.readTimeoutMillis();
+        writeTimeoutMillis = client.writeTimeoutMillis();
+        callTimeoutMillis = client.callTimeoutMillis();
         // retryOnConnectionFailure alone does not disable a 503/Retry-After:0 follow-up.
         // isOneShot also forbids all follow-ups that would replay this generation body.
         Request oneShot = request.newBuilder().method(request.method(), oneShot(request.body())).build();
         return client.newBuilder().retryOnConnectionFailure(false).eventListener(this).build().newCall(oneShot);
     }
 
-    private static RequestBody oneShot(RequestBody body) {
+    private RequestBody oneShot(RequestBody body) {
         if (body == null) throw new IllegalArgumentException("Generation requires a request body");
         return new RequestBody() {
             @Override public MediaType contentType() { return body.contentType(); }
-            @Override public long contentLength() throws IOException { return body.contentLength(); }
+            @Override public long contentLength() throws IOException {
+                // Observe the existing query; never read or serialize the body again for diagnostics.
+                return requestBodyDeclaredBytes = body.contentLength();
+            }
             @Override public boolean isOneShot() { return true; }
             @Override public void writeTo(BufferedSink sink) throws IOException { body.writeTo(sink); }
         };
@@ -71,6 +88,16 @@ final class StreamTransportAttempt extends EventListener {
     @Override public void requestHeadersStart(Call call) {
         requestStarted = true;
         log.info("LLM transport attempt started: callId={}, attemptId={}", callId, attemptId);
+    }
+    @Override public void requestBodyStart(Call call) { requestBodyStartMillis = elapsedMillis(); }
+    @Override public void requestBodyEnd(Call call, long byteCount) {
+        // Local write completion is not confirmation that the upstream processed the request.
+        requestBodyEndMillis = elapsedMillis();
+        requestBodyCompletedBytes = byteCount;
+    }
+    @Override public void requestFailed(Call call, IOException failure) {
+        requestFailedMillis = elapsedMillis();
+        requestFailureType = exceptionTypes(failure);
     }
     @Override public void responseHeadersEnd(Call call, Response response) { response(response); }
 
@@ -157,10 +184,19 @@ final class StreamTransportAttempt extends EventListener {
     }
 
     void logFinished() {
-        log.info("LLM transport attempt finished: callId={}, attemptId={}, outcome={}, phase={}, status={}, protocol={}, tls={}, reused={}, upstreamRequestId={}, receivedBytes={}, frames={}, events={}, headersMs={}, firstByteMs={}, elapsedMs={}, exceptionType={}",
+        long elapsed = elapsedMillis();
+        String bodyState = requestBodyEndMillis >= 0 ? "completed"
+                : requestBodyStartMillis < 0 ? "not_started"
+                : requestFailedMillis >= 0 ? "failed" : "unfinished";
+        long bodyEnd = requestBodyEndMillis >= 0 ? requestBodyEndMillis
+                : requestFailedMillis >= 0 ? requestFailedMillis : elapsed;
+        long bodyMillis = requestBodyStartMillis < 0 ? -1 : bodyEnd - requestBodyStartMillis;
+        log.info("LLM transport attempt finished: callId={}, attemptId={}, outcome={}, phase={}, status={}, protocol={}, tls={}, reused={}, upstreamRequestId={}, receivedBytes={}, frames={}, events={}, headersMs={}, firstByteMs={}, elapsedMs={}, exceptionType={}, requestBodyState={}, requestBodyDeclaredBytes={}, requestBodyCompletedBytes={}, requestBodyStartMs={}, requestBodyEndMs={}, requestFailedMs={}, requestBodyMs={}, requestFailureType={}, connectTimeoutMs={}, readTimeoutMs={}, writeTimeoutMs={}, callTimeoutMs={}",
                 callId, attemptId, outcome, responseReceived ? "response" : requestStarted ? "request_started" : "before_send",
                 status, protocol, tls, reused, upstreamId, bytes, frames, events, headersMillis, firstByteMillis,
-                elapsedMillis(), exceptionType);
+                elapsed, exceptionType, bodyState, requestBodyDeclaredBytes, requestBodyCompletedBytes,
+                requestBodyStartMillis, requestBodyEndMillis, requestFailedMillis, bodyMillis, requestFailureType,
+                connectTimeoutMillis, readTimeoutMillis, writeTimeoutMillis, callTimeoutMillis);
     }
 
     private long elapsedMillis() { return TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedNanos); }

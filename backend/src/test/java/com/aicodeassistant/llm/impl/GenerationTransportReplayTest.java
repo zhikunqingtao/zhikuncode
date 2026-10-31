@@ -18,6 +18,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.net.ssl.SSLException;
 import java.net.ConnectException;
+import java.net.SocketTimeoutException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -57,7 +59,7 @@ class GenerationTransportReplayTest {
 
     @Test
     void lostResponseAfterRequestWasSentDoesNotRetryBelowOrAboveProvider() throws Exception {
-        try (Fixture fixture = new Fixture(CLAUDE)) {
+        try (Fixture fixture = new Fixture(CLAUDE); CaptureLogs logs = new CaptureLogs()) {
             fixture.server.enqueue(new MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AFTER_REQUEST));
             fixture.server.enqueue(new MockResponse().setBody(SUCCESS));
 
@@ -66,6 +68,38 @@ class GenerationTransportReplayTest {
             assertUnknown(failure, 0);
             assertThat(fixture.attempts.get()).isEqualTo(1);
             assertThat(fixture.server.getRequestCount()).isEqualTo(1);
+            assertThat(String.join("\n", logs.messages)).contains(
+                    "phase=request_started", "requestBodyState=completed", "requestFailedMs=-1");
+        }
+    }
+
+    @Test
+    void stalledRequestBodyTimesOutWithoutReplayAndIsNotReportedAsCompleted() throws Exception {
+        try (Fixture fixture = new Fixture("deepseek-flash"); CaptureLogs logs = new CaptureLogs()) {
+            // A real local socket that never consumes the request, larger than socket buffers.
+            // Scale down the timeout so the regression never waits the production 10/60 seconds.
+            fixture.server.enqueue(new MockResponse().setSocketPolicy(SocketPolicy.STALL_SOCKET_AT_START));
+            fixture.prompt += "x".repeat(8 * 1024 * 1024);
+            OkHttpClient original = (OkHttpClient) ReflectionTestUtils.getField(fixture.provider, "httpClient");
+            ReflectionTestUtils.setField(fixture.provider, "httpClient", original.newBuilder()
+                    .writeTimeout(Duration.ofMillis(250)).build());
+
+            LlmApiException failure = assertTimeoutPreemptively(Duration.ofSeconds(10),
+                    () -> assertThrows(LlmApiException.class, fixture::runWithRetries));
+
+            assertUnknown(failure, 0);
+            assertThat(failure).hasCauseInstanceOf(SocketTimeoutException.class);
+            assertThat(fixture.attempts.get()).isEqualTo(1);
+            assertThat(fixture.capture.completions).isZero();
+            assertThat(fixture.capture.events).isEmpty();
+            List<String> finished = logs.messages.stream()
+                    .filter(s -> s.startsWith("LLM transport attempt finished:")).toList();
+            assertThat(finished).singleElement().satisfies(s -> assertThat(s).contains(
+                    "outcome=response_interrupted", "phase=request_started", "status=0",
+                    "requestBodyState=failed", "requestBodyCompletedBytes=-1", "requestBodyEndMs=-1",
+                    "requestFailureType=SocketTimeoutException", "writeTimeoutMs=250")
+                    .doesNotContain("requestBodyStartMs=-1", "requestFailedMs=-1",
+                            "SECRET_TEST_KEY", "SECRET_TEST_PROMPT"));
         }
     }
 
@@ -181,7 +215,16 @@ class GenerationTransportReplayTest {
             assertThat(finished).hasSize(2);
             assertThat(finished.stream().map(s -> s.split("attemptId=", 2)[1].split(",", 2)[0]).distinct()).hasSize(2);
             assertThat(finished).allSatisfy(s -> assertThat(s).contains("callId=logical-fixture", "outcome=completed",
-                    "receivedBytes=" + SUCCESS.length(), "frames=2", "events=2", "protocol=http/1.1"));
+                    "receivedBytes=" + SUCCESS.length(), "frames=2", "events=2", "protocol=http/1.1",
+                    "requestBodyState=completed", "requestFailedMs=-1", "requestFailureType=none",
+                    "connectTimeoutMs=2000", "readTimeoutMs=600000", "writeTimeoutMs=2000", "callTimeoutMs=0")
+                    .doesNotContain("requestBodyStartMs=-1", "requestBodyEndMs=-1", "requestBodyMs=-1"));
+            for (String diagnostic : finished) {
+                var sent = fixture.server.takeRequest(2, java.util.concurrent.TimeUnit.SECONDS);
+                assertThat(sent).isNotNull();
+                assertThat(diagnostic).contains("requestBodyDeclaredBytes=" + sent.getBodySize(),
+                        "requestBodyCompletedBytes=" + sent.getBodySize());
+            }
             assertThat(finished.get(1)).contains("reused=true");
             assertThat(String.join("\n", logs.messages)).doesNotContain("SECRET_TEST_KEY", "SECRET_TEST_PROMPT");
         }
@@ -213,6 +256,7 @@ class GenerationTransportReplayTest {
         final ApiRetryService retry;
         final AtomicInteger attempts = new AtomicInteger();
         final String model;
+        String prompt = "SECRET_TEST_PROMPT";
         Capture capture;
 
         Fixture(String model) throws Exception {
@@ -230,7 +274,7 @@ class GenerationTransportReplayTest {
         void attempt() {
             attempts.incrementAndGet();
             capture = new Capture();
-            provider.streamChat(model, List.of(Map.of("role", "user", "content", "SECRET_TEST_PROMPT")),
+            provider.streamChat(model, List.of(Map.of("role", "user", "content", prompt)),
                     "system", List.of(), 32, new ThinkingConfig.Disabled(),
                     new LlmCallContext("logical-fixture", CancellationSignal.none()), capture);
         }
