@@ -562,7 +562,7 @@ ZhikunCode includes a built-in `/publish-oss` Skill that can publish one checked
 
 With the same OSS configuration enabled, the browser can detect PNG/JPEG/WebP screenshots pasted from another application (up to 5 MiB each), publish them immediately through a deterministic backend endpoint, and pass the server-validated OSS image URL directly to the vision model. This path does not invoke `/publish-oss` or make an extra LLM call. If OSS is not configured, screenshots automatically fall back to Base64 inline upload — no extra configuration needed to use image analysis.
 
-Local File References selects its path from the effective request capability. Only direct loopback access with no forwarding proxy and all native-picker safety gates satisfied sends a canonical path without file content. ECS, remote, and proxied access instead opens the browser file picker, immediately uploads the selected file below `${ZHIKUN_OSS_PREFIX}/local-files/`, and appends its name and OSS URL to the prompt. The remote path accepts any file type up to `ZHIKUN_OSS_MAX_FILE_BYTES` (100 MiB by default); it does not fall back to Base64 when OSS is unavailable and does not scan filenames or content for secrets. Every uploaded object is permanently `public-read`; removing the tag, switching Sessions, or abandoning the draft does not delete it, so only select files that may be public.
+Local File References selects its path from the effective request capability. Only direct loopback access with no forwarding proxy and all native-picker safety gates satisfied sends a canonical path without file content. ECS, remote, and proxied access instead opens the browser file picker, immediately uploads the selected file below `${ZHIKUN_OSS_PREFIX}/local-files/`, and appends its name and OSS URL to the prompt. The remote path accepts any file type up to `ZHIKUN_OSS_MAX_FILE_BYTES` (1 GiB by default); it does not fall back to Base64 when OSS is unavailable and does not scan filenames or content for secrets. Every uploaded object is permanently `public-read`; removing the tag, switching Sessions, or abandoning the draft does not delete it, so only select files that may be public.
 
 Credential mode defaults to `auto`: complete standard `ALIBABA_CLOUD_ACCESS_KEY_ID`/`ALIBABA_CLOUD_ACCESS_KEY_SECRET` values take priority through Alibaba Cloud's default credential chain; otherwise a configured `ZHIKUN_OSS_ECS_ROLE_NAME` uses **ECS RAM Role + IMDSv2**; with neither present it still tries the default chain (for example an Alibaba Cloud CLI default profile). The same non-secret configuration can therefore support both local one-click startup and ECS. Every deployment must use its own Bucket and least-privilege identity.
 
@@ -578,7 +578,7 @@ ZHIKUN_OSS_PREVIEW_ENABLED=false
 ZHIKUN_OSS_PREFIX=zhikuncode-artifacts
 ZHIKUN_OSS_ECS_ROLE_NAME=your-ecs-ram-role
 ZHIKUN_OSS_CREDENTIAL_MODE=auto
-ZHIKUN_OSS_MAX_FILE_BYTES=104857600
+ZHIKUN_OSS_MAX_FILE_BYTES=1073741824
 ZHIKUN_OSS_CONNECT_TIMEOUT_MS=10000
 ZHIKUN_OSS_REQUEST_TIMEOUT_MS=120000
 ```
@@ -600,7 +600,7 @@ Usage:
 
 Security boundaries and current limitations:
 
-- Only **one regular file** inside the current workspace is published; the default limit is 100 MiB. The resolver can use an Artifact Manifest or a validated workspace-file fallback. This differs from Meoo publishing, which requires verification-evidence binding and snapshot checks.
+- Only **one regular file** inside the current workspace is published; the default and maximum limit is 1 GiB (1,073,741,824 bytes). `ZHIKUN_OSS_MAX_FILE_BYTES` can set a smaller limit; existing explicit settings are not automatically increased. The resolver can use an Artifact Manifest or a validated workspace-file fallback. This differs from Meoo publishing, which requires verification-evidence binding and snapshot checks.
 - Directories, batch uploads, symbolic links, paths outside the workspace, `.env` files, private keys, databases, credential files, and files detected as containing sensitive content are rejected.
 - The object is uploaded privately first and changed to `public-read` only after remote verification; a newly created private object is cleaned up if publication fails.
 - The returned URL is a **permanently public link**. The card uses the public URL's response to distinguish preview from download; a failed check conservatively shows “Download” without undoing successful publication. The default OSS domain normally downloads HTML.

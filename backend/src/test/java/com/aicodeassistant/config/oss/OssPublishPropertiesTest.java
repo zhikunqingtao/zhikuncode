@@ -169,15 +169,26 @@ class OssPublishPropertiesTest {
     }
 
     @Test
-    void fileSizeLimitAllowsOneHundredMiBButNothingLarger() {
+    void fileSizeLimitDefaultsToAndAllowsOneGiBButNothingLarger() {
         OssPublishProperties properties = valid();
-        properties.setMaxFileBytes(100L * 1024 * 1024);
+        assertThat(properties.getMaxFileBytes()).isEqualTo(1_073_741_824L);
+        properties.setMaxFileBytes(1_073_741_824L);
         assertThatCode(() -> properties.requireReady(Map.of()))
                 .doesNotThrowAnyException();
 
-        properties.setMaxFileBytes(100L * 1024 * 1024 + 1);
+        properties.setMaxFileBytes(1_073_741_825L);
         assertThatThrownBy(() -> properties.requireReady(Map.of()))
                 .hasMessage("OSS_FILE_LIMIT_INVALID");
+    }
+
+    @Test
+    void fileSizeLimitStillAllowsSmallerExplicitConfiguration() {
+        OssPublishProperties properties = valid();
+        properties.setMaxFileBytes(100L * 1024 * 1024);
+
+        assertThatCode(() -> properties.requireReady(Map.of()))
+                .doesNotThrowAnyException();
+        assertThat(properties.getMaxFileBytes()).isEqualTo(100L * 1024 * 1024);
     }
 
     @Test

@@ -31,7 +31,7 @@ public class OssPublishProperties {
     private String prefix = "zhikuncode-artifacts";
     private String ecsRoleName = "";
     private String credentialMode = "auto";
-    private long maxFileBytes = 100L * 1024 * 1024;
+    private long maxFileBytes = 1024L * 1024 * 1024;
     private int connectTimeoutMs = 10_000;
     private int requestTimeoutMs = 120_000;
 
@@ -71,7 +71,7 @@ public class OssPublishProperties {
             throw new OssConfigurationException("OSS_ENDPOINT_INVALID");
         }
         publicBaseUrl();
-        if (maxFileBytes < 1 || maxFileBytes > 100L * 1024 * 1024) {
+        if (maxFileBytes < 1 || maxFileBytes > 1024L * 1024 * 1024) {
             throw new OssConfigurationException("OSS_FILE_LIMIT_INVALID");
         }
         if (connectTimeoutMs < 1_000 || connectTimeoutMs > 60_000

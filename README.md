@@ -560,7 +560,7 @@ ZhikunCode 提供 `/publish-oss` 命令，将工作区内单个普通文件发�
 
 启用同一套 OSS 配置后，浏览器还能感知从其他应用复制并粘贴到对话框的 PNG/JPEG/WebP 截图（单张不超过 5 MiB），通过固定后端通道立即上传，并将服务端验证过的 OSS 图片地址直接交给视觉模型。这个路径不调用 `/publish-oss` Skill，也不额外调用 LLM；OSS 未配置时自动降级为 Base64 直传，无需额外配置即可使用图片分析能力。
 
-“引用本地文件”会按实际访问能力选择路径：只有直接 loopback、无代理转发且原生选择器安全门禁全部满足时，才只发送 canonical 路径；ECS、远程和代理访问则使用浏览器文件选择器，选中后立即上传到 `${ZHIKUN_OSS_PREFIX}/local-files/`，并把文件名与 OSS 地址加入提示词。远程文件默认沿用 `ZHIKUN_OSS_MAX_FILE_BYTES`（100 MiB）上限，OSS 未配置时该入口不可用且不会降级为 Base64。该通道接受任意文件类型，不执行敏感文件名或内容扫描；对象发布为永久 `public-read`，移除标签、切换 Session 或放弃消息都不会删除它，使用前请确认文件可以公开。
+“引用本地文件”会按实际访问能力选择路径：只有直接 loopback、无代理转发且原生选择器安全门禁全部满足时，才只发送 canonical 路径；ECS、远程和代理访问则使用浏览器文件选择器，选中后立即上传到 `${ZHIKUN_OSS_PREFIX}/local-files/`，并把文件名与 OSS 地址加入提示词。远程文件默认沿用 `ZHIKUN_OSS_MAX_FILE_BYTES`（1 GiB）上限，OSS 未配置时该入口不可用且不会降级为 Base64。该通道接受任意文件类型，不执行敏感文件名或内容扫描；对象发布为永久 `public-read`，移除标签、切换 Session 或放弃消息都不会删除它，使用前请确认文件可以公开。
 
 凭证模式默认为 `auto`：本机存在完整的标准 `ALIBABA_CLOUD_ACCESS_KEY_ID`/`ALIBABA_CLOUD_ACCESS_KEY_SECRET` 时优先使用阿里云默认凭证链；否则，配置了 `ZHIKUN_OSS_ECS_ROLE_NAME` 时使用 **ECS RAM Role + IMDSv2**；两者都没有时仍尝试默认凭证链（例如阿里云 CLI 默认 Profile）。因此同一套非密钥配置可同时支持本地一键启动和 ECS。每个部署者都必须使用自己的 Bucket 与最小权限身份；仓库不包含维护者的 OSS 凭证。
 
@@ -576,7 +576,7 @@ ZHIKUN_OSS_PREVIEW_ENABLED=false
 ZHIKUN_OSS_PREFIX=zhikuncode-artifacts
 ZHIKUN_OSS_ECS_ROLE_NAME=your-ecs-ram-role
 ZHIKUN_OSS_CREDENTIAL_MODE=auto
-ZHIKUN_OSS_MAX_FILE_BYTES=104857600
+ZHIKUN_OSS_MAX_FILE_BYTES=1073741824
 ZHIKUN_OSS_CONNECT_TIMEOUT_MS=10000
 ZHIKUN_OSS_REQUEST_TIMEOUT_MS=120000
 ```
@@ -598,7 +598,7 @@ OSS 关闭时，无效的自定义域／预览配置会产生警告并从 CSP �
 
 安全边界与当前限制：
 
-- 只发布 workspace 内单个普通文件，默认不超过 100 MiB；有匹配 Manifest 时复核其归属、条目状态和哈希。无 Manifest 的工作区文件回退不等于已经做过运行验证。
+- 只发布 workspace 内单个普通文件，默认及最大上限为 1 GiB（1,073,741,824 字节），可通过 `ZHIKUN_OSS_MAX_FILE_BYTES` 设置更小上限；已有显式配置不会自动提高。有匹配 Manifest 时复核其归属、条目状态和哈希。无 Manifest 的工作区文件回退不等于已经做过运行验证。
 - 拒绝目录、批量上传、符号链接、workspace 外路径、`.env`、私钥、数据库、凭证配置及检测到敏感内容的文件。
 - 对象先私有上传，远端校验成功后才切换为 `public-read`；失败时清理本次新建的私有对象。
 - 返回地址为**永久公开链接**。卡片依据公开地址的响应判断预览或下载；检查失败时保守显示“下载”，不会撤销已成功的发布。OSS 默认域名通常会下载 HTML。

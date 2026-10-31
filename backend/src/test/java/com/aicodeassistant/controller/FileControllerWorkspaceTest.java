@@ -142,6 +142,23 @@ class FileControllerWorkspaceTest {
 
         assertThat(capability).isNotNull();
         assertThat(capability.mode()).isEqualTo("oss_upload");
+        assertThat(capability.maxFileBytes()).isEqualTo(1_073_741_824L);
+    }
+
+    @Test
+    void reportsSmallerExplicitOssUploadLimitForRemoteRequests() {
+        ProjectWorkspaceService workspaces = mock(ProjectWorkspaceService.class);
+        when(workspaces.nativePickerAvailable("192.0.2.10")).thenReturn(false);
+        OssPublishProperties properties = readyOss();
+        properties.setMaxFileBytes(100L * 1024 * 1024);
+        FileController controller = controller(workspaces, properties);
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRemoteAddr("192.0.2.10");
+
+        var capability = controller.referenceCapability(request).getBody();
+
+        assertThat(capability).isNotNull();
+        assertThat(capability.mode()).isEqualTo("oss_upload");
         assertThat(capability.maxFileBytes()).isEqualTo(100L * 1024 * 1024);
     }
 
