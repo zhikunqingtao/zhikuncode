@@ -271,7 +271,11 @@ class QueryEngineMediaRecoveryTest {
         }
 
         @ParameterizedTest
-        @ValueSource(strings = {"kimi-k3.1-pro-highspeed"})
+        @ValueSource(strings = {
+                "kimi-k3.1-pro-highspeed",
+                "anthropic/claude-fable-5.1", "anthropic/claude-opus-5.5",
+                "anthropic/claude-sonnet-5.5", "anthropic/claude-haiku-5.5"
+        })
         void realBudgetAndCapabilitiesAcceptLargePngWithoutChangingHistory(String model) throws Exception {
             OssPublishProperties ossProperties = new OssPublishProperties();
             ossProperties.setBucket("zhikunshare");
@@ -281,6 +285,7 @@ class QueryEngineMediaRecoveryTest {
             transcoder.imageBytes = UserImageTranscoderTest.png(640);
             tokenBudgetGuard = new TokenBudgetGuard();
             modelRegistry = new ModelRegistry(new LlmProviderRegistry(List.of(), new org.springframework.mock.env.MockEnvironment()));
+            tokenCounter = new TokenCounter(modelRegistry, null, featureFlagService);
 
             ScriptedProvider scripted = scriptProvider((call, callback) ->
                     finish(callback, "end_turn", new LlmStreamEvent.TextDelta("ok")));
@@ -296,6 +301,11 @@ class QueryEngineMediaRecoveryTest {
             assertThat(result.isSuccess()).isTrue();
             assertThat(transcoder.fetchCount).isEqualTo(1);
             assertThat(scripted.requests()).hasSize(1);
+            verify(scripted.provider()).streamChat(eq(model), anyList(), anyString(), anyList(),
+                    anyInt(), any(), any(LlmCallContext.class), any(StreamChatCallback.class));
+            assertThat(handler.errors).isEmpty();
+            assertThat(handler.recoveryEvents).isEmpty();
+            assertThat(handler.compactEvents).isEmpty();
 
             // 最终发给 provider 的请求里该图片是 base64 形态：source.type=="base64"、无 url 键
             List<Map<String, Object>> images = imageParts(scripted.requests().get(0));
@@ -307,7 +317,8 @@ class QueryEngineMediaRecoveryTest {
             assertThat(source.get("type")).isEqualTo("base64");
             assertThat(source).doesNotContainKey("url");
             assertThat(source.get("data")).isInstanceOf(String.class);
-            assertThat((String) source.get("data")).isNotBlank();
+            assertThat(java.util.Base64.getDecoder().decode((String) source.get("data")))
+                    .isEqualTo(transcoder.imageBytes);
 
             // state.getMessages() 中的历史仍保持 URL 形态（未被 base64 污染）
             Message.UserMessage history = state.getMessages().stream()
