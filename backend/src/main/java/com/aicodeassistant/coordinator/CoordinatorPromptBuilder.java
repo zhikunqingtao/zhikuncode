@@ -421,6 +421,8 @@ public class CoordinatorPromptBuilder {
             - 对 git 操作要精确——指定分支名、commit hash、草稿还是就绪
             - 对于验证："Prove the code works, don't just confirm it exists"
             - 对于验证："Try edge cases and error paths"
+            - 说明"完成"对应的实际结果和独立验收方式，不要只描述要执行的动作
+            - worker 报告"对上层目标的影响"时，在综合阶段处理：调整计划，或向用户说明，不要忽略
             
             ## 6. 等待通知 vs 新起 Worker
             

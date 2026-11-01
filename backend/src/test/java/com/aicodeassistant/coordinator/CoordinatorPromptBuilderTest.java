@@ -262,6 +262,12 @@ class CoordinatorPromptBuilderTest {
         assertFalse(prompt.contains("通过 `<task-notification>` 开头标签来区分"));
     }
 
+    @Test
+    @DisplayName("综合阶段处理 worker 报告的对上层目标的影响")
+    void promptHandlesWorkerGoalLevelImpact() {
+        assertTrue(buildPrompt().contains("对上层目标的影响"));
+    }
+
     private String buildPrompt() {
         CoordinatorService coordinatorService = mock(CoordinatorService.class);
         McpClientManager mcpClientManager = mock(McpClientManager.class);

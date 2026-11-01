@@ -95,6 +95,16 @@ class SystemPromptBuilderTest {
     }
 
     @Test
+    void defaultPromptHasNoContradictoryScopeOrAskRules() {
+        String prompt = builder.buildDefaultSystemPrompt(List.of(), "gpt-4o");
+
+        assertFalse(prompt.contains("不要对用户已经决定要做的任务提出质疑"));
+        assertFalse(prompt.contains("1-2 次工具调用"));
+        assertTrue(prompt.contains("能通过读取代码、文档或运行命令消除的歧义，先自己调查"));
+        assertTrue(prompt.contains("可以简要指出一次更有效的方法或关键风险"));
+    }
+
+    @Test
     void effectiveMainPromptAndShellSchemasUseActualToolNamesWithoutChangingOverrides() {
         Tool read = new FileReadTool(null, null, null, null, null);
         Tool edit = new FileEditTool(null, null, null, null, null, null);

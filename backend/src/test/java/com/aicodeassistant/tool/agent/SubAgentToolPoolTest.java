@@ -109,6 +109,12 @@ class SubAgentToolPoolTest {
                 .doesNotContain("你可以使用文件读写工具", "FileRead", "FileEdit", "FileWrite", "GlobTool", "GrepTool");
         if (!fork) {
             assertThat(config.systemPrompt()).contains("工具以当前请求提供的定义为准");
+            // Wrapper gives sub-agents a channel for goal-level evidence instead of a literal-scope ban.
+            assertThat(config.systemPrompt()).contains("对上层目标的影响")
+                    .doesNotContain("不要尝试超出上述范围的任务");
+        }
+        if ("general-purpose".equals(type)) {
+            assertThat(SubAgentExecutor.GENERAL_PURPOSE_AGENT_PROMPT).doesNotContain("严格按照任务提示执行");
         }
         if ("explore".equals(type)) {
             // Explore 提示只允许引用真实工具名

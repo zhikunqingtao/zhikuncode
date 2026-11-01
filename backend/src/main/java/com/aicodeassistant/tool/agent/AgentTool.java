@@ -84,7 +84,7 @@ public class AgentTool implements Tool {
                 returned by the agent is not visible to the user. To show the user the result, \
                 you should send a text message back to the user with a concise summary of the result.
                 - Each Agent invocation starts fresh \u2014 provide a complete task description.
-                - The agent's outputs should generally be trusted
+                - Treat the agent's output as evidence: check key claims against the goal and verify them before reporting them as fact
                 - Clearly tell the agent whether you expect it to write code or just to do \
                 research (search, file reads, web fetches, etc.), since it is not aware of \
                 the user's intent
