@@ -76,10 +76,11 @@ public class CoordinatorPromptBuilder {
                 ? ""
                 : buildProjectContext(projectRoot);
 
-        // 在 formatted() 结果之后拼接禁令段，避免模板内文本参与 % 格式化；
-        // 与主模式（SystemPromptBuilder）共用同一常量，保证禁令内容一致
+        // 在 formatted() 结果之后拼接共用段（目标/质量/证据段、压缩标记禁令段），
+        // 避免这些文本参与 % 格式化；与主模式（SystemPromptBuilder）共用同一常量，保证内容一致
         return COORDINATOR_SYSTEM_PROMPT_TEMPLATE.formatted(
                 workerTools, projectContext, scratchpad.toString(), mcpClients)
+                + "\n" + SystemPromptBuilder.GOAL_QUALITY_SECTION
                 + "\n" + SystemPromptBuilder.CONTEXT_COMPRESSION_MARKERS_SECTION;
     }
 

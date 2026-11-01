@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -93,6 +94,31 @@ class CoordinatorPromptBuilderTest {
         assertTrue(prompt.contains(
                 com.aicodeassistant.prompt.SystemPromptBuilder
                         .CONTEXT_COMPRESSION_MARKERS_SECTION));
+    }
+
+    @Test
+    @DisplayName("提示词包含与主模式共用的目标、质量与证据段，且位于压缩标记段之前")
+    void promptContainsGoalQualitySectionBeforeCompressionMarkers() {
+        CoordinatorService coordinatorService = mock(CoordinatorService.class);
+        McpClientManager mcpClientManager = mock(McpClientManager.class);
+        when(coordinatorService.getWorkerToolsContext("session-1"))
+                .thenReturn(Map.of("workerToolsContext", "standard tools"));
+        when(mcpClientManager.getConnectedServers()).thenReturn(List.of());
+
+        CoordinatorPromptBuilder builder =
+                new CoordinatorPromptBuilder(coordinatorService, mcpClientManager);
+        String prompt = builder.buildCoordinatorPrompt(
+                "session-1", Path.of("/tmp/zhikun-scratchpad"));
+
+        String goal = com.aicodeassistant.prompt.SystemPromptBuilder.GOAL_QUALITY_SECTION;
+        String markers = com.aicodeassistant.prompt.SystemPromptBuilder
+                .CONTEXT_COMPRESSION_MARKERS_SECTION;
+        int first = prompt.indexOf(goal);
+        assertTrue(first >= 0, "coordinator prompt must contain GOAL_QUALITY_SECTION");
+        assertEquals(first, prompt.lastIndexOf(goal), "GOAL_QUALITY_SECTION must appear exactly once");
+        assertTrue(first < prompt.indexOf(markers),
+                "GOAL_QUALITY_SECTION must precede CONTEXT_COMPRESSION_MARKERS_SECTION");
+        assertTrue(prompt.endsWith(markers));
     }
 
     @Test
