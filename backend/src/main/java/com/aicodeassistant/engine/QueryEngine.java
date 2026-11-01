@@ -323,7 +323,8 @@ public class QueryEngine {
                 && state.getToolUseContext().parentSessionId() != null ? "subagent" : "query";
         if (runTracker != null && sessionId != null) {
             try {
-                RunEnvelope run = runTracker.startRun(sessionId, parentRunId, agentType, config.model());
+                RunEnvelope run = runTracker.startRun(sessionId, parentRunId, agentType, config.model(),
+                        RunTracker.promptHash(config.systemPrompt()));
                 currentRunId = run.id();
                 if (runExecutions != null) {
                     runRegistrationAttempted = true;

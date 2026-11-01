@@ -171,7 +171,7 @@ class QueryEngineUnitTest {
 
         @Test
         void failureBeforeRegistrationPublishesOnlyInternalEvidenceAndNeverStartsWork() {
-            when(runTracker.startRun("test-session", null, "query", "mock-model"))
+            when(runTracker.startRun(eq("test-session"), isNull(), eq("query"), eq("mock-model"), matches("[0-9a-f]{16}")))
                     .thenThrow(new IllegalStateException("startup persistence unavailable"));
             QueryLoopState state = new QueryLoopState(List.of(), ToolUseContext.of("/tmp", "test-session"));
 
@@ -189,7 +189,7 @@ class QueryEngineUnitTest {
         @Test
         void partialRegistrationWithUncertainCleanupDoesNotPublishUnstartedEvidence() {
             var run = RunEnvelope.start("test-session", null, "query", "mock-model");
-            when(runTracker.startRun("test-session", null, "query", "mock-model")).thenReturn(run);
+            when(runTracker.startRun(eq("test-session"), isNull(), eq("query"), eq("mock-model"), matches("[0-9a-f]{16}"))).thenReturn(run);
             doAnswer(call -> {
                 call.callRealMethod();
                 throw new IllegalStateException("registration acknowledgement failed");
@@ -212,7 +212,7 @@ class QueryEngineUnitTest {
         @Test
         void reusedStateClearsPriorEvidenceBeforeAnUncertainRegistrationAttempt() {
             var run = RunEnvelope.start("test-session", null, "query", "mock-model");
-            when(runTracker.startRun("test-session", null, "query", "mock-model"))
+            when(runTracker.startRun(eq("test-session"), isNull(), eq("query"), eq("mock-model"), matches("[0-9a-f]{16}")))
                     .thenThrow(new IllegalStateException("startup failed")).thenReturn(run);
             doThrow(new IllegalStateException("registration failed"))
                     .when(executions).register(eq(run.id()), eq("test-session"), any());
@@ -525,7 +525,7 @@ class QueryEngineUnitTest {
         void useRealNormalizationAndRunAdmission() {
             executions = new RunExecutionRegistry();
             run = RunEnvelope.start("test-session", null, "query", "mock-model");
-            when(runTracker.startRun("test-session", null, "query", "mock-model"))
+            when(runTracker.startRun(eq("test-session"), isNull(), eq("query"), eq("mock-model"), matches("[0-9a-f]{16}")))
                     .thenReturn(run);
             authority = new AtomicReference<>(run);
             lenient().when(runTracker.getRun(run.id())).thenAnswer(inv -> java.util.Optional.of(authority.get()));
@@ -916,7 +916,8 @@ class QueryEngineUnitTest {
 
         @Test
         void reusedStateClearsStartupFailureBeforeNormalExecution() {
-            when(runTracker.startRun("test-session", null, "query", "mock-model"))
+            when(runTracker.startRun("test-session", null, "query", "mock-model",
+                    RunTracker.promptHash(buildConfig().systemPrompt())))
                     .thenThrow(new IllegalStateException("startup failed")).thenReturn(run);
             QueryLoopState state = buildState("question");
             var first = queryEngine.execute(buildConfig(), state, new TestHandler());
@@ -1870,7 +1871,7 @@ class QueryEngineUnitTest {
         void wireEngineWithRunAuthority() {
             executions = new RunExecutionRegistry();
             run = RunEnvelope.start("test-session", null, "query", "mock-model");
-            when(runTracker.startRun("test-session", null, "query", "mock-model")).thenReturn(run);
+            when(runTracker.startRun(eq("test-session"), isNull(), eq("query"), eq("mock-model"), matches("[0-9a-f]{16}"))).thenReturn(run);
             authority = new AtomicReference<>(run);
             lenient().when(runTracker.getRun(run.id())).thenAnswer(inv -> Optional.of(authority.get()));
             lenient().doAnswer(inv -> { authority.set(terminalSnapshot(run, RunEnvelope.RunStatus.COMPLETED,
@@ -2388,7 +2389,7 @@ class QueryEngineUnitTest {
         void wireRealSkillToolExecution() {
             executions = new RunExecutionRegistry();
             run = RunEnvelope.start("test-session", null, "query", "mock-model");
-            lenient().when(runTracker.startRun("test-session", null, "query", "mock-model"))
+            lenient().when(runTracker.startRun(eq("test-session"), isNull(), eq("query"), eq("mock-model"), matches("[0-9a-f]{16}")))
                     .thenReturn(run);
             authority = new AtomicReference<>(run);
             lenient().when(runTracker.getRun(run.id())).thenAnswer(inv -> Optional.of(authority.get()));
@@ -2727,9 +2728,9 @@ class QueryEngineUnitTest {
         @Test
         @DisplayName("全部关闭后下一条子代理请求不含 Skill，重新开启后恢复")
         void nextSubAgentRequestsReflectAllDisabledAndReenabledSkills() throws Exception {
-            when(runTracker.startRun("test-session", null, "subagent", "mock-model")).thenReturn(run);
+            when(runTracker.startRun(eq("test-session"), isNull(), eq("subagent"), eq("mock-model"), matches("[0-9a-f]{16}"))).thenReturn(run);
             assertNextRequestsReflectToggle(true);
-            verify(runTracker, times(3)).startRun("test-session", null, "subagent", "mock-model");
+            verify(runTracker, times(3)).startRun(eq("test-session"), isNull(), eq("subagent"), eq("mock-model"), matches("[0-9a-f]{16}"));
         }
 
         private void assertNextRequestsReflectToggle(boolean subAgent) throws Exception {

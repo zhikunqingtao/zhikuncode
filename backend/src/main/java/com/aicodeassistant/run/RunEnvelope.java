@@ -80,9 +80,14 @@ public record RunEnvelope(
     }
 
     public static RunEnvelope start(String sessionId, String parentRunId, String agentType, String model) {
+        return start(sessionId, parentRunId, agentType, model, null);
+    }
+
+    public static RunEnvelope start(String sessionId, String parentRunId, String agentType, String model,
+                                    String promptHash) {
         Instant now = Instant.now();
         return new RunEnvelope(UUID.randomUUID().toString(), sessionId, parentRunId,
-                RunStatus.RUNNING, agentType, model, null, now, null, null,
+                RunStatus.RUNNING, agentType, model, promptHash, now, null, null,
                 0, 0.0, 0, 0, null, now, now, 0, null, null,
                 VerificationStatus.NOT_REQUESTED, UsageStatus.UNKNOWN, null, null);
     }

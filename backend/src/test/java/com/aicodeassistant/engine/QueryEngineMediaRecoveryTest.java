@@ -168,7 +168,7 @@ class QueryEngineMediaRecoveryTest {
         lenient().when(userImageTranscoder.transcode(anyList(), any(), nullable(String.class), any(), anyInt()))
                 .thenAnswer(inv -> new UserImageTranscoder.TranscodeResult(inv.getArgument(0), 0, List.of()));
         var runs = new java.util.HashMap<String,RunEnvelope>();
-        lenient().when(runTracker.startRun(anyString(), nullable(String.class), anyString(), anyString()))
+        lenient().when(runTracker.startRun(anyString(), nullable(String.class), anyString(), anyString(), nullable(String.class)))
             .thenAnswer(inv -> { var run = RunEnvelope.start(inv.getArgument(0),inv.getArgument(1),inv.getArgument(2),inv.getArgument(3)); runs.put(run.id(),run); return run; });
         lenient().when(runTracker.getRun(anyString())).thenAnswer(inv -> java.util.Optional.ofNullable(runs.get(inv.getArgument(0))));
         lenient().doAnswer(inv -> { String id = inv.getArgument(0); var run = runs.get(id);

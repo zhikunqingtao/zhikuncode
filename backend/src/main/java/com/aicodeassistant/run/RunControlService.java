@@ -63,7 +63,12 @@ public class RunControlService {
     }
 
     public RunEnvelope start(String sessionId, String parentRunId, String agentType, String model) {
-        RunEnvelope run = RunEnvelope.start(sessionId, parentRunId, agentType, model);
+        return start(sessionId, parentRunId, agentType, model, null);
+    }
+
+    public RunEnvelope start(String sessionId, String parentRunId, String agentType, String model,
+                             String promptHash) {
+        RunEnvelope run = RunEnvelope.start(sessionId, parentRunId, agentType, model, promptHash);
         write(() -> {
             if (parentRunId == null) {
                 Integer sessions = jdbc.queryForObject(
@@ -80,16 +85,17 @@ public class RunControlService {
             }
             jdbc.update("""
                     INSERT INTO run_envelopes
-                    (id,session_id,parent_run_id,status,version,agent_type,model,started_at,
+                    (id,session_id,parent_run_id,status,version,agent_type,model,prompt_hash,started_at,
                      total_tokens,total_cost_usd,tool_call_count,turn_count,verification_status,
                      created_at,updated_at)
-                    VALUES(?,?,?,?,0,?,?,?,0,0,0,0,'not_requested',?,?)
+                    VALUES(?,?,?,?,0,?,?,?,?,0,0,0,0,'not_requested',?,?)
                     """, run.id(), run.sessionId(), run.parentRunId(), run.status().dbValue(),
-                    run.agentType(), run.model(), run.startedAt().toString(),
+                    run.agentType(), run.model(), run.promptHash(), run.startedAt().toString(),
                     run.createdAt().toString(), run.updatedAt().toString());
             appendEventInCurrentWrite(run.id(), "run_started", null, Map.of(
                     "sessionId", sessionId, "parentRunId", value(parentRunId),
-                    "agentType", value(agentType), "model", value(model)));
+                    "agentType", value(agentType), "model", value(model),
+                    "promptHash", value(promptHash)));
             return null;
         });
         return run;

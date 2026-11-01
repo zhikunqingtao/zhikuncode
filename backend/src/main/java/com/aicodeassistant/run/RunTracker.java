@@ -8,6 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.aicodeassistant.observability.BestEffortObservabilityRecorder;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.Optional;
 import java.time.Duration;
 
@@ -41,7 +45,24 @@ public class RunTracker {
     }
 
     public RunEnvelope startRun(String sessionId, String parentRunId, String agentType, String model) {
-        return control.start(sessionId, parentRunId, agentType, model);
+        return startRun(sessionId, parentRunId, agentType, model, null);
+    }
+
+    public RunEnvelope startRun(String sessionId, String parentRunId, String agentType, String model,
+                                String promptHash) {
+        return control.start(sessionId, parentRunId, agentType, model, promptHash);
+    }
+
+    /** Effective system prompt fingerprint: first 16 lowercase hex chars of SHA-256(UTF-8); null stays null. */
+    public static String promptHash(String systemPrompt) {
+        if (systemPrompt == null) return null;
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256")
+                    .digest(systemPrompt.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(digest).substring(0, 16);
+        } catch (NoSuchAlgorithmException impossible) {
+            throw new IllegalStateException("SHA-256 unavailable", impossible);
+        }
     }
 
     public RunEvent recordEvent(String runId, String eventType, Object data) {

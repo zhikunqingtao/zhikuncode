@@ -429,7 +429,7 @@ class SubAgentWorktreeLifecycleTest {
         doAnswer(call -> {
             runs.register("foreign-run", child, new AbortContext());
             throw new IllegalStateException("startup failed after session identity was reused");
-        }).when(tracker).startRun(anyString(), anyString(), anyString(), anyString());
+        }).when(tracker).startRun(anyString(), anyString(), anyString(), anyString(), nullable(String.class));
         try {
             var result = executor.executeSync(request(), parent);
             assertThat(result.status()).isEqualTo("failed");
@@ -777,7 +777,7 @@ class SubAgentWorktreeLifecycleTest {
     private RunTracker useActualStartupFailure(java.util.function.Consumer<QueryLoopState> afterFailure) {
         RunTracker tracker = mock(RunTracker.class);
         doThrow(new IllegalStateException("startup persistence unavailable")).when(tracker)
-                .startRun(anyString(), anyString(), anyString(), anyString());
+                .startRun(anyString(), anyString(), anyString(), anyString(), nullable(String.class));
         LlmProviderRegistry providers = mock(LlmProviderRegistry.class);
         StreamingToolExecutor toolExecutor = mock(StreamingToolExecutor.class);
         QueryEngine realEngine = new QueryEngine(providers, null, null, null,
