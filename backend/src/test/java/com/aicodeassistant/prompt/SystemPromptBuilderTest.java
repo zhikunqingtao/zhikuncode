@@ -100,7 +100,8 @@ class SystemPromptBuilderTest {
 
         assertFalse(prompt.contains("不要对用户已经决定要做的任务提出质疑"));
         assertFalse(prompt.contains("1-2 次工具调用"));
-        assertTrue(prompt.contains("能通过读取代码、文档或运行命令消除的歧义，先自己调查"));
+        assertFalse(prompt.contains("能通过读取代码、文档或运行命令消除的歧义，先自己调查"));
+        assertTrue(prompt.contains("如果关键歧义无法通过调查消除，请求澄清而不是猜错。"));
         assertTrue(prompt.contains("可以简要指出一次更有效的方法或关键风险"));
     }
 
@@ -113,8 +114,13 @@ class SystemPromptBuilderTest {
         assertTrue(idx >= 0, "goal/quality section missing");
         assertEquals(idx, prompt.lastIndexOf(heading), "goal/quality section must appear exactly once");
         assertTrue(prompt.contains(SystemPromptBuilder.GOAL_QUALITY_SECTION));
-        assertFalse(SystemPromptBuilder.GOAL_QUALITY_SECTION.contains("%"),
-                "section must stay safe for String.formatted contexts");
+        String clarification = "## 调查与澄清";
+        int clarificationIdx = prompt.indexOf(clarification);
+        assertTrue(clarificationIdx >= 0, "shared investigation/clarification guidance missing");
+        assertEquals(clarificationIdx, prompt.lastIndexOf(clarification),
+                "investigation/clarification guidance must appear exactly once");
+        assertTrue(prompt.contains("遵守用户明确提出的确认要求。"));
+        assertTrue(prompt.contains("能在授权范围内通过上下文、源码、文档、命令或小规模试验查明的问题，先自行调查"));
         assertTrue(prompt.indexOf("# 执行任务") < idx, "must follow DoingTasks section");
         assertTrue(idx < prompt.indexOf("# 谨慎执行操作"), "must precede Actions section");
     }

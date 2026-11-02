@@ -116,6 +116,14 @@ class CoordinatorPromptBuilderTest {
         int first = prompt.indexOf(goal);
         assertTrue(first >= 0, "coordinator prompt must contain GOAL_QUALITY_SECTION");
         assertEquals(first, prompt.lastIndexOf(goal), "GOAL_QUALITY_SECTION must appear exactly once");
+        String clarification = "## 调查与澄清";
+        int clarificationIdx = prompt.indexOf(clarification);
+        assertTrue(clarificationIdx >= 0, "coordinator must receive shared investigation/clarification guidance");
+        assertEquals(clarificationIdx, prompt.lastIndexOf(clarification),
+                "investigation/clarification guidance must appear exactly once");
+        assertTrue(prompt.contains("遵守用户明确提出的确认要求。"));
+        assertTrue(prompt.contains("能在授权范围内通过上下文、源码、文档、命令或小规模试验查明的问题，先自行调查"));
+        assertFalse(prompt.contains("能通过读取代码、文档或运行命令消除的歧义，先自己调查"));
         assertTrue(first < prompt.indexOf(markers),
                 "GOAL_QUALITY_SECTION must precede CONTEXT_COMPRESSION_MARKERS_SECTION");
         assertTrue(prompt.endsWith(markers));

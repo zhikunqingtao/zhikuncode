@@ -11,6 +11,7 @@ import com.aicodeassistant.engine.QueryLoopState;
 import com.aicodeassistant.engine.QueryMessageHandler;
 import com.aicodeassistant.llm.LlmProviderRegistry;
 import com.aicodeassistant.service.FileStateCache;
+import com.aicodeassistant.session.SessionExecutionGate;
 import com.aicodeassistant.session.SessionManager;
 import com.aicodeassistant.tool.Tool;
 import com.aicodeassistant.tool.ToolInput;
@@ -28,31 +29,37 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-/** Real tool identities and both public execution paths, without running a model or a tool. */
+/** Real tool identities and ordinary/fork/background execution, without running a model or a tool. */
 class SubAgentToolPoolTest {
     @TempDir Path workspace;
 
-    @ParameterizedTest(name = "{0}, fork={1}")
+    @ParameterizedTest(name = "{0}, fork={1}, background={2}")
     @CsvSource({
-            "explore,false", "explore,true",
-            "verification,false", "verification,true",
-            "plan,false", "plan,true",
-            "guide,false", "guide,true",
-            "general-purpose,false", "general-purpose,true"
+            "explore,false,false", "explore,true,false",
+            "verification,false,false", "verification,true,false",
+            "plan,false,false", "plan,true,false",
+            "guide,false,false", "guide,true,false",
+            "general-purpose,false,false", "general-purpose,true,false",
+            "general-purpose,false,true"
     })
-    void deliversRoleToolPoolToQueryEngineForOrdinaryAndForkAgents(String type, boolean fork) {
+    void deliversRoleToolPoolToQueryEngineForOrdinaryForkAndBackgroundAgents(
+            String type, boolean fork, boolean background) throws Exception {
         // Names and API schemas come from the production file/search tools, not copied test strings.
         List<Tool> registered = List.of(
                 new FileReadTool(null, null, null, null, null),
@@ -76,18 +83,40 @@ class SubAgentToolPoolTest {
                 .thenAnswer(call -> caches.computeIfAbsent(call.getArgument(0), ignored -> new FileStateCache()));
         when(sessions.loadSession(anyString())).thenReturn(Optional.empty());
         LlmProviderRegistry providers = mock(LlmProviderRegistry.class);
+        BackgroundAgentTracker tracker = mock(BackgroundAgentTracker.class);
         SubAgentExecutor executor = new SubAgentExecutor(
-                mock(AgentConcurrencyController.class), engine, registry, null, null,
+                mock(AgentConcurrencyController.class), engine, registry, tracker, null,
                 new TaskNotificationFormatter(), mock(FeatureFlagService.class), mock(CoordinatorService.class),
                 sessions, null, providers, new AgentTimeoutConfig(), null,
                 mock(CheckpointService.class), new ObjectMapper());
 
-        var request = new SubAgentExecutor.AgentRequest("role-tools", "Inspect the fixture", type,
-                null, SubAgentExecutor.IsolationMode.NONE, false, null, fork);
-        var result = executor.executeSync(request,
-                ToolUseContext.of(workspace.toString(), "parent").withParentModel("stub-model"));
-
-        assertThat(result.status()).as(result.result()).isEqualTo(SubAgentExecutor.AgentResult.STATUS_COMPLETED);
+        var request = new SubAgentExecutor.AgentRequest("role-tools-" + UUID.randomUUID(), "Inspect the fixture", type,
+                null, SubAgentExecutor.IsolationMode.NONE, background, null, fork);
+        var parent = ToolUseContext.of(workspace.toString(), "parent").withParentModel("stub-model");
+        if (background) {
+            CountDownLatch cleanedUp = new CountDownLatch(1);
+            var outerLease = mock(SessionExecutionGate.BackgroundLease.class);
+            var innerLease = mock(SessionExecutionGate.BackgroundLease.class);
+            when(sessions.acquireBackgroundLease("parent")).thenReturn(outerLease, innerLease);
+            // Lease closure is the last finally action, after completion publication and resource cleanup.
+            doAnswer(call -> { cleanedUp.countDown(); return null; }).when(outerLease).close();
+            var launched = executor.executeAsync(request, parent);
+            try {
+                assertThat(launched.status()).isEqualTo(SubAgentExecutor.AgentResult.STATUS_ASYNC_LAUNCHED);
+                assertThat(cleanedUp.await(10, TimeUnit.SECONDS)).as("background finally cleanup completed").isTrue();
+                var completed = ArgumentCaptor.forClass(SubAgentExecutor.AgentResult.class);
+                verify(tracker).markCompleted(eq(request.agentId()), completed.capture());
+                assertThat(completed.getValue().status()).isEqualTo(SubAgentExecutor.AgentResult.STATUS_COMPLETED);
+                verify(tracker, never()).markFailed(anyString(), anyString());
+                verify(engine, atLeastOnce()).removeAbortContext("subagent-" + request.agentId());
+                verify(sessions, atLeastOnce()).removeFileStateCache("subagent-" + request.agentId());
+            } finally {
+                if (cleanedUp.getCount() == 0) Files.deleteIfExists(Path.of(launched.outputFile()));
+            }
+        } else {
+            var result = executor.executeSync(request, parent);
+            assertThat(result.status()).as(result.result()).isEqualTo(SubAgentExecutor.AgentResult.STATUS_COMPLETED);
+        }
         var captured = ArgumentCaptor.forClass(QueryConfig.class);
         verify(engine).execute(captured.capture(), any(QueryLoopState.class), any(QueryMessageHandler.class));
         QueryConfig config = captured.getValue();
@@ -112,9 +141,17 @@ class SubAgentToolPoolTest {
             // Wrapper gives sub-agents a channel for goal-level evidence instead of a literal-scope ban.
             assertThat(config.systemPrompt()).contains("对上层目标的影响")
                     .doesNotContain("不要尝试超出上述范围的任务");
+            assertThat(config.systemPrompt()).contains(
+                    "必要时选择更有效的专业或跨领域方法，始终遵守当前角色约束和委派范围；所需数据、工具或环境不足时报告限制，由父代理协调处理。");
         }
         if ("general-purpose".equals(type)) {
-            assertThat(SubAgentExecutor.GENERAL_PURPOSE_AGENT_PROMPT).doesNotContain("严格按照任务提示执行");
+            assertThat(config.systemPrompt())
+                    .contains("先调查可查明的歧义。低风险、可逆的实现细节可以合理选择并说明假设；影响目标、验收、业务含义或授权的歧义，向父代理报告证据和待决定项，不自行决定。")
+                    .doesNotContain("严格按照任务提示执行", "仍无法确定的，做出合理选择");
+        }
+        if ("explore".equals(type) || "plan".equals(type)) {
+            assertThat(config.systemPrompt()).contains(
+                    "你不能编辑、创建或删除任何文件", "你不能执行修改状态的命令");
         }
         if ("explore".equals(type)) {
             // Explore 提示只允许引用真实工具名
