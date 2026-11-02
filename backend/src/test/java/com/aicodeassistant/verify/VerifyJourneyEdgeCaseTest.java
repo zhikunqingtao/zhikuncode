@@ -242,7 +242,7 @@ class VerifyJourneyEdgeCaseTest {
     // ──────────────────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("EC-16 BROWSER_AUTOMATION 能力不可用 → 返回 success 降级提示，不阻塞主任务")
+    @DisplayName("EC-16 浏览器能力不可用 → 如实报告未执行，不触发错误恢复")
     void testBrowserCapabilityUnavailable_returnsSuccessGracefulSkip() {
         // verifierFactory 选中 BrowserVerifier 路径，使 selectedMode == "browser"
         BrowserVerifier mockBrowser = mock(BrowserVerifier.class);
@@ -253,8 +253,8 @@ class VerifyJourneyEdgeCaseTest {
         ToolResult result = tool.call(browserInput(null), browserCtx());
 
         assertFalse(result.isError(), "能力不可用应降级为 success，实际：" + result.content());
-        assertTrue(result.content().contains("Runtime verification unavailable"),
-                "应明示运行时验证不可用，实际：" + result.content());
+        assertTrue(result.content().contains("Runtime verification NOT RUN"),
+                "应明示运行时验证未执行，实际：" + result.content());
         assertTrue(result.content().contains("BROWSER_AUTOMATION"),
                 "应点名缺失的能力名，实际：" + result.content());
         // 不应启动 DevServer、不应保存证据
@@ -262,10 +262,15 @@ class VerifyJourneyEdgeCaseTest {
         verify(evidenceStore, never()).save(any());
         // 未进入 verifier.verify
         verify(mockBrowser, never()).verify(any(), anyString());
+        assertEquals(ToolResult.Retryability.NEVER, result.retryability());
+        assertTrue(result.content().contains("No journey steps were executed"));
+        assertTrue(result.content().contains("report the verification gap"));
+        assertFalse(result.content().contains("This does not block your task"));
+        assertFalse(result.content().contains("Proceed without runtime verification"));
     }
 
     @Test
-    @DisplayName("EC-17 HTTP_API 能力不可用 → 返回 success 降级提示，不阻塞主任务")
+    @DisplayName("EC-17 HTTP 能力不可用 → 如实报告未执行，不触发错误恢复")
     void testHttpApiCapabilityUnavailable_returnsSuccessGracefulSkip() {
         // 构造 HTTP 模式输入
         ToolInput input = ToolInput.from(Map.of(
@@ -288,6 +293,12 @@ class VerifyJourneyEdgeCaseTest {
         // HTTP 模式不走 DevServer；且不应进入 verifier.verify / evidenceStore.save
         verify(mockHttp, never()).verify(any(), anyString());
         verify(evidenceStore, never()).save(any());
+        assertEquals(ToolResult.Retryability.NEVER, result.retryability());
+        assertTrue(result.content().contains("Runtime verification NOT RUN"));
+        assertTrue(result.content().contains("No journey steps were executed"));
+        assertTrue(result.content().contains("report the verification gap"));
+        assertFalse(result.content().contains("This does not block your task"));
+        assertFalse(result.content().contains("Proceed without runtime verification"));
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -311,10 +322,19 @@ class VerifyJourneyEdgeCaseTest {
 
         ToolResult result = tool.call(browserInput(null), browserCtx());
 
-        assertFalse(result.isError(), "unknown 栈应降级为 success（不阻塞主任务），实际：" + result.content());
+        assertFalse(result.isError(), "unknown 栈应如实返回未执行状态而非工具错误，实际：" + result.content());
         assertTrue(result.content().contains("unsupported stack"),
                 "应明确说明栈不支持，实际：" + result.content());
         verify(devServerLauncher, never()).start(any(), anyString(), anyInt(), any());
+        assertEquals(ToolResult.Retryability.NEVER, result.retryability());
+        assertTrue(result.content().contains("Runtime verification NOT RUN"));
+        assertTrue(result.content().contains("No journey steps were executed"));
+        assertTrue(result.content().contains("report the verification gap"));
+        assertFalse(result.content().contains("This does not block your task"));
+        assertFalse(result.content().contains("Proceed without runtime verification"));
+        assertTrue(result.content().contains("start_command and base_url"));
+        verify(mockBrowser, never()).verify(any(), anyString());
+        verify(evidenceStore, never()).save(any());
     }
 
     @Test
@@ -603,6 +623,37 @@ class VerifyJourneyEdgeCaseTest {
         assertFalse(result.content().contains("AUTHORIZATION_STORE_BUSY"),
                 "不得回传底层异常文本，实际：" + result.content());
         verifyNoInteractions(devServerLauncher);
+    }
+
+    @Test
+    @DisplayName("已调用 verifier 但不可用 → 保留证据，不声称零步骤或验证通过")
+    void testExecutedUnavailable_preservesEvidenceWithoutClaimingNoSteps() {
+        when(pythonClient.isCapabilityAvailable("HTTP_API")).thenReturn(true);
+        HttpApiVerifier mockHttp = mock(HttpApiVerifier.class);
+        when(verifierFactory.selectVerifier(any(), eq("http_api"))).thenReturn(mockHttp);
+        when(mockHttp.verify(any(), anyString())).thenReturn(new JourneyResult(
+                "unavailable", "second step unavailable",
+                List.of(new StepResult(0, "http_get", true, 1L, null, List.of(), null)), Map.of()));
+        when(evidenceStore.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        ToolInput input = ToolInput.from(Map.of(
+                "journey", List.of(Map.of("action", "http_get", "url", "/ping"),
+                        Map.of("action", "http_get", "url", "/health")),
+                "verification_mode", "http_api", "base_url", "http://127.0.0.1:8080"));
+
+        ToolResult result = tool.call(input,
+                ToolUseContext.of(workspace.toString(), "session-executed-unavailable"));
+
+        assertFalse(result.isError());
+        assertEquals(ToolResult.Retryability.NEVER, result.retryability());
+        assertTrue(result.content().contains("second step unavailable"));
+        assertTrue(result.content().contains("did not establish a passing verification verdict"));
+        assertFalse(result.content().contains("No journey steps were executed"));
+        assertFalse(result.content().contains("This does not block your task"));
+        verify(mockHttp).verify(any(), anyString());
+        ArgumentCaptor<EvidenceBundle> evidence = ArgumentCaptor.forClass(EvidenceBundle.class);
+        verify(evidenceStore).save(evidence.capture());
+        assertEquals("unavailable", evidence.getValue().verdict());
+        assertFalse(evidence.getValue().items().isEmpty());
     }
 
     @Test

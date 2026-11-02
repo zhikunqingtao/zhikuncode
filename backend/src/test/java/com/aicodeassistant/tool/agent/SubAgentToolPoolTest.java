@@ -183,6 +183,10 @@ class SubAgentToolPoolTest {
         if ("verification".equals(type)) {
             // Check the delivered contract in both execution paths, not model adherence to it.
             assertThat(config.systemPrompt()).contains(
+                    "结论类任务的核验", "对照原始来源核实关键断言", "主动寻找反例",
+                    "逐条给出依据和位置", "只读委派不修改文件",
+                    "涉及实际运行效果的关键结论仍须相应动态证据",
+                    "需要验证可执行行为时的基线", "动态检查没有实际执行证据不能判为 PASS",
                     "测试结果是其断言覆盖范围内的证据",
                     "至少执行一项针对主要风险",
                     "重要动态检查未完成时，不得给出功能 PASS",

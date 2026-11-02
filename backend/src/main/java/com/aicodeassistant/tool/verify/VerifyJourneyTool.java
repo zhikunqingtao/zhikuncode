@@ -300,8 +300,7 @@ public class VerifyJourneyTool implements Tool {
                 recordVerificationSkipped(observationRunId, selectedMode, journey.size(),
                         "capability_unavailable", startedNanos);
                 if (publicationSnapshot != null) return publicationUnavailable(CAPABILITY);
-                return ToolResult.success("Runtime verification unavailable: BROWSER_AUTOMATION capability not available. "
-                        + "This does not block your task - proceed without runtime verification.");
+                return verificationNotRun("BROWSER_AUTOMATION capability not available", "");
             }
 
             // PreviewStackDetector 探测
@@ -322,8 +321,8 @@ public class VerifyJourneyTool implements Tool {
                         "unsupported_stack", startedNanos);
                 if (publicationSnapshot != null) return ToolResult.validationError("MEOO_VERIFICATION_SETUP_REQUIRED",
                         "Cannot detect the publication server. Supply start_command and its local base_url for browser verification.");
-                return ToolResult.success("Runtime verification skipped: unsupported stack (" + stack.stackId() + "). "
-                        + "Proceed without runtime verification.");
+                return verificationNotRun("unsupported stack (" + stack.stackId() + ")",
+                        "If the project's start command and actual local URL are known, provide both start_command and base_url.");
             }
             if (!staticPublication && startCommand == null) {
                 startCommand = stack.defaultStartCommand();
@@ -420,8 +419,7 @@ public class VerifyJourneyTool implements Tool {
                 recordVerificationSkipped(observationRunId, selectedMode, journey.size(),
                         "capability_unavailable", startedNanos);
                 if (publicationSnapshot != null) return publicationUnavailable("HTTP_API");
-                return ToolResult.success("Runtime verification unavailable: HTTP_API capability not available. "
-                        + "This does not block your task - proceed without runtime verification.");
+                return verificationNotRun("HTTP_API capability not available", "");
             }
 
             if (baseUrl == null) {
@@ -441,6 +439,14 @@ public class VerifyJourneyTool implements Tool {
             return handleVerificationResult(result, sessionId, journey.size(),
                     evidenceClaim, observationRunId, selectedMode, startedNanos, publicationInput, publicationSnapshot, context, null);
         }
+    }
+
+    private static ToolResult verificationNotRun(String reason, String recovery) {
+        return ToolResult.success("Runtime verification NOT RUN: " + reason + ". "
+                + "No journey steps were executed; this result does not verify the target behavior. "
+                + (recovery.isEmpty() ? "" : recovery + " ")
+                + "Use another available check that covers the required behavior, or report the verification gap. "
+                + "Retry only after the missing prerequisite has been addressed.");
     }
 
     private static ToolResult publicationUnavailable(String capability) {
@@ -540,7 +546,8 @@ public class VerifyJourneyTool implements Tool {
                 return unavailable.withContent(unavailable.content() + evidenceNotice, false);
             }
             return ToolResult.success("Runtime verification unavailable: " + result.errorMessage()
-                    + ". This does not block your task." + evidenceNotice);
+                    + ". This run did not establish a passing verification verdict. "
+                    + "Use another applicable check or report the remaining verification gap." + evidenceNotice);
         } else {
             String baseMsg = result.errorMessage() != null
                     ? result.errorMessage()

@@ -451,9 +451,17 @@ public class GrepTool implements Tool {
             case "count" -> args.add("-c");
             case "content" -> {
                 args.add("-n");
-                input.getOptionalInt("-C").ifPresent(c -> args.addAll(List.of("-C", String.valueOf(c))));
-                input.getOptionalInt("-B").ifPresent(b -> args.addAll(List.of("-B", String.valueOf(b))));
-                input.getOptionalInt("-A").ifPresent(a -> args.addAll(List.of("-A", String.valueOf(a))));
+                Optional<Integer> around = input.getOptionalInt("-C");
+                Optional<Integer> before = input.getOptionalInt("-B");
+                Optional<Integer> after = input.getOptionalInt("-A");
+                // GNU grep prints "--" group separators even for zero context; paging would count them as results.
+                int effectiveBefore = before.orElse(around.orElse(0));
+                int effectiveAfter = after.orElse(around.orElse(0));
+                if (effectiveBefore > 0 || effectiveAfter > 0) {
+                    around.ifPresent(c -> args.addAll(List.of("-C", String.valueOf(c))));
+                    before.ifPresent(b -> args.addAll(List.of("-B", String.valueOf(b))));
+                    after.ifPresent(a -> args.addAll(List.of("-A", String.valueOf(a))));
+                }
             }
         }
 

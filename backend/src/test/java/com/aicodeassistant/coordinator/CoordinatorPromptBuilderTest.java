@@ -6,7 +6,9 @@ import com.aicodeassistant.tool.agent.AgentTool;
 import com.aicodeassistant.tool.agent.SubAgentExecutor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -319,6 +321,22 @@ class CoordinatorPromptBuilderTest {
         assertTrue(buildPrompt().contains("对上层目标的影响"));
     }
 
+    @Test
+    @DisplayName("按实际结果委派，保留独立验收且不默认提交")
+    void promptDefinesOutcomeDelegationWithoutDefaultCommits() {
+        String prompt = buildPrompt();
+        assertTrue(prompt.contains("按实际结果组织工作"));
+        assertTrue(prompt.contains("要实现的结果、委派范围与授权边界、交付物及验收方式"));
+        assertTrue(prompt.contains("回传产物位置、实际检查结果和未验证项"));
+        assertTrue(prompt.contains("说明\"完成\"对应的实际结果和独立验收方式，不要只描述要执行的动作"));
+        assertTrue(prompt.contains("仅当已有用户授权覆盖以下具体操作及范围时"));
+        assertTrue(prompt.contains("不要用 Worker B 查询 Worker A 的运行状态"));
+        assertFalse(prompt.contains("Commit and report the hash"));
+        assertFalse(prompt.contains("then commit your changes"));
+        assertFalse(prompt.contains("研究完成后，你始终要做两件事"));
+        assertFalse(prompt.contains("不要用 Worker B 检查 Worker A 的输出"));
+    }
+
     private String buildPrompt() {
         CoordinatorService coordinatorService = mock(CoordinatorService.class);
         McpClientManager mcpClientManager = mock(McpClientManager.class);
@@ -327,6 +345,43 @@ class CoordinatorPromptBuilderTest {
         when(mcpClientManager.getConnectedServers()).thenReturn(List.of());
         return new CoordinatorPromptBuilder(coordinatorService, mcpClientManager)
                 .buildCoordinatorPrompt("session-1", Path.of("/tmp/zhikun-scratchpad"));
+    }
+
+    @Test
+    @DisplayName("决策类独立核验写明复用、具体质疑复核和无法核验时的限制")
+    void decisionVerificationDefinesReuseAndLimits() {
+        String prompt = buildPrompt();
+        assertTrue(prompt.contains("决策类结论需要独立核验"));
+        assertTrue(prompt.contains("同一结论已有完成且仍适用的独立核验时直接复用"));
+        assertTrue(prompt.contains("用户提出具体质疑、出现新证据或方案变化时，只针对这些内容及其影响复核"));
+        assertTrue(prompt.contains("不声称已独立核验"));
+        assertTrue(prompt.contains("核验 worker 不修改文件"));
+        assertTrue(prompt.contains("结论依赖当前项目、版本或配置的事实"));
+        assertTrue(prompt.contains("涉及根因判断、方案取舍"));
+        assertTrue(prompt.contains("普通概念解释和不涉及上述决策的低风险简单问题可直接回答，不强制启动 worker"));
+        assertTrue(prompt.contains("`subagent_type: \"verification\"`"));
+        assertTrue(prompt.contains("`subagent_type: \"explore\"`"));
+        assertTrue(prompt.contains("并在委派中明确只读范围；角色选择不替代任务授权与工具权限检查"));
+    }
+
+    @Test
+    @DisplayName("Coordinator 基础提示不自行注入记忆（由 EffectiveSystemPromptBuilder 统一追加）")
+    void coordinatorPromptDoesNotInjectMemoryItself(@TempDir Path temp) throws Exception {
+        Path projectRoot = Files.createDirectories(temp.resolve("project")).toRealPath();
+        Files.writeString(projectRoot.resolve("zhikun.md"), "PROJECT-RULE");
+        CoordinatorService coordinatorService = mock(CoordinatorService.class);
+        McpClientManager mcpClientManager = mock(McpClientManager.class);
+        when(coordinatorService.getWorkerToolsContext("session-1"))
+                .thenReturn(Map.of("workerToolsContext", "standard tools"));
+        when(coordinatorService.getScratchpadDir("session-1")).thenReturn(temp);
+        when(mcpClientManager.getConnectedServers()).thenReturn(List.of());
+
+        String prompt = new CoordinatorPromptBuilder(coordinatorService, mcpClientManager)
+                .buildCoordinatorPromptForProject("session-1", projectRoot);
+
+        assertFalse(prompt.contains("PROJECT-RULE"));
+        assertTrue(prompt.endsWith(
+                com.aicodeassistant.prompt.SystemPromptBuilder.CONTEXT_COMPRESSION_MARKERS_SECTION));
     }
 
 }

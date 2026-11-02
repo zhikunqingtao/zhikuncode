@@ -439,7 +439,8 @@ class GitCommitCommandTest {
         Path repository = repositoryWithIgnoredSubmodule(ignoreSource);
         Path submodule = repository.resolve("sm");
         runGit(submodule, "checkout", "origin/HEAD");
-        runGit(repository, "add", "sm");
+        // Force staging the ignored submodule to establish the fixture's staged gitlink change.
+        runGit(repository, "add", "-f", "sm");
         String stagedGitlink = gitOutput(repository, "rev-parse", ":sm");
         assertThat(stagedGitlink).isNotEqualTo(gitOutput(repository, "rev-parse", "HEAD:sm"));
         assertThat(gitOutput(repository, "diff", "--cached", "--name-only"))
