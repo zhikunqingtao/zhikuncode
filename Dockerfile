@@ -23,7 +23,7 @@ COPY frontend/.env.production ./.env.production
 RUN npm run build
 
 # ---- Stage 2: Build Backend ----
-FROM eclipse-temurin:21-jdk AS backend-build
+FROM eclipse-temurin:25-jdk AS backend-build
 WORKDIR /build
 
 ARG MAVEN_REPOSITORY_URL=https://repo.maven.apache.org/maven2
@@ -89,7 +89,7 @@ RUN case "${NPM_REGISTRY}" in https://*) ;; \
 # ---- Stage 3: Production Runtime ----
 # Ubuntu 24.04 (noble) provides Python 3.12, matching pyproject.toml's
 # supported range (>=3.11,<3.13). Jammy's Python 3.10 is not supported.
-FROM eclipse-temurin:21-jre-noble AS runtime
+FROM eclipse-temurin:24-jre-noble AS runtime
 
 ARG UBUNTU_MIRROR_HOST=
 ARG PIP_INDEX_URL=https://pypi.org/simple
