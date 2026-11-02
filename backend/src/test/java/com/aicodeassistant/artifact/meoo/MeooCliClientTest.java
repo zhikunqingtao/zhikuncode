@@ -61,7 +61,7 @@ class MeooCliClientTest {
         when(props.credential()).thenReturn(credential);when(props.getExecutable()).thenReturn("meoo");when(props.getTimeoutSeconds()).thenReturn(30);
         var runner=mock(ManagedProcessRunner.class);var cli=new MeooCliClient(props,runner,new ObjectMapper());
         String output="""
-            {"success":false,"error":{"code":"VERSION_BLOCKED","message":"private-fixture-token","current":"0.5.4","minRequired":"0.5.6","latest":"0.5.6"}}
+            {"success":false,"error":{"code":"VERSION_BLOCKED","message":"private-fixture-token","current":"0.5.6","minRequired":"0.5.7","latest":"0.5.7"}}
             """;
         when(runner.runIsolated(any(),any())).thenReturn(new ManagedProcessRunner.Result(1,output,"private-fixture-token",false,false,false,false,true,1,false));
         var ctx=ToolUseContext.of(root.toString(),"s").withCurrentRunId("r").withToolUseId("t");
