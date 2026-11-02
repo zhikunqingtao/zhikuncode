@@ -16,6 +16,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /** run_envelopes.prompt_hash 写入语义：显式传入则持久化，旧 4 参入口保持 NULL。 */
 class RunControlServicePromptHashTest {
+    private static final String UNICODE_PROMPT = "你是智坤助手。\n验证 UTF-8：🧪";
+    private static final String UNICODE_HASH = "85b60a4ff152ff48";
     @TempDir Path temp;
     private SqliteConfig sqlite;
     private JdbcTemplate jdbc;
@@ -23,7 +25,7 @@ class RunControlServicePromptHashTest {
 
     @BeforeEach
     void setUp() {
-        DatabaseResolver resolver = new DatabaseResolver("", temp.toString());
+        DatabaseResolver resolver = new DatabaseResolver(temp.resolve("global.db").toString(), temp.toString());
         sqlite = new SqliteConfig(resolver);
         var dataSource = sqlite.getProjectDataSource(Path.of("ignored"));
         jdbc = new JdbcTemplate(dataSource);
@@ -40,13 +42,13 @@ class RunControlServicePromptHashTest {
 
     @Test
     void persistsExplicitPromptHash() {
-        RunEnvelope run = service.start("s1", null, "query", "m", "abc123");
+        RunEnvelope run = service.start("s1", null, "query", "m", UNICODE_HASH);
 
-        assertThat(run.promptHash()).isEqualTo("abc123");
-        assertThat(promptHashColumn(run.id())).isEqualTo("abc123");
+        assertThat(run.promptHash()).isEqualTo(UNICODE_HASH);
+        assertThat(promptHashColumn(run.id())).isEqualTo(UNICODE_HASH);
         assertThat(jdbc.queryForObject(
                 "SELECT event_data FROM run_event_log WHERE run_id=? AND event_type='run_started'",
-                String.class, run.id())).contains("\"promptHash\":\"abc123\"");
+                String.class, run.id())).contains("\"promptHash\":\"" + UNICODE_HASH + "\"");
     }
 
     @Test
@@ -55,17 +57,28 @@ class RunControlServicePromptHashTest {
 
         assertThat(run.promptHash()).isNull();
         assertThat(promptHashColumn(run.id())).isNull();
+        assertThat(jdbc.queryForObject(
+                "SELECT event_data FROM run_event_log WHERE run_id=? AND event_type='run_started'",
+                String.class, run.id())).contains("\"promptHash\":\"unknown\"");
     }
 
     @Test
     void promptHashHelperIsDeterministicSixteenLowercaseHex() {
-        assertThat(RunTracker.promptHash(null)).isNull();
-        String hash = RunTracker.promptHash("You are a helpful assistant.");
+        String hash = RunTracker.promptHash(UNICODE_PROMPT);
+        assertThat(hash).isEqualTo(UNICODE_HASH);
         assertThat(hash).matches("[0-9a-f]{16}");
-        assertThat(RunTracker.promptHash("You are a helpful assistant.")).isEqualTo(hash);
-        assertThat(RunTracker.promptHash("You are a helpful assistant!")).isNotEqualTo(hash);
-        // SHA-256("") = e3b0c44298fc1c14...
+        assertThat(RunTracker.promptHash(UNICODE_PROMPT)).isEqualTo(hash);
+        assertThat(RunTracker.promptHash(UNICODE_PROMPT + "!")).isNotEqualTo(hash);
+    }
+
+    @Test
+    void fingerprintsConfiguredTextWithoutNormalizingAbsenceOrWhitespace() {
+        assertThat(RunTracker.promptHash(null)).isNull();
         assertThat(RunTracker.promptHash("")).isEqualTo("e3b0c44298fc1c14");
+        assertThat(RunTracker.promptHash(" \t\n")).isEqualTo("7d7713ab8ff9ccbf");
+        assertThat(RunTracker.promptHash(" " + UNICODE_PROMPT + "\n"))
+                .isEqualTo("0469631dc965fd64")
+                .isNotEqualTo(UNICODE_HASH);
     }
 
     private String promptHashColumn(String runId) {

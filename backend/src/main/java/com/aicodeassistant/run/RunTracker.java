@@ -53,7 +53,13 @@ public class RunTracker {
         return control.start(sessionId, parentRunId, agentType, model, promptHash);
     }
 
-    /** Effective system prompt fingerprint: first 16 lowercase hex chars of SHA-256(UTF-8); null stays null. */
+    /**
+     * Fingerprint of the final QueryConfig system-prompt string passed to the provider:
+     * first 16 lowercase hex chars of SHA-256(UTF-8), without trimming or normalization.
+     * Null stays null; empty and whitespace-only strings have their own fingerprints,
+     * even when a provider omits those strings from its HTTP payload.
+     * This is not a template/version ID or a fingerprint of tool definitions or message history.
+     */
     public static String promptHash(String systemPrompt) {
         if (systemPrompt == null) return null;
         try {

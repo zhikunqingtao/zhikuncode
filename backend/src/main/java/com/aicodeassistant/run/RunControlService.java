@@ -66,6 +66,11 @@ public class RunControlService {
         return start(sessionId, parentRunId, agentType, model, null);
     }
 
+    /**
+     * Persists the caller's prompt fingerprint; production callers compute it with
+     * {@link RunTracker#promptHash(String)}. For compatibility, an absent fingerprint
+     * remains NULL in the envelope and is represented as "unknown" in run_started.
+     */
     public RunEnvelope start(String sessionId, String parentRunId, String agentType, String model,
                              String promptHash) {
         RunEnvelope run = RunEnvelope.start(sessionId, parentRunId, agentType, model, promptHash);
