@@ -18,6 +18,7 @@ import com.aicodeassistant.tool.ToolInput;
 import com.aicodeassistant.tool.ToolRegistry;
 import com.aicodeassistant.tool.ToolResult;
 import com.aicodeassistant.tool.ToolUseContext;
+import com.aicodeassistant.tool.config.SendMessageTool;
 import com.aicodeassistant.tool.impl.FileEditTool;
 import com.aicodeassistant.tool.impl.FileReadTool;
 import com.aicodeassistant.tool.impl.FileWriteTool;
@@ -28,6 +29,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -60,12 +62,14 @@ class SubAgentToolPoolTest {
     })
     void deliversRoleToolPoolToQueryEngineForOrdinaryForkAndBackgroundAgents(
             String type, boolean fork, boolean background) throws Exception {
+        // Include the real messaging description to exercise the one-shot reporting contract alongside it.
+        SendMessageTool sendMessage = new SendMessageTool(mock(SimpMessagingTemplate.class));
         // Names and API schemas come from the production file/search tools, not copied test strings.
         List<Tool> registered = List.of(
                 new FileReadTool(null, null, null, null, null),
                 new FileEditTool(null, null, null, null, null, null),
                 new FileWriteTool(null, null, null, null, null),
-                new GlobTool(null), new GrepTool(null, null),
+                new GlobTool(null), new GrepTool(null, null), sendMessage,
                 unavailableTool("Bash"), unavailableTool("PowerShell"), unavailableTool("WebBrowser"),
                 unavailableTool("WebFetch"), unavailableTool("WebSearch"), unavailableTool("mcp__fixture__write"),
                 unavailableTool("Agent"), unavailableTool("TeamCreate"), unavailableTool("TeamDelete"),
@@ -124,9 +128,10 @@ class SubAgentToolPoolTest {
         Set<String> expected = switch (type) {
             case "guide" -> Set.of("Read", "Glob", "Grep", "WebFetch", "WebSearch");
             case "general-purpose" -> Set.of("Read", "Edit", "Write", "Glob", "Grep", "Bash", "PowerShell",
-                    "WebBrowser", "WebFetch", "WebSearch", "mcp__fixture__write", "ExitPlanMode", "NotebookEdit");
+                    "WebBrowser", "WebFetch", "WebSearch", "mcp__fixture__write", "ExitPlanMode", "NotebookEdit",
+                    "SendMessage");
             default -> Set.of("Read", "Glob", "Grep", "Bash", "PowerShell", "WebBrowser", "WebFetch",
-                    "WebSearch", "mcp__fixture__write");
+                    "WebSearch", "mcp__fixture__write", "SendMessage");
         };
         // Bash/MCP remain as before: this repair is not a complete read-only execution sandbox.
         assertThat(names).containsExactlyInAnyOrderElementsOf(expected);
@@ -138,16 +143,32 @@ class SubAgentToolPoolTest {
                 .doesNotContain("你可以使用文件读写工具", "FileRead", "FileEdit", "FileWrite", "GlobTool", "GrepTool");
         if (!fork) {
             assertThat(config.systemPrompt()).contains("工具以当前请求提供的定义为准");
-            // Wrapper gives sub-agents a channel for goal-level evidence instead of a literal-scope ban.
-            assertThat(config.systemPrompt()).contains("对上层目标的影响")
-                    .doesNotContain("不要尝试超出上述范围的任务");
-            assertThat(config.systemPrompt()).contains(
-                    "必要时选择更有效的专业或跨领域方法，始终遵守当前角色约束和委派范围；所需数据、工具或环境不足时报告限制，由父代理协调处理。");
+        }
+        // Ordinary, fork and background execution share the same bounded final-result protocol.
+        assertThat(config.systemPrompt()).containsOnlyOnce("## 委派任务的范围、证据与回传")
+                .contains("原任务范围、原修改范围和现有授权", "始终遵守当前角色约束",
+                        "专业或跨领域方法不产生额外授权", "按任务复杂度和风险选择必要的目标检查",
+                        "适用时覆盖边界输入", "检查也须遵守角色和授权限制",
+                        "涉及当前项目、版本或配置的事实结论应依据已有或实际查得的证据",
+                        "已有证据充分时不重复查证，通用概念可直接解释", "无法验证的明确标为\"未验证\"",
+                        "对上层目标的影响", "本次委派通过你的最终回复向父代理返回结果",
+                        "停止依赖该决定的动作", "在最终回复中列出证据、影响、待决定项和未完成部分",
+                        "可以继续独立且已授权的工作", "不要通过 SendMessage 请求或等待父代理的中途决定",
+                        "不要把等待中的事项报告为已完成")
+                .doesNotContain("不要尝试超出上述范围的任务");
+        if (!"guide".equals(type)) {
+            // Clarifying the reporting protocol must not remove or rewrite the communication tool.
+            Map<?, ?> sendMessageDefinition = config.toolDefinitions().stream()
+                    .map(definition -> (Map<?, ?>) definition.get("function"))
+                    .filter(definition -> "SendMessage".equals(definition.get("name")))
+                    .findFirst().orElseThrow();
+            assertThat(sendMessageDefinition.get("description")).isEqualTo(sendMessage.prompt());
         }
         if ("general-purpose".equals(type)) {
             assertThat(config.systemPrompt())
-                    .contains("先调查可查明的歧义。低风险、可逆的实现细节可以合理选择并说明假设；影响目标、验收、业务含义或授权的歧义，向父代理报告证据和待决定项，不自行决定。")
-                    .doesNotContain("严格按照任务提示执行", "仍无法确定的，做出合理选择");
+                    .contains("先调查可查明的歧义", "原任务范围及现有授权内的低风险、可逆实现细节",
+                            "应明确说明证据和待决定项，不自行决定", "明确报告阻碍，不静默绕过")
+                    .doesNotContain("严格按照任务提示执行", "仍无法确定的，做出合理选择", "立即报告");
         }
         if ("explore".equals(type) || "plan".equals(type)) {
             assertThat(config.systemPrompt()).contains(

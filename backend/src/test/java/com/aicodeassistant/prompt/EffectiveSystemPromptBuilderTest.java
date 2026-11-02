@@ -4,9 +4,12 @@ import com.aicodeassistant.config.FeatureFlagService;
 import com.aicodeassistant.coordinator.CoordinatorPromptBuilder;
 import com.aicodeassistant.coordinator.CoordinatorService;
 import com.aicodeassistant.tool.Tool;
+import com.aicodeassistant.tool.agent.AgentStrategyFactory;
 import com.aicodeassistant.tool.agent.SubAgentExecutor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -221,6 +224,38 @@ class EffectiveSystemPromptBuilderTest {
         assertTrue(result.contains("AGENT_SPECIFIC_PROMPT"));
         verify(systemPromptBuilder).buildDefaultSystemPrompt(
                 tools, model, Path.of("."), "session-agent");
+    }
+
+    @ParameterizedTest(name = "general-purpose direct role, proactive={0}")
+    @ValueSource(booleans = {false, true})
+    void testPriority2_BuiltInGeneralPurposeKeepsDecisionBoundaryWithoutDelegationProtocol(boolean proactive) {
+        AgentStrategyFactory factory = new AgentStrategyFactory();
+        var builtIn = factory.getAgent("general-purpose").orElseThrow();
+        var agentDef = factory.toAgentDefinition(builtIn);
+        assertEquals(builtIn.systemPromptTemplate(), agentDef.systemPromptTemplate());
+        SystemPromptConfig config = SystemPromptConfig.defaults()
+                .withAgent(agentDef, proactive)
+                .withSessionId("session-built-in-agent");
+
+        String result = effectiveBuilder.buildEffectiveSystemPrompt(config, List.of(), "gpt-4o", Path.of("."));
+
+        assertEquals((proactive ? "DEFAULT_SYSTEM_PROMPT\n\n" : "") + builtIn.systemPromptTemplate(), result);
+        assertAll(
+                () -> assertTrue(result.contains("先调查可查明的歧义")),
+                () -> assertTrue(result.contains("原任务范围及现有授权内的低风险、可逆实现细节")),
+                () -> assertTrue(result.contains("影响目标、验收、业务含义或授权的歧义")),
+                () -> assertTrue(result.contains("应明确说明证据和待决定项，不自行决定")),
+                () -> assertTrue(result.contains("明确报告阻碍，不静默绕过")),
+                () -> assertFalse(result.contains("父代理")),
+                () -> assertFalse(result.contains("SendMessage")),
+                () -> assertFalse(result.contains("## 委派任务的范围、证据与回传")),
+                () -> assertFalse(result.contains("立即报告")));
+        if (proactive) {
+            verify(systemPromptBuilder).buildDefaultSystemPrompt(
+                    List.of(), "gpt-4o", Path.of("."), "session-built-in-agent");
+        } else {
+            verifyNoInteractions(systemPromptBuilder);
+        }
     }
 
     @Test

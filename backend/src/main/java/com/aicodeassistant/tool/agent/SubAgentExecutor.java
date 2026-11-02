@@ -1292,6 +1292,17 @@ public class SubAgentExecutor {
 
     // ═══ 系统提示构建 ═══
 
+    // Only the one-shot delegation paths append this protocol; role templates also have direct callers.
+    private static final String DELEGATED_TASK_GUIDANCE = """
+            ## 委派任务的范围、证据与回传
+            - 在原任务范围、原修改范围和现有授权内完成任务，始终遵守当前角色约束；选择更有效的专业或跨领域方法不产生额外授权。
+            - 先弄清任务目的和完成标准。涉及当前项目、版本或配置的事实结论应依据已有或实际查得的证据；已有证据充分时不重复查证，通用概念可直接解释；依赖关键假设之前先检验。
+            - 按任务复杂度和风险选择必要的目标检查，适用时覆盖边界输入；检查也须遵守角色和授权限制，不要求执行不适用的检查。"已有测试仍通过"不足以证明新行为正确；无法验证的明确标为"未验证"。
+            - 如果字面指令无法实现其目的，或发现影响上层目标的证据（前提错误、更有效的方法、更大的风险），不要自行扩大处理，在最终回复中单列"对上层目标的影响"并给出证据。
+            - 本次委派通过你的最终回复向父代理返回结果。需要父代理决定、补充授权或协调数据、工具、环境时，停止依赖该决定的动作，在最终回复中列出证据、影响、待决定项和未完成部分；可以继续独立且已授权的工作。
+            - 不要通过 SendMessage 请求或等待父代理的中途决定，不要把等待中的事项报告为已完成。
+            """;
+
     private String buildAgentSystemPrompt(String taskPrompt, AgentDefinition agentDef,
                                           ToolUseContext context) {
         return """
@@ -1306,12 +1317,8 @@ public class SubAgentExecutor {
                 - 你无法使用：Agent、TaskCreate、TeamCreate、TeamDelete、VerifyPlanExecution。
                 - 完成任务并返回清晰、简洁的结果。
                 - 如果你修改了文件，在最终回复中列出所有修改的文件路径。
-                - 在委派范围和授权内完成任务，不扩大修改范围。
-                - 先弄清任务的目的和"完成"的标准。结论基于你实际读取或运行的证据；依赖关键假设之前先检验。
-                - 必要时选择更有效的专业或跨领域方法，始终遵守当前角色约束和委派范围；所需数据、工具或环境不足时报告限制，由父代理协调处理。
-                - 用任务目的来验收：针对目标本身运行检查（包括边界输入），"已有测试仍通过"不足以证明新行为正确；无法验证的明确标为"未验证"。
-                - 如果字面指令无法实现其目的，或发现影响上层目标的证据（前提错误、更有效的方法、更大的风险），不要自行扩大处理，在最终回复中单列"对上层目标的影响"并给出证据。
-                """.formatted(agentDef.systemPromptTemplate(), taskPrompt, context.workingDirectory());
+                """.formatted(agentDef.systemPromptTemplate(), taskPrompt, context.workingDirectory())
+                + "\n" + DELEGATED_TASK_GUIDANCE;
     }
 
     // ═══ 结果提取 ═══
@@ -1558,7 +1565,8 @@ public class SubAgentExecutor {
                 - LLM 提供者应从公共消息前缀中复用共享上下文。
                 - 完成任务并返回清晰、简洁的结果。
                 - 如果你修改了文件，在最终回复中列出所有修改的文件路径。
-                """.formatted(agentDef.systemPromptTemplate(), taskPrompt, context.workingDirectory());
+                """.formatted(agentDef.systemPromptTemplate(), taskPrompt, context.workingDirectory())
+                + "\n" + DELEGATED_TASK_GUIDANCE;
     }
 
     // ═══ Agent 系统提示模板 ═══
@@ -1841,8 +1849,8 @@ public class SubAgentExecutor {
             ## 工作风格
             - 彻底但不过度工程化
             - 匹配现有代码风格和模式
-            - 先调查可查明的歧义。低风险、可逆的实现细节可以合理选择并说明假设；影响目标、验收、业务含义或授权的歧义，向父代理报告证据和待决定项，不自行决定。
-            - 如果遇到意外的阻碍，立即报告而不是静默地绕过它
+            - 先调查可查明的歧义。原任务范围及现有授权内的低风险、可逆实现细节可以合理选择并说明假设；影响目标、验收、业务含义或授权的歧义，应明确说明证据和待决定项，不自行决定。
+            - 明确报告阻碍，不静默绕过
             """;
 
     static final String GUIDE_AGENT_PROMPT = """

@@ -95,14 +95,50 @@ class SystemPromptBuilderTest {
     }
 
     @Test
-    void defaultPromptHasNoContradictoryScopeOrAskRules() {
+    void defaultPromptIncludesScopedAuthorizationAndClarificationGuidance() {
         String prompt = builder.buildDefaultSystemPrompt(List.of(), "gpt-4o");
 
         assertFalse(prompt.contains("不要对用户已经决定要做的任务提出质疑"));
         assertFalse(prompt.contains("1-2 次工具调用"));
         assertFalse(prompt.contains("能通过读取代码、文档或运行命令消除的歧义，先自己调查"));
+        assertFalse(prompt.contains("但不要拒绝或拖延用户已决定的任务"));
+        assertFalse(prompt.contains("只有在调查后确实卡住时"));
+        assertFalse(prompt.contains("## 安全操作（可自由执行）"));
+        assertFalse(prompt.contains("## 风险操作（先询问用户）"));
+        assertTrue(prompt.contains("## 风险操作（需要明确授权）"));
+        assertFalse(prompt.contains("会改变范围、架构、依赖，或与用户指定的做法不同时"));
         assertTrue(prompt.contains("如果关键歧义无法通过调查消除，请求澄清而不是猜错。"));
         assertTrue(prompt.contains("可以简要指出一次更有效的方法或关键风险"));
+        assertTrue(prompt.contains("明确覆盖操作类型、对象和影响范围的用户授权"));
+        assertTrue(prompt.contains("用户的明确请求本身可以构成对相应操作及范围的授权"));
+        assertTrue(prompt.contains("结合已有上下文判断，授权不明确时先询问"));
+        assertTrue(prompt.contains("已有明确授权覆盖的操作及其必要执行步骤直接继续"));
+        assertTrue(prompt.contains("不因操作属于风险类别而重复确认"));
+        assertTrue(prompt.contains("工具权限和审批仍须遵守"));
+        assertTrue(prompt.contains("必要执行步骤不包括强制推送、跳过钩子（--no-verify）、git reset --hard"));
+        assertTrue(prompt.contains("未被已有明确授权覆盖时，须在采用前另行确认"));
+        assertTrue(prompt.contains("仍不得绕过安全检查或工具权限"));
+        assertTrue(prompt.contains("操作对象、影响范围或实质风险将超出已有授权时"));
+        assertTrue(prompt.contains("在越界操作前请求确认"));
+        assertTrue(prompt.contains("等待确认时，可继续已授权且不依赖待定事项的工作"));
+        assertTrue(prompt.contains("会调整范围、架构或依赖时，按下方授权规则判断是否需要确认"));
+    }
+
+    @Test
+    void defaultPromptIncludesScopedEvidenceAndReuseGuidance() {
+        String prompt = builder.buildDefaultSystemPrompt(List.of(), "gpt-4o");
+        String heading = "## 以原始证据为准";
+
+        assertTrue(prompt.contains(heading));
+        assertEquals(prompt.indexOf(heading), prompt.lastIndexOf(heading));
+        assertTrue(prompt.contains("对于依赖当前项目、运行环境"));
+        assertTrue(prompt.contains("API 行为、真实数据或时效信息的关键事实"));
+        assertTrue(prompt.contains("用用户已提供或实际读取、运行得到的"));
+        assertTrue(prompt.contains("已有证据足够且仍适用时直接复用，不重复查证"));
+        assertTrue(prompt.contains("稳定的通用概念解释、翻译"));
+        assertTrue(prompt.contains("基于所给材料的摘要等任务可直接完成"));
+        assertFalse(prompt.contains("结论来自你实际读取或运行得到的"));
+        assertFalse(prompt.contains("不凭文件名、记忆或\"通常如此\"下结论"));
     }
 
     @Test

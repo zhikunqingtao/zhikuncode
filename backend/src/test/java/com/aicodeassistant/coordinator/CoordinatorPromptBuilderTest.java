@@ -123,7 +123,24 @@ class CoordinatorPromptBuilderTest {
                 "investigation/clarification guidance must appear exactly once");
         assertTrue(prompt.contains("遵守用户明确提出的确认要求。"));
         assertTrue(prompt.contains("能在授权范围内通过上下文、源码、文档、命令或小规模试验查明的问题，先自行调查"));
+        assertTrue(prompt.contains("明确覆盖操作类型、对象和影响范围的用户授权"));
+        assertTrue(prompt.contains("用户的明确请求本身可以构成对相应操作及范围的授权"));
+        assertTrue(prompt.contains("结合已有上下文判断，授权不明确时先询问"));
+        assertTrue(prompt.contains("已有明确授权覆盖的操作及其必要执行步骤直接继续"));
+        assertTrue(prompt.contains("不因操作属于风险类别而重复确认"));
+        assertTrue(prompt.contains("工具权限和审批仍须遵守"));
+        assertTrue(prompt.contains("必要执行步骤不包括强制推送、跳过钩子（--no-verify）、git reset --hard"));
+        assertTrue(prompt.contains("未被已有明确授权覆盖时，须在采用前另行确认"));
+        assertTrue(prompt.contains("仍不得绕过安全检查或工具权限"));
+        assertTrue(prompt.contains("操作对象、影响范围或实质风险将超出已有授权时"));
+        assertTrue(prompt.contains("在越界操作前请求确认"));
+        assertTrue(prompt.contains("对于依赖当前项目、运行环境"));
+        assertTrue(prompt.contains("API 行为、真实数据或时效信息的关键事实"));
+        assertTrue(prompt.contains("已有证据足够且仍适用时直接复用，不重复查证"));
+        assertTrue(prompt.contains("稳定的通用概念解释、翻译"));
+        assertTrue(prompt.contains("基于所给材料的摘要等任务可直接完成"));
         assertFalse(prompt.contains("能通过读取代码、文档或运行命令消除的歧义，先自己调查"));
+        assertFalse(prompt.contains("结论来自你实际读取或运行得到的"));
         assertTrue(first < prompt.indexOf(markers),
                 "GOAL_QUALITY_SECTION must precede CONTEXT_COMPRESSION_MARKERS_SECTION");
         assertTrue(prompt.endsWith(markers));

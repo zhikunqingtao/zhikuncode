@@ -133,8 +133,10 @@ class SubAgentWorktreeLifecycleTest {
             QueryLoopState state = call.getArgument(1);
             register(state);
             assertThat(config.systemPrompt()).contains("工作目录：" + tree);
-            assertThat(config.systemPrompt()).contains(
-                    "必要时选择更有效的专业或跨领域方法，始终遵守当前角色约束和委派范围；所需数据、工具或环境不足时报告限制，由父代理协调处理。");
+            assertThat(config.systemPrompt()).containsOnlyOnce("## 委派任务的范围、证据与回传")
+                    .contains("原任务范围、原修改范围和现有授权", "专业或跨领域方法不产生额外授权",
+                            "本次委派通过你的最终回复向父代理返回结果",
+                            "不要通过 SendMessage 请求或等待父代理的中途决定");
             assertThat(state.getToolUseContext().workingDirectory()).isEqualTo(tree.toString());
             assertThat(sessions.getFileStateCache(child).toMap()).isEmpty();
             sessions.getFileStateCache(child).markRead(tree.resolve("child.txt").toString(), "new", null, null, false);
