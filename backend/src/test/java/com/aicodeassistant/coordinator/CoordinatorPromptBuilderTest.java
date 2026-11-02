@@ -149,6 +149,26 @@ class CoordinatorPromptBuilderTest {
     }
 
     @Test
+    @DisplayName("共享表达规则保留失败、验证缺口、文档委派和原始报告")
+    void promptSharesExpressionGuidanceWithoutChangingWorkerReports() {
+        String prompt = buildPrompt();
+        String heading = "## 面向用户的表达";
+        int first = prompt.indexOf(heading);
+
+        assertTrue(first >= 0, "coordinator must receive shared expression guidance");
+        assertEquals(first, prompt.lastIndexOf(heading), "expression guidance must appear exactly once");
+        assertTrue(prompt.contains("通过 Write 等工具写入的自然语言文档正文"));
+        assertTrue(prompt.contains("最终汇总报告最终检查状态、尚未解决的失败、应执行但未运行的验证和未完成项"));
+        assertTrue(prompt.contains("进度更新报告新增变化"));
+        assertTrue(prompt.contains("用普通语言说明结论及其判定含义、关键证据、失败项和未完成项"));
+        assertTrue(prompt.contains("用户要求原始报告时按原格式提供"));
+        assertTrue(prompt.contains("委派用户可见的文档或报告任务时，将上述表达要求随任务说明传递"));
+        assertTrue(prompt.contains("子代理的证据回传和状态格式遵循原有要求"));
+        assertTrue(prompt.contains("新增或变更行为应复用或补充直接覆盖它的检查"));
+        assertTrue(prompt.contains("如果第二次验证仍失败，如实向用户报告失败和原因"));
+    }
+
+    @Test
     @DisplayName("提示词中的 Agent 示例必须使用模型可见 schema 中允许的 subagent_type")
     void promptAgentExamplesUseSchemaAllowedSubagentTypes() {
         CoordinatorService coordinatorService = mock(CoordinatorService.class);
@@ -355,6 +375,10 @@ class CoordinatorPromptBuilderTest {
         assertTrue(prompt.contains("同一结论已有完成且仍适用的独立核验时直接复用"));
         assertTrue(prompt.contains("用户提出具体质疑、出现新证据或方案变化时，只针对这些内容及其影响复核"));
         assertTrue(prompt.contains("不声称已独立核验"));
+        assertTrue(prompt.contains("无法完成独立核验时，做可用的替代检查，简要说明已核验范围、未完成项及结论依据"));
+        assertTrue(prompt.contains("完全未开展独立核验时，明确说明未开展"));
+        assertTrue(prompt.contains("对未完成或未开展的部分，不声称已独立核验"));
+        assertFalse(prompt.contains("本次没有做独立核验"));
         assertTrue(prompt.contains("核验 worker 不修改文件"));
         assertTrue(prompt.contains("结论依赖当前项目、版本或配置的事实"));
         assertTrue(prompt.contains("涉及根因判断、方案取舍"));

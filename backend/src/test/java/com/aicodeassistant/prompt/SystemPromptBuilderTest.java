@@ -162,6 +162,45 @@ class SystemPromptBuilderTest {
     }
 
     @Test
+    void defaultPromptIncludesUserFacingExpressionWithoutWeakeningReports() {
+        String prompt = builder.buildDefaultSystemPrompt(List.of(), "gpt-4o");
+        String heading = "## 面向用户的表达";
+
+        int first = prompt.indexOf(heading);
+        assertTrue(first >= 0, "user-facing expression guidance missing");
+        assertEquals(first, prompt.lastIndexOf(heading), "expression guidance must appear exactly once");
+        assertAll(
+                () -> assertTrue(prompt.contains("通过 Write 等工具写入的自然语言文档正文")),
+                () -> assertTrue(prompt.contains("工具结构、路径、命令、代码、引用原文和用户指定格式按原有要求处理")),
+                () -> assertTrue(prompt.contains("最终汇总报告最终检查状态、尚未解决的失败、应执行但未运行的验证和未完成项")),
+                () -> assertTrue(prompt.contains("已修复的中间失败，在影响交付、结论或用户下一步行动时，简述处理及复验结果")),
+                () -> assertTrue(prompt.contains("用户要求完整过程时按要求提供")),
+                () -> assertTrue(prompt.contains("进度更新报告新增变化")),
+                () -> assertTrue(prompt.contains("正常的否定和推理照常使用")),
+                () -> assertTrue(prompt.contains("用户要求风险分析、审查或完整局限说明时，按要求完整列出")),
+                () -> assertTrue(prompt.contains("委派用户可见的文档或报告任务时，将上述表达要求随任务说明传递")),
+                () -> assertTrue(prompt.contains("子代理的证据回传和状态格式遵循原有要求")),
+                () -> assertTrue(prompt.contains("已有测试通过，说明其覆盖的检查项通过")),
+                () -> assertTrue(prompt.contains("新增或变更行为应复用或补充直接覆盖它的检查")),
+                () -> assertTrue(prompt.contains("执行和验证状态以实际记录为准")),
+                () -> assertTrue(prompt.contains("按既有报告要求说明相关验证状态、未完成项及其影响")),
+                () -> assertTrue(prompt.contains("如果测试失败，说明并附上相关输出")),
+                () -> assertTrue(prompt.contains("绝不将不完整或损坏的工作描述为已完成")),
+                () -> assertFalse(prompt.contains("\"已有测试仍通过\"不能证明新行为正确。")));
+    }
+
+    @Test
+    void internalOutputGuidanceKeepsUserDecisionsAndVerification() {
+        when(featureFlags.isEnabled("INTERNAL_USER_MODE")).thenReturn(true);
+
+        String prompt = builder.buildDefaultSystemPrompt(List.of(), "gpt-4o");
+
+        assertTrue(prompt.contains("最后总结完成了什么，并列出仍需用户决定、提供或验证的具体事项"));
+        assertTrue(prompt.contains("如果遇到意外问题，立即报告"));
+        assertTrue(prompt.contains("对于 UI 更改，描述用户应该看到什么或手动测试什么"));
+    }
+
+    @Test
     void effectiveMainPromptAndShellSchemasUseActualToolNamesWithoutChangingOverrides() {
         Tool read = new FileReadTool(null, null, null, null, null);
         Tool edit = new FileEditTool(null, null, null, null, null, null);
