@@ -21,6 +21,9 @@ mkdir -p /app/data /app/workspace "$LOG_DIR"
 
 # 1. Validate LLM configuration (multi-provider or legacy single-provider)
 HAS_PROVIDER_KEY=false
+if [ -n "${LLM_PROVIDER_OPENAI_API_KEY//[[:space:]]/}" ]; then
+    HAS_PROVIDER_KEY=true
+fi
 if [ -n "$LLM_PROVIDER_DASHSCOPE_API_KEY" ] && [ "$LLM_PROVIDER_DASHSCOPE_API_KEY" != "your-dashscope-api-key-here" ]; then
     HAS_PROVIDER_KEY=true
 fi
@@ -49,6 +52,7 @@ if [ "$HAS_PROVIDER_KEY" = false ] && [ "$HAS_LEGACY_KEY" = false ]; then
     echo "  ERROR: No LLM API Key configured!"
     echo ""
     echo "  Option 1 (Recommended): Set provider-specific keys:"
+    echo "    LLM_PROVIDER_OPENAI_API_KEY=your-key"
     echo "    LLM_PROVIDER_DASHSCOPE_API_KEY=your-key"
     echo "    LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY=your-key"
     echo "    LLM_PROVIDER_DEEPSEEK_API_KEY=your-key"

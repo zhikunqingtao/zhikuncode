@@ -154,6 +154,10 @@ public class OpenAiCompatibleProvider implements LlmProvider {
 
     private boolean isOpenRouter() { return "openrouter".equalsIgnoreCase(providerName); }
 
+    private boolean isOpenAiAstra(String model) {
+        return "openai".equalsIgnoreCase(providerName) && "gpt-6-astra".equals(model);
+    }
+
     private boolean isBailianTokenPlan() { return "dashscope-token-plan".equalsIgnoreCase(providerName); }
 
     private String localModelId(String model) {
@@ -209,16 +213,15 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         if (isBailianGlm(model)) return true;
         if (isKimiCodeModel(model) || isKimiMoonshotModel(model)) return true;
         if (isOpenRouter() && OpenRouterModels.capabilities(model) != null) return true;
-        if ("zenmux".equalsIgnoreCase(providerName)
-                && ZENMUX_RESPONSES_MODELS.contains(model)) return true;
+        if (usesResponsesApi(model)) return true;
         ModelCapabilities caps = MODEL_CAPABILITIES.get(model);
         if (caps != null) return caps.supportsThinking();
         return isDeepSeekV4Model(model) || isQwenThinkingModel(model) || isGlmForcedThinkingModel(model);
     }
 
     private boolean usesResponsesApi(String model) {
-        return "zenmux".equalsIgnoreCase(providerName)
-                && ZENMUX_RESPONSES_MODELS.contains(model);
+        return isOpenAiAstra(model) || ("zenmux".equalsIgnoreCase(providerName)
+                && ZENMUX_RESPONSES_MODELS.contains(model));
     }
 
     // ═══════════════════════════════════════════
@@ -667,7 +670,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             StreamChatCallback callback) {
         ObjectNode requestBody = buildResponsesRequest(
                 model, messages, systemPrompt, tools, maxTokens, thinkingConfig);
-        if (payloadGuard != null) payloadGuard.validate("zenmux-responses", model, requestBody, maxTokens);
+        if (payloadGuard != null) payloadGuard.validate(providerName + "-responses", model, requestBody, maxTokens);
 
         String effectiveApiKey = keyRotationManager.getKeyCount() > 0
                 ? keyRotationManager.getNextKey() : apiKey;
@@ -775,7 +778,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         return root;
     }
 
-    /** Builds the stateless ZenMux Responses request from internal message maps. */
+    /** Builds the stateless OpenAI / ZenMux Responses request from internal message maps. */
     private ObjectNode buildResponsesRequest(
             String model,
             List<Map<String, Object>> messages,
@@ -795,7 +798,12 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         }
 
         ObjectNode reasoning = root.putObject("reasoning");
-        if (thinkingConfig == null || thinkingConfig instanceof ThinkingConfig.Disabled) {
+        if (isOpenAiAstra(model)) {
+            // Astra 不支持 none。官方直连始终使用用户要求的最高推理强度，
+            // 包括未开启应用全局 thinking 开关或辅助请求未传 thinkingConfig 的情况。
+            reasoning.put("effort", "max");
+            reasoning.put("summary", "auto");
+        } else if (thinkingConfig == null || thinkingConfig instanceof ThinkingConfig.Disabled) {
             reasoning.put("effort", "none");
         } else {
             reasoning.put("effort", model.startsWith("openai/") ? "xhigh" : "high");

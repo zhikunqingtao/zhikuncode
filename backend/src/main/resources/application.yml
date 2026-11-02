@@ -78,6 +78,13 @@ llm:
   # ===== 多 Provider 配置（推荐）=====
   # 支持同时接入多个 LLM 服务商，前端可自由切换
   providers:
+    # OpenAI 官方直连；与 ZenMux 的 openai/gpt-6-astra 独立路由。
+    # GPT-6 Astra 使用 Responses API、max 推理，支持图片和 1,050,000 token 上下文。
+    openai:
+      api-key: ${LLM_PROVIDER_OPENAI_API_KEY:}
+      base-url: https://api.openai.com/v1
+      default-model: gpt-6-astra
+      models: ${LLM_PROVIDER_OPENAI_MODELS:gpt-6-astra}
     dashscope:
       api-key: ${LLM_PROVIDER_DASHSCOPE_API_KEY:}
       base-url: https://dashscope.aliyuncs.com/compatible-mode/v1

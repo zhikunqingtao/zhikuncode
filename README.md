@@ -345,7 +345,7 @@ ZhikunCode 在八方审查中找到工具输出 `outputTruncated` 与上层读�
 | Docker 基础部署 | 对话、文件修改、命令和测试；镜像含前端与 Node，无需宿主安装 Java、Node | 下方命令 → [首次任务](#first-task) |
 | 本地三服务 | 开发调试、完整前端代理，以及依赖就绪的 Python 分析／浏览器能力 | [本地安装](#local-setup) → [首次任务](#first-task) |
 
-Docker 入口检查 DashScope、Token Plan、DeepSeek、Moonshot、Zhipu、ZenMux 或旧式 `LLM_API_KEY`；仅有 Kimi Code、MiniMax、OpenRouter 专用 Key 时会在入口退出，请使用本地三服务路径。基础部署在本机构建镜像，不是拉取预构建应用镜像。
+Docker 入口检查 OpenAI、DashScope、Token Plan、DeepSeek、Moonshot、Zhipu、ZenMux 或旧式 `LLM_API_KEY`；仅有 Kimi Code、MiniMax、OpenRouter 专用 Key 时会在入口退出，请使用本地三服务路径。基础部署在本机构建镜像，不是拉取预构建应用镜像。
 
 ```bash
 git clone https://github.com/zhikunqingtao/zhikuncode.git
@@ -1832,6 +1832,8 @@ ZhikunCode 提供多种可视化能力，展示 AI 编程过程中的数据和�
 
 | 变量 | 必填 | 默认值 | 说明 |
 |------|:---:|--------|------|
+| `LLM_PROVIDER_OPENAI_API_KEY` | — | 空 | OpenAI 官方直连 API Key；留空不注册此 Provider |
+| `LLM_PROVIDER_OPENAI_MODELS` | — | gpt-6-astra | 官方直连模型列表（逗号分隔）；与 ZenMux 的 `openai/gpt-6-astra` 分开路由 |
 | `LLM_PROVIDER_DASHSCOPE_API_KEY` | — | — | 千问/DashScope API Key |
 | `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY` | — | — | 阿里云百炼 Token Plan 专属 API Key |
 | `LLM_PROVIDER_DEEPSEEK_API_KEY` | — | — | DeepSeek API Key |
@@ -1847,7 +1849,9 @@ ZhikunCode 提供多种可视化能力，展示 AI 编程过程中的数据和�
 | `LLM_COMPACT_PROVIDER` | — | deepseek | 压缩摘要 Provider；需已注册该 Provider，配合 `LLM_COMPACT_MODEL` 使用 |
 | `LLM_VISION_FALLBACK_MODEL` | — | deepseek-v4.1-flash | 当前模型不支持图片时优先使用的视觉模型 |
 
-> 前端可切换已配置且可用的 Provider。当前 Docker 入口只检查 DashScope、Token Plan、DeepSeek、Moonshot、Zhipu、ZenMux 或旧式 Key；仅 Kimi Code、MiniMax、OpenRouter Key 时会退出，可先按本地三服务启动。
+> 前端可切换已配置且可用的 Provider。当前 Docker 入口只检查 OpenAI、DashScope、Token Plan、DeepSeek、Moonshot、Zhipu、ZenMux 或旧式 Key；仅 Kimi Code、MiniMax、OpenRouter Key 时会退出，可先按本地三服务启动。
+
+OpenAI Docker 配置回归：`python3 scripts/test-openai-docker-config.py`（需 Python 3、Bash、Docker Compose；使用假 key，不读取本地 `.env`，不启动容器或调用模型）。
 
 **WebSearch 配置（本地启动与 Docker Compose 均支持）：**
 

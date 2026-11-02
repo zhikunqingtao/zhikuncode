@@ -338,7 +338,7 @@ Prepare an API key for a model that supports tool calling. These commands target
 | **Base Docker deployment** | Start with chat, file, and command tools; the image bundles the frontend, so the host needs neither Java nor Node | Docker and Compose V2 → commands below; [enable Python capabilities separately](#docker-python) |
 | **Three local services** | Use the workspace, edit code, run browser and HTTP verification, and debug the application | JDK 21, Node.js 22.x (at least 22.13) or 24+, Python 3.11/3.12 → [Step-by-step setup and health checks](#local-setup) |
 
-The base Docker deployment builds an image from your local checkout. Its startup check recognizes DashScope, Token Plan, DeepSeek, Moonshot, Zhipu, ZenMux, or the legacy `LLM_API_KEY`. **If you only have a Kimi Code, MiniMax, or OpenRouter key, use the [three-service local setup](#local-setup)**; the container startup check does not yet recognize those three settings.
+The base Docker deployment builds an image from your local checkout. Its startup check recognizes OpenAI, DashScope, Token Plan, DeepSeek, Moonshot, Zhipu, ZenMux, or the legacy `LLM_API_KEY`. **If you only have a Kimi Code, MiniMax, or OpenRouter key, use the [three-service local setup](#local-setup)**; the container startup check does not yet recognize those three settings.
 
 ```bash
 git clone https://github.com/zhikunqingtao/zhikuncode.git
@@ -1830,6 +1830,8 @@ Use [`.env.example`](../.env.example) as the template; complete defaults are def
 
 | Variable | Required | Default | Description |
 |----------|:---:|---------|-------------|
+| `LLM_PROVIDER_OPENAI_API_KEY` | — | Empty | Direct OpenAI API key; leave empty to skip registering this Provider |
+| `LLM_PROVIDER_OPENAI_MODELS` | — | gpt-6-astra | Direct OpenAI models (comma-separated); routed separately from ZenMux's `openai/gpt-6-astra` |
 | `LLM_PROVIDER_DASHSCOPE_API_KEY` | — | — | Qwen/DashScope API Key |
 | `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY` | — | — | Alibaba Cloud Bailian Token Plan API Key |
 | `LLM_PROVIDER_DEEPSEEK_API_KEY` | — | — | DeepSeek API Key |
@@ -1845,7 +1847,9 @@ Use [`.env.example`](../.env.example) as the template; complete defaults are def
 | `LLM_COMPACT_PROVIDER` | — | deepseek | Summary provider; must be registered and is used together with `LLM_COMPACT_MODEL` |
 | `LLM_VISION_FALLBACK_MODEL` | — | deepseek-v4.1-flash | Preferred model when the selected model cannot accept images |
 
-> The frontend can switch among configured, available Providers. The Docker entrypoint checks DashScope, Token Plan, DeepSeek, Moonshot, Zhipu, ZenMux, or the legacy key; with only a Kimi Code, MiniMax, or OpenRouter key, use the local three-service setup until that entrypoint supports it.
+> The frontend can switch among configured, available Providers. The Docker entrypoint checks OpenAI, DashScope, Token Plan, DeepSeek, Moonshot, Zhipu, ZenMux, or the legacy key; with only a Kimi Code, MiniMax, or OpenRouter key, use the local three-service setup until that entrypoint supports it.
+
+OpenAI Docker configuration regression: `python3 scripts/test-openai-docker-config.py` (requires Python 3, Bash, and Docker Compose; uses fake keys, does not read the local `.env`, start containers, or call a model).
 
 **WebSearch configuration (local startup and Docker Compose):**
 
