@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Brain, Check, FileText, LayoutGrid, Loader2, Plus, RefreshCw, Save, Trash2, X } from 'lucide-react';
-import { useMemoryStore, type MemoryEntry } from '@/store/memoryStore';
+import { useMemoryStore, type MemoryEntry, type MemorySnapshot } from '@/store/memoryStore';
 import { usePageExitGuard } from '@/hooks/usePageExitGuard';
 import { MemoryEditorPanel } from './MemoryEditorPanel';
 
@@ -21,8 +21,8 @@ const SOURCE_BADGE: Record<MemoryEntry['source'], string> = {
   TOOL: 'bg-oksoft text-ok',
 };
 
-const formatSize = (bytes: number): string =>
-  bytes < 1024 ? `${bytes} B` : `${(bytes / 1024).toFixed(1)} KB`;
+/** size / maxSize 为字符数（与后端 MAX_MEMORY_SIZE 单位一致）。 */
+const formatSize = (chars: number): string => `${chars.toLocaleString()} 字符`;
 
 const formatTime = (iso: string): string => {
   const date = new Date(iso);
@@ -57,11 +57,35 @@ export function MemoryPage({ onClose }: MemoryPageProps) {
   const [rawContent, setRawContent] = useState(content);
   const [savedHint, setSavedHint] = useState(false);
 
+  // 首次加载：替换 store 中的初始空值，未输入新草稿的编辑区随之同步
   useEffect(() => { void loadFile(); }, [loadFile]);
 
-  // 服务端数据变化（首次加载 / 冲突后刷新 / 保存后规范化）时同步本地编辑态
-  useEffect(() => { setEditedEntries(entries); }, [entries]);
-  useEffect(() => { setRawContent(content); }, [content]);
+  // 每次用户输入都递增，包括改回旧内容；不能以内容是否等于旧基线判断有无编辑
+  const editVersionRef = useRef(0);
+  // 记录本地编辑态最后一次与服务端基线同步时的编辑版本
+  const syncedEditVersionRef = useRef(0);
+  // 保存/刷新请求序号，防止较早的响应重置较晚请求的状态
+  const requestRevisionRef = useRef(0);
+  // A retained draft keeps the version it was actually based on, even if a GET updates the store.
+  const draftBaseRef = useRef(updatedAt);
+
+  // 只有自上次基线同步后没有新编辑时才跟随服务端更新；
+  // 有草稿（包括改回旧内容）时始终保留，覆盖关闭重开和迟到响应等路径
+  useEffect(() => {
+    if (editVersionRef.current === syncedEditVersionRef.current) {
+      setEditedEntries(entries);
+      setRawContent(content);
+      draftBaseRef.current = updatedAt;
+    }
+  }, [entries, content, updatedAt]);
+
+  // 仅在保存/刷新成功且请求版本仍有效时，显式采用服务端最新基线
+  const resetToSaved = useCallback((snapshot: MemorySnapshot) => {
+    syncedEditVersionRef.current = editVersionRef.current;
+    draftBaseRef.current = snapshot.updatedAt;
+    setEditedEntries(snapshot.entries);
+    setRawContent(snapshot.content);
+  }, []);
 
   // dirty 派生：当前模式的本地编辑态与已保存态的差异，同步进 store 供全局读取
   const cardsDirty = useMemo(
@@ -70,7 +94,7 @@ export function MemoryPage({ onClose }: MemoryPageProps) {
   );
   const rawDirty = rawContent !== content;
   const dirtyNow = mode === 'cards' ? cardsDirty : rawDirty;
-  useEffect(() => { setDirty(dirtyNow); }, [dirtyNow, setDirty]);
+  useEffect(() => { setDirty(dirtyNow); }, [dirtyNow, entries, content, setDirty]);
 
   // 保存成功提示（2 秒自动消失）
   useEffect(() => {
@@ -85,36 +109,69 @@ export function MemoryPage({ onClose }: MemoryPageProps) {
   );
 
   const switchMode = useCallback((next: ViewMode) => {
-    if (next === mode || !confirmDiscard()) return;
+    // 保存进行中禁止切换：响应返回会按服务端结果重置编辑态，会覆盖切换后新输入的草稿
+    if (saving || next === mode || !confirmDiscard()) return;
     // 丢弃本地未保存修改，回到已保存态
+    syncedEditVersionRef.current = editVersionRef.current;
+    draftBaseRef.current = updatedAt;
     setEditedEntries(entries);
     setRawContent(content);
     setMode(next);
-  }, [mode, confirmDiscard, entries, content]);
+  }, [saving, mode, confirmDiscard, entries, content, updatedAt]);
 
   const handleClose = useCallback(() => {
     if (confirmDiscard()) onClose();
   }, [confirmDiscard, onClose]);
 
   const handleRefresh = useCallback(() => {
-    if (confirmDiscard()) void loadFile();
-  }, [confirmDiscard, loadFile]);
+    if (useMemoryStore.getState().saving) return;
+    if ((dirtyNow || conflict) && !window.confirm('刷新会丢弃当前草稿并加载最新内容，请先复制需要保留的内容。继续吗？')) return;
+    const editAtStart = editVersionRef.current;
+    const requestId = ++requestRevisionRef.current;
+    // 仅当请求成功、返回的仍是最后一次刷新、且期间没有新编辑时才重置草稿；
+    // A failed or superseded GET returns no snapshot and must not reset the draft.
+    void loadFile().then(snapshot => {
+      if (!snapshot || requestId !== requestRevisionRef.current
+          || editVersionRef.current !== editAtStart) return;
+      resetToSaved(snapshot);
+    });
+  }, [dirtyNow, conflict, loadFile, resetToSaved]);
 
   const handleSave = useCallback(async () => {
-    const ok = mode === 'cards' ? await saveEntries(editedEntries) : await saveRaw(rawContent);
-    if (ok) setSavedHint(true);
-  }, [mode, editedEntries, rawContent, saveEntries, saveRaw]);
+    const editAtStart = editVersionRef.current;
+    const requestId = ++requestRevisionRef.current;
+    const snapshot = mode === 'cards'
+      ? await saveEntries(editedEntries, draftBaseRef.current)
+      : await saveRaw(rawContent, draftBaseRef.current);
+    if (!snapshot || requestId !== requestRevisionRef.current) return;
+    // Later edits in this mounted editor descend from our acknowledged write. Advance only
+    // this draft's base; a newly mounted editor has separate refs and keeps its own version.
+    draftBaseRef.current = snapshot.updatedAt;
+    // 请求成功、仍是最后一次请求、且期间没有新编辑（含改回旧内容）才采用服务端规范化结果
+    if (editVersionRef.current === editAtStart) {
+      resetToSaved(snapshot);
+      setSavedHint(true);
+    }
+  }, [mode, editedEntries, rawContent, saveEntries, saveRaw, resetToSaved]);
+
+  const handleRawChange = useCallback((value: string) => {
+    editVersionRef.current += 1;
+    setRawContent(value);
+  }, []);
 
   const updateEntry = useCallback((index: number, next: Partial<MemoryEntry>) => {
+    editVersionRef.current += 1;
     setEditedEntries(prev => prev.map((entry, i) => (i === index ? { ...entry, ...next } : entry)));
   }, []);
 
   const removeEntry = useCallback((index: number) => {
     if (!window.confirm('确定删除这条记忆吗？')) return;
+    editVersionRef.current += 1;
     setEditedEntries(prev => prev.filter((_, i) => i !== index));
   }, []);
 
   const addEntry = useCallback(() => {
+    editVersionRef.current += 1;
     setEditedEntries(prev => [...prev, {
       source: 'USER',
       category: 'semantic',
@@ -156,8 +213,9 @@ export function MemoryPage({ onClose }: MemoryPageProps) {
                   role="tab"
                   aria-selected={mode === id}
                   onClick={() => switchMode(id)}
+                  disabled={saving}
                   className={`flex min-h-11 md:min-h-9 items-center gap-1 rounded-[8px] px-3 text-sm transition-colors
-                    focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring
+                    focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring disabled:cursor-not-allowed disabled:opacity-50
                     ${mode === id ? 'bg-surfacev2 text-[var(--v2-text-1)] shadow-e1' : 'text-[var(--v2-text-2)] hover:text-[var(--v2-text-1)]'}`}
                 >
                   <Icon className="h-4 w-4" aria-hidden="true" />
@@ -175,7 +233,7 @@ export function MemoryPage({ onClose }: MemoryPageProps) {
             <span className="max-md:hidden">{saveButton}</span>
             <button
               onClick={handleRefresh}
-              disabled={loading}
+              disabled={loading || saving}
               className="dialog-control rounded-[10px] border border-[var(--v2-border-hairline)] p-2 max-md:min-h-11 max-md:min-w-11 text-[var(--v2-text-2)] hover:bg-[var(--v2-bg-hover)] disabled:opacity-50"
               aria-label="刷新记忆"
               title="刷新"
@@ -195,9 +253,10 @@ export function MemoryPage({ onClose }: MemoryPageProps) {
         {/* 冲突警示条 */}
         {conflict && (
           <div className="flex items-center justify-between gap-3 border-b border-warnsoft bg-warnsoft px-4 md:px-6 py-2.5 text-sm text-warnstrong dark:text-warn" role="alert">
-            <span>内容已在别处被修改，请刷新后继续编辑</span>
+            <span>内容已在别处修改，草稿已保留。请先复制需要保留的内容；刷新将丢弃草稿并加载最新内容。</span>
             <button
               onClick={handleRefresh}
+              disabled={loading || saving}
               className="panel-control shrink-0 rounded-[8px] border border-current px-3 py-1.5 min-h-11 md:min-h-0 text-[13px] hover:opacity-80"
             >
               刷新
@@ -221,12 +280,12 @@ export function MemoryPage({ onClose }: MemoryPageProps) {
             </div>
           ) : mode === 'raw' ? (
             <div className="h-full">
-              <MemoryEditorPanel content={rawContent} onChange={setRawContent} fileName="MEMORY.md" dirty={rawDirty} />
+              <MemoryEditorPanel content={rawContent} onChange={handleRawChange} fileName="MEMORY.md" dirty={rawDirty} />
             </div>
           ) : editedEntries.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center gap-3 py-16 text-center">
               <Brain className="h-10 w-10 text-[var(--v2-text-2)]" aria-hidden="true" />
-              <p className="text-sm text-[var(--v2-text-2)]">暂无记忆，AI 会在对话中自动记录，你也可以手动添加</p>
+              <p className="text-sm text-[var(--v2-text-2)]">暂无记忆。AI 可通过 Memory 工具写入，你也可以手动添加；内容会在后续对话中自动加载</p>
               <button
                 onClick={addEntry}
                 className="panel-control inline-flex min-h-11 items-center gap-1.5 rounded-[10px] border border-[var(--v2-border-hairline)] px-4 py-2 text-sm text-[var(--v2-text-1)] hover:bg-[var(--v2-bg-hover)]"

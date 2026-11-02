@@ -445,4 +445,122 @@ class EffectiveSystemPromptBuilderTest {
         // Then - 跳过 Coordinator，使用 Custom
         assertEquals("CUSTOM_PROMPT", result);
     }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 记忆段统一注入
+    // ═══════════════════════════════════════════════════════════════
+
+    private EffectiveSystemPromptBuilder withMemory(MemoryPromptService memory) {
+        return new EffectiveSystemPromptBuilder(systemPromptBuilder, featureFlags,
+                coordinatorPromptBuilder, coordinatorService, memory);
+    }
+
+    @Test
+    void memoryAppendedBetweenBaseAndAppend() {
+        MemoryPromptService memory = mock(MemoryPromptService.class);
+        when(memory.buildMemoryPrompt(any())).thenReturn("MEMORY_BLOCK");
+
+        String result = withMemory(memory).buildEffectiveSystemPrompt(
+                SystemPromptConfig.defaults().withAppend("APPEND_TEXT"),
+                List.of(), "gpt-4o", Path.of("."));
+
+        assertEquals("DEFAULT_SYSTEM_PROMPT\n\nMEMORY_BLOCK\n\nAPPEND_TEXT", result);
+    }
+
+    @Test
+    void memoryAppendedInCoordinatorBranch() {
+        when(coordinatorService.isCoordinatorTopLevel(null)).thenReturn(true);
+        MemoryPromptService memory = mock(MemoryPromptService.class);
+        when(memory.buildMemoryPrompt(any())).thenReturn("MEMORY_BLOCK");
+
+        String result = withMemory(memory).buildEffectiveSystemPrompt(
+                SystemPromptConfig.defaults().withCoordinator("COORDINATOR_PROMPT"),
+                List.of(), "gpt-4o", Path.of("."));
+
+        assertEquals("COORDINATOR_PROMPT\n\nMEMORY_BLOCK", result);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void customSkipsMemoryAndPreservesExplicitAppend(boolean append) {
+        MemoryPromptService memory = mock(MemoryPromptService.class);
+        SystemPromptConfig config = SystemPromptConfig.defaults().withCustom("CUSTOM_PROMPT");
+        if (append) config = config.withAppend("APPEND_TEXT");
+
+        String result = withMemory(memory).buildEffectiveSystemPrompt(
+                config, List.of(), "gpt-4o", Path.of("."));
+
+        assertEquals("CUSTOM_PROMPT" + (append ? "\n\nAPPEND_TEXT" : ""), result);
+        verifyNoInteractions(memory);
+        verifyNoInteractions(systemPromptBuilder);
+    }
+
+    @Test
+    void coordinatorWinningOverCustomStillInjectsMemory() {
+        when(coordinatorService.isCoordinatorTopLevel(null)).thenReturn(true);
+        MemoryPromptService memory = mock(MemoryPromptService.class);
+        Path project = Path.of("project");
+        when(memory.buildMemoryPrompt(project)).thenReturn("MEMORY_BLOCK");
+
+        String result = withMemory(memory).buildEffectiveSystemPrompt(
+                SystemPromptConfig.defaults().withCoordinator("COORDINATOR_PROMPT")
+                        .withCustom("CUSTOM_PROMPT").withAppend("APPEND_TEXT"),
+                List.of(), "gpt-4o", project);
+
+        assertEquals("COORDINATOR_PROMPT\n\nMEMORY_BLOCK\n\nAPPEND_TEXT", result);
+        verify(memory).buildMemoryPrompt(project);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void agentWinningOverCustomStillInjectsMemory(boolean proactive) {
+        MemoryPromptService memory = mock(MemoryPromptService.class);
+        Path project = Path.of("project");
+        when(memory.buildMemoryPrompt(project)).thenReturn("MEMORY_BLOCK");
+        var agent = new SubAgentExecutor.AgentDefinition(
+                "test-agent", 10, null, Set.of(), Set.of(), false, "AGENT_PROMPT");
+
+        String result = withMemory(memory).buildEffectiveSystemPrompt(
+                SystemPromptConfig.defaults().withAgent(agent, proactive)
+                        .withCustom("CUSTOM_PROMPT").withAppend("APPEND_TEXT"),
+                List.of(), "gpt-4o", project);
+
+        assertEquals((proactive ? "DEFAULT_SYSTEM_PROMPT\n\n" : "")
+                + "AGENT_PROMPT\n\nMEMORY_BLOCK\n\nAPPEND_TEXT", result);
+        verify(memory).buildMemoryPrompt(project);
+    }
+
+    @Test
+    void overrideSkipsMemory() {
+        MemoryPromptService memory = mock(MemoryPromptService.class);
+
+        String result = withMemory(memory).buildEffectiveSystemPrompt(
+                SystemPromptConfig.defaults().withOverride("OVERRIDE_PROMPT")
+                        .withCoordinator("COORDINATOR_PROMPT").withCustom("CUSTOM_PROMPT")
+                        .withAppend("APPEND_TEXT"),
+                List.of(), "gpt-4o", Path.of("."));
+
+        assertEquals("OVERRIDE_PROMPT", result);
+        verifyNoInteractions(memory);
+        verifyNoInteractions(systemPromptBuilder, coordinatorPromptBuilder, coordinatorService);
+    }
+
+    @Test
+    void emptyMemoryLeavesPromptUnchanged() {
+        MemoryPromptService memory = mock(MemoryPromptService.class);
+        when(memory.buildMemoryPrompt(any())).thenReturn("");
+
+        String result = withMemory(memory).buildEffectiveSystemPrompt(
+                SystemPromptConfig.defaults(), List.of(), "gpt-4o", Path.of("."));
+
+        assertEquals("DEFAULT_SYSTEM_PROMPT", result);
+    }
+
+    @Test
+    void springUsesMemoryAwareConstructor() throws Exception {
+        var ctor = EffectiveSystemPromptBuilder.class.getConstructor(
+                SystemPromptBuilder.class, FeatureFlagService.class,
+                CoordinatorPromptBuilder.class, CoordinatorService.class, MemoryPromptService.class);
+        assertTrue(ctor.isAnnotationPresent(org.springframework.beans.factory.annotation.Autowired.class));
+    }
 }

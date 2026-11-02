@@ -214,7 +214,18 @@ class MemdirGoldenTest {
             Files.writeString(tempDir.resolve(MemdirService.ENTRYPOINT_NAME), sb.toString());
             String result = service.readMemoriesForPrompt();
             assertTrue(result.getBytes(StandardCharsets.UTF_8).length <=
-                    MemdirService.MAX_ENTRYPOINT_BYTES + 200); // 200 余量给截断注释
+                    MemdirService.MAX_ENTRYPOINT_BYTES); // 含截断标记的硬上限
+        }
+
+        @Test
+        @DisplayName("readMemoriesForPrompt 无换行超长内容也截断，且不破坏多字节字符")
+        void truncateSingleLineWithoutNewline() throws IOException {
+            Files.writeString(tempDir.resolve(MemdirService.ENTRYPOINT_NAME),
+                    "中".repeat(10_000), StandardCharsets.UTF_8); // 30,000 字节、无换行
+            String result = service.readMemoriesForPrompt();
+            assertTrue(result.contains("truncated"));
+            assertTrue(result.getBytes(StandardCharsets.UTF_8).length <= MemdirService.MAX_ENTRYPOINT_BYTES);
+            assertFalse(result.contains("\uFFFD"), "截断不得产生替换字符");
         }
 
         @Test

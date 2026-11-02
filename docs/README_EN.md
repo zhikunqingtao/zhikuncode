@@ -1360,19 +1360,19 @@ com.example.MyPlugin
 <a id="memory"></a>
 ## 🧠 Memory System
 
-ZhikunCode stores personal memory, project instructions, and ordinary team Markdown files. Their loading paths differ: only the two project-root instruction files are automatically injected into the ordinary system prompt.
+ZhikunCode provides personal memory and project-instruction management, along with a way to organize shared team Markdown files. Each source has its own loading path. Save frequently used build steps, tests, and engineering conventions for reuse in later tasks.
 
 ### Three-Layer Memory Architecture
 
 | Layer | File | Scope | Description |
 |-------|------|-------|-------------|
-| **Personal Memory** | `~/.ai-code-assistant/MEMORY.md` | Global, cross-project | Read/write/delete on demand through Memory tools or edit in the Memory UI |
+| **Personal Memory** | `~/.ai-code-assistant/MEMORY.md` | Global, cross-project | Read/write through the Memory tool or UI; main-session requests automatically load a bounded portion |
 | **Project Memory** | `zhikun.md` / `zhikun.local.md` | Current project | Project-level coding conventions, architecture decisions, build processes |
-| **Team Memory** | `.zhikun/team-memories/*.md` | Shared with team | Ordinary Markdown files read with file tools when needed; no dedicated Team Memory UI/tool entry |
+| **Team Memory** | `.zhikun/team-memories/*.md` | Shared with team | Distributed with the repository and read with ordinary file tools when needed; not automatically injected into ordinary sessions |
 
 ### Memory Categories
 
-Based on cognitive psychology models (a design-level conceptual taxonomy; the implementation distinguishes memories via file paths and metadata tags), the documentation uses four categories; they are not an automatic classifier guarantee:
+The implementation supports four category tags. Ordinary Memory tool writes default to `semantic`; this is not automatic semantic classification:
 
 | Category | Description | Example |
 |----------|-------------|----------|
@@ -1383,13 +1383,14 @@ Based on cognitive psychology models (a design-level conceptual taxonomy; the im
 
 ### Automatic Memory & Search
 
-The `Memory` tool can read, write, and delete personal notes when called. Saving a note is a model/tool action, not an automatic guarantee after every task.
+- **Main-session auto-loading** — Ordinary main sessions and Coordinator main mode reread personal `MEMORY.md` on every request and load `zhikun.md` and `zhikun.local.md` from the selected Project root, without searching parent directories. Successful UI saves take effect on the next request; tool loops within the same request do not refresh memory midway.
+- **Scope and precedence** — Override mode replaces the complete system prompt, skipping both memory injection and append. When a custom system prompt actually wins the base-prompt selection, automatic memory injection is also skipped, while append is retained. Merely supplying a custom field does not disable memory when a higher-priority Coordinator/Agent branch wins. Subagents are not yet consistently wired into this loading path. When memories conflict, precedence is `zhikun.local.md > zhikun.md > MEMORY.md`; memory does not override the user's current explicit instructions.
+- **Personal Memory tool** — Memory supports read/write/delete. Writes depend on tool calls; memory is not guaranteed to be saved automatically on every turn.
+- **Team materials** — Team Markdown files can be read on demand with ordinary file tools; there is no guarantee that all team material is injected automatically.
+- **Source metadata** — Entries support metadata such as `source`.
+- **Retrieval implementation status** — The code includes BM25 and optional LLM reranking, but neither is wired into the ordinary Memory tool or automatic session loading. Internal methods should not be treated as an exposed search entry point.
 
-- **Project auto-load** — Only `zhikun.md` and `zhikun.local.md` from the selected Project root are injected automatically.
-- **Personal and team retrieval** — Personal notes use Memory tools/UI; team Markdown is read as ordinary files when needed. Neither is universally injected into every new session.
-- **BM25 and reranking** — Internal [MemorySearchEngine](../backend/src/main/java/com/aicodeassistant/memdir/MemorySearchEngine.java) supports BM25 and optional reranking, but ordinary Memory tool/UI entries do not expose that search pipeline.
-- **Source metadata** — Stored entries can identify REST/API versus tool-created sources; this does not prove note correctness.
-- **Project-notes Skill** — `/skill remember` is explicit and separate; it does not make all saved notes automatically loaded.
+Implementation: [Memory prompt assembly](../backend/src/main/java/com/aicodeassistant/prompt/MemoryPromptService.java) · [MemdirService](../backend/src/main/java/com/aicodeassistant/memdir/MemdirService.java) · [Project-instruction loading](../backend/src/main/java/com/aicodeassistant/service/ProjectMemoryService.java).
 
 ### Managing Memories from the UI
 
@@ -1399,9 +1400,11 @@ Click the **Memory** badge in the top bar to view and edit your personal memorie
 - **Full-text mode** — Edit the entire file as Markdown with live preview
 - **Safety** — Entries are normalized on save with a `.bak` backup, and concurrent-edit conflicts are detected; responsive layout on PC, tablet, and mobile
 
+For the file API, first call `GET /api/memory/file` and keep its `updatedAt` as the baseline for that exact draft. Send it unchanged as `baseUpdatedAt` to `PUT /api/memory/file` or `PUT /api/memory/file/entries`; do not attach a newer refresh timestamp to an older draft. An omitted, `null`, or blank `baseUpdatedAt` means “the file did not exist when the draft was loaded,” not “an existing file was empty.” An existing empty file still requires the timestamp returned by GET. A mismatched baseline returns HTTP 409: preserve the draft, reload and reconcile changes, then save; do not automatically force an overwrite.
+
 ### Project Memory Files
 
-Create these instruction files in the selected Project root. They are loaded into the system prompt; the model must still apply them correctly:
+Create these instruction files in the selected Project root. Their contents enter the system prompt, but actual output must still be checked to confirm that the instructions were followed. Do not put credentials in these files:
 
 ```markdown
 # zhikun.md — Project conventions (committed to repo)
@@ -1423,16 +1426,15 @@ Create these instruction files in the selected Project root. They are loaded int
 - Local database port: 5432
 ```
 
-> Project memory loads `zhikun.md` and `zhikun.local.md` only from the selected Project root and never searches parent directories; each file is limited to 100KB. `zhikun.md` is committed for team sharing; `zhikun.local.md` is for personal local configuration.
+> Project memory loads `zhikun.md` and `zhikun.local.md` only from the selected Project root and never searches parent directories. The body injected from each file retains at most 100 KiB (102,400 bytes), with a truncation marker appended when the limit is exceeded. `zhikun.md` is committed for team sharing; `zhikun.local.md` is for personal local configuration.
 
 ### Safety Protections
 
-- Personal-memory reads have length limits; truncation protects context size and can omit stored content.
-- Internal compaction and age-cleanup helpers exist, but they are not a scheduled automatic expiration service in the ordinary memory path.
-- Project-memory operations validate paths and symlinks; project auto-loading stops at the selected root and caps each file at 100KB.
-- Do not store credentials in shared notes. Use `zhikun.local.md` only for non-secret local conventions and keep it out of Git.
-
-Sources: [ProjectMemoryService](../backend/src/main/java/com/aicodeassistant/service/ProjectMemoryService.java), [SystemPromptBuilder](../backend/src/main/java/com/aicodeassistant/prompt/SystemPromptBuilder.java), [MemoryTool](../backend/src/main/java/com/aicodeassistant/memdir/MemoryTool.java).
+- UI saves have a 50,000-character limit and provide backups, concurrent-edit conflict detection, and atomic replacement.
+- A Memory append that would exceed 50,000 characters in the complete file, including entry metadata, returns `MEMORY_FULL` and leaves the original file unchanged. Old notes are not automatically deleted to make room. Use Memory `read`, then `delete` with a specific matching text in `content`, or organize and shorten the file in the UI before saving; appends can then resume. Check the match before deleting, because all entries containing that text can be removed.
+- Project instructions have per-file read limits and path/symlink checks.
+- Automatic personal-memory injection takes the first 200 lines of the file (including metadata and blank lines), then caps the result at 25,000 bytes, including any truncation marker. The full text saved through the UI may not all enter the system prompt; truncation does not modify the original file.
+- The separate team-memory directory is not wired into this automatic loading path, and expiration cleanup is not scheduled periodically.
 
 ---
 
@@ -1970,6 +1972,8 @@ Default resource configuration (adjustable in `docker-compose.yml`):
 
 Local script logs are in `log/backend-console.log`, `log/python-console.log`, and `log/frontend-console.log`; manual startup writes to each terminal. Container application logs are under `/app/log`. Share only relevant, redacted excerpts. A healthy process does not mean every optional capability is available; a missing approval prompt is expected for operations approved by the current mode.
 
+Compose stores sessions and global configuration under `/app/data` in `zhikun-data`, and personal memory plus trusted-device files under `/app/.ai-code-assistant` in `zhikun-memory`. Projects use a separate mount. Consistent backups taken with the application stopped must cover both volumes and the project mount. Do not run `docker compose down -v` when preserving data.
+
 </details>
 
 <details>
@@ -2016,30 +2020,65 @@ Open `http://localhost:8080` and you're ready to go.
 **Application state and databases stay local.** Prompts, relevant code context, and other model inputs are sent to your configured LLM provider:
 
 - **Session data** — SQLite database stored in Docker Volume `zhikun-data`
+- **Personal memory and device trust** — `MEMORY.md`, its `.bak` backup, and `trusted-devices.json` live under `/app/.ai-code-assistant` in Docker Volume `zhikun-memory`. Treat backups as private application data; do not share device-trust files with another deployment.
 - **Project code** — Your local project directory is mounted via Docker Volume
 - **API Key** — Managed by deployment settings and configuration; remove credentials before sharing logs or diagnostic material
 
 > **Legacy authorization database upgrades:** The current V015 durable-interaction and V019 authorization schemas do not guarantee compatibility with older authorization schemas, and legacy permissions are not automatically converted into current grants. Old tables can lack required columns or conflict with new table names; migration validation failures prevent startup. Stop the application and consistently back up the project database, global database and related data before upgrading. Validate migration and startup with the target version on an isolated copy first. If incompatible, stop the upgrade, preserve the original databases, and use a verified migration procedure before granting permissions again. The project database also contains sessions and messages: do not delete it or rebuild it unconditionally. Rebuilding is appropriate only for explicitly disposable development data.
 >
-> **Storage-path migration after compatibility validation:** Compose now persists the Session database and global configuration database in `zhikun-data` at `/app/data/.ai-code-assistant` and `/app/data/global.db`. The following steps copy and restore old container data; they do not convert authorization schemas. After the isolated-copy validation above succeeds, stop the old container, back up `/app/.ai-code-assistant` and `/app/.config/ai-code-assistant/global.db`, then restore them to the new locations. Do not run `docker compose down -v` at any point.
->
-> ```bash
-> docker compose stop zhikuncode
-> docker cp zhikuncode:/app/.ai-code-assistant ./ai-code-assistant.backup
-> docker cp zhikuncode:/app/.config/ai-code-assistant/global.db ./global.db.backup
-> docker compose down
-> docker compose create --build zhikuncode
-> docker cp ./ai-code-assistant.backup \
->   zhikuncode:/app/data/.ai-code-assistant
-> docker cp ./global.db.backup \
->   zhikuncode:/app/data/global.db
-> docker compose run --rm --user root --entrypoint chown \
->   zhikuncode -R zhikun:zhikun \
->   /app/data/.ai-code-assistant /app/data/global.db
-> docker compose start zhikuncode
-> ```
->
-> `docker compose create` creates but does not start the new container. Complete the restore and `chown` before its first `start`. If an old path does not exist, skip its corresponding `docker cp` and restore target. Keep the local backups until Sessions, configuration, and authorized Projects have been verified.
+**Storage-path migration after compatibility validation:** A new volume does not automatically receive data from an old container's writable layer. Complete the compatibility validation above, then stop and back up the application. Restore databases and personal memory separately; do not copy the entire old home directory into the database directory. With the default Compose paths:
+
+| Old data / files in the backup | Current restore destination | Persistent volume |
+|---|---|---|
+| Old `/app/.ai-code-assistant/data.db` and SQLite sidecars from the same backup | `/app/data/.ai-code-assistant/data.db` and corresponding sidecars | `zhikun-data` |
+| Old `/app/.config/ai-code-assistant/global.db` and SQLite sidecars from the same backup | `/app/data/global.db` and corresponding sidecars | `zhikun-data` |
+| `/app/.ai-code-assistant/MEMORY.md`, `MEMORY.md.bak` | Same filenames, still under `/app/.ai-code-assistant/` | `zhikun-memory` |
+| `/app/.ai-code-assistant/trusted-devices.json` | Same filename, still under `/app/.ai-code-assistant/` | `zhikun-memory` |
+
+Deployments already using `/app/data` should retain the databases in that volume, not replace them with old home-directory copies. Back up the project mount separately as well. Run the following from the repository root in the same Bash session, selecting only source paths that actually exist. Stop and investigate copy failures; do not treat permission or I/O failures as missing files. Never run `docker compose down -v` during this process.
+
+```bash
+set -e
+umask 077
+mkdir -p "$HOME/zhikuncode-backups"
+migration_backup=$(mktemp -d "$HOME/zhikuncode-backups/backup.XXXXXX")
+docker compose stop zhikuncode
+docker cp zhikuncode:/app/data "$migration_backup/data"
+docker cp zhikuncode:/app/.ai-code-assistant "$migration_backup/home"
+# Only if the legacy global database is still here; copy the directory to retain sidecars:
+# docker cp zhikuncode:/app/.config/ai-code-assistant "$migration_backup/legacy-config"
+```
+
+After confirming that the backup is complete and recoverable, build the target image. The following is a **single-file restore template**, shown for personal memory. Select database paths from the table, and restore any `-wal`, `-shm`, and `-journal` sidecars from that same stopped backup before starting the application. Do not mix databases and sidecars from different times. Existing data in the new volumes is not overwritten automatically: the template exits if its destination exists. Keep both copies and reconcile them manually; do not delete the destination to bypass this check.
+
+```bash
+docker compose build zhikuncode
+restore_source=home/MEMORY.md
+restore_target=/app/.ai-code-assistant/MEMORY.md
+docker compose run --rm --no-deps -T --user root --entrypoint sh \
+  --volume "$migration_backup:/migration-backup:ro" \
+  --env RESTORE_SOURCE="$restore_source" --env RESTORE_TARGET="$restore_target" \
+  zhikuncode -ec '
+    src="/migration-backup/$RESTORE_SOURCE"
+    dst="$RESTORE_TARGET"
+    test -f "$src"
+    if [ -e "$dst" ] || [ -L "$dst" ]; then
+      echo "Refusing to overwrite existing restore target: $dst" >&2
+      exit 1
+    fi
+    umask 077
+    dir=$(dirname "$dst")
+    mkdir -p "$dir"
+    set -C
+    cat "$src" > "$dst"
+    chown zhikun:zhikun "$dir" "$dst"
+  '
+# Recreate and start the application only after every required restore and check succeeds:
+docker compose create --force-recreate zhikuncode
+docker compose start zhikuncode
+```
+
+The restore container runs only the shell above, not the application, and mounts the backup read-only. Ownership is assigned to the target image's `zhikun` user without assuming a fixed numeric UID. If any step fails, keep the application stopped and retain the backup. Verify Sessions, configuration, personal memory, and device-trust state before applying your normal backup-retention policy.
 
 Local storage does not mean no external requests: model inputs go to the configured provider or gateway; MCP, search, publishing, and other enabled integrations receive their request data. Remote file references immediately publish selected files as permanent public OSS objects; removing a draft tag does not delete them.
 

@@ -242,7 +242,6 @@ class SystemPromptBuilderTest {
 
         assertTrue(prompt.contains(
                 "主工作目录：" + tempDir));
-        verify(projectMemoryService).loadMemory(tempDir);
         verify(projectContextService).getContext(tempDir);
     }
 
@@ -288,22 +287,15 @@ class SystemPromptBuilderTest {
     }
 
     @Test
-    void testDynamicSections_Memory() {
-        // Given
-        String memoryContent = "# Project Guidelines\n- Use Java 21\n- Follow clean code principles";
-        when(projectMemoryService.loadMemory(any())).thenReturn(memoryContent);
-
-        List<Tool> tools = List.of();
-        String model = "gpt-4o";
-
-        // When - 使用 tempDir 而不是 null，确保 memory 段被加载
+    void memoryIsNotInjectedByDefaultBuilder() {
+        // 记忆段改由 EffectiveSystemPromptBuilder → MemoryPromptService 统一注入（每次请求重读），
+        // SystemPromptBuilder 不再读取或缓存项目记忆
         String prompt = String.join("\n\n",
-                builder.buildSystemPrompt(tools, model, tempDir, List.of(), List.of()));
+                builder.buildSystemPrompt(List.of(), "gpt-4o", tempDir, List.of(), List.of()));
 
-        // Then
-        assertTrue(prompt.contains("project_memory"));
-        assertTrue(prompt.contains("Project Guidelines"));
-        assertTrue(prompt.contains("Java 21"));
+        assertFalse(prompt.contains("project_memory"));
+        assertFalse(prompt.contains("Project Guidelines"));
+        verifyNoInteractions(projectMemoryService);
     }
 
     @Test

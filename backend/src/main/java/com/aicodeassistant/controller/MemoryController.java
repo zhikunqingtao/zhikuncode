@@ -11,9 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import com.aicodeassistant.memdir.MemdirService;
 import com.aicodeassistant.memdir.MemoryCategory;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -146,35 +143,14 @@ public class MemoryController {
     /** 读取 MEMORY.md 全文 + 解析条目 + 文件元信息 (size 单位为字符数，与 maxSize 一致) */
     @GetMapping("/file")
     public ResponseEntity<Map<String, Object>> getMemoryFile() {
-        Path file = memdirService.getMemoryFile();
-        Instant updatedAt = readFileModifiedInstant(file);
-        String content = memdirService.readMemories();
-
-        List<Map<String, Object>> entries = memdirService.listEntries().stream()
-                .map(e -> Map.<String, Object>of(
-                        "source", e.source().name(),
-                        "category", e.category().tag(),
-                        "timestamp", e.timestamp().toString(),
-                        "content", e.content()))
-                .toList();
-
-        // updatedAt 可能为 null (文件不存在)，Map.of 不允许 null，故用 LinkedHashMap
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("content", content);
-        body.put("entries", entries);
-        body.put("updatedAt", updatedAt != null ? updatedAt.toString() : null);
-        // size 单位为字符数，与 maxSize (MAX_MEMORY_SIZE 按字符数比较) 一致，
-        // 避免中文 3 字节/字导致前端用量显示偏保守
-        body.put("size", content.length());
-        body.put("maxSize", memdirService.getMaxMemorySize());
-        return ResponseEntity.ok(body);
+        return ResponseEntity.ok(snapshotBody(memdirService.readMemoryFileSnapshot()));
     }
 
     /**
      * 整篇覆盖保存 MEMORY.md (乐观并发: baseUpdatedAt 与当前 mtime 不一致 → 409)。
      * <p>
      * mtime 比对在 MemdirService 的 writeLock 内完成 (与写盘同锁)，
-     * 消除锁外检测到取锁写盘之间被并发追加静默覆盖的 TOCTOU 窗口。
+     * 消除同一服务实例内从检测到写盘之间被并发追加静默覆盖的窗口。
      */
     @PutMapping("/file")
     public ResponseEntity<Map<String, Object>> updateMemoryFile(
@@ -187,9 +163,9 @@ public class MemoryController {
             return conflictResponse("baseUpdatedAt 无法解析，无法证明与当前版本一致；请重新加载后重试");
         }
         try {
-            String normalized = memdirService.overwriteFromUserEdit(
+            var snapshot = memdirService.overwriteFromUserEditSnapshot(
                     request.content() != null ? request.content() : "", baseMtime);
-            return overwriteSuccessResponse(normalized);
+            return overwriteSuccessResponse(snapshot);
         } catch (MemdirService.MemdirConflictException e) {
             return conflictResponse(e.getMessage());
         } catch (IllegalArgumentException e) {
@@ -214,8 +190,8 @@ public class MemoryController {
                 .map(this::toServiceEntry)
                 .toList();
         try {
-            String normalized = memdirService.overwriteEntriesFromUserEdit(entries, baseMtime);
-            return overwriteSuccessResponse(normalized);
+            var snapshot = memdirService.overwriteEntriesFromUserEditSnapshot(entries, baseMtime);
+            return overwriteSuccessResponse(snapshot);
         } catch (MemdirService.MemdirConflictException e) {
             return conflictResponse(e.getMessage());
         } catch (IllegalArgumentException e) {
@@ -254,23 +230,12 @@ public class MemoryController {
      * 比较方案说明: 采用 Instant 解析后比较而非字符串精确比较 — GET 响应中的 updatedAt
      * 由 Instant.toString() 生成，Instant.parse(toString()) 可无损往返 (纳秒精度完整保留)，
      * 解析后比较可避免同一时刻的不同字符串写法 (时区/精度表示差异) 造成误判。
-     * baseUpdatedAt 为 null/空白时返回 null (跳过锁内检测直接保存)；
+     * baseUpdatedAt 为 null/空白时返回 null，表示客户端加载时文件不存在 (文件已存在则 409)；
      * 无法解析的基线无法证明一致，抛 DateTimeParseException 由调用方保守按 409 冲突处理。
      */
     private Instant parseBaseMtime(String baseUpdatedAt) {
         if (baseUpdatedAt == null || baseUpdatedAt.isBlank()) return null;
         return Instant.parse(baseUpdatedAt.trim());
-    }
-
-    /** 读取文件最后修改时间；文件不存在或读取失败时视为 null。 */
-    private Instant readFileModifiedInstant(Path file) {
-        try {
-            if (!Files.exists(file)) return null;
-            return Files.getLastModifiedTime(file).toInstant();
-        } catch (IOException e) {
-            log.warn("Failed to read memory file mtime: {}", file, e);
-            return null;
-        }
     }
 
     private ResponseEntity<Map<String, Object>> conflictResponse(String message) {
@@ -286,13 +251,35 @@ public class MemoryController {
                 "message", e.getMessage() != null ? e.getMessage() : "content too large"));
     }
 
-    private ResponseEntity<Map<String, Object>> overwriteSuccessResponse(String normalized) {
-        Instant newMtime = readFileModifiedInstant(memdirService.getMemoryFile());
-        Map<String, Object> body = new LinkedHashMap<>();
+    /**
+     * 保存成功响应: 返回服务端实际落盘的规范化结果 (content + 由其解析的 entries + size)，
+     * 前端以此为准同步卡片/整篇两种视图，不再回显请求数据或本地估算大小。
+     */
+    private ResponseEntity<Map<String, Object>> overwriteSuccessResponse(MemdirService.MemoryFileSnapshot snapshot) {
+        Map<String, Object> body = snapshotBody(snapshot);
         body.put("success", true);
-        body.put("content", normalized);
-        body.put("updatedAt", newMtime != null ? newMtime.toString() : null);
         return ResponseEntity.ok(body);
+    }
+
+    /** GET 与 PUT 共享同一快照格式；字符数和条目均来自该快照的正文。 */
+    private Map<String, Object> snapshotBody(MemdirService.MemoryFileSnapshot snapshot) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("content", snapshot.content());
+        body.put("entries", toEntryMaps(memdirService.parseEntriesOf(snapshot.content())));
+        body.put("updatedAt", snapshot.updatedAt() != null ? snapshot.updatedAt().toString() : null);
+        body.put("size", snapshot.content().length());
+        body.put("maxSize", memdirService.getMaxMemorySize());
+        return body;
+    }
+
+    private List<Map<String, Object>> toEntryMaps(List<MemdirService.MemoryEntry> entries) {
+        return entries.stream()
+                .map(e -> Map.<String, Object>of(
+                        "source", e.source().name(),
+                        "category", e.category().tag(),
+                        "timestamp", e.timestamp().toString(),
+                        "content", e.content()))
+                .toList();
     }
 
     // ═══ DTO Records ═══

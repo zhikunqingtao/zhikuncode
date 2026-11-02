@@ -67,6 +67,8 @@ public class SystemPromptBuilder {
 
     // 依赖服务
     private final ProjectPromptLoader projectPromptLoader;
+    /** 保留构造签名兼容；记忆注入已移至 MemoryPromptService，本类不再读取。 */
+    @SuppressWarnings("unused")
     private final ProjectMemoryService projectMemoryService;
     private final FeatureFlagService featureFlags;
     private final GitService gitService;
@@ -176,8 +178,8 @@ public class SystemPromptBuilder {
         List<SystemPromptSection> dynamicSections = new ArrayList<>(List.of(
                 new MemoizedSection("session_guidance",
                         () -> getSessionGuidanceSection(enabledTools)),
-                new MemoizedSection("memory",
-                        () -> loadMemoryPrompt(workingDir)),
+                // 记忆段由 EffectiveSystemPromptBuilder → MemoryPromptService 统一注入（每次请求重读），
+                // 此处不再缓存项目记忆，避免同 session 内 30 分钟陈旧与重复注入
                 new MemoizedSection("env_info",
                         () -> computeEnvInfo(model, additionalDirs, workingDir)),
                 new MemoizedSection("language",
@@ -1151,14 +1153,7 @@ public class SystemPromptBuilder {
         return sb.toString();
     }
 
-    // ── memory + output_style + frc + token_budget ──
-
-    private String loadMemoryPrompt(Path workingDir) {
-        if (projectMemoryService == null) return "";
-        String memory = projectMemoryService.loadMemory(workingDir);
-        if (memory == null || memory.isBlank()) return "";
-        return "\n\n<project_memory>\n" + memory + "\n</project_memory>\n";
-    }
+    // ── output_style + frc + token_budget ──
 
     private String getOutputStyleSection() {
         return null;

@@ -82,6 +82,8 @@ public class CoordinatorPromptBuilder {
                 workerTools, projectContext, scratchpad.toString(), mcpClients)
                 + "\n" + SystemPromptBuilder.GOAL_QUALITY_SECTION
                 + "\n" + SystemPromptBuilder.CONTEXT_COMPRESSION_MARKERS_SECTION;
+        // 记忆段（MEMORY.md / zhikun.md / zhikun.local.md）由 EffectiveSystemPromptBuilder
+        // 经 MemoryPromptService 统一追加，此处不重复注入
     }
 
     private String buildProjectContext(Path projectRoot) {

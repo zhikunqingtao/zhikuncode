@@ -254,4 +254,30 @@ class MemdirUserEditTest {
         assertEquals("", service.readMemories());
         assertTrue(service.listEntries().isEmpty());
     }
+
+    // ==================== 乐观并发：null 基线 = 文件不存在 ====================
+
+    @Test
+    @DisplayName("两个基于空文件(null 基线)的编辑：第一个成功，第二个冲突且不覆盖")
+    void secondNullBaseEditConflicts() {
+        service.overwriteFromUserEdit("PAGE_A", null);
+
+        assertThrows(MemdirService.MemdirConflictException.class,
+                () -> service.overwriteFromUserEdit("PAGE_B", null));
+        assertTrue(service.readMemories().contains("PAGE_A"));
+        assertFalse(service.readMemories().contains("PAGE_B"));
+    }
+
+    @Test
+    @DisplayName("文件已存在时用当前 mtime 基线保存成功，用 null 基线则冲突")
+    void currentMtimeBaseSucceeds() throws Exception {
+        service.writeMemory("旧内容", MemdirService.MemorySource.TOOL);
+        Path file = tempDir.resolve(MemdirService.ENTRYPOINT_NAME);
+        Instant mtime = Files.getLastModifiedTime(file).toInstant();
+
+        assertThrows(MemdirService.MemdirConflictException.class,
+                () -> service.overwriteEntriesFromUserEdit(List.of(), null));
+        service.overwriteFromUserEdit("新内容", mtime);
+        assertTrue(service.readMemories().contains("新内容"));
+    }
 }

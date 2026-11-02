@@ -1,5 +1,8 @@
 package com.aicodeassistant.memdir;
 
+import com.aicodeassistant.tool.ToolInput;
+import com.aicodeassistant.tool.ToolResult;
+import com.aicodeassistant.tool.ToolUseContext;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -9,6 +12,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -128,33 +132,65 @@ class MemorySystemTest {
     }
 
     /**
-     * TC-MEM-004 自动压缩与过期验证。
+     * TC-MEM-004 容量保护与显式清理验证。
      */
     @Nested
-    @DisplayName("TC-MEM-004 自动压缩与过期验证")
+    @DisplayName("TC-MEM-004 容量保护与显式清理验证")
     class CompactionAndExpiryTest {
 
         @TempDir
         Path tempDir;
 
         @Test
-        @DisplayName("超过50000字符触发自动压缩")
-        void autoCompactOnSizeLimit() {
+        @DisplayName("写入后超过50000字符时拒绝写入，原文件不变")
+        void rejectWriteWhenOverLimit() {
             MemdirService service = new MemdirService(tempDir);
 
-            StringBuilder largeContent = new StringBuilder();
-            for (int i = 0; i < 500; i++) {
-                largeContent.append("这是第").append(i).append("条重复记忆内容，用于测试自动压缩功能。");
-            }
-            service.writeMemory(largeContent.toString(), MemdirService.MemorySource.TOOL);
-            service.writeMemory("触发压缩的新记忆", MemdirService.MemorySource.TOOL);
+            service.writeMemory("A".repeat(49_900), MemdirService.MemorySource.TOOL);
+            String before = service.readMemories();
 
-            String content = service.readMemories();
-            assertNotNull(content, "压缩后内容不应为null");
+            assertThrows(MemdirService.MemoryFullException.class,
+                    () -> service.writeMemory("B".repeat(49_900), MemdirService.MemorySource.TOOL));
+
+            assertEquals(before, service.readMemories(), "超限写入不得修改原文件");
+            assertTrue(service.readMemories().length() <= MemdirService.MAX_MEMORY_SIZE);
         }
 
         @Test
-        @DisplayName("压缩后字符数减少")
+        @DisplayName("写满后保留原文件，经 Memory delete 删除指定条目后可重新写入")
+        void fullMemoryRecoversAfterDeletingSelectedEntry() throws Exception {
+            MemdirService service = new MemdirService(tempDir);
+            MemoryTool tool = new MemoryTool(service);
+            ToolUseContext context = ToolUseContext.of(tempDir.toString(), "memory-capacity-recovery");
+            service.writeMemory("KEEP_RECORD", MemdirService.MemorySource.USER);
+            service.writeMemory("REMOVE_RECORD\n" + "A".repeat(49_600), MemdirService.MemorySource.TOOL);
+            byte[] before = Files.readAllBytes(service.getMemoryFile());
+            String nextEntry = "NEW_RECORD\n" + "B".repeat(500);
+
+            ToolResult rejected = tool.call(ToolInput.from(Map.of(
+                    "action", "write", "content", nextEntry)), context);
+
+            assertTrue(rejected.isError());
+            assertEquals("MEMORY_FULL", rejected.failureCode());
+            assertArrayEquals(before, Files.readAllBytes(service.getMemoryFile()),
+                    "拒绝追加必须逐字节保留原文件");
+
+            ToolResult deleted = tool.call(ToolInput.from(Map.of(
+                    "action", "delete", "content", "REMOVE_RECORD")), context);
+            assertFalse(deleted.isError(), deleted.content());
+            assertEquals(List.of("KEEP_RECORD"), service.listEntries().stream()
+                    .map(MemdirService.MemoryEntry::content).toList(), "只删除匹配条目");
+
+            ToolResult saved = tool.call(ToolInput.from(Map.of(
+                    "action", "write", "content", nextEntry)), context);
+            assertFalse(saved.isError(), saved.content());
+            assertEquals(List.of("KEEP_RECORD", nextEntry), service.listEntries().stream()
+                    .map(MemdirService.MemoryEntry::content).toList());
+            assertTrue(service.readMemories().length() <= MemdirService.MAX_MEMORY_SIZE);
+        }
+
+        @Test
+        @DisplayName("内部压缩辅助函数减少字符数（不表示自动压缩已启用）")
         void compactReducesSize() {
             MemdirService service = new MemdirService(tempDir);
 

@@ -224,7 +224,7 @@ RUN chmod +x docker-entrypoint.sh
 # never leaves /app/.zhikun root-owned — the app creates its uploads directory
 # under /app/.zhikun at startup and must keep write access there.
 RUN mkdir -p /app/data /app/workspace /app/log /app/log/debug /app/log/mcp \
-    /app/.zhikun/skills && \
+    /app/.zhikun/skills /app/.ai-code-assistant && \
     chown -R zhikun:zhikun /app
 
 USER zhikun

@@ -1367,7 +1367,7 @@ ZhikunCode 提供个人记忆与项目约定管理，也有团队 Markdown 组�
 
 | 层级 | 文件 | 作用域 | 说明 |
 |------|------|--------|------|
-| **个人记忆** | `~/.ai-code-assistant/MEMORY.md` | 全局跨项目 | 通过 Memory 工具或页面读写，按需使用 |
+| **个人记忆** | `~/.ai-code-assistant/MEMORY.md` | 全局跨项目 | 通过 Memory 工具或页面读写，主会话请求自动限量加载 |
 | **项目记忆** | `zhikun.md` / `zhikun.local.md` | 当前项目 | 项目级编码约定、架构决策、构建流程 |
 | **团队记忆** | `.zhikun/team-memories/*.md` | 团队共享 | 随代码库分发，经普通文件读取按需使用；未自动注入普通会话 |
 
@@ -1384,13 +1384,14 @@ ZhikunCode 提供个人记忆与项目约定管理，也有团队 Markdown 组�
 
 ### 自动记忆与搜索
 
-- **项目自动加载** — 所选 Project 根的 `zhikun.md` 与 `zhikun.local.md` 加入系统提示，不向父目录搜索。
+- **主会话自动加载** — 普通主会话与 Coordinator 主模式每次请求重新读取个人 `MEMORY.md`，并加载所选 Project 根的 `zhikun.md` 与 `zhikun.local.md`，不向父目录搜索。页面保存成功后，下一次请求生效；同一次请求内的工具循环不会中途刷新。
+- **范围与优先级** — Override 完全替换系统提示时跳过记忆注入和 append；custom system prompt 实际被选为基础提示时，也不自动注入记忆，但保留 append。仅提供 custom 字段而由更高优先级的 Coordinator／Agent 分支胜出时，仍按该分支加载记忆。子代理尚未统一接入这条加载链路。记忆冲突时，`zhikun.local.md > zhikun.md > MEMORY.md`，记忆不凌驾于用户当前的明确指令。
 - **个人记忆工具** — Memory 提供 read／write／delete；实际是否写入取决于调用，不保证每轮自动记忆。
 - **团队资料** — 可用普通文件读取工具按需查看团队 Markdown；没有全量自动注入保证。
 - **来源记录** — 条目支持 source 等元数据。
 - **检索实现的状态** — 代码包含 BM25 与可选 LLM 重排，但尚未接入普通 Memory 工具或会话自动加载。不能把内部方法当作已经开放的搜索入口。
 
-实现：[MemdirService](backend/src/main/java/com/aicodeassistant/memdir/MemdirService.java) · [项目约定加载](backend/src/main/java/com/aicodeassistant/service/ProjectMemoryService.java)。
+实现：[记忆提示组装](backend/src/main/java/com/aicodeassistant/prompt/MemoryPromptService.java) · [MemdirService](backend/src/main/java/com/aicodeassistant/memdir/MemdirService.java) · [项目约定加载](backend/src/main/java/com/aicodeassistant/service/ProjectMemoryService.java)。
 
 ### 页面管理记忆
 
@@ -1399,6 +1400,8 @@ ZhikunCode 提供个人记忆与项目约定管理，也有团队 Markdown 组�
 - **卡片模式** — 逐条查看、编辑、删除记忆条目，支持手动新增
 - **整篇模式** — 以 Markdown 编辑器整体修改，支持实时预览
 - **安全保护** — 保存时自动规范化条目格式、生成 `.bak` 备份，并在内容被并发修改时进行冲突检测；PC / 平板 / 手机响应式布局
+
+使用文件 API 时，先 `GET /api/memory/file`，将返回的 `updatedAt` 作为该份原稿的基线；提交 `PUT /api/memory/file` 或 `PUT /api/memory/file/entries` 时，通过 `baseUpdatedAt` 原样带回。不要给旧草稿换上后来刷新获得的新基线。省略 `baseUpdatedAt`、传 `null` 或空白字符串，均表示“加载原稿时文件不存在”，不是“文件存在但内容为空”；已有空文件也应使用 GET 返回的时间。基线与当前文件状态不一致时返回 HTTP 409；保留草稿、重新加载并核对合并后再保存，不自动强制覆盖。
 
 ### 项目记忆文件
 
@@ -1424,13 +1427,15 @@ ZhikunCode 提供个人记忆与项目约定管理，也有团队 Markdown 组�
 - 本地数据库端口: 5432
 ```
 
-> 项目记忆仅从所选 Project 根目录加载 `zhikun.md` 和 `zhikun.local.md`，不向父目录搜索；单文件上限 100KB。`zhikun.md` 随代码库提交用于团队共享，`zhikun.local.md` 用于个人本地配置。
+> 项目记忆仅从所选 Project 根目录加载 `zhikun.md` 和 `zhikun.local.md`，不向父目录搜索；每个文件注入提示的正文最多保留 100 KiB（102,400 字节），超出时追加截断标记。`zhikun.md` 随代码库提交用于团队共享，`zhikun.local.md` 用于个人本地配置。
 
 ### 安全保护
 
 - 页面保存有 50,000 字符限制，并提供备份、并发冲突检测和原子替换。
+- Memory 追加后的全文（含条目元数据）超过 50,000 字符时返回 `MEMORY_FULL`，原文件保持不变，不会自动删旧记忆腾空间。先用 Memory 的 `read` 查看，再以 `delete` 删除明确匹配的旧条目（`content` 是删除匹配文本），或在页面整理、缩短后保存，即可重新追加；删除前确认匹配范围，避免误删同样包含该文本的其他条目。
 - 项目约定有单文件读取上限与路径／符号链接检查。
-- 代码中的提示读取截断和过期清理是辅助路径；普通会话未接入个人／团队记忆全量加载，也没有周期清理调用。
+- 个人记忆自动注入先取文件前 200 行（含元数据与空行），再限制为 25,000 字节（含截断标记）；页面可保存的全文不保证全部进入系统提示，截断不修改原文件。
+- 独立团队记忆目录未接入上述自动加载链路；过期清理也没有周期调用。
 
 ---
 
@@ -1964,7 +1969,7 @@ Claude Fable 5.1 使用已有 OpenRouter Key，默认请求 `reasoning.effort=ma
 | Python 活着但能力不可用 | `/api/health/capabilities` 中的 available／reason、实际解释器、依赖和 Chromium |
 | 页面断线／审批未出现 | WebSocket 代理与服务日志；重连恢复过程，默认完全访问可能不弹审批，后端重启则旧运行中断 |
 
-使用 `start.sh` 时日志位于 `log/backend-console.log`、`log/python-console.log`、`log/frontend-console.log`。Compose 的 `zhikun-data` 卷保存 `/app/data` 下的会话和全局配置，项目来自独立挂载；备份应同时覆盖两者，保留数据时不要执行 `docker compose down -v`。错误信息中先移除凭证再分享。
+使用 `start.sh` 时日志位于 `log/backend-console.log`、`log/python-console.log`、`log/frontend-console.log`。Compose 的 `zhikun-data` 卷保存 `/app/data` 下的会话和全局配置，`zhikun-memory` 卷保存 `/app/.ai-code-assistant` 下的个人记忆及受信任设备文件，项目来自独立挂载；停服一致备份应同时覆盖这两个卷和项目挂载，保留数据时不要执行 `docker compose down -v`。错误信息中先移除凭证再分享。
 
 
 <details>
@@ -2011,30 +2016,65 @@ docker compose up -d --build  # 构建并启动
 **应用状态和数据库保存在本地**；提示词、相关代码上下文和其他模型输入会发送给你配置的 LLM 服务商：
 
 - **会话数据** — SQLite 数据库，存储在 Docker Volume `zhikun-data` 中
+- **个人记忆与设备信任** — `MEMORY.md`、其 `.bak` 备份及 `trusted-devices.json` 位于 Docker Volume `zhikun-memory` 的 `/app/.ai-code-assistant`；备份按应用私有数据保管，不将设备信任文件分享给其他部署
 - **项目代码** — 通过 Volume 挂载你本地的项目目录
 - **API Key** — 由部署环境和配置管理；排查日志或分享资料前应移除凭证
 
 > **旧授权数据库升级边界：** 当前 V015 持久交互与 V019 授权表不保证兼容旧版授权 schema，旧权限不会自动转成当前 Grant。旧表可能缺少必需列或与新表同名，迁移校验失败会阻止启动。升级前应停止应用并一致备份项目库、全局库及相关数据，先在隔离副本验证目标版本迁移与启动；不兼容时停止升级、保留原库，采用经过验证的迁移方案后重新授权。项目库也保存会话和消息，不能直接删库或无条件重建；只有明确可丢弃的开发库才适合重建。
 >
-> **已验证兼容后的存储路径迁移：** Compose 现在把 Session 数据库和全局配置数据库分别持久化到 `zhikun-data` 中的 `/app/data/.ai-code-assistant` 和 `/app/data/global.db`。以下步骤仅处理旧容器数据的复制与恢复，不转换授权 schema。确认上述副本验证通过后，停止并备份 `/app/.ai-code-assistant` 和 `/app/.config/ai-code-assistant/global.db`，再恢复到新位置；全程不要使用 `docker compose down -v`。
->
-> ```bash
-> docker compose stop zhikuncode
-> docker cp zhikuncode:/app/.ai-code-assistant ./ai-code-assistant.backup
-> docker cp zhikuncode:/app/.config/ai-code-assistant/global.db ./global.db.backup
-> docker compose down
-> docker compose create --build zhikuncode
-> docker cp ./ai-code-assistant.backup \
->   zhikuncode:/app/data/.ai-code-assistant
-> docker cp ./global.db.backup \
->   zhikuncode:/app/data/global.db
-> docker compose run --rm --user root --entrypoint chown \
->   zhikuncode -R zhikun:zhikun \
->   /app/data/.ai-code-assistant /app/data/global.db
-> docker compose start zhikuncode
-> ```
->
-> `docker compose create` 只创建、不启动新容器；必须在首次 `start` 前完成恢复和 `chown`。旧路径不存在时可跳过对应的 `docker cp` 和恢复目标。确认 Session、配置和已授权 Project 正常后再删除本地备份。
+**已验证兼容后的存储路径迁移：** 新卷不会自动接收旧容器可写层的数据。先完成上述兼容性验证，再停止应用并备份；数据库与个人记忆须分别恢复，不能把整个旧主目录统一复制到数据库目录。使用默认 Compose 路径时：
+
+| 旧数据／备份中的文件 | 当前恢复目标 | 持久化位置 |
+|---|---|---|
+| 旧 `/app/.ai-code-assistant/data.db` 及同次备份的 SQLite 伴随文件 | `/app/data/.ai-code-assistant/data.db` 及对应伴随文件 | `zhikun-data` |
+| 旧 `/app/.config/ai-code-assistant/global.db` 及同次备份的 SQLite 伴随文件 | `/app/data/global.db` 及对应伴随文件 | `zhikun-data` |
+| `/app/.ai-code-assistant/MEMORY.md`、`MEMORY.md.bak` | 同名文件，仍在 `/app/.ai-code-assistant/` | `zhikun-memory` |
+| `/app/.ai-code-assistant/trusted-devices.json` | 同名文件，仍在 `/app/.ai-code-assistant/` | `zhikun-memory` |
+
+已使用 `/app/data` 的部署应保留该卷现有数据库，不用旧主目录中的数据库覆盖它。项目挂载中的数据也应另行备份。以下命令从仓库根目录的同一个 Bash 会话执行，只选择实际存在的源路径；复制失败时停止排查，不能将权限或 I/O 错误当作“文件不存在”跳过。全程不要执行 `docker compose down -v`。
+
+```bash
+set -e
+umask 077
+mkdir -p "$HOME/zhikuncode-backups"
+migration_backup=$(mktemp -d "$HOME/zhikuncode-backups/backup.XXXXXX")
+docker compose stop zhikuncode
+docker cp zhikuncode:/app/data "$migration_backup/data"
+docker cp zhikuncode:/app/.ai-code-assistant "$migration_backup/home"
+# 仅旧版全局数据库仍在此路径时执行；备份整个目录以保留伴随文件：
+# docker cp zhikuncode:/app/.config/ai-code-assistant "$migration_backup/legacy-config"
+```
+
+确认备份完整且可恢复后，构建目标镜像。下面是**逐文件恢复模板**，示例恢复个人记忆；数据库文件应按上表选择路径，并在应用仍停止时恢复同次备份中的 `-wal`、`-shm`、`-journal`（若存在），不可混用不同时间的数据库与伴随文件。已有新卷内容不会被自动覆盖：目标存在时模板退出，须保留双方副本、人工核对，不要删除目标来绕过检查。
+
+```bash
+docker compose build zhikuncode
+restore_source=home/MEMORY.md
+restore_target=/app/.ai-code-assistant/MEMORY.md
+docker compose run --rm --no-deps -T --user root --entrypoint sh \
+  --volume "$migration_backup:/migration-backup:ro" \
+  --env RESTORE_SOURCE="$restore_source" --env RESTORE_TARGET="$restore_target" \
+  zhikuncode -ec '
+    src="/migration-backup/$RESTORE_SOURCE"
+    dst="$RESTORE_TARGET"
+    test -f "$src"
+    if [ -e "$dst" ] || [ -L "$dst" ]; then
+      echo "Refusing to overwrite existing restore target: $dst" >&2
+      exit 1
+    fi
+    umask 077
+    dir=$(dirname "$dst")
+    mkdir -p "$dir"
+    set -C
+    cat "$src" > "$dst"
+    chown zhikun:zhikun "$dir" "$dst"
+  '
+# 全部所需文件恢复成功并核对后，才重建和启动应用容器：
+docker compose create --force-recreate zhikuncode
+docker compose start zhikuncode
+```
+
+恢复容器仅运行上述 shell，不启动应用，备份挂载为只读；文件属主按目标镜像中的 `zhikun` 用户设置，不假定固定数字 UID。任一步失败时保持应用停止并保留备份。确认 Session、配置、个人记忆和设备信任状态均符合预期后，再按自己的备份保留策略处置备份。
 
 实际请求发往你配置的模型／MCP／云服务端点；如果选择聚合 Provider 或代理，请求也会经过该渠道。自托管不代表所有输入只留在本地。
 

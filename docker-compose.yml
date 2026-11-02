@@ -109,6 +109,8 @@ services:
     volumes:
       # Persistent data (SQLite DB, session data, memories)
       - zhikun-data:/app/data
+      # Personal memory (MEMORY.md); container HOME is /app, so it lives outside /app/data
+      - zhikun-memory:/app/.ai-code-assistant
       # User workspace mount (the code project to work on)
       - ${WORKSPACE_PATH:-./workspace}:/app/workspace
       # When enabling Meoo, add a read-only secret mount in a compose override:
@@ -132,4 +134,6 @@ services:
 
 volumes:
   zhikun-data:
+    driver: local
+  zhikun-memory:
     driver: local

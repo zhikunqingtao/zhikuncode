@@ -77,7 +77,11 @@ public class MemoryTool implements Tool {
                 if (content == null || content.isBlank()) {
                     yield ToolResult.validationError("MEMORY_CONTENT_REQUIRED", "Content is required for write action.");
                 }
-                memdirService.writeMemory(content, MemdirService.MemorySource.TOOL);
+                try {
+                    memdirService.writeMemory(content, MemdirService.MemorySource.TOOL);
+                } catch (MemdirService.MemoryFullException e) {
+                    yield ToolResult.validationError("MEMORY_FULL", e.getMessage());
+                }
                 yield ToolResult.success("Memory saved.");
             }
             case "delete" -> {

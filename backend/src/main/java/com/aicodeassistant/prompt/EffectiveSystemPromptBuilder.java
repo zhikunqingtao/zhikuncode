@@ -7,6 +7,7 @@ import com.aicodeassistant.tool.Tool;
 import com.aicodeassistant.tool.agent.SubAgentExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
@@ -31,7 +32,13 @@ import java.util.List;
  *     <li>4. Default 系统提示 — 标准默认提示</li>
  * </ol>
  * <p>
- * 另外: appendSystemPrompt 始终追加到最终提示末尾（除非使用 Override）
+ * 另外（除非使用 Override）:
+ * <ul>
+ *     <li>记忆段（MEMORY.md / zhikun.md / zhikun.local.md）由 {@link MemoryPromptService}
+ *         每次构建时重新读取并追加；实际选中 Custom 时不自动注入记忆</li>
+ *     <li>appendSystemPrompt 追加到最终提示末尾</li>
+ * </ul>
+ * 拼接顺序: base → memory → append
  * <p>
  *
  * @see SystemPromptBuilder
@@ -46,15 +53,27 @@ public class EffectiveSystemPromptBuilder {
     private final FeatureFlagService featureFlags;
     private final CoordinatorPromptBuilder coordinatorPromptBuilder;
     private final CoordinatorService coordinatorService;
+    private final MemoryPromptService memoryPromptService;
 
+    /** 无记忆注入的构造器（兼容既有测试）。 */
     public EffectiveSystemPromptBuilder(SystemPromptBuilder systemPromptBuilder,
                                         FeatureFlagService featureFlags,
                                         CoordinatorPromptBuilder coordinatorPromptBuilder,
                                         CoordinatorService coordinatorService) {
+        this(systemPromptBuilder, featureFlags, coordinatorPromptBuilder, coordinatorService, null);
+    }
+
+    @Autowired
+    public EffectiveSystemPromptBuilder(SystemPromptBuilder systemPromptBuilder,
+                                        FeatureFlagService featureFlags,
+                                        CoordinatorPromptBuilder coordinatorPromptBuilder,
+                                        CoordinatorService coordinatorService,
+                                        MemoryPromptService memoryPromptService) {
         this.systemPromptBuilder = systemPromptBuilder;
         this.featureFlags = featureFlags;
         this.coordinatorPromptBuilder = coordinatorPromptBuilder;
         this.coordinatorService = coordinatorService;
+        this.memoryPromptService = memoryPromptService;
     }
 
     /**
@@ -70,16 +89,30 @@ public class EffectiveSystemPromptBuilder {
                                               List<Tool> tools,
                                               String model,
                                               Path cwd) {
-        String basePrompt = resolveBasePrompt(config, tools, model, cwd);
-        String appendPrompt = config.getAppendSystemPrompt();
+        ResolvedBasePrompt basePrompt = resolveBasePrompt(config, tools, model, cwd);
 
-        // 追加额外提示（除非使用 Override）
-        if (appendPrompt != null && !appendPrompt.isBlank()
-                && config.getOverrideSystemPrompt() == null) {
-            return basePrompt + "\n\n" + appendPrompt;
+        // Override 完全替换：不追加记忆和额外提示
+        if (config.getOverrideSystemPrompt() != null) {
+            return basePrompt.text();
         }
 
-        return basePrompt;
+        StringBuilder result = new StringBuilder(basePrompt.text());
+
+        // 由实际胜出的来源决定是否注入，不能仅凭 custom 配置存在就跳过更高优先级来源的记忆。
+        if (basePrompt.injectMemory() && memoryPromptService != null) {
+            String memoryPrompt = memoryPromptService.buildMemoryPrompt(cwd);
+            if (memoryPrompt != null && !memoryPrompt.isBlank()) {
+                result.append("\n\n").append(memoryPrompt);
+            }
+        }
+
+        // 追加额外提示
+        String appendPrompt = config.getAppendSystemPrompt();
+        if (appendPrompt != null && !appendPrompt.isBlank()) {
+            result.append("\n\n").append(appendPrompt);
+        }
+
+        return result.toString();
     }
 
     /**
@@ -92,14 +125,14 @@ public class EffectiveSystemPromptBuilder {
     /**
      * 解析基础提示 — 优先级链核心逻辑。
      */
-    private String resolveBasePrompt(SystemPromptConfig config,
-                                     List<Tool> tools,
-                                     String model,
-                                     Path cwd) {
+    private ResolvedBasePrompt resolveBasePrompt(SystemPromptConfig config,
+                                                 List<Tool> tools,
+                                                 String model,
+                                                 Path cwd) {
         // 优先级 0: Override (完全替换)
         if (config.getOverrideSystemPrompt() != null) {
             log.debug("Using override system prompt");
-            return config.getOverrideSystemPrompt();
+            return new ResolvedBasePrompt(config.getOverrideSystemPrompt(), false);
         }
 
         // 优先级 1: Coordinator 模式
@@ -115,7 +148,7 @@ public class EffectiveSystemPromptBuilder {
             }
             if (coordinatorPrompt != null) {
                 log.debug("Using coordinator system prompt");
-                return coordinatorPrompt;
+                return new ResolvedBasePrompt(coordinatorPrompt, true);
             }
         }
 
@@ -130,23 +163,25 @@ public class EffectiveSystemPromptBuilder {
                 String defaultPrompt = systemPromptBuilder
                         .buildDefaultSystemPrompt(
                                 tools, model, cwd, config.getSessionId());
-                return defaultPrompt + "\n\n" + agentPrompt;
+                return new ResolvedBasePrompt(defaultPrompt + "\n\n" + agentPrompt, true);
             } else {
                 // 非 proactive: 替换默认提示
                 log.debug("Using agent system prompt (replaces default)");
-                return agentPrompt;
+                return new ResolvedBasePrompt(agentPrompt, true);
             }
         }
 
         // 优先级 3: Custom (--system-prompt)
         if (config.getCustomSystemPrompt() != null) {
             log.debug("Using custom system prompt");
-            return config.getCustomSystemPrompt();
+            return new ResolvedBasePrompt(config.getCustomSystemPrompt(), false);
         }
 
         // 优先级 4: Default
         log.debug("Using default system prompt");
-        return systemPromptBuilder.buildDefaultSystemPrompt(
-                tools, model, cwd, config.getSessionId());
+        return new ResolvedBasePrompt(systemPromptBuilder.buildDefaultSystemPrompt(
+                tools, model, cwd, config.getSessionId()), true);
     }
+
+    private record ResolvedBasePrompt(String text, boolean injectMemory) {}
 }

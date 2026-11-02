@@ -8,9 +8,11 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -26,13 +28,14 @@ import java.util.stream.Collectors;
  * 功能:
  * 1. LLM 通过 MemoryTool 主动写入记忆 (用户偏好、项目约定等)
  * 2. 记忆存储在用户级文件中，跨会话和项目持久化
- * 3. 每次会话启动时自动加载到系统提示的 memory 段
+ * 3. 每次请求构建系统提示时由 MemoryPromptService 读取 (readMemoriesForPrompt) 并注入
  * 4. 支持内容变换标记 (transformation markers)
  * <p>
  * 截断保护:
  * - MEMORY.md 按行截断上限: 200 行
- * - MEMORY.md 按字节截断上限: 25KB (25,600 bytes)
+ * - MEMORY.md 按字节截断上限: 25,000 bytes (含截断标记)
  * - 加载时超出上限的内容将被截断，防止系统提示 token 爆炸
+ * - 写入后总长超过 MAX_MEMORY_SIZE 时拒绝写入 (MemoryFullException)，原文件不变
  *
  */
 @Service
@@ -262,6 +265,43 @@ public class MemdirService {
         }
     }
 
+    /** 文件内容与其版本必须一起交给编辑器，不能在 Controller 中分别读取。 */
+    public record MemoryFileSnapshot(String content, Instant updatedAt) {}
+
+    /**
+     * 与本服务的写操作使用同一把锁；读前后校验属性，避免把外部替换后的版本号
+     * 配给旧正文。读取失败必须报错，不能让编辑器把不可读文件当作空文件保存。
+     */
+    public MemoryFileSnapshot readMemoryFileSnapshot() {
+        writeLock.lock();
+        try {
+            for (int attempt = 0; attempt < 3; attempt++) {
+                BasicFileAttributes before;
+                try {
+                    before = Files.readAttributes(memoryFile, BasicFileAttributes.class);
+                } catch (NoSuchFileException missing) {
+                    return new MemoryFileSnapshot("", null);
+                }
+                try {
+                    String content = Files.readString(memoryFile, StandardCharsets.UTF_8);
+                    BasicFileAttributes after = Files.readAttributes(memoryFile, BasicFileAttributes.class);
+                    if (before.lastModifiedTime().equals(after.lastModifiedTime())
+                            && before.size() == after.size()
+                            && Objects.equals(before.fileKey(), after.fileKey())) {
+                        return new MemoryFileSnapshot(content, before.lastModifiedTime().toInstant());
+                    }
+                } catch (NoSuchFileException replaced) {
+                    // An external editor may replace/remove the file while it is being read.
+                }
+            }
+            throw new IOException("Memory file kept changing while being read");
+        } catch (IOException e) {
+            throw new MemdirException("Failed to read memory snapshot", e);
+        } finally {
+            writeLock.unlock();
+        }
+    }
+
     /**
      * 读取记忆并应用截断保护（用于注入系统提示）。
      * <p>
@@ -285,16 +325,20 @@ public class MemdirService {
             log.info("Memory truncated: {} lines → {} lines", lines.length, MAX_ENTRYPOINT_LINES);
         }
 
-        // 2. 按字节截断
+        // 2. 按字节截断（含截断标记在内不超过 MAX_ENTRYPOINT_BYTES）
         byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
         if (bytes.length > MAX_ENTRYPOINT_BYTES) {
-            // 找到最后一个完整行的位置
-            int cutoff = MAX_ENTRYPOINT_BYTES;
+            String marker = "\n<!-- truncated: exceeded " + MAX_ENTRYPOINT_BYTES + " bytes -->";
+            int budget = MAX_ENTRYPOINT_BYTES - marker.getBytes(StandardCharsets.UTF_8).length;
+            // 优先截在最后一个完整行处
+            int cutoff = budget;
             while (cutoff > 0 && bytes[cutoff] != '\n') cutoff--;
-            if (cutoff > 0) {
-                content = new String(bytes, 0, cutoff, StandardCharsets.UTF_8);
-                content += "\n<!-- truncated: exceeded " + MAX_ENTRYPOINT_BYTES + " bytes -->";
+            if (cutoff == 0) {
+                // 无换行：按字节预算硬截断，并退回到 UTF-8 字符边界（跳过续字节 10xxxxxx）
+                cutoff = budget;
+                while (cutoff > 0 && (bytes[cutoff] & 0xC0) == 0x80) cutoff--;
             }
+            content = new String(bytes, 0, cutoff, StandardCharsets.UTF_8) + marker;
             log.info("Memory truncated: {} bytes → {} bytes", bytes.length, cutoff);
         }
 
@@ -316,14 +360,17 @@ public class MemdirService {
             Files.createDirectories(memoryDir);
 
             String existing = readMemories();
-            if (existing.length() + content.length() > MAX_MEMORY_SIZE) {
-                existing = compactMemories(existing);
-                log.info("Memories compacted due to size limit");
-            }
-
             String entry = String.format(
                     "\n<!-- source:%s time:%s category:%s -->\n%s\n",
                     source.name(), Instant.now(), category.tag(), content);
+
+            // 写入后超过上限则拒绝，原文件不变 — 不静默删除旧记忆
+            int total = existing.length() + entry.length();
+            if (total > MAX_MEMORY_SIZE) {
+                throw new MemoryFullException(
+                        "Memory file would exceed limit: " + total + " chars (max " + MAX_MEMORY_SIZE
+                                + "). Delete or consolidate old memories first.");
+            }
 
             Path tempFile = memoryFile.resolveSibling(memoryFile.getFileName() + ".tmp");
             Files.writeString(tempFile, existing + entry,
@@ -374,24 +421,29 @@ public class MemdirService {
      * @throws IllegalArgumentException 规范化内容超过 MAX_MEMORY_SIZE
      */
     public String overwriteFromUserEdit(String rawContent) {
-        return overwriteFromUserEdit(rawContent, null);
+        return persistUserEdit(normalizeRawUserEdit(rawContent), null, false).content();
     }
 
     /**
      * 用户整篇编辑覆盖保存 (带乐观并发基线)。
      * <p>
-     * baseMtime 非 null 时，在 writeLock 内、备份之前比对 MEMORY.md 当前 mtime 与 baseMtime，
-     * 不一致 (或文件已不存在) → 抛 {@link MemdirConflictException}，避免他处的并发写入被静默覆盖；
-     * baseMtime 为 null 时跳过检测 (契约明示行为)。
+     * 在 writeLock 内、备份之前比对 MEMORY.md 当前 mtime 与 baseMtime，不一致 → 抛
+     * {@link MemdirConflictException}。baseMtime 为 null 表示客户端加载时文件不存在：
+     * 此时若文件已存在同样视为冲突，防止两个基于空文件的编辑互相静默覆盖。
      *
      * @param rawContent 用户编辑的原始全文
-     * @param baseMtime  客户端持有的基线 mtime (来自 GET /api/memory/file 的 updatedAt)，null 表示跳过冲突检测
+     * @param baseMtime  客户端持有的基线 mtime (来自 GET /api/memory/file 的 updatedAt)，null 表示“文件不存在”
      * @return 规范化后的实际写入内容
      * @throws IllegalArgumentException 规范化内容超过 MAX_MEMORY_SIZE
-     * @throws MemdirConflictException  baseMtime 与当前文件 mtime 不一致
+     * @throws MemdirConflictException  baseMtime 与当前文件状态不一致
      */
     public String overwriteFromUserEdit(String rawContent, Instant baseMtime) {
-        return persistUserEdit(normalizeRawUserEdit(rawContent), baseMtime);
+        return overwriteFromUserEditSnapshot(rawContent, baseMtime).content();
+    }
+
+    /** 保存并返回本次写入的内容和版本；后续追加不能改变这份响应快照。 */
+    public MemoryFileSnapshot overwriteFromUserEditSnapshot(String rawContent, Instant baseMtime) {
+        return persistUserEdit(normalizeRawUserEdit(rawContent), baseMtime, true);
     }
 
     /**
@@ -405,26 +457,35 @@ public class MemdirService {
      * @throws IllegalArgumentException 规范化内容超过 MAX_MEMORY_SIZE
      */
     public String overwriteEntriesFromUserEdit(List<MemoryEntry> entries) {
-        return overwriteEntriesFromUserEdit(entries, null);
+        return persistUserEdit(normalizeEntries(entries), null, false).content();
     }
 
     /**
      * 用户卡片编辑覆盖保存 (带乐观并发基线)。
      * <p>
-     * baseMtime 语义与 {@link #overwriteFromUserEdit(String, Instant)} 相同:
-     * 非 null 时在 writeLock 内比对当前文件 mtime，不一致 → 抛 {@link MemdirConflictException}；
-     * null 时跳过检测。
+     * baseMtime 语义与 {@link #overwriteFromUserEdit(String, Instant)} 相同 (null 表示“文件不存在”)。
      *
      * @param entries   卡片模式提交的完整条目列表
-     * @param baseMtime 客户端持有的基线 mtime，null 表示跳过冲突检测
+     * @param baseMtime 客户端持有的基线 mtime，null 表示“文件不存在”
      * @return 规范化后的实际写入内容
      * @throws IllegalArgumentException 规范化内容超过 MAX_MEMORY_SIZE
-     * @throws MemdirConflictException  baseMtime 与当前文件 mtime 不一致
+     * @throws MemdirConflictException  baseMtime 与当前文件状态不一致
      */
     public String overwriteEntriesFromUserEdit(List<MemoryEntry> entries, Instant baseMtime) {
+        return overwriteEntriesFromUserEditSnapshot(entries, baseMtime).content();
+    }
+
+    /** 卡片模式的保存快照，语义与整篇模式一致。 */
+    public MemoryFileSnapshot overwriteEntriesFromUserEditSnapshot(List<MemoryEntry> entries, Instant baseMtime) {
+        return persistUserEdit(normalizeEntries(entries), baseMtime, true);
+    }
+
+    /** 卡片条目规范化 (纯文本变换，不触碰磁盘)。 */
+    private String normalizeEntries(List<MemoryEntry> entries) {
         List<MemoryEntry> safe = entries == null ? List.of() : entries;
         String normalized = safe.stream()
                 .filter(Objects::nonNull)
+                // 空白条目被丢弃
                 .filter(e -> e.content() != null && !e.content().isBlank())
                 .map(e -> String.format("<!-- source:%s time:%s category:%s -->\n%s",
                         e.source() != null ? e.source() : MemorySource.USER,
@@ -432,7 +493,7 @@ public class MemdirService {
                         (e.category() != null ? e.category() : MemoryCategory.SEMANTIC).tag(),
                         escapeForgedHeaderMarkers(e.content().trim())))
                 .collect(Collectors.joining("\n\n"));
-        return persistUserEdit(normalized, baseMtime);
+        return normalized;
     }
 
     /**
@@ -480,15 +541,17 @@ public class MemdirService {
     /**
      * 用户编辑覆盖写盘的共享实现: 大小检查 → writeLock 内 [锁内冲突检测] → 备份 MEMORY.md.bak → 临时文件 + ATOMIC_MOVE。
      * <p>
-     * 乐观并发冲突检测 (baseMtime != null 时): 在 writeLock 内、备份之前读取 MEMORY.md 当前 mtime
+     * 乐观并发冲突检测 (checkConflict 时): 在 writeLock 内、备份之前读取 MEMORY.md 当前 mtime
      * (文件不存在视为 null)，与 baseMtime 不一致则抛 {@link MemdirConflictException}。
-     * 检测与写入同锁，消除"锁外检测到取锁写盘"之间被 writeMemory 等并发追加静默覆盖的 TOCTOU 窗口。
+     * baseMtime == null 表示客户端加载时文件不存在。检测与写入同锁，保护本服务实例内的并发写入；
+     * 不提供跨进程事务，基线仍依赖文件系统的 mtime 精度。
      *
-     * @param baseMtime 客户端基线 mtime；null 时跳过检测 (契约明示行为)
+     * @param baseMtime     客户端基线 mtime；null 表示“文件不存在”
+     * @param checkConflict 是否执行冲突检测 (仅内部/测试便捷入口传 false，HTTP 入口必须为 true)
      * @throws IllegalArgumentException 规范化内容超过 MAX_MEMORY_SIZE (不触发 compactMemories)
-     * @throws MemdirConflictException  baseMtime 非 null 且与当前文件 mtime 不一致
+     * @throws MemdirConflictException  baseMtime 与当前文件状态不一致
      */
-    private String persistUserEdit(String normalizedContent, Instant baseMtime) {
+    private MemoryFileSnapshot persistUserEdit(String normalizedContent, Instant baseMtime, boolean checkConflict) {
         if (normalizedContent.length() > MAX_MEMORY_SIZE) {
             throw new IllegalArgumentException(
                     "Memory content too large: " + normalizedContent.length()
@@ -497,14 +560,13 @@ public class MemdirService {
         writeLock.lock();
         try {
             Files.createDirectories(memoryDir);
-            // 锁内乐观并发检测: 基线 mtime 与当前文件不一致 (或文件已不存在) → 拒绝覆盖
-            if (baseMtime != null) {
-                Instant currentMtime = Files.exists(memoryFile)
-                        ? Files.getLastModifiedTime(memoryFile).toInstant() : null;
-                if (currentMtime == null || !currentMtime.equals(baseMtime)) {
-                    throw new MemdirConflictException(
-                            "记忆已在别处被修改 (基线 mtime 与当前 MEMORY.md 不一致)，请重新加载后重试");
-                }
+            // 锁内乐观并发检测: baseMtime == null 表示“客户端看到的是文件不存在”，
+            // 此时若文件已存在同样视为冲突，防止两个基于空文件的编辑互相静默覆盖
+            Instant currentMtime = Files.exists(memoryFile)
+                    ? Files.getLastModifiedTime(memoryFile).toInstant() : null;
+            if (checkConflict && !Objects.equals(currentMtime, baseMtime)) {
+                throw new MemdirConflictException(
+                        "记忆已在别处被修改 (基线与当前 MEMORY.md 不一致)，请重新加载后重试");
             }
             // 覆盖前备份现有文件，便于误操作回滚
             if (Files.exists(memoryFile)) {
@@ -514,10 +576,13 @@ public class MemdirService {
             Path tempFile = memoryFile.resolveSibling(memoryFile.getFileName() + ".tmp");
             Files.writeString(tempFile, normalizedContent,
                     StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            // Capture the version of the exact file being published, before another writer
+            // can replace MEMORY.md. Atomic rename preserves this file's modification time.
+            Instant writtenMtime = Files.getLastModifiedTime(tempFile).toInstant();
             Files.move(tempFile, memoryFile, StandardCopyOption.ATOMIC_MOVE,
                     StandardCopyOption.REPLACE_EXISTING);
             log.info("Memory file overwritten by user edit: length={}", normalizedContent.length());
-            return normalizedContent;
+            return new MemoryFileSnapshot(normalizedContent, writtenMtime);
         } catch (IOException e) {
             log.error("Failed to overwrite memory file: {}", e.getMessage(), e);
             throw new MemdirException("Failed to overwrite memory file", e);
@@ -652,6 +717,13 @@ public class MemdirService {
     }
 
     /**
+     * 解析给定全文为条目列表（供 Controller 用同一份内容生成一致的响应）。
+     */
+    public List<MemoryEntry> parseEntriesOf(String content) {
+        return parseEntries(content);
+    }
+
+    /**
      * 返回所有记忆条目（供外部调用）。
      */
     public List<MemoryEntry> listEntries() {
@@ -693,6 +765,13 @@ public class MemdirService {
         }
     }
 
+    /** 记忆文件已满 — 追加后将超过 MAX_MEMORY_SIZE，写入被拒绝且原文件不变 */
+    public static class MemoryFullException extends RuntimeException {
+        public MemoryFullException(String message) {
+            super(message);
+        }
+    }
+
     /** Memdir 乐观并发冲突异常 — 基线 mtime 与当前文件不一致时抛出 (对应 HTTP 409) */
     public static class MemdirConflictException extends RuntimeException {
         public MemdirConflictException(String message) {
@@ -731,28 +810,36 @@ public class MemdirService {
      * 清理过期记忆。
      */
     public int purgeExpiredMemories() {
-        String content = readMemories();
-        if (content.isEmpty()) return 0;
-        List<MemoryEntry> entries = parseEntries(content);
-        Instant cutoff = Instant.now().minus(Duration.ofDays(MAX_MEMORY_AGE_DAYS));
-        List<MemoryEntry> remaining = entries.stream()
-                .filter(e -> e.timestamp().isAfter(cutoff) || e.timestamp().equals(Instant.EPOCH))
-                .toList();
-        int purged = entries.size() - remaining.size();
-        if (purged > 0) {
-            String updated = remaining.stream()
-                    .map(e -> String.format("<!-- source:%s time:%s category:%s -->\n%s",
-                            e.source().name(), e.timestamp(), e.category().tag(), e.content()))
-                    .collect(Collectors.joining("\n\n"));
-            try {
-                Files.writeString(memoryFile, updated,
-                        StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-                log.info("Purged {} expired memories", purged);
-            } catch (IOException e) {
-                log.error("Failed to purge memories", e);
+        writeLock.lock();
+        try {
+            String content = readMemories();
+            if (content.isEmpty()) return 0;
+            List<MemoryEntry> entries = parseEntries(content);
+            Instant cutoff = Instant.now().minus(Duration.ofDays(MAX_MEMORY_AGE_DAYS));
+            List<MemoryEntry> remaining = entries.stream()
+                    .filter(e -> e.timestamp().isAfter(cutoff) || e.timestamp().equals(Instant.EPOCH))
+                    .toList();
+            int purged = entries.size() - remaining.size();
+            if (purged > 0) {
+                String updated = remaining.stream()
+                        .map(e -> String.format("<!-- source:%s time:%s category:%s -->\n%s",
+                                e.source().name(), e.timestamp(), e.category().tag(), e.content()))
+                        .collect(Collectors.joining("\n\n"));
+                try {
+                    Path tempFile = memoryFile.resolveSibling(memoryFile.getFileName() + ".tmp");
+                    Files.writeString(tempFile, updated,
+                            StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+                    Files.move(tempFile, memoryFile, StandardCopyOption.ATOMIC_MOVE,
+                            StandardCopyOption.REPLACE_EXISTING);
+                    log.info("Purged {} expired memories", purged);
+                } catch (IOException e) {
+                    log.error("Failed to purge memories", e);
+                }
             }
+            return purged;
+        } finally {
+            writeLock.unlock();
         }
-        return purged;
     }
 
     /**
@@ -778,8 +865,8 @@ public class MemdirService {
             sb.append("\n---\n");
             sb.append("Memory categories: USER_PREFERENCE, PROJECT_CONVENTION, ");
             sb.append("CODE_PATTERN, ERROR_SOLUTION, SEMANTIC, TEAM\n");
-            sb.append("To save memory: use MemoryTool with appropriate category\n");
-            sb.append("To search memory: use MemoryTool search with keywords\n");
+            sb.append("To save memory: use the Memory tool with action=write\n");
+            sb.append("To read memory: use the Memory tool with action=read\n");
         }
         return sb.toString();
     }

@@ -55,12 +55,15 @@ public class MemoryCommand implements Command {
                     ## 注意事项
                     <!-- 在此填写项目注意事项 -->
                     """;
-                memoryService.writeMemory(workingDir, template, false);
+                // 仅在不存在时创建，绝不覆盖已有 zhikun.md
+                memoryService.createMemoryIfAbsent(workingDir, template, false);
                 return CommandResult.jsx(Map.of(
                     "action", "memoryCreated",
                     "fileName", "zhikun.md",
                     "workingDir", context.workingDir()
                 ));
+            } catch (java.nio.file.FileAlreadyExistsException e) {
+                return CommandResult.text("zhikun.md 已存在，未做修改。");
             } catch (IOException e) {
                 return CommandResult.error("创建失败: " + e.getMessage());
             }
