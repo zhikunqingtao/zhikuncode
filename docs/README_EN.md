@@ -4,10 +4,11 @@
   <img src="assets/logo.svg" alt="ZhikunCode" width="120" />
   <h1>ZhikunCode</h1>
   <p><strong>Open-Source AI Coding Workspace — Self-Hosted and Browser-Based</strong></p>
-  <p>Agent Delegation · Context Management · Tool Execution and Verification · Multiple Model Providers</p>
+  <p>Run on Your Computer, Continue on Your Phone · Agent Delegation · Context Management · Tool Execution and Verification</p>
 
   <p>
     <a href="#quickstart">Quick Start</a> ·
+    <a href="#mobile-access">Phone Remote Access</a> ·
     <a href="#first-task">First Task</a> ·
     <a href="#-key-features">Key Features</a> ·
     <a href="https://zhikunqingtao.github.io/zhikuncode/#case-study">Case Studies</a> ·
@@ -37,6 +38,10 @@
 ZhikunCode brings **multi-agent delegation, context management, tool execution, and runtime verification** into a self-hosted browser workspace. Models read projects, edit code, run commands, and use actual tool results to decide the next step. Developers can inspect files, diffs, subtasks, and evidence, add instructions during execution, and continue following the task from a desktop or mobile browser.
 
 **You host the runtime and choose the model APIs.** It is intended for development, review, web applications, data analysis, and document deliverables. New sessions default to Full Access (`AUTO_APPROVE`); optional capabilities and deployment boundaries are described below.
+
+> 📱 **Run tasks on your computer. Continue from your phone.** Run ZhikunCode on your Mac, then open the same instance from a phone over 4G/5G or another Wi-Fi network. Select an existing session to add instructions, follow streamed output, and handle pending approvals. Tasks keep using your computer's projects, tools, and execution environment; no dedicated phone app is required.
+>
+> **[Enable phone remote access →](#mobile-access)** · Once the local services and dependencies are ready, one script command creates a password-protected temporary HTTPS URL, without your own domain or a cloud server. Intended for personal, on-demand use; keep the computer online and awake. See [verification scope and known limitations (Chinese)](mobile-access.md#验收与验证范围).
 
 > 📱 **[Watch the phone recording: a game brief → online play → Android installation and gameplay](#mobile-to-android)** · Full 4m35s recording, live game, development report, APK, and source code.
 
@@ -264,6 +269,7 @@ In the eight-tool review, ZhikunCode identified a mismatch between tool output `
 | | Feature | Description |
 |---|---|---|
 | 🌐 | **Full Browser-Based Control** | Deploy once, then manage everything from any device's browser — permission approvals, plan discussions, task management. Works on mobile. No client installation needed |
+| 📱 | **Run Locally, Continue on Your Phone** | [Start the local services and enable phone access](#mobile-access), then select the same session over a cellular or another Wi-Fi network to add instructions, follow streamed output, and handle pending approvals. Reuses the computer's projects and tools, with password authentication and origin checks. Personal, on-demand access; the computer must remain online |
 | 🧭 | **Conversation Workbench** | The development workbench shows conversations, tools, files, Git, terminal, browser, and Agent details. Compact, Standard, and Full Process display modes change presentation. The Simple/Development view switch is currently hidden |
 | 📦 | **Current Delivery Projection** | Correlates the current request, final response, deliverables, pending Interactions, activities, and Evidence through the current Root Run and its recursive child Runs, preventing results from different executions from being presented as one delivery. Legacy Sessions that cannot be correlated exactly are explicitly marked as compatibility fallbacks |
 | 🔀 | **Session Context Merge** | Bring summaries, text records of persisted activity, and temporary artifacts with established ownership from 2–5 idle sessions into a new session. Source sessions are preserved; the new session waits for your next instruction and does not automatically merge project code |
@@ -337,6 +343,7 @@ Prepare an API key for a model that supports tool calling. These commands target
 |---|---|---|
 | **Base Docker deployment** | Start with chat, file, and command tools; the image bundles the frontend, so the host needs neither Java nor Node | Docker and Compose V2 → commands below; [enable Python capabilities separately](#docker-python) |
 | **Three local services** | Use the workspace, edit code, run browser and HTTP verification, and debug the application | JDK 21, Node.js 22.x (at least 22.13) or 24+, Python 3.11/3.12 → [Step-by-step setup and health checks](#local-setup) |
+| **Local runtime + phone remote access** | Run tasks on your computer and follow the same session from your phone | Local services + Caddy/cloudflared → [Phone access steps](#mobile-access) |
 
 The base Docker deployment builds an image from your local checkout. Its startup check recognizes OpenAI, DashScope, Token Plan, DeepSeek, Moonshot, Zhipu, ZenMux, or the legacy `LLM_API_KEY`. **If you only have a Kimi Code, MiniMax, or OpenRouter key, use the [three-service local setup](#local-setup)**; the container startup check does not yet recognize those three settings.
 
@@ -425,6 +432,48 @@ Java should report `UP`, Python `ok`, and the frontend HTTP `200`. Also inspect 
 After installing dependencies, `./start.sh` is a shorter option, but it clears fixed ports, terminates matching old Java processes, and removes `backend/target`. It prefers `python-service/venv`, then `.venv`, then system Python. Use the manual route on shared development machines. The Vite development proxy is for local use and should not be exposed directly to remote networks.
 
 </details>
+
+<a id="mobile-access"></a>
+#### Access Your Local Instance from a Phone (macOS)
+
+Use your phone's browser to access your own local instance over 4G/5G or another Wi-Fi network. Complete the [local dependency and model setup](#local-setup) first. Run all commands below from the repository root:
+
+```bash
+# Install the mobile access dependencies once (Homebrew must already be installed)
+brew install caddy cloudflared
+
+# Terminal 1: start the local Java, Python, and frontend services; skip if already running
+bash start.sh
+```
+
+`start.sh` clears old processes on fixed ports, so do not rerun it when your services are already working. On shared development machines, use the manual startup steps above. Open [localhost:5173](http://localhost:5173) on your computer and confirm the application works, then open another terminal:
+
+```bash
+# Terminal 2: build the production frontend and create a password-protected temporary URL
+bash scripts/mobile-access/start-mobile.sh --build
+```
+
+On your phone, open the HTTPS URL printed by the script and enter the displayed username and password. Select an existing session or create a new one. The connection is **phone → Cloudflare Quick Tunnel → local Caddy → ZhikunCode**. Pages, APIs, and WebSocket connections share the authenticated gateway; the phone loads the production build.
+
+<p align="center">
+  <a href="assets/mobile-access/phone-4g.png"><img src="assets/mobile-access/phone-4g.png" width="300" alt="A real phone accessing locally hosted ZhikunCode over 4G, showing conversation history and the message composer" /></a><br>
+  <sub>Real phone access over 4G: conversation history and the message composer. Click to view the original screenshot.</sub>
+</p>
+
+```bash
+# Subsequent starts: reuse the production build; add --build after frontend changes
+bash scripts/mobile-access/start-mobile.sh
+
+# Check dependencies, build output, proxy configuration, and local services only
+# This does not generate credentials or enable public access
+bash scripts/mobile-access/start-mobile.sh --check
+```
+
+Keep the tunnel terminal open and your Mac online with its lid open. Press `Ctrl+C` in that terminal to close public access; the local application services continue running. The URL may change after a restart. Credentials, each run's URL, and diagnostic logs are stored in the Git-ignored `scripts/mobile-access/.runtime/` directory. To rotate the password, stop the running tunnel first, delete `auth.env` from that directory, then restart the script. This new tool location generates independent credentials and does not reuse the older tool's password.
+
+**This provides personal remote access with local operating privileges.** An authenticated user can direct the Agent to access files and run commands within the runtime account's permissions and existing tool policies. Sessions still default to `AUTO_APPROVE`. Switch to `DEFAULT` when you want approval prompts, but ordinary workspace edits may still be approved automatically. Keep the URL and credentials private, and do not separately expose ports 8080, 8000, or 5173. Company devices should use approved VPN/zero-trust access and identity authentication.
+
+Known attachment limitation: choosing a local file or native folder on the phone may open a picker on the Mac, requiring you to complete the selection there. See the [full deployment guide, acceptance checks, and enterprise access boundaries (Chinese)](mobile-access.md) for details.
 
 #### Using the Local Workbench
 
@@ -805,6 +854,7 @@ Evaluate the deployment against your own boundaries: runtime OS account, accessi
 | Long-running tasks | Context management, staged recovery, multi-agent delegation, and result handoff; see [Architecture](#how-it-works) and [Agents](#agents) |
 | Behavior and delivery checks | Browser/HTTP assertions, actual tool output, per-operation changes, and evidence and artifact records; verification requires its dependencies and actual execution |
 | Browser control | Follow tasks, add instructions, handle approvals, and inspect results from desktop or mobile; reconnecting restores records, while a backend restart does not resume execution |
+| Your local Agent, accessible from your phone | Reuse local code, tools, and sessions over an authenticated temporary HTTPS URL across networks, without a separate cloud server or phone app; see the [startup example](#mobile-access) |
 | Extensions | Markdown Skills, Java SPI plugins, MCP services, and configurable models, each with its own setup requirements |
 
 ---
@@ -1521,13 +1571,15 @@ Type `/` or press `Ctrl+K` in the Web UI to open the command palette with fuzzy 
 
 The browser is ZhikunCode's control surface. After deployment, desktop and mobile browsers can access conversations, task state, file views, and approval interactions without installing an IDE extension.
 
+**Your own computer can host the runtime.** Follow the [local startup and phone access steps](#mobile-access), then select an existing session on your phone to follow its tasks. Projects and tools continue running on the computer. This lets you check progress, add instructions, and handle pending approvals while away from your desk. Keep the computer online; lock-screen push notifications are not currently available.
+
 See the [phone recording of a game delivered through an ECS deployment](#mobile-to-android): online play, a visual development report, APK download, and installation and gameplay on the same phone.
 
 ### Why This Matters
 
 | Scenario | ZhikunCode workflow |
 |---|---|
-| Follow a running task away from a desktop | Open the same instance from a mobile browser over an authorized network |
+| Follow a local task away from your desk | Enable [personal phone access](#mobile-access), then check progress, add instructions, and handle pending approvals over cellular data while the computer stays online |
 | Use a hosted development workspace | Select an authorized directory on the server; files and execution remain there |
 | Review work from another device | Reconnect to saved session history, run events, and pending interactions |
 | Share a deployment | Configure entry authentication and deployment boundaries first; instance access is not complete per-user isolation |

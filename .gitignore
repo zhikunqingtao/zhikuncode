@@ -68,6 +68,11 @@ access-token
 *.pem
 *.key
 
+# 手机远程入口：只跟踪脚本和配置，不跟踪凭据、临时地址与日志
+/scripts/mobile-access/.runtime/
+/scripts/mobile-access/auth.env
+/scripts/mobile-access/log/
+
 # ZhikuCode 本地记忆文件
 zhikun.local.md
 

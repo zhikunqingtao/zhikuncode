@@ -1,0 +1,97 @@
+{
+	admin off
+	auto_https off
+	persist_config off
+}
+
+# Personal, single-user entry: anyone with the credentials can operate the
+# configured projects and Agent with the host account's permissions. The entry
+# is not an OS sandbox. Credentials are generated locally by start-mobile.sh.
+
+(java_headers) {
+	header_up Host localhost:8080
+	header_up Origin http://localhost:8080
+	flush_interval -1
+}
+
+(java_upstream) {
+	reverse_proxy http://127.0.0.1:8080 {
+		import java_headers
+		# Authenticated requests intentionally have desktop-equivalent behavior.
+		# This includes native file pickers, which may open a dialog on the host
+		# instead of the phone. See the documented attachment limitation.
+		header_up -Forwarded
+		header_up -X-Forwarded-For
+		header_up -X-Forwarded-Host
+		header_up -X-Forwarded-Proto
+		header_up -X-Real-Ip
+	}
+}
+
+(python_upstream) {
+	reverse_proxy http://127.0.0.1:8000 {
+		header_up Host 127.0.0.1:8000
+		header_up Origin http://localhost:8080
+		header_up -Forwarded
+		header_up -X-Forwarded-For
+		header_up -X-Forwarded-Host
+		header_up -X-Forwarded-Proto
+		header_up -X-Real-Ip
+		flush_interval -1
+	}
+}
+
+http://:{$MOBILE_ENTRY_PORT:15173} {
+	bind 127.0.0.1
+	encode zstd gzip
+	header X-Frame-Options DENY
+
+	basic_auth {
+		{$MOBILE_AUTH_USERNAME} {$MOBILE_AUTH_PASSWORD_HASH}
+	}
+
+	route {
+		# Validate the original Origin before rewriting it for the Java backend.
+		# Public browser requests must match HTTPS + the full inbound Host, port
+		# included. Only localhost/127.0.0.1 may use HTTP for local verification.
+		# No-Origin clients still require Basic Auth. "null" is not an exception.
+		@crossSiteOrigin expression `{http.request.header.Origin} != "" && {http.request.header.Origin} != "https://" + {http.request.hostport} && !(({http.request.host} == "127.0.0.1" || {http.request.host} == "localhost") && {http.request.header.Origin} == "http://" + {http.request.hostport})`
+		respond @crossSiteOrigin 403
+
+		# Keep Java-owned file routes ahead of the broader Python prefix.
+		handle /api/files/pick* {
+			import java_upstream
+		}
+		handle /api/files/reference-capability* {
+			import java_upstream
+		}
+		handle /api/files/search* {
+			import java_upstream
+		}
+
+		handle /api/git* {
+			import python_upstream
+		}
+		handle /api/files* {
+			import python_upstream
+		}
+		handle /api/code-quality* {
+			import python_upstream
+		}
+		handle /api/analysis* {
+			import python_upstream
+		}
+		handle /api/* {
+			import java_upstream
+		}
+		handle /ws/* {
+			import java_upstream
+		}
+
+		handle {
+			root * "{$MOBILE_STATIC_ROOT}"
+			try_files {path} /index.html
+			file_server
+		}
+	}
+}
