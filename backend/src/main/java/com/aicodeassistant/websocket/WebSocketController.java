@@ -937,13 +937,12 @@ public class WebSocketController implements PermissionNotifier {
         }
         String replaceAfterMessageId = historyMessages.isEmpty()
                 ? null : historyMessages.getLast().uuid();
-        Set<String> historicalMessageIds = historyMessages.stream()
-                .map(Message::uuid).collect(java.util.stream.Collectors.toSet());
-
         QueryLoopState state = new QueryLoopState(new ArrayList<>(historyMessages), toolUseContext);
 
         SessionMessagePersistence.attach(
                 state, sessionManager, sessionId, "WebSocket");
+        List<String> appendedMessageIds = new ArrayList<>();
+        state.addMessageListener(message -> appendedMessageIds.add(message.uuid()));
 
         // 组装用户消息 content：TextBlock + 所有 ImageBlock（多模态）
         List<ContentBlock> userContent = new ArrayList<>();
@@ -970,10 +969,7 @@ public class WebSocketController implements PermissionNotifier {
             List<Message> committedMessages;
             try {
                 committedMessages = loadPersistedMessagesAfter(
-                        sessionId, replaceAfterMessageId,
-                        result.messages().stream()
-                                .filter(message -> !historicalMessageIds.contains(message.uuid()))
-                                .toList());
+                        sessionId, replaceAfterMessageId, appendedMessageIds);
             } catch (RuntimeException persistenceNotConfirmed) {
                 // An empty authoritative tail is an explicit recovery signal. The
                 // frontend keeps its live projection and reloads the durable session
@@ -1013,7 +1009,7 @@ public class WebSocketController implements PermissionNotifier {
     private List<Message> loadPersistedMessagesAfter(
             String sessionId,
             String replaceAfterMessageId,
-            List<Message> expectedMessages) {
+            List<String> expectedMessageIds) {
         SessionData persisted = sessionManager.loadSession(sessionId)
                 .orElseThrow(() -> new IllegalStateException("session not found after query completion"));
         List<Message> messages = persisted.messages();
@@ -1029,16 +1025,16 @@ public class WebSocketController implements PermissionNotifier {
             if (anchor < 0) throw new IllegalStateException("completion anchor missing from persisted session");
             start = anchor + 1;
         }
-        if (expectedMessages.isEmpty()) {
+        if (expectedMessageIds.isEmpty()) {
             throw new IllegalStateException("query completion contains no expected messages");
         }
-        if (messages.size() - start < expectedMessages.size()) {
+        if (messages.size() - start < expectedMessageIds.size()) {
             throw new IllegalStateException("persisted completion is missing expected messages");
         }
         List<Message> committed = new ArrayList<>(
-                messages.subList(start, start + expectedMessages.size()));
-        for (int i = 0; i < expectedMessages.size(); i++) {
-            if (!expectedMessages.get(i).uuid().equals(committed.get(i).uuid())) {
+                messages.subList(start, start + expectedMessageIds.size()));
+        for (int i = 0; i < expectedMessageIds.size(); i++) {
+            if (!expectedMessageIds.get(i).equals(committed.get(i).uuid())) {
                 throw new IllegalStateException("persisted completion order does not match query result");
             }
         }

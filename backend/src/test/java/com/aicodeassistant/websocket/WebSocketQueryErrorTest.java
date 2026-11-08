@@ -7,10 +7,14 @@ import com.aicodeassistant.command.CommandType;
 import com.aicodeassistant.config.oss.OssPublishProperties;
 import com.aicodeassistant.context.ProjectContextService;
 import com.aicodeassistant.engine.QueryEngine;
+import com.aicodeassistant.engine.QueryLoopState;
 import com.aicodeassistant.llm.LlmApiException;
 import com.aicodeassistant.llm.LlmProviderRegistry;
 import com.aicodeassistant.llm.ModelRegistry;
 import com.aicodeassistant.model.Usage;
+import com.aicodeassistant.model.ContentBlock;
+import com.aicodeassistant.model.Message;
+import com.aicodeassistant.model.SystemMessageType;
 import com.aicodeassistant.permission.PermissionModeManager;
 import com.aicodeassistant.prompt.EffectiveSystemPromptBuilder;
 import com.aicodeassistant.service.ProjectWorkspaceService;
@@ -25,6 +29,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import javax.sql.DataSource;
@@ -32,11 +37,15 @@ import java.net.ConnectException;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -59,6 +68,8 @@ class WebSocketQueryErrorTest {
     private SessionExecutionGate gate;
     private DataSource dataSource;
     private final List<Map<String, Object>> delivered = new CopyOnWriteArrayList<>();
+    private final List<Message> persistedMessages = new CopyOnWriteArrayList<>();
+    private UnaryOperator<List<Message>> readback = UnaryOperator.identity();
 
     @BeforeEach
     @SuppressWarnings("unchecked")
@@ -78,9 +89,27 @@ class WebSocketQueryErrorTest {
         SessionManager sessions = mock(SessionManager.class);
         dataSource = mock(DataSource.class);
         when(sessions.dataSourceIdentity()).thenReturn(dataSource);
-        when(sessions.loadSession(SESSION)).thenReturn(Optional.of(new SessionData(
-                SESSION, MODEL, workspace.toString(), "Test", "active", List.of(), Map.of(),
+        when(sessions.loadSession(SESSION)).thenAnswer(invocation -> Optional.of(new SessionData(
+                SESSION, MODEL, workspace.toString(), "Test", "active",
+                List.copyOf(readback.apply(new ArrayList<>(persistedMessages))), Map.of(),
                 Usage.zero(), 0, null, Instant.EPOCH, Instant.EPOCH)));
+        doAnswer(invocation -> {
+            String id = invocation.getArgument(0);
+            String role = invocation.getArgument(2);
+            Message stored = switch (role) {
+                case "user" -> new Message.UserMessage(id, Instant.EPOCH,
+                        invocation.getArgument(3), null, null, invocation.getArgument(7));
+                case "assistant" -> new Message.AssistantMessage(id, Instant.EPOCH,
+                        invocation.getArgument(3), invocation.getArgument(4),
+                        new Usage(invocation.getArgument(5), invocation.getArgument(6), 0, 0));
+                case "system" -> new Message.SystemMessage(id, Instant.EPOCH,
+                        invocation.getArgument(3), null);
+                default -> throw new AssertionError("Unexpected persisted role: " + role);
+            };
+            persistedMessages.add(stored);
+            return null;
+        }).when(sessions).addMessageWithId(anyString(), eq(SESSION), anyString(), any(),
+                nullable(String.class), anyInt(), anyInt(), nullable(Map.class));
         ProjectWorkspaceService projectWorkspaces = mock(ProjectWorkspaceService.class);
         when(projectWorkspaces.requireCurrentBinding(workspace.toString())).thenReturn(workspace);
         WebSocketSessionManager transports = mock(WebSocketSessionManager.class);
@@ -88,7 +117,7 @@ class WebSocketQueryErrorTest {
         when(transports.getPrincipalsForSession(eq(SESSION), anyBoolean())).thenReturn(Set.of(PRINCIPAL));
         SimpMessagingTemplate messaging = mock(SimpMessagingTemplate.class);
         doAnswer(invocation -> {
-            delivered.add(Map.copyOf((Map<String, Object>) invocation.getArgument(2)));
+            delivered.add(new LinkedHashMap<>((Map<String, Object>) invocation.getArgument(2)));
             return null;
         }).when(messaging).convertAndSendToUser(eq(PRINCIPAL), eq("/queue/messages"), any(Object.class));
         Command command = mock(Command.class);
@@ -172,6 +201,76 @@ class WebSocketQueryErrorTest {
                 .containsEntry("retryable", false)
                 .containsEntry("message", "模型响应中断，上游结果未知。为避免重复请求，已停止自动重试。");
         assertThat(payload.toString()).doesNotContain("PRIVATE_", "RAW_TLS_DETAIL");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void completionContainsTheFullPersistedTailAfterWorkingMessagesChange() {
+        Map<String, Object> completion = deliverCompactedCompletion("unchanged");
+
+        List<Map<String, Object>> committed = (List<Map<String, Object>>) completion.get("committedMessages");
+        assertThat(committed).isNotEmpty().hasSize(4);
+        assertThat(committed).extracting(message -> message.get("uuid")).containsExactly(
+                persistedMessages.get(2).uuid(), "appended-assistant", "appended-result", "appended-final");
+        assertThat(committed).extracting(message -> message.get("type"))
+                .containsExactly("user", "assistant", "user", "assistant");
+        assertThat(committed.toString()).contains("Durable result", "Durable final answer")
+                .doesNotContain("COMPACT_OMISSION", "transient-omission", "history-user", "history-assistant");
+        assertThat(persistedMessages).extracting(Message::uuid).doesNotContain("transient-omission");
+    }
+
+    @ParameterizedTest(name = "{0} database readback preserves the empty-tail recovery fallback")
+    @ValueSource(strings = {"missing", "reordered"})
+    void unconfirmedPersistedTailStillFallsBackToEmptyCommittedMessages(String corruption) {
+        Map<String, Object> completion = deliverCompactedCompletion(corruption);
+
+        assertThat(completion).containsEntry("committedMessages", List.of());
+        // The mock really accepted all appends; only the completion readback is corrupted.
+        assertThat(persistedMessages).hasSize(6);
+    }
+
+    private Map<String, Object> deliverCompactedCompletion(String corruption) {
+        persistedMessages.add(new Message.UserMessage("history-user", Instant.EPOCH,
+                List.of(new ContentBlock.TextBlock("Earlier request")), null, null));
+        persistedMessages.add(new Message.AssistantMessage("history-assistant", Instant.EPOCH,
+                List.of(new ContentBlock.TextBlock("Earlier answer")), "end_turn", Usage.zero()));
+        when(engine.execute(any(), any(), any())).thenAnswer(invocation -> {
+            QueryLoopState state = invocation.getArgument(1);
+            Message.AssistantMessage assistant = new Message.AssistantMessage("appended-assistant", Instant.EPOCH,
+                    List.of(new ContentBlock.ToolUseBlock("query-call", "Grep",
+                            new ObjectMapper().createObjectNode().put("pattern", "A"))), "tool_use", Usage.zero());
+            Message.UserMessage toolResult = new Message.UserMessage("appended-result", Instant.EPOCH,
+                    List.of(new ContentBlock.ToolResultBlock("query-call", "Durable result", false)), null, null);
+            Message.AssistantMessage answer = new Message.AssistantMessage("appended-final", Instant.EPOCH,
+                    List.of(new ContentBlock.TextBlock("Durable final answer")), "end_turn", Usage.zero());
+            state.addMessage(assistant);
+            state.addMessage(toolResult);
+            state.addMessage(answer);
+
+            // Compaction changes the API working set, never the successful append history.
+            state.setMessages(List.of(new Message.SystemMessage("transient-omission", Instant.EPOCH,
+                    "COMPACT_OMISSION: temporary working-set marker", SystemMessageType.COMPACT_OMISSION), answer));
+            readback = messages -> {
+                if ("missing".equals(corruption)) messages.remove(4);
+                if ("reordered".equals(corruption)) Collections.swap(messages, 3, 4);
+                return messages;
+            };
+            return new QueryEngine.QueryResult(state.getMessages(), Usage.zero(), "end_turn", null, 6);
+        });
+
+        controller.handleUserMessage(new ClientMessage.UserMessagePayload("test", List.of(), List.of()),
+                () -> PRINCIPAL);
+        await().atMost(Duration.ofSeconds(5)).until(() -> !gate.isBusy(dataSource, SESSION)
+                && delivered.stream().anyMatch(message -> "message_complete".equals(message.get("type"))));
+        List<Map<String, Object>> completions = delivered.stream()
+                .filter(message -> "message_complete".equals(message.get("type"))).toList();
+        assertThat(completions).hasSize(1);
+        Map<String, Object> completion = completions.getFirst();
+        assertThat(completion).containsEntry("stopReason", "end_turn")
+                .containsEntry("replaceAfterMessageId", "history-assistant");
+        assertThat(queryErrors()).isEmpty();
+        verify(engine).execute(any(), any(), any());
+        return completion;
     }
 
     private Map<String, Object> deliverError(Exit exit, RuntimeException error) {
