@@ -19,7 +19,7 @@
 # ----------------------------------------------------------------------------
 
 # ----------------------------------------------------------------------------
-# Apache Maven Wrapper startup batch script, version @@project.version@@
+# Apache Maven Wrapper startup batch script, version 3.3.4
 #
 # Required ENV vars:
 # ------------------
@@ -220,9 +220,9 @@ else
   log "Couldn't find $wrapperJarPath, downloading it ..."
 
   if [ -n "$MVNW_REPOURL" ]; then
-    wrapperUrl="$MVNW_REPOURL/org/apache/maven/wrapper/maven-wrapper/@@project.version@@/maven-wrapper-@@project.version@@.jar"
+    wrapperUrl="$MVNW_REPOURL/org/apache/maven/wrapper/maven-wrapper/3.3.4/maven-wrapper-3.3.4.jar"
   else
-    wrapperUrl="https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/@@project.version@@/maven-wrapper-@@project.version@@.jar"
+    wrapperUrl="https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.3.4/maven-wrapper-3.3.4.jar"
   fi
   while IFS="=" read -r key value; do
     case "$key" in wrapperUrl)
@@ -290,7 +290,7 @@ done <"$MAVEN_PROJECTBASEDIR/.mvn/wrapper/maven-wrapper.properties"
 if [ -n "$wrapperSha256Sum" ]; then
   wrapperSha256Result=false
   if command -v sha256sum >/dev/null; then
-    if echo "$wrapperSha256Sum  $wrapperJarPath" | sha256sum -c --strict - >/dev/null 2>&1; then
+    if echo "$wrapperSha256Sum  $wrapperJarPath" | sha256sum -c - >/dev/null 2>&1; then
       wrapperSha256Result=true
     fi
   elif command -v shasum >/dev/null; then
