@@ -30,7 +30,9 @@ const CHIP_SHELL =
 
 /** chip 内嵌的透明原生 select（承担全部交互与键盘可达性） */
 const OVERLAY_SELECT =
-    'absolute inset-0 w-full cursor-pointer opacity-0 disabled:cursor-not-allowed';
+    'absolute inset-0 w-full cursor-pointer opacity-0 disabled:cursor-not-allowed [appearance:base-select] ' +
+    '[&::picker(select)]:[appearance:base-select] [&::picker(select)]:rounded-xl [&::picker(select)]:border-hairline ' +
+    '[&::picker(select)]:bg-surface2 [&::picker(select)]:p-1 [&::picker(select)]:text-t1 [&::picker(select)]:shadow-e4';
 
 /** 权限模式 chip：Shield + 当前模式名 + ChevronDown */
 export const PermissionModeChip: React.FC<{ mobile?: boolean }> = ({ mobile = false }) => {
@@ -108,7 +110,7 @@ export const ModelChip: React.FC<{ mobile?: boolean; mobileRow?: boolean }> = ({
                     </option>
                 )}
                 {availableModels.map(m => (
-                    <option key={m.id} value={m.id}>{m.displayName}</option>
+                    <option key={m.id} value={m.id} className="rounded-lg px-3 py-1.5 checked:bg-accent2-soft focus:bg-hover2">{m.displayName}</option>
                 ))}
             </select>
         </span>
