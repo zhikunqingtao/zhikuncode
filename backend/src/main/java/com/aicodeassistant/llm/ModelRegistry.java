@@ -31,9 +31,9 @@ public class ModelRegistry {
         entry("claude-sonnet-4-6", caps("claude-sonnet-4-6", "Claude Sonnet 4.6",  16384, 200000, true, true, true, 10, true, 0.003, 0.015)),
         entry("claude-haiku-4-5", caps("claude-haiku-4-5", "Claude Haiku 4.5", 8192, 200000, true, false, true, 10, true, 0.0008, 0.004)),
          // Anthropic via ZenMux (anthropic/ 前缀 = zenmux 中转，1M ctx · 128K 最大输出，我们保守设 64K)
-        // 价格为网关 per-M 定价换算 per-1k（2026-10-12 核对）：Fable $10/$50、Opus 5.5 $4/$20、Sonnet 5.5 $2/$10、Haiku 5.5 $0.1/$0.5
+        // 价格为网关 per-M 定价换算 per-1k：Fable 5.2 $8/$40、Opus 5.5 $4/$20、Sonnet 5.5 $2/$10、Haiku 5.5 $0.1/$0.5
         // ZenMux Claude 上游可能拒绝 URL 图片源；由现有 UserImageTranscoder 在请求副本中转为 Base64。
-        entry("anthropic/claude-fable-5.1", cacheCaps("anthropic/claude-fable-5.1", "Claude Fable 5.1（ZenMux）", 64000, 1000000, true, false, true, 5, true, 0.010, 0.050, ModelCapabilities.ImageInputMode.BASE64_ONLY)),
+        entry("anthropic/claude-fable-5.2", cacheCaps("anthropic/claude-fable-5.2", "Claude Fable 5.2（ZenMux）", 64000, 1000000, true, true, true, 5, true, 0.008, 0.040, ModelCapabilities.ImageInputMode.BASE64_ONLY)),
         entry("anthropic/claude-opus-5.5",   cacheCaps("anthropic/claude-opus-5.5",   "Claude Opus 5.5（ZenMux）",   64000, 1000000, true, false, true, 5, true, 0.004, 0.020, ModelCapabilities.ImageInputMode.BASE64_ONLY)),
         entry("anthropic/claude-sonnet-5.5", cacheCaps("anthropic/claude-sonnet-5.5", "Claude Sonnet 5.5（ZenMux）", 64000, 1000000, true, false, true, 5, true, 0.002, 0.010, ModelCapabilities.ImageInputMode.BASE64_ONLY)),
         entry("anthropic/claude-haiku-5.5",  cacheCaps("anthropic/claude-haiku-5.5",  "Claude Haiku 5.5（ZenMux）",  64000, 1000000, true, false, true, 5, true, 0.0001, 0.0005, ModelCapabilities.ImageInputMode.BASE64_ONLY)),
@@ -41,8 +41,8 @@ public class ModelRegistry {
         entry("openai/gpt-5.6-sol",   caps("openai/gpt-5.6-sol",   "OpenAI GPT-5.6 Sol",   128000, 1050000, true,  true, true, 4, true, 0.030, 0.180)),
         entry("openai/gpt-6-astra",   caps("openai/gpt-6-astra",   "GPT-6 Astra（ZenMux）",   128000, 1050000, true,  true, true, 4, true, 0.010, 0.050)),
         // Google via ZenMux (google/ 前缀 = zenmux 中转)
-        // Gemini 4 Argon：2026-10-17 核对 ZenMux 目录与 Responses 探测（1M 上下文 / 65536 输出 / 图片 + 工具 + Responses 推理）。
-        entry("google/gemini-4-argon",     caps("google/gemini-4-argon",     "Gemini 4 Argon（ZenMux）",   65536, 1048576, true, true, true, 4, true, 0.002, 0.010)),
+        // Gemini 4 Carbon：应用输出预算 65536；ZenMux 于 2026-11-12 展示的折后输入/输出价格为每百万 token $2/$10。
+        entry("google/gemini-4-carbon",     caps("google/gemini-4-carbon",     "Gemini 4 Carbon（ZenMux）",   65536, 1048576, true, true, true, 4, true, 0.002, 0.010)),
         // xAI via ZenMux
         // Grok 4.7：2026-09-21 核对 ZenMux 目录与 Responses 探测；价格取基础档 $2/$6 per M 换算 per-1k，≥200K 提示按 $4/$12 计且界面估算不按阶梯（同 GPT-6 Astra）。
         entry("x-ai/grok-4.7", caps("x-ai/grok-4.7", "xAI Grok 4.7（ZenMux）", 65536, 500000, true, true, true, 4, true, 0.002, 0.006)),
@@ -73,6 +73,8 @@ public class ModelRegistry {
                 true, true, true, 8, true, 0.0, 0.0, 3.5, true, ModelCapabilities.ImageInputMode.BASE64_ONLY)),
         entry("qwen-turbo",        caps("qwen-turbo",        "Qwen Turbo",         8192, 1000000,  true, false, false, 0, true, 0.0003, 0.0006)),
         entry("qwen3.8-max-0902", caps("qwen3.8-max-0902", "Qwen 3.8 Max 0902", 65536, 1000000, true, true, true, 4, true, 0.009, 0.054)),
+        // Token Plan 预览；65536 为思考与正文合计的应用预算，4 张为应用图片上限，订阅用量不折算金额。
+        entry("qwen4-max-preview", caps("qwen4-max-preview", "Qwen 4 Max Preview（百炼）", 65536, 1000000, true, true, true, 4, true, 0.0, 0.0)),
         entry("qwen3.8-max", caps("qwen3.8-max", "Qwen 3.8 Max（百炼）", 65536, 1000000, true, true, true, 4, true, 0.009, 0.054)),
         // Qwen3.8-Flash 官方规格（help.aliyun.com/zh/model-studio/qwen3-8-flash）：
         // 1M 上下文 / 131072 最大输出 / 多模态（Image/Text/Video 输入）/ 支持思考模式（最大思维链 262144）

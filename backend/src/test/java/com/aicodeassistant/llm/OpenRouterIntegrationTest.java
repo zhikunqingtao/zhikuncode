@@ -43,7 +43,7 @@ class OpenRouterIntegrationTest {
         assertThat(response.defaultModel()).isEqualTo(MODEL);
         assertThat(response.models()).filteredOn(model -> MODEL.equals(model.id())).singleElement().satisfies(model -> {
             assertThat(model.id()).isEqualTo(MODEL);
-            assertThat(model.displayName()).isEqualTo("Claude Fable 5.1（OpenRouter）");
+            assertThat(model.displayName()).isEqualTo("Claude Fable 5.2（OpenRouter）");
             assertThat(model.contextWindow()).isEqualTo(1000000);
             assertThat(model.maxOutputTokens()).isEqualTo(128000);
             assertThat(model.supportsImages()).isTrue();
@@ -51,8 +51,8 @@ class OpenRouterIntegrationTest {
             assertThat(model.supportsStreaming()).isTrue();
             assertThat(model.supportsToolUse()).isTrue();
             assertThat(model.supportsThinking()).isTrue();
-            assertThat(model.costPer1kInput()).isEqualTo(0.010);
-            assertThat(model.costPer1kOutput()).isEqualTo(0.050);
+            assertThat(model.costPer1kInput()).isEqualTo(0.008);
+            assertThat(model.costPer1kOutput()).isEqualTo(0.040);
         });
     }
 
@@ -84,13 +84,13 @@ class OpenRouterIntegrationTest {
         var zenmux = new OpenAiCompatibleProvider("zenmux", new ObjectMapper(),
                 new LlmHttpProperties(new LlmHttpProperties.PoolProperties(2, 30), 10, 10, true),
                 new ApiKeyRotationManager("key"), "key", "https://zenmux.ai/api/v1",
-                "openai/gpt-6-astra", List.of("openai/gpt-6-astra", "anthropic/claude-fable-5.1"));
+                "openai/gpt-6-astra", List.of("openai/gpt-6-astra", "anthropic/claude-fable-5.2"));
         for (var order : List.of(List.of(router, zenmux), List.of(zenmux, router))) {
             var registry = new LlmProviderRegistry(order, new MockEnvironment());
             var models = new ModelRegistry(registry);
             assertThat(registry.getProvider(OpenRouterModels.FABLE)).isSameAs(router);
             assertThat(registry.getProvider("openai/gpt-6-astra")).isSameAs(zenmux);
-            assertThat(registry.getProvider("anthropic/claude-fable-5.1")).isSameAs(zenmux);
+            assertThat(registry.getProvider("anthropic/claude-fable-5.2")).isSameAs(zenmux);
             assertThat(models.getContextWindowForModel(OpenRouterModels.FABLE)).isEqualTo(1000000);
             assertThat(models.getMaxOutputTokensForModel(OpenRouterModels.FABLE)).isEqualTo(128000);
             assertThat(models.getCapabilities(OpenRouterModels.FABLE).supportsThinking()).isTrue();
@@ -101,7 +101,7 @@ class OpenRouterIntegrationTest {
     @Test
     void rawOpenRouterConfigurationIsNormalizedBeforeRegistration() {
         var config = new LlmProvidersProperties.ProviderConfig("key", "https://openrouter.ai/api/v1",
-                "anthropic/claude-fable-5.1", List.of("anthropic/claude-fable-5.1"));
+                "anthropic/claude-fable-5.2", List.of("anthropic/claude-fable-5.2"));
         var provider = providers(config).getFirst();
         assertThat(provider.getSupportedModels()).containsExactly(OpenRouterModels.FABLE);
         assertThat(provider.getDefaultModel()).isEqualTo(OpenRouterModels.FABLE);

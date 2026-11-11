@@ -106,7 +106,7 @@ class OpenRouterReasoningTest {
             assertThat(provider(server).chatSync(OpenRouterModels.FABLE, "system", "hello", 4096, null, 5000))
                     .isEqualTo("OK");
             var body = mapper.readTree(server.takeRequest(5, TimeUnit.SECONDS).getBody().readUtf8());
-            assertThat(body.path("model").asText()).isEqualTo("anthropic/claude-fable-5.1");
+            assertThat(body.path("model").asText()).isEqualTo("anthropic/claude-fable-5.2");
             assertThat(body.path("reasoning").path("effort").asText()).isEqualTo("max");
         }
     }

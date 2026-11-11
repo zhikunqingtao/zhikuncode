@@ -26,7 +26,7 @@ class UserImageRequestIntegrationTest {
     @ParameterizedTest
     @CsvSource({
             "moonshot-test, kimi-k3.1-pro-highspeed, false",
-            "zenmux, anthropic/claude-fable-5.1, false",
+            "zenmux, anthropic/claude-fable-5.2, false",
             "zenmux, anthropic/claude-opus-5.5, false",
             "zenmux, anthropic/claude-sonnet-5.5, false",
             "zenmux, anthropic/claude-haiku-5.5, false",
@@ -91,8 +91,8 @@ class UserImageRequestIntegrationTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
-            "claude-sonnet-4-6", "claude-haiku-4-5", "openrouter/anthropic/claude-fable-5.1",
-            "openai/gpt-5.6-sol", "openai/gpt-6-astra", "google/gemini-4-argon",
+            "claude-sonnet-4-6", "claude-haiku-4-5", "openrouter/anthropic/claude-fable-5.2",
+            "openai/gpt-5.6-sol", "openai/gpt-6-astra", "google/gemini-4-carbon",
             "x-ai/grok-4.7", "meta/muse-wonder-1.0", "deepseek-v4.1-flash"
     })
     void otherModelRoutesKeepUrlAttachmentsWithoutDownloading(String model) throws Exception {

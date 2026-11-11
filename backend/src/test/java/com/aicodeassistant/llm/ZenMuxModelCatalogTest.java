@@ -21,9 +21,9 @@ class ZenMuxModelCatalogTest {
                 .thenThrow(new IllegalArgumentException("not configured"));
         ModelRegistry registry = new ModelRegistry(providers);
 
-        assertCaps(registry, "anthropic/claude-fable-5.1", 64_000, 1_000_000,
-                false, 5, .010, .050);
-        assertThat(registry.getCapabilities("anthropic/claude-fable-5.1").supportsCache())
+        assertCaps(registry, "anthropic/claude-fable-5.2", 64_000, 1_000_000,
+                true, 5, .008, .040);
+        assertThat(registry.getCapabilities("anthropic/claude-fable-5.2").supportsCache())
                 .isTrue();
         assertCaps(registry, "anthropic/claude-opus-5.5", 64_000, 1_000_000,
                 false, 5, .004, .020);
@@ -39,7 +39,7 @@ class ZenMuxModelCatalogTest {
                 .isTrue();
         assertCaps(registry, "openai/gpt-6-astra", 128_000, 1_050_000,
                 true, 4, .010, .050);
-        assertCaps(registry, "google/gemini-4-argon", 65_536, 1_048_576,
+        assertCaps(registry, "google/gemini-4-carbon", 65_536, 1_048_576,
                 true, 4, .002, .010);
         assertCaps(registry, "x-ai/grok-4.7", 65_536, 500_000,
                 true, 4, .002, .006);
@@ -60,7 +60,7 @@ class ZenMuxModelCatalogTest {
                 .bind("llm", Bindable.of(LlmProvidersProperties.class)).get();
 
         assertThat(configs.providers().get("zenmux").models())
-                .contains("google/gemini-4-argon", "meta/muse-wonder-1.0", "x-ai/grok-4.7")
+                .contains("google/gemini-4-carbon", "meta/muse-wonder-1.0", "x-ai/grok-4.7")
                 .doesNotContain("google/gemini-3.8-flash", "x-ai/grok-4.6");
     }
 

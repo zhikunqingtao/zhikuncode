@@ -52,7 +52,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
     private static final Set<String> ZENMUX_RESPONSES_MODELS = Set.of(
             "openai/gpt-5.6-sol",
             "openai/gpt-6-astra",
-            "google/gemini-4-argon",
+            "google/gemini-4-carbon",
             "x-ai/grok-4.7",
             "meta/muse-wonder-1.0");
     /** ZenMux 订阅配额错误（402 quote_exceeded / 404 model_not_available）的 Key 冷却时长 */
@@ -213,6 +213,9 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         if (isBailianGlm(model)) return true;
         if (isKimiCodeModel(model) || isKimiMoonshotModel(model)) return true;
         if (isOpenRouter() && OpenRouterModels.capabilities(model) != null) return true;
+        // Both gateways enable thinking by default for these models.
+        if (isBailianTokenPlan() && "qwen4-max-preview".equals(model)) return true;
+        if (isZenMuxClaude(model) && "anthropic/claude-fable-5.2".equals(model)) return true;
         if (usesResponsesApi(model)) return true;
         ModelCapabilities caps = MODEL_CAPABILITIES.get(model);
         if (caps != null) return caps.supportsThinking();
@@ -1815,7 +1818,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         private static final Set<String> DELTA_FIELDS = Set.of("text", "signature", "summary", "data");
         // Only these configured models have a documented preserved-thinking reset contract.
         private static final Set<String> RESET_MODELS = Set.of(
-                "anthropic/claude-fable-5.1", "anthropic/claude-opus-5.5",
+                "anthropic/claude-fable-5.2", "anthropic/claude-opus-5.5",
                 "anthropic/claude-sonnet-5.5", "anthropic/claude-haiku-5.5");
         private final ObjectMapper mapper;
         private final String prefix;

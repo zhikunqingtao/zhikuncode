@@ -34,7 +34,7 @@ class ZenMuxResponsesProviderTest {
                 new ApiKeyRotationManager("key"), "key",
                 server.url("/v1").toString(), "anthropic/claude-fable-5.1",
                 List.of("anthropic/claude-fable-5.1", "openai/gpt-5.6-sol",
-                        "openai/gpt-6-astra", "google/gemini-4-argon",
+                        "openai/gpt-6-astra", "google/gemini-4-carbon",
                         "x-ai/grok-4.7", "meta/muse-wonder-1.0"));
     }
 
@@ -112,7 +112,7 @@ class ZenMuxResponsesProviderTest {
     @Test
     void disabledReasoningUsesNoneAndEnabledUsesHighOnResponsesPath() throws Exception {
         enqueue(simpleCompletion());
-        run("google/gemini-4-argon", List.of(
+        run("google/gemini-4-carbon", List.of(
                 Map.of("role", "user", "content", "hello")), List.of(),
                 new ThinkingConfig.Disabled());
         JsonNode disabled = mapper.readTree(server.takeRequest().getBody().readUtf8());
@@ -128,7 +128,7 @@ class ZenMuxResponsesProviderTest {
 
     @Test
     void newCatalogModelsUseResponsesApiWithHighEffort() throws Exception {
-        for (String model : List.of("meta/muse-wonder-1.0", "google/gemini-4-argon")) {
+        for (String model : List.of("meta/muse-wonder-1.0", "google/gemini-4-carbon")) {
             enqueue(simpleCompletion());
             run(model, List.of(
                     Map.of("role", "user", "content", "hello")), List.of(),

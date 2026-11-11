@@ -273,7 +273,7 @@ class QueryEngineMediaRecoveryTest {
         @ParameterizedTest
         @ValueSource(strings = {
                 "kimi-k3.1-pro-highspeed",
-                "anthropic/claude-fable-5.1", "anthropic/claude-opus-5.5",
+                "anthropic/claude-fable-5.2", "anthropic/claude-opus-5.5",
                 "anthropic/claude-sonnet-5.5", "anthropic/claude-haiku-5.5"
         })
         void realBudgetAndCapabilitiesAcceptLargePngWithoutChangingHistory(String model) throws Exception {

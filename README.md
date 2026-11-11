@@ -687,7 +687,7 @@ LLM_PROVIDER_ZHIPU_API_KEY=your-zhipu-api-key-here
 # MiniMax
 LLM_PROVIDER_MINIMAX_API_KEY=your-minimax-api-key-here
 
-# ZenMux（默认目录：Fable 5.1 / Opus 5.5 / Sonnet 5.5 / Haiku 5.5 / GPT-5.6 Sol / GPT-6 Astra / Gemini 4 Argon / Grok 4.7 / Muse Wonder 1.0）
+# ZenMux（默认目录：Fable 5.2 / Opus 5.5 / Sonnet 5.5 / Haiku 5.5 / GPT-5.6 Sol / GPT-6 Astra / Gemini 4 Carbon / Grok 4.7 / Muse Wonder 1.0）
 # 支持逗号分隔多 Key：订阅 Key（sk-ss-v1- 前缀）放前优先、按量 Key（sk-ai-v1- 前缀）兜底；
 # 402 quote_exceeded / 404 model_not_available 时自动冷却 15 分钟切换到下一把 Key。
 LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
@@ -704,12 +704,12 @@ LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 | 服务商 | Base URL | 推荐模型 | 备注 |
 |--------|----------|----------|------|
 | **千问/DashScope** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen3.8-max-0902 | 按量计费 Provider，国内直连 |
-| **阿里云百炼 Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max / qwen3.8-flash / deepseek-v4.1-flash | 使用独立 `sk-sp-` Key；模型均标注“百炼”。V4.1 Flash 为服务端 `app.model.default`、快速查询及图片兜底的默认值；前端初始模型偏好仍为 `qwen3.8-max-0902`，用户配置／会话选择优先 |
+| **阿里云百炼 Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max / qwen3.8-flash / deepseek-v4.1-flash / bailian/glm-5.3 / qwen4-max-preview | 使用独立 `sk-sp-` Key；模型均标注“百炼”。V4.1 Flash 为服务端 `app.model.default`、快速查询及图片兜底的默认值；前端初始模型偏好仍为 `qwen3.8-max-0902`，用户配置／会话选择优先 |
 | **DeepSeek** | `https://api.deepseek.com/v1` | deepseek-flash | 国内直连；DeepSeek V4.1 Flash，支持思考、工具调用与原生视觉 |
 | **Moonshot（Kimi）** | `https://api.moonshot.cn/v1` | kimi-k3.1-pro-highspeed | 独立 Moonshot 按量 Key；当前注册表配置视觉和 1M 上下文 |
 | **Zhipu（智谱 GLM）** | `https://open.bigmodel.cn/api/paas/v4` | glm-5.3, glm-5.3-flash | 国内直连 |
 | **MiniMax** | `https://api.minimax.chat/v1` | MiniMax-M3 | 百万上下文 |
-| **ZenMux（多模型中转）** | `https://zenmux.ai/api/v1` | anthropic/claude-fable-5.1 / anthropic/claude-opus-5.5 / anthropic/claude-sonnet-5.5 / anthropic/claude-haiku-5.5 / openai/gpt-5.6-sol / openai/gpt-6-astra / google/gemini-4-argon / x-ai/grok-4.7 / meta/muse-wonder-1.0 | OpenAI/Google/xAI/Meta 模型使用 Responses 推理与工具续轮；支持图片 |
+| **ZenMux（多模型中转）** | `https://zenmux.ai/api/v1` | anthropic/claude-fable-5.2 / anthropic/claude-opus-5.5 / anthropic/claude-sonnet-5.5 / anthropic/claude-haiku-5.5 / openai/gpt-5.6-sol / openai/gpt-6-astra / google/gemini-4-carbon / x-ai/grok-4.7 / meta/muse-wonder-1.0 | OpenAI/Google/xAI/Meta 模型使用 Responses 推理与工具续轮；支持图片 |
 | **OpenAI** | `https://api.openai.com/v1` | gpt-5.6-sol / gpt-5.4-mini | 需要外网访问 |
 | **本地 Ollama** | `http://localhost:11434/v1` | 支持所有 Ollama 模型（ollama/*） | 完全离线 |
 
@@ -1891,7 +1891,7 @@ ZhikunCode 提供多种可视化能力，展示 AI 编程过程中的数据和�
 | `LLM_PROVIDER_KIMI_CODE_MODELS` | — | k3.1-pro-highspeed,kimi-for-coding | Kimi Code 订阅模型列表；权限与额度取决于账号 |
 | `LLM_PROVIDER_ZHIPU_API_KEY` | — | — | 智谱 GLM API Key |
 | `LLM_PROVIDER_OPENROUTER_API_KEY` | — | — | OpenRouter API Key；留空不注册此 Provider |
-| `LLM_PROVIDER_OPENROUTER_MODELS` | — | openrouter/anthropic/claude-fable-5.1 | OpenRouter 可用模型列表（逗号分隔） |
+| `LLM_PROVIDER_OPENROUTER_MODELS` | — | openrouter/anthropic/claude-fable-5.2 | OpenRouter 可用模型列表（逗号分隔） |
 | `LLM_DEFAULT_MODEL` | — | deepseek-v4.1-flash | 默认模型（百炼 Token Plan）；不可用时回退到当前 Provider 的有效默认模型 |
 | `LLM_FAST_MODEL` | — | deepseek-v4.1-flash | 快速辅助查询与分类器回退优先使用的模型 |
 | `LLM_COMPACT_MODEL` | — | deepseek-flash | 对话压缩摘要模型（DeepSeek 官方直连），独立于快速模型选择 |
@@ -1914,9 +1914,9 @@ OpenAI Docker 配置回归：`python3 scripts/test-openai-docker-config.py`（�
 
 DeepSeek 仅接入 Search，`include_content` 默认关闭。收到 HTTP 408、429、500–599 时最多 3 次尝试（含首次），单次请求 45 秒超时；可解析的 `Retry-After` 与本地退避取较大值，单次等待超过 30 秒或无法解析时停止重试，不提前重发。重试产生的等待会计入整个工具调用的实际耗时，但不占用单次请求的超时。
 
-**OpenRouter / Claude Fable 5.1：** 在 `.env` 中填写 `LLM_PROVIDER_OPENROUTER_API_KEY`，重启服务后从模型列表选择 `Claude Fable 5.1（OpenRouter）`（`openrouter/anthropic/claude-fable-5.1`）。如需设为默认模型，增加 `LLM_DEFAULT_MODEL=openrouter/anthropic/claude-fable-5.1`。本地启动与 Docker Compose 均支持上述变量。
+**OpenRouter / Claude Fable 5.2：** 在 `.env` 中填写 `LLM_PROVIDER_OPENROUTER_API_KEY`，重启服务后从模型列表选择 `Claude Fable 5.2（OpenRouter）`（`openrouter/anthropic/claude-fable-5.2`）。如需设为默认模型，增加 `LLM_DEFAULT_MODEL=openrouter/anthropic/claude-fable-5.2`。本地启动与 Docker Compose 均支持上述变量。
 
-本次模型目录精简由项目主动进行，不表示供应商下架。OpenRouter **Provider 默认模型**从免费预览的 Union Alpha 改为收费的 Claude Fable 5.1，仅影响使用该 Provider 默认回退的请求；全局 `app.model.default` 与 `LLM_DEFAULT_MODEL` 的默认值仍为百炼 `deepseek-v4.1-flash`。实际计费以服务商账单为准。
+本次模型目录精简由项目主动进行，不表示供应商下架。OpenRouter **Provider 默认模型**为 Claude Fable 5.2，仅影响使用该 Provider 默认回退的请求；全局 `app.model.default` 与 `LLM_DEFAULT_MODEL` 的默认值仍为百炼 `deepseek-v4.1-flash`。实际计费以服务商账单为准。
 
 接入复用现有 `llm.providers.*` → `MultiProviderConfiguration` → `OpenAiCompatibleProvider` 链路，端点为 `https://openrouter.ai/api/v1`，沿用流式输出、图片输入、工具调用和 Key 轮换。能力由 `ModelRegistry` 统一提供给 `/api/models`，无需新增前端分支。
 
@@ -1924,15 +1924,15 @@ DeepSeek 仅接入 Search，`include_content` 默认关闭。收到 HTTP 408、4
 
 | 界面名称 | ZhikunCode 模型 ID | 上游模型 ID | 上下文 / 最大输出 |
 |---|---|---|---|
-| Claude Fable 5.1（OpenRouter） | `openrouter/anthropic/claude-fable-5.1` | `anthropic/claude-fable-5.1` | 1,000,000 / 128,000 |
+| Claude Fable 5.2（OpenRouter） | `openrouter/anthropic/claude-fable-5.2` | `anthropic/claude-fable-5.2` | 1,000,000 / 128,000 |
 
-Claude Fable 5.1 使用已有 OpenRouter Key，默认请求 `reasoning.effort=max`、`exclude=false`，不受通用 thinking 关闭开关降档；这是仓库注册与请求配置，账号可用性和上游规格需向服务商核实。上下文按注册表窗口配置，仍保留现有输出预留、压缩阈值和安全余量。单次输出预算由现有运行配置决定，上表是仓库登记上限，并非对服务商规格的独立保证，也非每次都生成该长度。
+Claude Fable 5.2 使用已有 OpenRouter Key，默认请求 `reasoning.effort=max`、`exclude=false`，不受通用 thinking 关闭开关降档；这是仓库注册与请求配置，账号可用性和上游规格需向服务商核实。上下文按注册表窗口配置，仍保留现有输出预留、压缩阈值和安全余量。单次输出预算由现有运行配置决定，上表是仓库登记上限，并非对服务商规格的独立保证，也非每次都生成该长度。
 
-内部 ID 的 `openrouter/` 前缀只用于路由、能力、会话与重试隔离，发送请求时去掉；现有 ZenMux 的 `openai/gpt-6-astra`、`anthropic/claude-fable-5.1` 路由保持不变。OpenRouter 的模型列表若填写官方原始 ID `anthropic/claude-fable-5.1`，启动时也会自动规范化并去重，避免注册顺序决定渠道。其他重复 ID 明确拒绝歧义路由。
+内部 ID 的 `openrouter/` 前缀只用于路由、能力、会话与重试隔离，发送请求时去掉；现有 ZenMux 的 `openai/gpt-6-astra`、`anthropic/claude-fable-5.2` 路由保持不变。OpenRouter 的模型列表若填写官方原始 ID `anthropic/claude-fable-5.2`，启动时也会自动规范化并去重，避免注册顺序决定渠道。其他重复 ID 明确拒绝歧义路由。
 
 流式 thinking 使用现有展示事件；`reasoning_details`（含签名/加密数据）按原序保存，并仅对同 Provider、同模型的后续请求回传，切换渠道或模型不复用。费用展示采用仓库登记的参考价格，实际计费以账号和服务商账单为准。
 
-原配置记录日期：2026-09-17；模型与服务商页面可能变化。参考：[Fable](https://openrouter.ai/anthropic/claude-fable-5.1)、[Reasoning 文档](https://openrouter.ai/docs/guides/best-practices/reasoning-tokens)。
+原配置记录日期：2026-09-17；模型与服务商页面可能变化。参考：[Fable](https://openrouter.ai/anthropic/claude-fable-5.2)、[Reasoning 文档](https://openrouter.ai/docs/guides/best-practices/reasoning-tokens)。
 
 **单 Provider 配置（向后兼容）：**
 
@@ -1971,7 +1971,7 @@ Claude Fable 5.1 使用已有 OpenRouter Key，默认请求 `reasoning.effort=ma
 | `ZHIKUN_COORDINATOR_MODE` | — | 0 | Feature flag，启用协调器模式（0=关闭，1=开启） |
 | `ZHIKUN_DELETE_CONFIRM_CODE` | — | 空 | 删除会话二次确认验证码；配置后 Web 删除会话须输入该验证码，未配置保持原确认流程 |
 | `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.8-max-0902 | 按量计费 DashScope 可用模型列表（逗号分隔；实际目录可动态扩展） |
-| `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` | — | qwen3.8-max,qwen3.8-flash,deepseek-v4.1-flash,bailian/glm-5.3 | 百炼 Token Plan Provider 可用模型列表；与普通 DashScope、DeepSeek 直连配置相互独立 |
+| `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` | — | qwen3.8-max,qwen3.8-flash,deepseek-v4.1-flash,bailian/glm-5.3,qwen4-max-preview | 百炼 Token Plan Provider 可用模型列表；与普通 DashScope、DeepSeek 直连配置相互独立 |
 | `LLM_PROVIDER_DEEPSEEK_MODELS` | — | deepseek-flash | DeepSeek 可用模型列表；默认使用 V4.1 Flash（逗号分隔） |
 | `LLM_PROVIDER_MOONSHOT_MODELS` | — | kimi-k3.1-pro-highspeed | Moonshot 可用模型列表（逗号分隔） |
 | `LLM_PROVIDER_ZHIPU_MODELS` | — | glm-5.3,glm-5.3-flash | 智谱 GLM 可用模型列表（逗号分隔） |

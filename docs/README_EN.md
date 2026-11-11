@@ -1892,7 +1892,7 @@ Use [`.env.example`](../.env.example) as the template; complete defaults are def
 | `LLM_PROVIDER_KIMI_CODE_MODELS` | — | k3.1-pro-highspeed,kimi-for-coding | Kimi K3.1 Pro Highspeed / K2.8 Preview subscription IDs |
 | `LLM_PROVIDER_ZHIPU_API_KEY` | — | — | Zhipu GLM API Key |
 | `LLM_PROVIDER_OPENROUTER_API_KEY` | — | — | OpenRouter API Key; leave empty to skip registering this Provider |
-| `LLM_PROVIDER_OPENROUTER_MODELS` | — | openrouter/anthropic/claude-fable-5.1 | Available OpenRouter models (comma-separated) |
+| `LLM_PROVIDER_OPENROUTER_MODELS` | — | openrouter/anthropic/claude-fable-5.2 | Available OpenRouter models (comma-separated) |
 | `LLM_DEFAULT_MODEL` | — | deepseek-v4.1-flash | Bailian Token Plan default; falls back to an active Provider default when unavailable |
 | `LLM_FAST_MODEL` | — | deepseek-v4.1-flash | Preferred fast-query model and classifier fallback |
 | `LLM_COMPACT_MODEL` | — | deepseek-flash | Summary model (direct DeepSeek), configured independently of the fast model |
@@ -1915,9 +1915,9 @@ Set `WEB_SEARCH_BACKEND=deepseek` and restart to enable paid search. `auto` does
 
 For the explicit DeepSeek backend, only DeepSeek Search is integrated; `include_content` is off by default. Received HTTP 408, 429, and 500–599 responses may be retried, with at most 3 attempts including the first and a 45-second timeout per request. The retry delay is the greater of a parseable `Retry-After` and local backoff; an unparseable non-empty value, or a single wait above 30 seconds, stops retries instead of retrying early. Retry waits count toward the tool call's wall-clock time but do not consume the per-request timeout.
 
-**OpenRouter / Claude Fable 5.1:** Set `LLM_PROVIDER_OPENROUTER_API_KEY` in `.env`, restart the service, then select `Claude Fable 5.1（OpenRouter）` (`openrouter/anthropic/claude-fable-5.1`) from the model list. To make it the default model, add `LLM_DEFAULT_MODEL=openrouter/anthropic/claude-fable-5.1`. Both local startup and Docker Compose support these variables.
+**OpenRouter / Claude Fable 5.2:** Set `LLM_PROVIDER_OPENROUTER_API_KEY` in `.env`, restart the service, then select `Claude Fable 5.2（OpenRouter）` (`openrouter/anthropic/claude-fable-5.2`) from the model list. To make it the default model, add `LLM_DEFAULT_MODEL=openrouter/anthropic/claude-fable-5.2`. Both local startup and Docker Compose support these variables.
 
-This project deliberately reduces duplicate model choices; this does not indicate supplier retirement. The OpenRouter **provider default** changes from the free Union Alpha preview to paid Claude Fable 5.1, affecting requests that use this provider default fallback. The global defaults of `app.model.default` and `LLM_DEFAULT_MODEL` remain Bailian `deepseek-v4.1-flash`. Billing estimates and upstream limits should be checked against the chosen account.
+This project deliberately reduces duplicate model choices; this does not indicate supplier retirement. The OpenRouter **provider default** is Claude Fable 5.2, affecting requests that use this provider default fallback. The global defaults of `app.model.default` and `LLM_DEFAULT_MODEL` remain Bailian `deepseek-v4.1-flash`. Billing estimates and upstream limits should be checked against the chosen account.
 
 Integration reuses the existing `llm.providers.*` → `MultiProviderConfiguration` → `OpenAiCompatibleProvider` chain with the endpoint `https://openrouter.ai/api/v1`, keeping streaming output, image input, tool calls, and key rotation. Capabilities are exposed uniformly by `ModelRegistry` via `/api/models`, with no new frontend branches.
 
@@ -1925,15 +1925,15 @@ Integration reuses the existing `llm.providers.*` → `MultiProviderConfiguratio
 
 | Display name | ZhikunCode model ID | Upstream model ID | Context / Max output |
 |---|---|---|---|
-| Claude Fable 5.1（OpenRouter） | `openrouter/anthropic/claude-fable-5.1` | `anthropic/claude-fable-5.1` | 1,000,000 / 128,000 |
+| Claude Fable 5.2（OpenRouter） | `openrouter/anthropic/claude-fable-5.2` | `anthropic/claude-fable-5.2` | 1,000,000 / 128,000 |
 
-Claude Fable 5.1 uses the existing OpenRouter key and requests `reasoning.effort=max` with `exclude=false` by default, and is not downgraded by the global thinking-off switch; These are repository request settings, not an independent guarantee of current upstream specifications or account access. Context follows the registered window, while the existing output reservation, compaction thresholds, and safety margins still apply. The per-run output budget is determined by the current runtime configuration; the table lists repository limits, not independently verified provider ceilings or the length generated every time.
+Claude Fable 5.2 uses the existing OpenRouter key and requests `reasoning.effort=max` with `exclude=false` by default, and is not downgraded by the global thinking-off switch; These are repository request settings, not an independent guarantee of current upstream specifications or account access. Context follows the registered window, while the existing output reservation, compaction thresholds, and safety margins still apply. The per-run output budget is determined by the current runtime configuration; the table lists repository limits, not independently verified provider ceilings or the length generated every time.
 
-The `openrouter/` prefix of internal IDs is only used for routing, capabilities, sessions, and retry isolation, and is stripped when sending requests; existing ZenMux routes for `openai/gpt-6-astra` and `anthropic/claude-fable-5.1` stay unchanged. If the official raw ID `anthropic/claude-fable-5.1` appears in the OpenRouter model list, it is normalized and deduplicated at startup so registration order never decides the channel. Any other duplicate IDs are explicitly rejected as ambiguous routing.
+The `openrouter/` prefix of internal IDs is only used for routing, capabilities, sessions, and retry isolation, and is stripped when sending requests; ZenMux uses the unprefixed IDs `openai/gpt-6-astra` and `anthropic/claude-fable-5.2`. If the official raw ID `anthropic/claude-fable-5.2` appears in the OpenRouter model list, it is normalized and deduplicated at startup so registration order never decides the channel. Any other duplicate IDs are explicitly rejected as ambiguous routing.
 
 Streaming thinking uses the existing display events; `reasoning_details` (including signed/encrypted data) are stored in order and only replayed to subsequent requests of the same Provider and model—never reused across channels or models. The registry's pricing values are estimates; consult the provider for current billing, account limits, and context-dependent prices.
 
-Original configuration record dated 2026-09-17; provider specifications may change. References: [Fable](https://openrouter.ai/anthropic/claude-fable-5.1), [Reasoning docs](https://openrouter.ai/docs/guides/best-practices/reasoning-tokens).
+Original configuration record dated 2026-09-17; provider specifications may change. References: [Fable](https://openrouter.ai/anthropic/claude-fable-5.2), [Reasoning docs](https://openrouter.ai/docs/guides/best-practices/reasoning-tokens).
 
 **Single-Provider Configuration (Backward Compatible):**
 
