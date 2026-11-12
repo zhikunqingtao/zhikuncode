@@ -27,17 +27,17 @@ services:
       - LLM_PROVIDER_OPENAI_MODELS=${LLM_PROVIDER_OPENAI_MODELS:-gpt-6-astra}
       - LLM_PROVIDER_DASHSCOPE_API_KEY=${LLM_PROVIDER_DASHSCOPE_API_KEY:-}
       - LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY=${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY:-}
-      - LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS=${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS:-qwen3.8-max,qwen3.8-flash,deepseek-v4.1-flash,bailian/glm-5.3,qwen4-max-preview}
+      - LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS=${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS:-deepseek-v4.1-flash,bailian/glm-5.3,qwen4-max-preview}
       - LLM_PROVIDER_DEEPSEEK_API_KEY=${LLM_PROVIDER_DEEPSEEK_API_KEY:-}
       - LLM_PROVIDER_DEEPSEEK_MODELS=${LLM_PROVIDER_DEEPSEEK_MODELS:-deepseek-flash}
       - LLM_PROVIDER_MOONSHOT_API_KEY=${LLM_PROVIDER_MOONSHOT_API_KEY:-}
       - LLM_PROVIDER_KIMI_CODE_API_KEY=${LLM_PROVIDER_KIMI_CODE_API_KEY:-}
-      - LLM_PROVIDER_KIMI_CODE_MODELS=${LLM_PROVIDER_KIMI_CODE_MODELS:-k3.1-pro-highspeed,kimi-for-coding}
+      - LLM_PROVIDER_KIMI_CODE_MODELS=${LLM_PROVIDER_KIMI_CODE_MODELS:-k3.1-pro-highspeed}
       - LLM_PROVIDER_ZHIPU_API_KEY=${LLM_PROVIDER_ZHIPU_API_KEY:-}
-      - LLM_PROVIDER_ZHIPU_MODELS=${LLM_PROVIDER_ZHIPU_MODELS:-glm-5.3,glm-5.3-flash}
+      - LLM_PROVIDER_ZHIPU_MODELS=${LLM_PROVIDER_ZHIPU_MODELS:-glm-5.3}
       - LLM_PROVIDER_MINIMAX_API_KEY=${LLM_PROVIDER_MINIMAX_API_KEY:-}
       - LLM_PROVIDER_ZENMUX_API_KEY=${LLM_PROVIDER_ZENMUX_API_KEY:-}
-      - LLM_PROVIDER_ZENMUX_MODELS=${LLM_PROVIDER_ZENMUX_MODELS:-anthropic/claude-fable-5.2,anthropic/claude-opus-5.5,anthropic/claude-sonnet-5.5,anthropic/claude-haiku-5.5,openai/gpt-5.6-sol,openai/gpt-6-astra,google/gemini-4-carbon,x-ai/grok-4.7,meta/muse-wonder-1.0}
+      - LLM_PROVIDER_ZENMUX_MODELS=${LLM_PROVIDER_ZENMUX_MODELS:-anthropic/claude-fable-5.2,anthropic/claude-opus-5.5,anthropic/claude-sonnet-5.5,anthropic/claude-haiku-5.5,openai/gpt-6-astra,google/gemini-4-carbon,x-ai/grok-4.7,meta/muse-wonder-1.0}
       - LLM_PROVIDER_OPENROUTER_API_KEY=${LLM_PROVIDER_OPENROUTER_API_KEY:-}
       - LLM_PROVIDER_OPENROUTER_MODELS=${LLM_PROVIDER_OPENROUTER_MODELS:-openrouter/anthropic/claude-fable-5.2}
       - LLM_FAST_MODEL=${LLM_FAST_MODEL:-deepseek-v4.1-flash}
@@ -54,7 +54,7 @@ services:
       - LLM_API_KEY=${LLM_API_KEY:-}
       - LLM_BASE_URL=${LLM_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
       - LLM_DEFAULT_MODEL=${LLM_DEFAULT_MODEL:-deepseek-v4.1-flash}
-      - LLM_MODELS=${LLM_MODELS:-}
+      - LLM_MODELS=${LLM_MODELS:-qwen3.8-max-0902,qwen-turbo,qwen-coder-plus}
       # ---- Web Search ----
       - WEB_SEARCH_BACKEND=${WEB_SEARCH_BACKEND:-auto}
       - WEB_SEARCH_DEEPSEEK_API_KEY=${WEB_SEARCH_DEEPSEEK_API_KEY:-}

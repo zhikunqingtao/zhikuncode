@@ -46,8 +46,7 @@ class ZenMuxModelCatalogTest {
         assertCaps(registry, "meta/muse-wonder-1.0", 128_000, 1_048_576,
                 true, 4, .004, .020);
 
-        assertThat(registry.getCapabilities("openai/gpt-5.6-sol").supportsThinking())
-                .isTrue();
+        assertThat(registry.isKnownModel("openai/gpt-5.6-sol")).isFalse();
     }
 
     @Test
@@ -61,7 +60,7 @@ class ZenMuxModelCatalogTest {
 
         assertThat(configs.providers().get("zenmux").models())
                 .contains("google/gemini-4-carbon", "meta/muse-wonder-1.0", "x-ai/grok-4.7")
-                .doesNotContain("google/gemini-3.8-flash", "x-ai/grok-4.6");
+                .doesNotContain("google/gemini-3.8-flash", "x-ai/grok-4.6", "openai/gpt-5.6-sol");
     }
 
     private static void assertCaps(ModelRegistry registry, String id,

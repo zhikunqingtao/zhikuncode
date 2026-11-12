@@ -151,6 +151,7 @@ public class LlmProviderRegistry {
 
         // 启动早期或测试环境可能尚无 Provider；保留非空返回契约。
         return configuredDefaultModel != null && !configuredDefaultModel.isBlank()
+                && !LlmProvidersProperties.isRemovedModel(configuredDefaultModel)
                 ? configuredDefaultModel : "deepseek-v4.1-flash";
     }
 

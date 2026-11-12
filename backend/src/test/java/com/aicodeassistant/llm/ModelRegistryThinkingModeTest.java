@@ -18,7 +18,6 @@ import static org.mockito.Mockito.lenient;
  *   <li>deepseek-v4.1-flash: contextWindow=1000000, maxOutputTokens=393216, supportsThinking=true</li>
  *   <li>qwen-turbo (对照): supportsThinking=false</li>
  *   <li>deepseek-flash: V4.1 Flash 的思考、视觉、工具与上下文能力</li>
- *   <li>glm-5.3-flash: 1M 上下文 / 128K 输出 / 强制思考 / 50 张图片上限（官方规格）</li>
  * </ul>
  */
 @DisplayName("ModelRegistry M0-a/b Thinking 模式参数测试")
@@ -140,17 +139,9 @@ class ModelRegistryThinkingModeTest {
     }
 
     @Test
-    @DisplayName("tc013: glm-5.3-flash 官方规格 — 1M 上下文 / 128K 输出 / 强制思考 / 50 张图片")
-    void tc013_glm53Flash_officialSpec() {
-        ModelCapabilities caps = modelRegistry.getCapabilities("glm-5.3-flash");
-
-        assertThat(caps.contextWindow()).isEqualTo(1_048_576);
-        assertThat(caps.maxOutputTokens()).isEqualTo(131_072);
-        assertThat(caps.supportsThinking()).isTrue();
-        assertThat(caps.supportsImages()).isTrue();
-        assertThat(caps.maxImages()).isEqualTo(50);
-        assertThat(caps.supportsToolUse()).isTrue();
-        assertThat(caps.supportsStreaming()).isTrue();
+    @DisplayName("GLM-5.3-Flash 已从内置目录移除")
+    void glm53FlashIsNotRegistered() {
+        assertThat(modelRegistry.isKnownModel("glm-5.3-flash")).isFalse();
     }
 
 }

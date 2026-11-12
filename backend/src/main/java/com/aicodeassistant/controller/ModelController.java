@@ -1,16 +1,19 @@
 package com.aicodeassistant.controller;
 
+import com.aicodeassistant.llm.LlmProvider;
 import com.aicodeassistant.llm.LlmProviderRegistry;
 import com.aicodeassistant.llm.ModelCapabilities;
 import com.aicodeassistant.llm.ModelRegistry;
+import com.aicodeassistant.llm.OpenRouterModels;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 模型管理 Controller — 列出可用 LLM 模型。
@@ -39,7 +42,7 @@ public class ModelController {
             }
         }
         // 优先使用 Provider 注册的模型（实际可用），通过 ModelRegistry 补充能力信息
-        List<ModelInfo> models = providerRegistry.listAvailableModels().stream()
+        List<ModelInfo> models = modelsInDisplayOrder().stream()
                 .map(id -> {
                     ModelCapabilities mc = modelRegistry.getCapabilities(id);
                     return new ModelInfo(
@@ -58,6 +61,17 @@ public class ModelController {
                 .toList();
         return ResponseEntity.ok(new ModelListResponse(
                 models, providerRegistry.getDefaultModel()));
+    }
+
+    private List<String> modelsInDisplayOrder() {
+        var ids = new ArrayList<>(providerRegistry.listAvailableModels());
+        if (ids.contains(OpenRouterModels.FABLE) && ids.remove("gpt-6-astra")) {
+            ids.add(ids.indexOf(OpenRouterModels.FABLE), "gpt-6-astra");
+        }
+        var bailian = providerRegistry.findProviderByName("dashscope-token-plan")
+                .map(LlmProvider::getSupportedModels).orElse(List.of());
+        ids.sort(Comparator.comparing(id -> !bailian.contains(id)));
+        return ids;
     }
 
     private static String displayName(String modelId, ModelCapabilities capabilities) {

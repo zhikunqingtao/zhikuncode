@@ -80,16 +80,17 @@ public class MultiProviderConfiguration {
 
         if (providers.isEmpty()) {
             // ===== 向后兼容: llm.openai.* =====
-            if (legacyApiKey != null && !legacyApiKey.isBlank()) {
+            var legacy = new LlmProvidersProperties.ProviderConfig(legacyApiKey, legacyBaseUrl, legacyDefaultModel, legacyModels);
+            if (legacy.isValid()) {
                 List<String> legacyApiKeys = splitApiKeys(legacyApiKey);
                 ApiKeyRotationManager keyManager = new ApiKeyRotationManager(legacyApiKeys);
                 OpenAiCompatibleProvider provider = new OpenAiCompatibleProvider(
                         "openai-compatible", objectMapper, httpProperties, keyManager,
                         legacyApiKeys.isEmpty() ? null : legacyApiKeys.getFirst(), legacyBaseUrl,
-                        legacyDefaultModel, legacyModels, payloadGuard);
+                        legacy.defaultModel(), legacy.models(), payloadGuard);
                 providers.add(provider);
                 log.info("Created legacy single-provider: baseUrl={}, models={}",
-                        legacyBaseUrl, legacyModels);
+                        legacyBaseUrl, legacy.models());
             } else {
                 log.warn("No LLM provider configured! Set llm.providers.* or llm.openai.* in application.yml");
             }

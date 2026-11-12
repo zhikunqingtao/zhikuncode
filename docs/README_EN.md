@@ -680,9 +680,9 @@ LLM_PROVIDER_DEEPSEEK_API_KEY=your-deepseek-key
 # Moonshot (Kimi)
 LLM_PROVIDER_MOONSHOT_API_KEY=your-moonshot-key
 
-# Kimi Code subscription: K3.1 Pro Highspeed + K2.8 Preview (separate from Moonshot)
+# Kimi Code subscription: K3.1 Pro Highspeed (separate from Moonshot)
 LLM_PROVIDER_KIMI_CODE_API_KEY=your-kimi-code-key
-# LLM_PROVIDER_KIMI_CODE_MODELS=k3.1-pro-highspeed,kimi-for-coding
+# LLM_PROVIDER_KIMI_CODE_MODELS=k3.1-pro-highspeed
 
 # Zhipu (GLM)
 LLM_PROVIDER_ZHIPU_API_KEY=your-zhipu-api-key-here
@@ -690,14 +690,14 @@ LLM_PROVIDER_ZHIPU_API_KEY=your-zhipu-api-key-here
 # MiniMax
 LLM_PROVIDER_MINIMAX_API_KEY=your-minimax-api-key-here
 
-# ZenMux default catalog: Fable 5.1 / Opus 5.5 / Sonnet 5.5 / Haiku 5.5 / GPT-5.6 Sol / GPT-6 Astra / Gemini 4 Argon / Grok 4.7 / Muse Wonder 1.0
+# ZenMux default catalog: Fable 5.2 / Opus 5.5 / Sonnet 5.5 / Haiku 5.5 / GPT-6 Astra / Gemini 4 Carbon / Grok 4.7 / Muse Wonder 1.0
 # Supports comma-separated multi-key: subscription key (sk-ss-v1- prefix) first,
 # pay-as-you-go key (sk-ai-v1- prefix) as fallback; auto cooldown 15 min and switch on
 # 402 quote_exceeded / 404 model_not_available.
 LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 ```
 
-**Kimi Code subscription:** Configure `LLM_PROVIDER_KIMI_CODE_API_KEY`, restart, and select `k3.1-pro-highspeed` or `kimi-for-coding`. Current configuration uses `https://api.kimi.com/coding/v1`; Moonshot uses its separate key and `kimi-k3.1-pro-highspeed`. Both streaming and synchronous requests for these subscription models explicitly send `thinking.type=enabled` and `reasoning_effort=max`. The registry declares a 1,048,576-token window and 131,072-token output ceiling, while the main loop's recommended output budget is capped at 65,536. These are application settings, not a claim that every account or request receives those limits. Subscription access and quota depend on the provider. There is no automatic cross-provider credential fallback; zero estimated token cost represents subscription accounting, not free usage. See [the official Kimi Code model documentation](https://www.kimi.com/code/docs/kimi-code/models.html), [the local registry](../backend/src/main/java/com/aicodeassistant/llm/ModelRegistry.java), and [provider configuration](../backend/src/main/resources/application.yml); historical case records retain their original Kimi K3 names.
+**Kimi Code subscription:** Configure `LLM_PROVIDER_KIMI_CODE_API_KEY`, restart, and select `k3.1-pro-highspeed`. Current configuration uses `https://api.kimi.com/coding/v1`; Moonshot uses its separate key and `kimi-k3.1-pro-highspeed`. Both streaming and synchronous requests for this subscription model explicitly send `thinking.type=enabled` and `reasoning_effort=max`. The registry declares a 1,048,576-token window and 131,072-token output ceiling, while the main loop's recommended output budget is capped at 65,536. These are application settings, not a claim that every account or request receives those limits. Subscription access and quota depend on the provider. There is no automatic cross-provider credential fallback; zero estimated token cost represents subscription accounting, not free usage. See [the official Kimi Code model documentation](https://www.kimi.com/code/docs/kimi-code/models.html), [the local registry](../backend/src/main/java/com/aicodeassistant/llm/ModelRegistry.java), and [provider configuration](../backend/src/main/resources/application.yml); historical case records retain their original Kimi K3 names.
 
 **GLM-5.3 (Bailian):** Reuses `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY`. The default catalog includes `bailian/glm-5.3`; append it to `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` if your `.env` overrides that list, then restart. Only requests sent to Token Plan translate this local ID to the upstream `glm-5.3`; existing `glm-5.3` sessions still use direct Zhipu. Bare `glm-5.3` in the Token Plan catalog is normalized and deduplicated before registration. Streaming and synchronous calls force `enable_thinking=true`, `reasoning_effort=max`, and `clear_thinking=false`, with a **1,000,000-token** context and an accepted application output budget of 65,536 tokens (not a claim about the official output maximum). Tool calls and reasoning replay are supported; image input is disabled for this text model. Zero estimated token cost represents subscription accounting, not free usage. Verified 2026-09-21: [supported models](https://help.aliyun.com/zh/model-studio/token-plan-personal-overview), [GLM parameters](https://help.aliyun.com/zh/model-studio/glm), [official context configuration](https://help.aliyun.com/zh/model-studio/openclaw).
 
@@ -708,12 +708,12 @@ To use single-Provider mode, clear all `LLM_PROVIDER_*_API_KEY` values in `.env`
 | Provider | Base URL | Recommended Model | Notes |
 |----------|----------|-------------------|-------|
 | **Qwen / DashScope** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen3.8-max-0902 | Pay-as-you-go Provider, direct connection in China |
-| **Alibaba Cloud Bailian Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max / qwen3.8-flash / deepseek-v4.1-flash | Independent `sk-sp-` key; models are labeled “Bailian”. V4.1 Flash defaults `app.model.default`, fast queries and vision fallback; the frontend initial preference remains `qwen3.8-max-0902`, with configured/session selections taking precedence |
+| **Alibaba Cloud Bailian Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | deepseek-v4.1-flash / bailian/glm-5.3 / qwen4-max-preview | Independent `sk-sp-` key; models are labeled “Bailian”. V4.1 Flash defaults `app.model.default`, fast queries and vision fallback; the frontend initial preference remains `qwen3.8-max-0902`, with configured/session selections taking precedence |
 | **DeepSeek** | `https://api.deepseek.com/v1` | deepseek-flash | Direct connection in China; DeepSeek V4.1 Flash with thinking, tool use, and native vision |
 | **Moonshot (Kimi)** | `https://api.moonshot.cn/v1` | kimi-k3.1-pro-highspeed | Separate Moonshot pay-as-you-go key; current registry includes vision and 1M context |
-| **Zhipu (GLM)** | `https://open.bigmodel.cn/api/paas/v4` | glm-5.3, glm-5.3-flash | China direct access |
+| **Zhipu (GLM)** | `https://open.bigmodel.cn/api/paas/v4` | glm-5.3 | China direct access |
 | **MiniMax** | `https://api.minimax.chat/v1` | MiniMax-M3 | 1M context window |
-| **ZenMux (Multi-Model Gateway)** | `https://zenmux.ai/api/v1` | anthropic/claude-fable-5.1 / anthropic/claude-opus-5.5 / anthropic/claude-sonnet-5.5 / anthropic/claude-haiku-5.5 / openai/gpt-5.6-sol / openai/gpt-6-astra / google/gemini-4-argon / x-ai/grok-4.7 / meta/muse-wonder-1.0 | Responses reasoning/tool continuation for OpenAI, Google, xAI, and Meta models · Image support |
+| **ZenMux (Multi-Model Gateway)** | `https://zenmux.ai/api/v1` | anthropic/claude-fable-5.2 / anthropic/claude-opus-5.5 / anthropic/claude-sonnet-5.5 / anthropic/claude-haiku-5.5 / openai/gpt-6-astra / google/gemini-4-carbon / x-ai/grok-4.7 / meta/muse-wonder-1.0 | Responses reasoning/tool continuation for OpenAI, Google, xAI, and Meta models · Image support |
 | **OpenAI** | `https://api.openai.com/v1` | gpt-5.6-sol / gpt-5.4-mini | Requires international network access |
 | **Local Ollama** | `http://localhost:11434/v1` | All Ollama models (ollama/*) | Fully offline |
 
@@ -1889,7 +1889,7 @@ Use [`.env.example`](../.env.example) as the template; complete defaults are def
 | `LLM_PROVIDER_DEEPSEEK_API_KEY` | — | — | DeepSeek API Key |
 | `LLM_PROVIDER_MOONSHOT_API_KEY` | — | — | Moonshot/Kimi API Key |
 | `LLM_PROVIDER_KIMI_CODE_API_KEY` | — | — | Kimi Code subscription API key; empty disables this provider |
-| `LLM_PROVIDER_KIMI_CODE_MODELS` | — | k3.1-pro-highspeed,kimi-for-coding | Kimi K3.1 Pro Highspeed / K2.8 Preview subscription IDs |
+| `LLM_PROVIDER_KIMI_CODE_MODELS` | — | k3.1-pro-highspeed | Kimi K3.1 Pro Highspeed subscription model ID |
 | `LLM_PROVIDER_ZHIPU_API_KEY` | — | — | Zhipu GLM API Key |
 | `LLM_PROVIDER_OPENROUTER_API_KEY` | — | — | OpenRouter API Key; leave empty to skip registering this Provider |
 | `LLM_PROVIDER_OPENROUTER_MODELS` | — | openrouter/anthropic/claude-fable-5.2 | Available OpenRouter models (comma-separated) |
@@ -1972,10 +1972,10 @@ Original configuration record dated 2026-09-17; provider specifications may chan
 | `ZHIKUN_COORDINATOR_MODE` | — | 0 | Feature flag, enable coordinator mode (0=off, 1=on) |
 | `ZHIKUN_DELETE_CONFIRM_CODE` | — | Empty | Optional session-deletion confirmation code; when set, deleting a session in Web requires entering this code |
 | `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.8-max-0902 | DashScope available models (comma-separated) |
-| `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` | — | qwen3.8-max,qwen3.8-flash,deepseek-v4.1-flash,bailian/glm-5.3 | Alibaba Cloud Bailian Token Plan models; independent from standard DashScope and direct DeepSeek settings |
+| `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` | — | deepseek-v4.1-flash,bailian/glm-5.3,qwen4-max-preview | Alibaba Cloud Bailian Token Plan models; independent from standard DashScope and direct DeepSeek settings |
 | `LLM_PROVIDER_DEEPSEEK_MODELS` | — | deepseek-flash | DeepSeek models; defaults to V4.1 Flash (comma-separated) |
 | `LLM_PROVIDER_MOONSHOT_MODELS` | — | kimi-k3.1-pro-highspeed | Moonshot available models (comma-separated) |
-| `LLM_PROVIDER_ZHIPU_MODELS` | — | glm-5.3,glm-5.3-flash | Zhipu GLM available models (comma-separated) |
+| `LLM_PROVIDER_ZHIPU_MODELS` | — | glm-5.3 | Zhipu GLM available models (comma-separated) |
 
 The two background-wait variables above must reach the backend process environment. For Docker, pass them explicitly through `environment` in a Compose override; adding them only to the project `.env` does not forward them automatically.
 

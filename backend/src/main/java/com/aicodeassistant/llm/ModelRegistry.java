@@ -38,7 +38,6 @@ public class ModelRegistry {
         entry("anthropic/claude-sonnet-5.5", cacheCaps("anthropic/claude-sonnet-5.5", "Claude Sonnet 5.5（ZenMux）", 64000, 1000000, true, false, true, 5, true, 0.002, 0.010, ModelCapabilities.ImageInputMode.BASE64_ONLY)),
         entry("anthropic/claude-haiku-5.5",  cacheCaps("anthropic/claude-haiku-5.5",  "Claude Haiku 5.5（ZenMux）",  64000, 1000000, true, false, true, 5, true, 0.0001, 0.0005, ModelCapabilities.ImageInputMode.BASE64_ONLY)),
         // OpenAI via ZenMux (openai/ 前缀 = zenmux 中转)
-        entry("openai/gpt-5.6-sol",   caps("openai/gpt-5.6-sol",   "OpenAI GPT-5.6 Sol",   128000, 1050000, true,  true, true, 4, true, 0.030, 0.180)),
         entry("openai/gpt-6-astra",   caps("openai/gpt-6-astra",   "GPT-6 Astra（ZenMux）",   128000, 1050000, true,  true, true, 4, true, 0.010, 0.050)),
         // Google via ZenMux (google/ 前缀 = zenmux 中转)
         // Gemini 4 Carbon：应用输出预算 65536；ZenMux 于 2026-11-12 展示的折后输入/输出价格为每百万 token $2/$10。
@@ -69,23 +68,12 @@ public class ModelRegistry {
         // 登记输出预算 131072，主循环统一裁剪到 65536；8 张图片为保守上限，订阅不按量估价。
         entry("k3.1-pro-highspeed", new ModelCapabilities("k3.1-pro-highspeed", "Kimi K3.1 Pro Highspeed（订阅）", 131072, 1048576,
                 true, true, true, 8, true, 0.0, 0.0, 3.5, true, ModelCapabilities.ImageInputMode.BASE64_ONLY)),
-        entry("kimi-for-coding", new ModelCapabilities("kimi-for-coding", "Kimi K2.8 Preview（订阅）", 131072, 1048576,
-                true, true, true, 8, true, 0.0, 0.0, 3.5, true, ModelCapabilities.ImageInputMode.BASE64_ONLY)),
         entry("qwen-turbo",        caps("qwen-turbo",        "Qwen Turbo",         8192, 1000000,  true, false, false, 0, true, 0.0003, 0.0006)),
         entry("qwen3.8-max-0902", caps("qwen3.8-max-0902", "Qwen 3.8 Max 0902", 65536, 1000000, true, true, true, 4, true, 0.009, 0.054)),
         // Token Plan 预览；65536 为思考与正文合计的应用预算，4 张为应用图片上限，订阅用量不折算金额。
         entry("qwen4-max-preview", caps("qwen4-max-preview", "Qwen 4 Max Preview（百炼）", 65536, 1000000, true, true, true, 4, true, 0.0, 0.0)),
-        entry("qwen3.8-max", caps("qwen3.8-max", "Qwen 3.8 Max（百炼）", 65536, 1000000, true, true, true, 4, true, 0.009, 0.054)),
-        // Qwen3.8-Flash 官方规格（help.aliyun.com/zh/model-studio/qwen3-8-flash）：
-        // 1M 上下文 / 131072 最大输出 / 多模态（Image/Text/Video 输入）/ 支持思考模式（最大思维链 262144）
-        // 北京区定价：输入 0.8 元/M、输出 2.7 元/M tokens
-        entry("qwen3.8-flash", caps("qwen3.8-flash", "Qwen 3.8 Flash（百炼）", 131072, 1000000, true, true, true, 4, true, 0.0008, 0.0027)),
         entry("glm-5.3",           caps("glm-5.3",           "GLM-5.3",            131072, 1048576,  true, true, false, 0, true, 0.001, 0.001)),
         entry(BailianTokenPlanModels.GLM_53, BailianTokenPlanModels.capabilities(BailianTokenPlanModels.GLM_53)),
-        // GLM-5.3-Flash 官方规格（docs.bigmodel.cn/cn/guide/models/vlm/glm-5.3-flash）：
-        // 1M 上下文 / 128K 最大输出 / 原生多模态（单图≤5MB，系列上限 50 张）/ 强制思考不可关闭
-        // 定价为 GLM-5.3 的 1/10（输入 $0.15/M、输出 $0.50/M）
-        entry("glm-5.3-flash",     caps("glm-5.3-flash",     "GLM-5.3-Flash",      131072, 1048576,  true, true, true, 50, true, 0.00015, 0.0005)),
         // MiniMax
         entry("MiniMax-M3",       caps("MiniMax-M3",       "MiniMax M3",        16384, 1000000, true, true, true, 4, true, 0.001, 0.004)),
         // Ollama 本地

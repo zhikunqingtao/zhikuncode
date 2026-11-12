@@ -44,7 +44,7 @@ class BailianDeepSeekConfigurationTest {
         assertEquals("test-direct", directConfig.apiKey());
         // Token Plan 的模型清单必须精确等于 application.yml 默认值：四个下架模型不得回归。
         assertThat(bailianConfig.models())
-                .containsExactly("qwen3.8-max", "qwen3.8-flash", "deepseek-v4.1-flash", "bailian/glm-5.3", "qwen4-max-preview")
+                .containsExactly("deepseek-v4.1-flash", "bailian/glm-5.3", "qwen4-max-preview")
                 .doesNotContain("deepseek-v4-pro-0813", "deepseek-v4-flash-0731");
 
         var registry = new LlmProviderRegistry(List.of(provider("deepseek", directConfig),

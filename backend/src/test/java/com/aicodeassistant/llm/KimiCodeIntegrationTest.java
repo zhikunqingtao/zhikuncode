@@ -34,43 +34,39 @@ class KimiCodeIntegrationTest {
         var moonshot = configs.providers().get("moonshot");
         assertThat(subscription.baseUrl()).isEqualTo("https://api.kimi.com/coding/v1");
         assertThat(subscription.defaultModel()).isEqualTo("k3.1-pro-highspeed");
-        assertThat(subscription.models()).containsExactly("k3.1-pro-highspeed", "kimi-for-coding");
+        assertThat(subscription.models()).containsExactly("k3.1-pro-highspeed");
         assertThat(moonshot.baseUrl()).isEqualTo("https://api.moonshot.cn/v1");
         assertThat(moonshot.defaultModel()).isEqualTo("kimi-k3.1-pro-highspeed");
         assertThat(moonshot.apiKey()).isEqualTo("moonshot-key");
 
         var providers = providers(configs);
         assertThat(providers).hasSize(2);
+        String id = subscription.defaultModel();
         var reversed = new ArrayList<>(providers.reversed());
         for (var order : List.of(providers, reversed)) {
             var routes = new LlmProviderRegistry(order, new MockEnvironment());
             assertThat(routes.getProvider("kimi-k3.1-pro-highspeed").getProviderName()).isEqualTo("moonshot");
-            for (String id : List.of("k3.1-pro-highspeed", "kimi-for-coding")) {
-                assertThat(routes.getProvider(id).getProviderName()).isEqualTo("kimi-code");
-                assertThat(routes.getProvider(id).supportsThinking(id)).isTrue();
-            }
+            assertThat(routes.getProvider(id).getProviderName()).isEqualTo("kimi-code");
+            assertThat(routes.getProvider(id).supportsThinking(id)).isTrue();
             var models = new ModelRegistry(routes);
             assertThat(models.getCapabilities("kimi-k3.1-pro-highspeed").displayName()).isEqualTo("Kimi K3.1 Pro Highspeed");
             assertThat(models.getCapabilities("kimi-k3.1-pro-highspeed").costPer1kInput()).isEqualTo(0.004);
             var response = new ModelController(routes, models).listModels(null).getBody();
             assertThat(response).isNotNull();
-            for (String id : List.of("k3.1-pro-highspeed", "kimi-for-coding")) {
-                assertThat(response.models()).filteredOn(m -> id.equals(m.id())).singleElement().satisfies(m -> {
-                    assertThat(m.displayName()).isEqualTo("k3.1-pro-highspeed".equals(id)
-                            ? "Kimi K3.1 Pro Highspeed（订阅）" : "Kimi K2.8 Preview（订阅）");
-                    assertThat(m.contextWindow()).isEqualTo(1_048_576);
-                    assertThat(m.maxOutputTokens()).isEqualTo(131_072);
-                    assertThat(m.supportsThinking()).isTrue();
-                    assertThat(m.supportsStreaming()).isTrue();
-                    assertThat(m.supportsToolUse()).isTrue();
-                    assertThat(m.supportsImages()).isTrue();
-                    assertThat(m.maxImages()).isEqualTo(8);
-                    assertThat(m.costPer1kInput()).isZero();
-                    assertThat(m.costPer1kOutput()).isZero();
-                });
-                assertThat(models.getCapabilities(id).imageInputMode())
-                        .isEqualTo(ModelCapabilities.ImageInputMode.BASE64_ONLY);
-            }
+            assertThat(response.models()).filteredOn(m -> id.equals(m.id())).singleElement().satisfies(m -> {
+                assertThat(m.displayName()).isEqualTo("Kimi K3.1 Pro Highspeed（订阅）");
+                assertThat(m.contextWindow()).isEqualTo(1_048_576);
+                assertThat(m.maxOutputTokens()).isEqualTo(131_072);
+                assertThat(m.supportsThinking()).isTrue();
+                assertThat(m.supportsStreaming()).isTrue();
+                assertThat(m.supportsToolUse()).isTrue();
+                assertThat(m.supportsImages()).isTrue();
+                assertThat(m.maxImages()).isEqualTo(8);
+                assertThat(m.costPer1kInput()).isZero();
+                assertThat(m.costPer1kOutput()).isZero();
+            });
+            assertThat(models.getCapabilities(id).imageInputMode())
+                    .isEqualTo(ModelCapabilities.ImageInputMode.BASE64_ONLY);
         }
     }
 

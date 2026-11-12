@@ -677,9 +677,9 @@ LLM_PROVIDER_DEEPSEEK_API_KEY=your-deepseek-key
 # Moonshot (Kimi)
 LLM_PROVIDER_MOONSHOT_API_KEY=your-moonshot-key
 
-# Kimi Code 订阅：K3.1 Pro Highspeed + K2.8 Preview（与 Moonshot 按量渠道独立）
+# Kimi Code 订阅：K3.1 Pro Highspeed（与 Moonshot 按量渠道独立）
 LLM_PROVIDER_KIMI_CODE_API_KEY=your-kimi-code-key
-# LLM_PROVIDER_KIMI_CODE_MODELS=k3.1-pro-highspeed,kimi-for-coding
+# LLM_PROVIDER_KIMI_CODE_MODELS=k3.1-pro-highspeed
 
 # Zhipu (智谱 GLM)
 LLM_PROVIDER_ZHIPU_API_KEY=your-zhipu-api-key-here
@@ -687,13 +687,13 @@ LLM_PROVIDER_ZHIPU_API_KEY=your-zhipu-api-key-here
 # MiniMax
 LLM_PROVIDER_MINIMAX_API_KEY=your-minimax-api-key-here
 
-# ZenMux（默认目录：Fable 5.2 / Opus 5.5 / Sonnet 5.5 / Haiku 5.5 / GPT-5.6 Sol / GPT-6 Astra / Gemini 4 Carbon / Grok 4.7 / Muse Wonder 1.0）
+# ZenMux（默认目录：Fable 5.2 / Opus 5.5 / Sonnet 5.5 / Haiku 5.5 / GPT-6 Astra / Gemini 4 Carbon / Grok 4.7 / Muse Wonder 1.0）
 # 支持逗号分隔多 Key：订阅 Key（sk-ss-v1- 前缀）放前优先、按量 Key（sk-ai-v1- 前缀）兜底；
 # 402 quote_exceeded / 404 model_not_available 时自动冷却 15 分钟切换到下一把 Key。
 LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 ```
 
-**Kimi Code 订阅：** 配置独立的 `LLM_PROVIDER_KIMI_CODE_API_KEY` 后，仓库默认注册 `k3.1-pro-highspeed` 与 `kimi-for-coding`，请求端点为 `https://api.kimi.com/coding/v1`；Moonshot 按量渠道默认 `kimi-k3.1-pro-highspeed`，密钥、模型 ID 与路由分开，不自动跨渠道切换。订阅模型的流式与非流式请求均显式发送 `thinking.type=enabled`、`reasoning_effort=max`。注册表声明 1,048,576 token 上下文和 131,072 token 输出上限，主循环推荐输出预算另按 65,536 token 上限裁剪；这是应用配置，不代表账号必然有相应权限。订阅用量不按 Moonshot 按量价格估算，界面估算为 0 不代表免费。仅配置 Kimi Code Key 仍会被当前 Docker 入口检查拒绝，先采用本地开发路径。历史案例的 Kimi K3 保持原记录。模型资料参见 [Kimi Code 官方模型文档](https://www.kimi.com/code/docs/kimi-code/models.html)。
+**Kimi Code 订阅：** 配置独立的 `LLM_PROVIDER_KIMI_CODE_API_KEY` 后，仓库默认注册 `k3.1-pro-highspeed`，请求端点为 `https://api.kimi.com/coding/v1`；Moonshot 按量渠道默认 `kimi-k3.1-pro-highspeed`，密钥、模型 ID 与路由分开，不自动跨渠道切换。订阅模型的流式与非流式请求均显式发送 `thinking.type=enabled`、`reasoning_effort=max`。注册表声明 1,048,576 token 上下文和 131,072 token 输出上限，主循环推荐输出预算另按 65,536 token 上限裁剪；这是应用配置，不代表账号必然有相应权限。订阅用量不按 Moonshot 按量价格估算，界面估算为 0 不代表免费。仅配置 Kimi Code Key 仍会被当前 Docker 入口检查拒绝，先采用本地开发路径。历史案例的 Kimi K3 保持原记录。模型资料参见 [Kimi Code 官方模型文档](https://www.kimi.com/code/docs/kimi-code/models.html)。
 
 **GLM-5.3（百炼）：** 复用 `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY`，默认模型列表已包含 `bailian/glm-5.3`；若 `.env` 自定义了 `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS`，请将该 ID 加入列表并重启。内部模型 ID 为 `bailian/glm-5.3`，仅发往百炼 Token Plan 的请求使用上游 ID `glm-5.3`，现有 `glm-5.3` 仍走智谱直连。百炼配置中填写裸 `glm-5.3` 也会自动规范化并去重，避免注册顺序影响路由。流式与非流式均固定 `enable_thinking=true`、`reasoning_effort=max`、`clear_thinking=false`，配置最大 **1,000,000 tokens** 上下文和 65,536 tokens 单次输出预算（已实测接受的应用预算，非官方最大输出声明）；支持工具调用与历史思考回传，文本模型不开放图片输入。订阅 Credits 以百炼账单为准，界面 0 单价不代表免费。2026-09-21 核对：[Token Plan 支持模型](https://help.aliyun.com/zh/model-studio/token-plan-personal-overview)、[GLM 参数](https://help.aliyun.com/zh/model-studio/glm)、[官方上下文配置](https://help.aliyun.com/zh/model-studio/openclaw)。
 
@@ -704,12 +704,12 @@ LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 | 服务商 | Base URL | 推荐模型 | 备注 |
 |--------|----------|----------|------|
 | **千问/DashScope** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen3.8-max-0902 | 按量计费 Provider，国内直连 |
-| **阿里云百炼 Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max / qwen3.8-flash / deepseek-v4.1-flash / bailian/glm-5.3 / qwen4-max-preview | 使用独立 `sk-sp-` Key；模型均标注“百炼”。V4.1 Flash 为服务端 `app.model.default`、快速查询及图片兜底的默认值；前端初始模型偏好仍为 `qwen3.8-max-0902`，用户配置／会话选择优先 |
+| **阿里云百炼 Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | deepseek-v4.1-flash / bailian/glm-5.3 / qwen4-max-preview | 使用独立 `sk-sp-` Key；模型均标注“百炼”。V4.1 Flash 为服务端 `app.model.default`、快速查询及图片兜底的默认值；前端初始模型偏好仍为 `qwen3.8-max-0902`，用户配置／会话选择优先 |
 | **DeepSeek** | `https://api.deepseek.com/v1` | deepseek-flash | 国内直连；DeepSeek V4.1 Flash，支持思考、工具调用与原生视觉 |
 | **Moonshot（Kimi）** | `https://api.moonshot.cn/v1` | kimi-k3.1-pro-highspeed | 独立 Moonshot 按量 Key；当前注册表配置视觉和 1M 上下文 |
-| **Zhipu（智谱 GLM）** | `https://open.bigmodel.cn/api/paas/v4` | glm-5.3, glm-5.3-flash | 国内直连 |
+| **Zhipu（智谱 GLM）** | `https://open.bigmodel.cn/api/paas/v4` | glm-5.3 | 国内直连 |
 | **MiniMax** | `https://api.minimax.chat/v1` | MiniMax-M3 | 百万上下文 |
-| **ZenMux（多模型中转）** | `https://zenmux.ai/api/v1` | anthropic/claude-fable-5.2 / anthropic/claude-opus-5.5 / anthropic/claude-sonnet-5.5 / anthropic/claude-haiku-5.5 / openai/gpt-5.6-sol / openai/gpt-6-astra / google/gemini-4-carbon / x-ai/grok-4.7 / meta/muse-wonder-1.0 | OpenAI/Google/xAI/Meta 模型使用 Responses 推理与工具续轮；支持图片 |
+| **ZenMux（多模型中转）** | `https://zenmux.ai/api/v1` | anthropic/claude-fable-5.2 / anthropic/claude-opus-5.5 / anthropic/claude-sonnet-5.5 / anthropic/claude-haiku-5.5 / openai/gpt-6-astra / google/gemini-4-carbon / x-ai/grok-4.7 / meta/muse-wonder-1.0 | OpenAI/Google/xAI/Meta 模型使用 Responses 推理与工具续轮；支持图片 |
 | **OpenAI** | `https://api.openai.com/v1` | gpt-5.6-sol / gpt-5.4-mini | 需要外网访问 |
 | **本地 Ollama** | `http://localhost:11434/v1` | 支持所有 Ollama 模型（ollama/*） | 完全离线 |
 
@@ -1888,7 +1888,7 @@ ZhikunCode 提供多种可视化能力，展示 AI 编程过程中的数据和�
 | `LLM_PROVIDER_DEEPSEEK_API_KEY` | — | — | DeepSeek API Key |
 | `LLM_PROVIDER_MOONSHOT_API_KEY` | — | — | Moonshot/Kimi API Key |
 | `LLM_PROVIDER_KIMI_CODE_API_KEY` | — | — | Kimi Code 订阅 API Key；留空不注册订阅渠道 |
-| `LLM_PROVIDER_KIMI_CODE_MODELS` | — | k3.1-pro-highspeed,kimi-for-coding | Kimi Code 订阅模型列表；权限与额度取决于账号 |
+| `LLM_PROVIDER_KIMI_CODE_MODELS` | — | k3.1-pro-highspeed | Kimi Code 订阅模型列表；权限与额度取决于账号 |
 | `LLM_PROVIDER_ZHIPU_API_KEY` | — | — | 智谱 GLM API Key |
 | `LLM_PROVIDER_OPENROUTER_API_KEY` | — | — | OpenRouter API Key；留空不注册此 Provider |
 | `LLM_PROVIDER_OPENROUTER_MODELS` | — | openrouter/anthropic/claude-fable-5.2 | OpenRouter 可用模型列表（逗号分隔） |
@@ -1971,10 +1971,10 @@ Claude Fable 5.2 使用已有 OpenRouter Key，默认请求 `reasoning.effort=ma
 | `ZHIKUN_COORDINATOR_MODE` | — | 0 | Feature flag，启用协调器模式（0=关闭，1=开启） |
 | `ZHIKUN_DELETE_CONFIRM_CODE` | — | 空 | 删除会话二次确认验证码；配置后 Web 删除会话须输入该验证码，未配置保持原确认流程 |
 | `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.8-max-0902 | 按量计费 DashScope 可用模型列表（逗号分隔；实际目录可动态扩展） |
-| `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` | — | qwen3.8-max,qwen3.8-flash,deepseek-v4.1-flash,bailian/glm-5.3,qwen4-max-preview | 百炼 Token Plan Provider 可用模型列表；与普通 DashScope、DeepSeek 直连配置相互独立 |
+| `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` | — | deepseek-v4.1-flash,bailian/glm-5.3,qwen4-max-preview | 百炼 Token Plan Provider 可用模型列表；与普通 DashScope、DeepSeek 直连配置相互独立 |
 | `LLM_PROVIDER_DEEPSEEK_MODELS` | — | deepseek-flash | DeepSeek 可用模型列表；默认使用 V4.1 Flash（逗号分隔） |
 | `LLM_PROVIDER_MOONSHOT_MODELS` | — | kimi-k3.1-pro-highspeed | Moonshot 可用模型列表（逗号分隔） |
-| `LLM_PROVIDER_ZHIPU_MODELS` | — | glm-5.3,glm-5.3-flash | 智谱 GLM 可用模型列表（逗号分隔） |
+| `LLM_PROVIDER_ZHIPU_MODELS` | — | glm-5.3 | 智谱 GLM 可用模型列表（逗号分隔） |
 
 上述两个后台等待变量需进入后端进程环境；Docker 部署须通过 Compose override 的 `environment` 显式传入，仅写入项目 `.env` 不会自动透传。
 

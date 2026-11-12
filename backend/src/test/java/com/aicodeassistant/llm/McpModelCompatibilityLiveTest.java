@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  *
  * <p>Enable explicitly with {@code RUN_MCP_MODEL_COMPATIBILITY_LIVE_TESTS=true}.
  * To limit a diagnostic run, set {@code MCP_COMPAT_MODELS} to a comma-separated
- * list such as {@code kimi-k3.1-pro-highspeed,qwen3.8-max}. No credential value is logged.
+ * list such as {@code kimi-k3.1-pro-highspeed,deepseek-v4.1-flash}. No credential value is logged.
  */
 @EnabledIfEnvironmentVariable(
         named = "RUN_MCP_MODEL_COMPATIBILITY_LIVE_TESTS", matches = "(?i)true")
@@ -208,7 +208,7 @@ class McpModelCompatibilityLiveTest {
                 env("LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_BASE_URL",
                         "https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1"),
                 "LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS",
-                "qwen3.8-max,qwen3.8-flash,deepseek-v4.1-flash,bailian/glm-5.3,qwen4-max-preview");
+                "deepseek-v4.1-flash,bailian/glm-5.3,qwen4-max-preview");
         addProvider(endpoints, "deepseek", "LLM_PROVIDER_DEEPSEEK_API_KEY",
                 env("LLM_PROVIDER_DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1"),
                 "LLM_PROVIDER_DEEPSEEK_MODELS",
@@ -218,17 +218,17 @@ class McpModelCompatibilityLiveTest {
                 "LLM_PROVIDER_MOONSHOT_MODELS", "kimi-k3.1-pro-highspeed");
         addProvider(endpoints, "kimi-code", "LLM_PROVIDER_KIMI_CODE_API_KEY",
                 "https://api.kimi.com/coding/v1",
-                "LLM_PROVIDER_KIMI_CODE_MODELS", "k3.1-pro-highspeed,kimi-for-coding");
+                "LLM_PROVIDER_KIMI_CODE_MODELS", "k3.1-pro-highspeed");
         addProvider(endpoints, "zhipu", "LLM_PROVIDER_ZHIPU_API_KEY",
                 env("LLM_PROVIDER_ZHIPU_BASE_URL", "https://open.bigmodel.cn/api/paas/v4"),
-                "LLM_PROVIDER_ZHIPU_MODELS", "glm-5.3,glm-5.3-flash");
+                "LLM_PROVIDER_ZHIPU_MODELS", "glm-5.3");
         addProvider(endpoints, "minimax", "LLM_PROVIDER_MINIMAX_API_KEY",
                 env("LLM_PROVIDER_MINIMAX_BASE_URL", "https://api.minimax.chat/v1"),
                 "LLM_PROVIDER_MINIMAX_MODELS", "MiniMax-M3");
         addProvider(endpoints, "zenmux", "LLM_PROVIDER_ZENMUX_API_KEY",
                 env("LLM_PROVIDER_ZENMUX_BASE_URL", "https://zenmux.ai/api/v1"),
                 "LLM_PROVIDER_ZENMUX_MODELS",
-                "anthropic/claude-fable-5.2,anthropic/claude-opus-5.5,anthropic/claude-sonnet-5.5,anthropic/claude-haiku-5.5,openai/gpt-5.6-sol,openai/gpt-6-astra,google/gemini-4-carbon,x-ai/grok-4.7,meta/muse-wonder-1.0");
+                "anthropic/claude-fable-5.2,anthropic/claude-opus-5.5,anthropic/claude-sonnet-5.5,anthropic/claude-haiku-5.5,openai/gpt-6-astra,google/gemini-4-carbon,x-ai/grok-4.7,meta/muse-wonder-1.0");
         addProvider(endpoints, "dashscope", "LLM_PROVIDER_DASHSCOPE_API_KEY",
                 env("LLM_PROVIDER_DASHSCOPE_BASE_URL",
                         "https://dashscope.aliyuncs.com/compatible-mode/v1"),

@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 多 Provider 配置属性 — 支持同时接入多个 LLM 服务商。
@@ -23,7 +24,7 @@ import java.util.Map;
  *       api-key: ${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY:}
  *       base-url: https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1
  *       default-model: deepseek-v4.1-flash
- *       models: qwen3.8-max,deepseek-v4.1-flash,bailian/glm-5.3
+ *       models: deepseek-v4.1-flash,bailian/glm-5.3
  *     deepseek:
  *       api-key: ${LLM_PROVIDER_DEEPSEEK_API_KEY:}
  *       base-url: https://api.deepseek.com/v1
@@ -35,6 +36,13 @@ import java.util.Map;
 public record LlmProvidersProperties(
         @DefaultValue Map<String, ProviderConfig> providers
 ) {
+    private static final Set<String> REMOVED_MODELS = Set.of(
+            "qwen3.8-max", "qwen3.8-flash", "kimi-for-coding", "glm-5.3-flash", "openai/gpt-5.6-sol");
+
+    static boolean isRemovedModel(String id) {
+        return id != null && REMOVED_MODELS.contains(id);
+    }
+
     /**
      * 单个 Provider 的配置。
      */
@@ -47,6 +55,12 @@ public record LlmProvidersProperties(
     ) {
         @ConstructorBinding
         public ProviderConfig {
+            if (models != null) {
+                models = models.stream().filter(id -> !isRemovedModel(id)).toList();
+                if (isRemovedModel(defaultModel)) {
+                    defaultModel = models.isEmpty() ? null : models.getFirst();
+                }
+            }
             if (keySelectionStrategy == null) {
                 keySelectionStrategy = ApiKeyRotationManager.KeySelectionStrategy.ROUND_ROBIN;
             }

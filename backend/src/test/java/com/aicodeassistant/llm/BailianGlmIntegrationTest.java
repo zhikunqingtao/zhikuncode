@@ -34,7 +34,7 @@ class BailianGlmIntegrationTest {
             var routes = new LlmProviderRegistry(order, new MockEnvironment());
             assertThat(routes.getProvider(MODEL).getProviderName()).isEqualTo("dashscope-token-plan");
             assertThat(routes.getProvider("glm-5.3").getProviderName()).isEqualTo("zhipu");
-            assertThat(routes.getProvider("glm-5.3-flash").getProviderName()).isEqualTo("zhipu");
+            assertThat(routes.supportsModel("glm-5.3-flash")).isFalse();
             assertThat(routes.getProvider("deepseek-v4.1-flash").getProviderName()).isEqualTo("dashscope-token-plan");
             assertThat(routes.getProvider(MODEL).supportsThinking(MODEL)).isTrue();
             var models = new ModelRegistry(routes);
