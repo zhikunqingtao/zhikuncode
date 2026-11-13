@@ -15,6 +15,7 @@ import java.util.concurrent.CancellationException;
 @Component
 public class ContextCompactor {
     private static final Logger log = LoggerFactory.getLogger(ContextCompactor.class);
+    private static final String MISSING_TOOL_RESULTS = "missing_tool_results";
     static final String PROMPT = """
             你是编程会话的事实压缩器，输出将作为低信任历史工作记忆。
             只输出一个完整的 <summary>...</summary>，不要分析过程、前言或工具调用。
@@ -68,7 +69,7 @@ public class ContextCompactor {
         context.checkValid();
         String source = CompactionHistory.fingerprint(messages);
         final CompactionHistory.Analysis history;
-        try { history = CompactionHistory.analyze(messages); }
+        try { history = CompactionHistory.analyzeAllowingMissingResults(messages); }
         catch (IllegalArgumentException e) { return CompactService.CompactResult.skipped(e.getMessage()); }
         if (messages.isEmpty()) return CompactService.CompactResult.notNeeded();
         var units = history.units();
@@ -83,13 +84,28 @@ public class ContextCompactor {
         int tail = recent.isEmpty() ? messages.size() : recent.get(Math.max(0, recent.size() - (reactive ? 1 : 3))).start();
         boolean[] required = new boolean[messages.size()];
         List<CompactionHistory.Unit> optional = new ArrayList<>();
+        Map<Integer, Message.SystemMessage> notices = new HashMap<>();
         for (var unit : units) {
-            if (unit.start() < frozen || unit.start() >= tail || unit.userContent()) Arrays.fill(required, unit.start(), unit.end(), true);
-            else optional.add(unit);
+            if (unit.start() < frozen || unit.start() >= tail || unit.userContent()
+                    || messages.subList(unit.start(), unit.end()).stream().anyMatch(ContextCompactor::isMissingResultNotice)) {
+                Arrays.fill(required, unit.start(), unit.end(), true);
+                continue;
+            }
+            if (unit.transaction() && messages.get(unit.start()) instanceof Message.AssistantMessage assistant) {
+                Message.SystemMessage notice = missingResultNotice(assistant, history.missingResultIds());
+                if (notice != null) {
+                    if (tokens(messages.subList(unit.start(), unit.end()), context) <= tokens(List.of(notice), context)) {
+                        Arrays.fill(required, unit.start(), unit.end(), true);
+                        continue;
+                    }
+                    notices.put(unit.start(), notice);
+                }
+            }
+            optional.add(unit);
         }
         if (optional.isEmpty()) return CompactService.CompactResult.notNeeded();
         String marker = "[历史记录已省略；保留完整工具事务和用户原文。此标记不是事实摘要，不能据此推断已完成事项。]";
-        List<Message> mandatory = rebuild(messages, required, tail, marker, SystemMessageType.COMPACT_OMISSION);
+        List<Message> mandatory = rebuild(messages, required, notices, tail, marker, SystemMessageType.COMPACT_OMISSION);
         int before = tokens(messages, context);
         if (tokens(mandatory, context) > context.historyBudget()) return CompactService.CompactResult.skipped("mandatory_context_over_budget");
         var settings = configuration.settings();
@@ -101,10 +117,11 @@ public class ContextCompactor {
         for (int i = 0; i < messages.size(); i++) {
             if (!required[i]) removed.add(messages.get(i));
             else if (messages.get(i) instanceof Message.UserMessage
-                    || messages.get(i) instanceof Message.SystemMessage sys && sys.type() == SystemMessageType.COMPACT_SUMMARY)
+                    || messages.get(i) instanceof Message.SystemMessage sys && sys.type() == SystemMessageType.COMPACT_SUMMARY
+                    || isMissingResultNotice(messages.get(i)))
                 reference.add(messages.get(i));
         }
-        int overhead = tokens(rebuild(messages, required, tail, "", SystemMessageType.COMPACT_SUMMARY), context);
+        int overhead = tokens(rebuild(messages, required, notices, tail, "", SystemMessageType.COMPACT_SUMMARY), context);
         int hardAvailable = context.historyBudget() - overhead;
         int softAvailable = Math.min(context.historyBudget(), context.contextWindow() / 2) - overhead;
         int target = Math.min(settings.summaryTokens(), softAvailable > 0 ? softAvailable : hardAvailable);
@@ -141,7 +158,7 @@ public class ContextCompactor {
                 if (reason == null && !quality(summary, removed, history)) reason = "summary_invalid_content";
                 if (reason == null && Math.ceil(summary.length() / context.tokenCharRatio()) > target) reason = "summary_over_budget";
                 if (reason == null) {
-                    var candidate = rebuild(messages, required, tail, summary, SystemMessageType.COMPACT_SUMMARY);
+                    var candidate = rebuild(messages, required, notices, tail, summary, SystemMessageType.COMPACT_SUMMARY);
                     if (acceptable(candidate, context, before)) {
                         if (!verifySource(messages, source, context)) return CompactService.CompactResult.skipped("source_changed");
                         log.info("Summary accepted: model={}, finish={}, elapsedMs={}, usage={}", settings.model(), result.finishReason(),
@@ -159,12 +176,14 @@ public class ContextCompactor {
         for (int i = optional.size() - 1; i >= 0; i--) {
             var unit = optional.get(i);
             int cost = tokens(messages.subList(unit.start(), unit.end()), context) + 1;
+            Message.SystemMessage notice = notices.get(unit.start());
+            if (notice != null) cost -= tokens(List.of(notice), context);
             if ((long)used + cost <= softBudget) {
                 Arrays.fill(selected, unit.start(), unit.end(), true);
                 used += cost;
             }
         }
-        var candidate = rebuild(messages, selected, tail, marker, SystemMessageType.COMPACT_OMISSION);
+        var candidate = rebuild(messages, selected, notices, tail, marker, SystemMessageType.COMPACT_OMISSION);
         if (!verifySource(messages, source, context)) return CompactService.CompactResult.skipped("source_changed");
         if (!acceptable(candidate, context, before)) return CompactService.CompactResult.skipped("no_safe_compaction:" + reason);
         int omitted = 0;
@@ -191,11 +210,34 @@ public class ContextCompactor {
     private int tokens(List<Message> messages, CompactionContext context) {
         return counter.estimateTokens(CompactionHistory.forRequest(messages), context.model());
     }
-    private static List<Message> rebuild(List<Message> source, boolean[] keep, int tail, String summary, SystemMessageType type) {
+    private static boolean isMissingResultNotice(Message message) {
+        return message instanceof Message.SystemMessage sys
+                && sys.type() == SystemMessageType.COMPACT_OMISSION
+                && MISSING_TOOL_RESULTS.equals(sys.subtype());
+    }
+    private static Message.SystemMessage missingResultNotice(Message.AssistantMessage assistant, Set<String> missingIds) {
+        if (assistant.content() == null) return null;
+        List<String> calls = new ArrayList<>();
+        for (var block : assistant.content()) {
+            if (block instanceof ContentBlock.ToolUseBlock call && missingIds.contains(call.id()))
+                calls.add(call.name() + " (" + call.id() + ")");
+        }
+        if (calls.isEmpty()) return null;
+        return new Message.SystemMessage(assistant.uuid(), assistant.timestamp(),
+                "No result recorded for " + String.join(", ", calls)
+                        + ". Outcome and side effects unknown; verify before retrying.",
+                SystemMessageType.COMPACT_OMISSION, MISSING_TOOL_RESULTS, null);
+    }
+    private static List<Message> rebuild(List<Message> source, boolean[] keep,
+                                         Map<Integer, Message.SystemMessage> notices,
+                                         int tail, String summary, SystemMessageType type) {
         List<Message> result = new ArrayList<>();
         for (int i = 0; i <= source.size(); i++) {
             if (i == tail) result.add(new Message.SystemMessage(UUID.randomUUID().toString(), Instant.now(), summary, type));
-            if (i < source.size() && keep[i]) result.add(source.get(i));
+            if (i < source.size()) {
+                if (keep[i]) result.add(source.get(i));
+                else if (notices.containsKey(i)) result.add(notices.get(i));
+            }
         }
         return List.copyOf(result);
     }

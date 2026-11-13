@@ -8,7 +8,12 @@ import java.security.MessageDigest;
 /** Read-only tool identity resolution shared by selection, summary input and outbound projection. */
 public final class CompactionHistory {
     public record Unit(int start, int end, boolean transaction, boolean userContent) {}
-    public record Analysis(List<Message> canonical, List<Unit> units, Set<String> knownResultStatus) {}
+    public record Analysis(List<Message> canonical, List<Unit> units, Set<String> knownResultStatus,
+                           Set<String> missingResultIds) {
+        public Analysis(List<Message> canonical, List<Unit> units, Set<String> knownResultStatus) {
+            this(canonical, units, knownResultStatus, Set.of());
+        }
+    }
     private record Call(int message, ContentBlock.ToolUseBlock block) {}
     private CompactionHistory() {}
 
@@ -16,7 +21,11 @@ public final class CompactionHistory {
         return analyze(messages, null);
     }
 
-    // Only request projection may collect missing results; every other validation stays strict.
+    static Analysis analyzeAllowingMissingResults(List<Message> messages) {
+        return analyze(messages, new HashSet<>());
+    }
+
+    // Only missing results may be tolerated; every other validation stays strict.
     private static Analysis analyze(List<Message> messages, Set<String> missingResults) {
         Map<String, Call> calls = new HashMap<>();
         Map<String, List<String>> assistants = new HashMap<>();
@@ -73,18 +82,18 @@ public final class CompactionHistory {
         boolean[] transaction = new boolean[messages.size()];
         for (int i = 0; i < end.length; i++) end[i] = i + 1;
         for (var entry : calls.entrySet()) {
+            int start = entry.getValue().message();
+            transaction[start] = true;
             Integer result = results.get(entry.getKey());
             if (result == null) {
                 if (missingResults == null) throw invalid("missing_result");
                 missingResults.add(entry.getKey());
                 continue;
             }
-            int start = entry.getValue().message();
             for (int i = start + 1; i < result; i++) {
                 if (messages.get(i) instanceof Message.AssistantMessage) throw invalid("result_after_next_assistant");
             }
             end[start] = Math.max(end[start], result + 1);
-            transaction[start] = true;
         }
         List<Unit> units = new ArrayList<>();
         for (int start = 0; start < messages.size();) {
@@ -102,7 +111,8 @@ public final class CompactionHistory {
             units.add(new Unit(start, stop, tool, userContent));
             start = stop;
         }
-        return new Analysis(List.copyOf(canonical), List.copyOf(units), Set.copyOf(known));
+        return new Analysis(List.copyOf(canonical), List.copyOf(units), Set.copyOf(known),
+                missingResults == null ? Set.of() : Set.copyOf(missingResults));
     }
 
     private static String resolveLegacy(String source, int index, Map<String, Call> calls,
@@ -122,8 +132,8 @@ public final class CompactionHistory {
     }
 
     public static List<Message> forRequest(List<Message> messages) {
-        Set<String> missingResults = new HashSet<>();
-        Analysis history = analyze(messages, missingResults);
+        Analysis history = analyzeAllowingMissingResults(messages);
+        Set<String> missingResults = history.missingResultIds();
         if (!missingResults.isEmpty()) {
             List<Message> recovered = new ArrayList<>();
             Set<String> messageIds = new HashSet<>();
@@ -172,7 +182,12 @@ public final class CompactionHistory {
             if (m instanceof Message.SystemMessage sys) text.append("[Historical system record] ").append(sys.content()).append('\n');
             for (var block : blocks(m)) {
                 if (block instanceof ContentBlock.TextBlock b) text.append(m instanceof Message.UserMessage ? "[User text] " : "[Assistant text] ").append(b.text()).append('\n');
-                else if (block instanceof ContentBlock.ToolUseBlock b) text.append("[Tool call id=").append(b.id()).append(" name=").append(b.name()).append("] ").append(b.input()).append('\n');
+                else if (block instanceof ContentBlock.ToolUseBlock b) {
+                    text.append("[Tool call id=").append(b.id()).append(" name=").append(b.name()).append("] ").append(b.input());
+                    if (fullHistory.missingResultIds().contains(b.id()))
+                        text.append(" [No result recorded; execution outcome and side effects unknown.]");
+                    text.append('\n');
+                }
                 // UI metadata is persisted for display, not evidence for the summary model.
                 else if (block instanceof ContentBlock.ToolResultBlock b) text.append("[Tool result id=").append(b.toolUseId()).append(" isError=")
                         .append(fullHistory.knownResultStatus().contains(b.toolUseId()) ? b.isError() : "unknown")
