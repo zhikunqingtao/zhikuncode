@@ -72,6 +72,7 @@ public class ModelRegistry {
         entry("qwen3.8-max-0902", caps("qwen3.8-max-0902", "Qwen 3.8 Max 0902", 65536, 1000000, true, true, true, 4, true, 0.009, 0.054)),
         // Token Plan 预览；65536 为思考与正文合计的应用预算，4 张为应用图片上限，订阅用量不折算金额。
         entry("qwen4-max-preview", caps("qwen4-max-preview", "Qwen 4 Max Preview（百炼）", 65536, 1000000, true, true, true, 4, true, 0.0, 0.0)),
+        entry("qwen4-max", caps("qwen4-max", "Qwen 4 Max（百炼）", 65536, 1000000, true, true, true, 4, true, 0.0, 0.0)),
         entry("glm-5.3",           caps("glm-5.3",           "GLM-5.3",            131072, 1048576,  true, true, false, 0, true, 0.001, 0.001)),
         entry(BailianTokenPlanModels.GLM_53, BailianTokenPlanModels.capabilities(BailianTokenPlanModels.GLM_53)),
         // MiniMax

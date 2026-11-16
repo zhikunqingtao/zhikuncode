@@ -214,7 +214,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         if (isKimiCodeModel(model) || isKimiMoonshotModel(model)) return true;
         if (isOpenRouter() && OpenRouterModels.capabilities(model) != null) return true;
         // Both gateways enable thinking by default for these models.
-        if (isBailianTokenPlan() && "qwen4-max-preview".equals(model)) return true;
+        if (isBailianTokenPlan() && ("qwen4-max-preview".equals(model) || "qwen4-max".equals(model))) return true;
         if (isZenMuxClaude(model) && "anthropic/claude-fable-5.2".equals(model)) return true;
         if (usesResponsesApi(model)) return true;
         ModelCapabilities caps = MODEL_CAPABILITIES.get(model);

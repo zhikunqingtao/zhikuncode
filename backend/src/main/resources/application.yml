@@ -95,7 +95,7 @@ llm:
       api-key: ${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY:}
       base-url: https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1
       default-model: deepseek-v4.1-flash
-      models: ${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS:deepseek-v4.1-flash,bailian/glm-5.3,qwen4-max-preview}
+      models: ${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS:deepseek-v4.1-flash,bailian/glm-5.3,qwen4-max-preview,qwen4-max}
     deepseek:
       api-key: ${LLM_PROVIDER_DEEPSEEK_API_KEY:}
       base-url: https://api.deepseek.com/v1

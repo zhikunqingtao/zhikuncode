@@ -44,7 +44,7 @@ class BailianDeepSeekConfigurationTest {
         assertEquals("test-direct", directConfig.apiKey());
         // Token Plan 的模型清单必须精确等于 application.yml 默认值：四个下架模型不得回归。
         assertThat(bailianConfig.models())
-                .containsExactly("deepseek-v4.1-flash", "bailian/glm-5.3", "qwen4-max-preview")
+                .containsExactly("deepseek-v4.1-flash", "bailian/glm-5.3", "qwen4-max-preview", "qwen4-max")
                 .doesNotContain("deepseek-v4-pro-0813", "deepseek-v4-flash-0731");
 
         var registry = new LlmProviderRegistry(List.of(provider("deepseek", directConfig),
@@ -59,6 +59,10 @@ class BailianDeepSeekConfigurationTest {
         assertEquals(BAILIAN, registry.resolveClassifierModel());
         assertFalse(registry.supportsModel("qwen3.7-plus"));
         var models = new ModelRegistry(registry);
+        assertTrue(registry.getProvider("qwen4-max").supportsThinking("qwen4-max"));
+        assertThat(models.getCapabilities("qwen4-max")).usingRecursiveComparison()
+                .ignoringFields("modelId", "displayName")
+                .isEqualTo(models.getCapabilities("qwen4-max-preview"));
         assertFalse(models.isKnownModel("qwen3.7-plus"));
         assertEquals(ModelCapabilities.DEFAULT, models.getCapabilities("qwen3.7-plus"));
         ModelCapabilities caps = models.getCapabilities(BAILIAN);
