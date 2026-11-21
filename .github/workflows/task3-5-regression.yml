@@ -42,7 +42,7 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Setup Python 3.11
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.11'
 
@@ -97,7 +97,7 @@ jobs:
         with: { distribution: corretto, java-version: '21', cache: maven }
       - uses: actions/setup-node@v4
         with: { node-version: '22' }
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with: { python-version: '3.11' }
 
       - name: Backend coverage
