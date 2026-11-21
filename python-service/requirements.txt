@@ -23,7 +23,7 @@ jedi==0.19.2
 pygls==1.3.1
 
 # ──── FILE_PROCESSING 域 ────
-chardet==5.2.0
+chardet==7.6.0
 python-magic==0.4.27
 watchfiles==1.0.3
 
