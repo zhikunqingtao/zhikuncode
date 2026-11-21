@@ -34,7 +34,7 @@ bashlex==0.18
 gitpython==3.1.43
 
 # ──── MCP SDK ────
-mcp==1.12.4
+mcp==2.2.0
 
 # ──── Token 估算 ────
 tiktoken==0.12.0
